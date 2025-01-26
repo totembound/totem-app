@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.bg {
+    background-image: url("./totembound.png");
+    height: 100vh;
+    width: 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: fixed;
+}
+
+.content {
+    position: relative;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+.card {
+    width: 300px; /* Adjust as needed */
+    height: 400px; /* Adjust as needed */
+    border-radius: 16px; /* Smooth rounded corners */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+    padding: 16px; /* Add padding for content inside */
+    color: white; /* Default text color */
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .card.common {
+    background: linear-gradient(135deg, #e8e8e8, #c0c0c0); /* Common gradient */
+    border: 2px solid #c0c0c0; /* Subtle border */
+  }
+  
+  .card.uncommon {
+    background: linear-gradient(135deg, #a8e063, #56ab2f); /* Uncommon gradient */
+    border: 2px solid #8bc34a; /* Green border */
+  }
+  
+  .card.rare {
+    background: linear-gradient(135deg, #6ec6ff, #1e88e5); /* Rare gradient */
+    border: 2px solid #42a5f5; /* Blue border */
+  }
+  
+  .card.epic {
+    background: linear-gradient(135deg, #d58fed, #8e24aa); /* Epic gradient */
+    border: 2px solid #ab47bc; /* Purple border */
+  }
+  
+  .card.legendary {
+    background: linear-gradient(135deg, #ffcc80, #ff8c00); /* Legendary gradient */
+    border: 2px solid #ffa726; /* Orange border */
+  }
+
+  .card:hover {
+    transform: scale(1.05); /* Slight zoom on hover */
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.3); /* Deeper shadow on hover */
+    transition: all 0.3s ease-in-out; /* Smooth transition */
+  }
+
+  .card.rare:hover {
+    border: 3px solid #1e88e5;
+    box-shadow: 0px 0px 12px rgba(30, 136, 229, 0.6); /* Glow for Rare */
+  }
+  
+  .card.epic:hover {
+    border: 3px solid #8e24aa;
+    box-shadow: 0px 0px 12px rgba(142, 36, 170, 0.6); /* Glow for Epic */
+  }
+  
+  .card.legendary:hover {
+    border: 3px solid #ff8c00;
+    box-shadow: 0px 0px 16px rgba(255, 140, 0, 0.8); /* Glow for Legendary */
+  }
+
+  

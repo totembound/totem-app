@@ -43,8 +43,8 @@ The frontend interacts with several smart contracts:
 ## Installation
 1. Clone the repository:
 ```bash
-git clone https://github.com/starman69/dapp-totembound-frontend.git
-cd dapp-totembound-frontend
+git clone https://github.com/totembound/totem-app.git
+cd totem-app
 ```
 
 2. Install dependencies:

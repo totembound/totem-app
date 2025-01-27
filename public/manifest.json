@@ -8,14 +8,14 @@
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "tb-logo-180.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "180x180"
     },
     {
-      "src": "logo512.png",
+      "src": "tb-logo-540.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "540x540"
     }
   ],
   "start_url": ".",

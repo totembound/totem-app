@@ -38,16 +38,16 @@ export const ComingSoon: React.FC = () => {
     };
 
     return (
-        <div className="bg-purple-300/50 p-6 mt-6 rounded-lg mb-8">
+        <div className="bg-purple-300/50 p-4 md:p-6 mt-6 rounded-lg mb-8">
             <div className="flex items-center justify-center gap-3 mb-4">
-            <h2 className="text-2xl font-bold">Coming Soon!</h2>
+            <h2 className="text-xl md:text-2xl font-bold">Coming Soon!</h2>
             <Clock className="animate-pulse" size={24} />
             </div>
             
             <p className="text-lg text-center mb-6">Join our waitlist to be first in line when we launch!</p>
             
             <div className="bg-gray-400 p-2 mb-2 rounded-lg">
-                <form className="flex flex-col sm:flex-row gap-3" onSubmit={handleSubmit}>
+                <form className="flex flex-col sm:flex-row gap-2 md:gap-3" onSubmit={handleSubmit}>
                     <input 
                         autoFocus
                         required
@@ -72,7 +72,7 @@ export const ComingSoon: React.FC = () => {
 
             <div className="text-center text-gray-800 mt-4">
             Be the first to know about:
-            <div className="m-8 mt-3 mb-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="m-4 md:m-8 mt-3 mb-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div className="flex items-center gap-2 justify-left">
                     <span>🚀</span> Launch date
                 </div>

@@ -5,7 +5,13 @@ const Footer = ({ githubUrl = "https://github.com/totembound/totem-app", company
   return (
     <footer className="text-center text-white text-sm">
       <div className="flex items-center justify-center gap-2">
-        <p>© {new Date().getFullYear()} {companyName}</p>
+        <p>© {new Date().getFullYear()}</p>
+        <img 
+          src="/tb-logo-180.png" 
+          alt="Totembound Logo" 
+          className="h-5 w-5"
+        />
+        <p>{companyName}</p>
         <span>•</span>
         <a 
           href={githubUrl} 

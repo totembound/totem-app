@@ -50,8 +50,8 @@ export const SignupForm: React.FC = () => {
 
     if (!isConnected) {
         return (
-        <div className="bg-white p-6 rounded-lg max-w-2xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6 text-center">Welcome to TotemBound! 🎮✨</h1>
+        <div className="bg-white p-4 md:p-6 rounded-lg max-w-[95%] md:max-w-2xl mx-auto">
+            <h1 className="text-2xl md:text-3xl font-bold mb-6 text-center">Welcome to TotemBound! 🎮✨</h1>
             
             { comingSoon ? <ComingSoon /> : <></>}
 
@@ -62,34 +62,34 @@ export const SignupForm: React.FC = () => {
                 </p>
 
                 <div className="space-y-2">
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2 md:gap-3">
                     <span className="text-purple-400 text-lg">🦁</span>
-                    <p className="text-lg">Collect unique NFT companions with real power</p>
+                    <p className="text-base md:text-lg">Collect unique NFT companions with real power</p>
                 </div>
 
                 <div className="flex items-start gap-3">
                     <span className="text-purple-400 text-lg">⚡</span>
-                    <p className="text-lg">Train and evolve your mystical animal spirits</p>
+                    <p className="text-base md:text-lg">Train and evolve your mystical animal spirits</p>
                 </div>
 
                 <div className="flex items-start gap-3">
                     <span className="text-purple-400 text-lg">💎</span>
-                    <p className="text-lg">Trade and grow your collection of rare Totems</p>
+                    <p className="text-base md:text-lg">Trade and grow your collection of rare Totems</p>
                 </div>
 
                 <div className="flex items-start gap-3">
                     <span className="text-purple-400 text-lg">🌿</span>
-                    <p className="text-lg">Unlock new abilities and rewards</p>
+                    <p className="text-base md:text-lg">Unlock new abilities and rewards</p>
                 </div>
 
                 <div className="flex items-start gap-3">
                     <span className="text-purple-400 text-lg">🏆</span>
-                    <p className="text-lg">Compete in challenges and events</p>
+                    <p className="text-base md:text-lg">Compete in challenges and events</p>
                 </div>
 
                 <div className="flex items-start gap-3">
                     <span className="text-purple-400 text-lg">🪙</span>
-                    <p className="text-lg">Stake Wise Elder Totems to earn rewards</p>
+                    <p className="text-base md:text-lg">Stake Wise Elder Totems to earn rewards</p>
                 </div>
             
                 </div>

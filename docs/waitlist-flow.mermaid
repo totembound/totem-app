@@ -1,0 +1,19 @@
+flowchart TD
+    S3[S3 Static Site] --> CF[CloudFront]
+    CF --> Web[Web Browser]
+    Web -- "Email Signup" --> APIG[API Gateway]
+    APIG --> L1[Lambda Function]
+    L1 --> DB[(DynamoDB)]
+    DB -- "DynamoDB Streams" --> L2[Notification Lambda]
+    L2 --> SNS[SNS Topic]
+    SNS -- "Email" --> Admin[Admin Email]
+
+    style S3 fill:#ff9900
+    style CF fill:#ff9900
+    style APIG fill:#ff9900
+    style L1 fill:#ff9900
+    style L2 fill:#ff9900
+    style DB fill:#3F0FB7
+    style SNS fill:#ff9900
+    style Web fill:#87CF3E
+    

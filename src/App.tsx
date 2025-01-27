@@ -46,7 +46,7 @@ const App: React.FC = () => {
       <div className="bg"></div>
       <div className="absolute inset-0 bg-slate-900/20"></div>
       <div className="relative z-10">
-        <div className="min-h-screen bg-gray-100/20 py-6 flex flex-col sm:py-12">
+        <div className="min-h-screen bg-gray-100/20 flex flex-col sm:py-12">
           <div className="relative p-2 py-3 mx-auto w-full max-w-7xl">
             <AppContent />
             <Footer />

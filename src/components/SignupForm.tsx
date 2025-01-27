@@ -56,7 +56,7 @@ export const SignupForm: React.FC = () => {
             { comingSoon ? <ComingSoon /> : <></>}
 
             <div className="bg-gray-200 text-black p-6 rounded-lg mb-8">
-                <h2 className="text-2xl font-bold mb-6">What are Totems? 🦁</h2>
+                <h2 className="text-xl md:text-2xl font-bold mb-6">What are Totems? 🦁</h2>
                 <p className="mb-6">
                     Totems are your unique, evolving companions, each representing a powerful animal spirit. Each Totem grows stronger through your guidance and training.
                 </p>
@@ -67,27 +67,27 @@ export const SignupForm: React.FC = () => {
                     <p className="text-base md:text-lg">Collect unique NFT companions with real power</p>
                 </div>
 
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2 md:gap-3">
                     <span className="text-purple-400 text-lg">⚡</span>
                     <p className="text-base md:text-lg">Train and evolve your mystical animal spirits</p>
                 </div>
 
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2 md:gap-3">
                     <span className="text-purple-400 text-lg">💎</span>
                     <p className="text-base md:text-lg">Trade and grow your collection of rare Totems</p>
                 </div>
 
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2 md:gap-3">
                     <span className="text-purple-400 text-lg">🌿</span>
                     <p className="text-base md:text-lg">Unlock new abilities and rewards</p>
                 </div>
 
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2 md:gap-3">
                     <span className="text-purple-400 text-lg">🏆</span>
                     <p className="text-base md:text-lg">Compete in challenges and events</p>
                 </div>
 
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2 md:gap-3">
                     <span className="text-purple-400 text-lg">🪙</span>
                     <p className="text-base md:text-lg">Stake Wise Elder Totems to earn rewards</p>
                 </div>

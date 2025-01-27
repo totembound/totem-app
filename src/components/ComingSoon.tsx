@@ -70,9 +70,9 @@ export const ComingSoon: React.FC = () => {
                     </p>
                     )}
 
-            <div className="text-center text-gray-800 mt-4">
+            <div className="text-center text-gray-800 mt-8">
             Be the first to know about:
-            <div className="m-4 md:m-8 mt-3 mb-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="m-4 md:m-4 mb-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div className="flex items-center gap-2 justify-left">
                     <span>🚀</span> Launch date
                 </div>

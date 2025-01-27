@@ -1,0 +1,14 @@
+flowchart LR
+    Frontend["Frontend React/Vue"] -- Connect Wallet --> UserWallet["User Wallet Metamask"]
+    UserWallet -- Sign Transactions --> Blockchain["Blockchain Polygon"]
+    Frontend -- Call Smart Contract Functions --> GameContract["Game Smart Contracts"]
+    GameContract -- "Feed/Train/Buy Actions -&nbsp;<span style=font-family:>Approve/Spend Tokens</span>" --> Blockchain
+    GameContract -- "Interact with ERC-20" --> ERC20Contract["ERC-20 Token Contract"]
+    GameContract -- "Interact with ERC-721" --> NFTContract["NFT Contract ERC-721"]
+    NFTContract -- Evolve Totem / NFT Data --> Blockchain
+    Frontend -- Fetch Metadata / Media --> IPFS["IPFS Metadata and Images"]
+    Blockchain -- Validation and Transactions --> EthereumNode["Nodes"]
+    ERC20Contract -- Token Interactions --> Blockchain
+    HardhatCLI["Hardhat CLI CI/CD Tool"] -- Deploy Smart Contracts --> Blockchain
+    HardhatCLI -- Dynamic Metadata Updates --> IPFS
+    

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Github } from 'lucide-react';
 
-const Footer = ({ githubUrl = "https://github.com/totembound/totem-app", companyName = "TotemBound" }) => {
+const Footer = ({ githubUrl = "https://github.com/totembound", companyName = "TotemBound" }) => {
   return (
     <footer className="text-center text-white text-sm">
       <div className="flex items-center justify-center gap-2">

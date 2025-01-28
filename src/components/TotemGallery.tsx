@@ -156,7 +156,7 @@ const TotemGallery = () => {
     };
 
     const noneFoundMessage = nfts.length === 0 ? <div>
-        Your Totems will appear here once you've started collecting! Use the Game Controls to buy your first Totem and begin your journey.
+        Your Totems will appear here once you've started collecting! Use the Game Controls to buy your first Totem.
     </div>: <></>;
 
     if (loading) {

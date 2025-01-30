@@ -1,3 +1,37 @@
+import { ethers } from 'ethers';
+
+export interface UserContextType {
+    // user state
+    isSignedUp: boolean;
+    checkSignupStatus: () => Promise<void>;
+    totemBalance: string;
+    polBalance: string;
+    updateBalances: () => Promise<void>;
+    // metamask state
+    isConnected: boolean;
+    address: string;
+    provider: ethers.BrowserProvider | null;
+    signer: ethers.JsonRpcSigner | null;
+    connect: () => Promise<void>;
+    disconnect: () => void;
+    // control state for updates
+    totemUpdateCounter: number;
+    lastUpdatedTotem: bigint;
+    totemUpdated: (tokenId: bigint) => void;
+}
+
+export interface UserContextState {
+    isSignedUp: boolean;
+    totemBalance: string;
+    polBalance: string;
+    isConnected: boolean;
+    address: string;
+    provider: ethers.BrowserProvider | null;
+    signer: ethers.JsonRpcSigner | null;
+    totemUpdateCounter: number;
+    lastUpdatedTotem: bigint;
+}
+
 export enum Species {
     Goose,
     Otter,

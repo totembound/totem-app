@@ -1,42 +1,10 @@
 // contexts/UserContext.tsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
+import { UserContextType, UserContextState } from '../types/types';
 import { createGameContract, createTokenContract } from '../config/contracts';
 
-interface UserContextType {
-    // user state
-    isSignedUp: boolean;
-    checkSignupStatus: () => Promise<void>;
-    totemBalance: string;
-    polBalance: string;
-    updateBalances: () => Promise<void>;
-    // metamask state
-    isConnected: boolean;
-    address: string;
-    provider: ethers.BrowserProvider | null;
-    signer: ethers.JsonRpcSigner | null;
-    connect: () => Promise<void>;
-    disconnect: () => void;
-    // control state for updates
-    totemUpdateCounter: number;
-    lastUpdatedTotem: bigint;
-    totemUpdated: (tokenId: bigint) => void;
-}
-
-interface UserContextState {
-    isSignedUp: boolean;
-    totemBalance: string;
-    polBalance: string;
-    isConnected: boolean;
-    address: string;
-    provider: ethers.BrowserProvider | null;
-    signer: ethers.JsonRpcSigner | null;
-    totemUpdateCounter: number;
-    lastUpdatedTotem: bigint;
-}
-
 export const UserContext = createContext<UserContextType | null>(null);
-
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [state, setState] = useState<UserContextState>({
         isSignedUp: false,

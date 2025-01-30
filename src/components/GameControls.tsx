@@ -45,17 +45,11 @@ export const GameControls: React.FC = () => {
         setLoading(true);
         setError('');
         try {
-            const receipt = await purchaseTotem(selectedSpecies);
-            addLog(`Purchasing ${speciesOptions[selectedSpecies]} totem... Tx: ${receipt.hash}`);
+            const txHash = await purchaseTotem(selectedSpecies);
+            addLog(`Purchasing ${speciesOptions[selectedSpecies]} totem... Tx: ${txHash}`);
             addLog('Totem purchase complete!');
-            const events = receipt.logs.find((log: { topics: string[]; }) => 
-                log.topics[0] === ethers.id("TotemPurchased(address,uint256,uint8)")
-            );
-            console.log(events);
-            const tokenId = events && BigInt(events.topics[2]);
-            console.log(tokenId);
             updateBalances();
-            totemUpdated(tokenId);
+            totemUpdated(0n);
         }
         catch (err) {
             const message = err instanceof Error ? err.message : 'Failed to buy totem';

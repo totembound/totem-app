@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Edit2, Coffee, Dumbbell, Heart, Check, X, Sparkles, LoaderCircle } from 'lucide-react';
+import { Edit2, Coffee, Dumbbell, Heart, Sparkles, LoaderCircle } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
-import { useGame } from '../contexts/GameContext';
 import { useGameActions } from '../utils/gameActions';
 import { useTotemGame } from '../hooks/useTotemGame';
 import { createTotemNFTContract, createGameContract, TotemGameContract } from '../config/contracts';
@@ -12,18 +11,13 @@ import DisplayNameEditor from './DisplayNameEditor';
 const TotemGallery = () => {
     const { address, provider, isConnected, updateBalances, totemUpdated, totemUpdateCounter } = useUser();
     const [nfts, setNfts] = useState<(NFTMetadata & { attributes: TotemAttributes, trackings: TokenActionTrackings })[]>([]);
-    const { isLoading: isGameLoading, error: gameError, getFormattedWindowTimes } = useGame();
-    const { canUseAction, getActionStatus } = useGameActions();
-
+    const { canUseAction } = useGameActions();
     const [loading, setLoading] = useState(false);
-
     const [error, setError] = useState<string | null>(null);
     const [editingName, setEditingName] = useState<bigint | null>(null);
-    const [newName, setNewName] = useState('');
-    const { feed, train, treat, evolve, setDisplayName } = useTotemGame();
+    const { feed, train, treat, evolve } = useTotemGame();
 
     // Experience thresholds for evolution
-    
     const STAGE_THRESHOLDS = [0, 500, 1500, 3500, 7500];
     const SECONDS_PER_DAY = 86400;
 
@@ -70,13 +64,12 @@ const TotemGallery = () => {
                         tracking: tokenTrackings 
                     };
                 }));
-console.log(trackings);
-            // Convert to a more accessible object with explicit typing
+
+                // Convert to a more accessible object with explicit typing
             const trackingMap: TokenActionTrackings = trackings.reduce((acc, item) => {
                 acc[item.tokenId] = item.tracking;
                 return acc;
             }, {} as TokenActionTrackings);
-console.log(trackingMap);
 
             const nftData = await Promise.all(tokenIds.map(async (tokenId) => {
                 // Get on-chain attributes
@@ -155,21 +148,7 @@ console.log(trackingMap);
             console.error('Error training totem:', err);
         }
     };
-    
-    const handleUpdateName = async (tokenId: bigint) => {
-        if (!newName.trim()) return;
-        try {
-            await setDisplayName(tokenId, newName);
-            await updateBalances();
-            totemUpdated(tokenId);
-            setEditingName(null);
-            setNewName('');
-        }
-        catch (err) {
-            console.error('Error updating name:', err);
-        }
-    };
-    
+
     const handleEvolve = async (tokenId: bigint) => {
         try {
             await evolve(tokenId);
@@ -288,7 +267,6 @@ console.log(trackingMap);
                                             setEditingName(null);
                                             await updateBalances();
                                             totemUpdated(nft.tokenId);
-                                            //fetchNFTs(); // Refresh NFTs after update
                                         }}
                                     />
                                 ) : (

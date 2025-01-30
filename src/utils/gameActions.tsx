@@ -1,5 +1,5 @@
 // gameActions.ts
-import { ActionType, ActionConfig, ActionTracking, TotemAttributes } from '../types/types';
+import { ActionType, ActionTracking, TotemAttributes } from '../types/types';
 import { useGame } from '../contexts/GameContext';
 
 export function useGameActions() {

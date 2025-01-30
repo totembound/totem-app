@@ -1,6 +1,5 @@
 // contexts/GameContext.tsx
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { ethers } from 'ethers';
+import React, { createContext, useContext, useCallback, useEffect, useState } from 'react';
 import { useUser } from './UserContext';
 import { createGameContract } from '../config/contracts';
 import { ActionType, ActionConfig, TimeWindows, GameParameters } from '../types/types';
@@ -43,7 +42,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const loadGameConfigs = async () => {
+    const loadGameConfigs = useCallback(async () => {
         if (!provider) return;
 
         try {
@@ -93,7 +92,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [provider]);
 
     // Helper to convert UTC hours to seconds since day start
     function utcHoursToSeconds(hours: number): number {
@@ -144,7 +143,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (provider) {
             loadGameConfigs();
         }
-    }, [provider]);
+    }, [provider, loadGameConfigs]);
 
     return (
         <GameContext.Provider value={{

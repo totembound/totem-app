@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESSES, TotemGameContract, TotemNFTContract, TotemTokenContract, createGameContract, createTokenContract, createTotemNFTContract } from '../config/contracts';
 import { useForwarder } from './useForwarder';
@@ -7,8 +6,6 @@ import { useUser } from '../contexts/UserContext';
 export const useTotemGame = () => {
     const { provider, signer, address, isSignedUp } = useUser();
     const forwarder = useForwarder(provider, signer);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
 
     const checkTokenApproval = async () => {
         if (!provider || !address) return false;
@@ -128,8 +125,6 @@ export const useTotemGame = () => {
 
     const purchaseTotem = async (speciesId: number) => {
         if (!provider || !signer) throw new Error('Not connected');
-        setLoading(true);
-        setError(null);
 
         try {
             // Check approval first
@@ -157,10 +152,7 @@ export const useTotemGame = () => {
             } else {
                 throw new Error('Failed to purchase totem: ' + error.message);
             }
-        } finally {
-            setLoading(false);
         }
-
     };
 
     const feed = async (tokenId: bigint) => {

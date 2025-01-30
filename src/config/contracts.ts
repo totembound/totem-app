@@ -19,12 +19,20 @@ export const FORWARDER_ABI = [
 
 export const GAME_ABI = [
     "function signup() external",
-    "function hasAccount(address) external view returns (bool)",
+    "function hasSignedUp(address) external view returns (bool)",
     "function buyTokens() external payable",
     "function purchaseTotem(uint8 speciesId) external",
     "function feed(uint256 tokenId) external",
     "function train(uint256 tokenId) external",
-    "event UserSignedUp(address indexed user)"
+    "function treat(uint256 tokenId) external",
+    "function canUseAction(uint256 tokenId, uint8 actionType) external view returns (bool)",
+    "function getActionTracking(uint256 tokenId, uint8 actionType) external view returns (tuple(uint256 lastUsed, uint256 dailyUses, uint256 dayStartTime))",
+    "function getGameConfiguration() external view returns ((uint256 signupReward, uint256 mintPrice) params, (uint256 window1Start, uint256 window2Start, uint256 window3Start) windows, (uint256 cost, uint256 cooldown, uint256 maxDaily, uint256 minHappiness, uint256 happinessChange, uint256 experienceGain, bool useTimeWindows, bool increasesHappiness, bool enabled)[] configs)",
+
+    // Events
+    "event UserSignedUp(address indexed user)",
+    "event GameParametersUpdated(tuple(uint256 signupReward, uint256 mintPrice) params)",
+    "event TimeWindowsUpdated(tuple(uint256 window1Start, uint256 window2Start, uint256 window3Start) windows)"
 ];
 
 export const TOKEN_ABI = [
@@ -36,7 +44,7 @@ export const TOKEN_ABI = [
 
 export const TOTEM_NFT_ABI = [
     'function tokensOfOwner(address owner) view returns (uint256[])',
-    'function attributes(uint256 tokenId) view returns (uint8 species, uint8 color, uint8 rarity, uint256 happiness, uint256 experience, uint256 stage, uint256 lastFed, bool isStaked, string displayName)',
+    'function attributes(uint256 tokenId) view returns (uint8 species, uint8 color, uint8 rarity, uint256 happiness, uint256 experience, uint256 stage, bool isStaked, string displayName)',
     'function tokenURI(uint256 tokenId) view returns (string)',
     'function evolve(uint256 tokenId) external',
     'function setDisplayName(uint256 tokenId, string memory newName) external'
@@ -50,6 +58,8 @@ export type TotemGameContract = Contract & {
     purchaseTotem: (speciesId: number) => Promise<any>;
     feed: (tokenId: bigint) => Promise<any>;
     train: (tokenId: bigint) => Promise<any>;
+    treat: (tokenId: bigint) => Promise<any>;
+    canUseAction: (tokenId: bigint, actionType: Number) => Promise<boolean>;
 };
 
 export type TotemTokenContract = Contract & {

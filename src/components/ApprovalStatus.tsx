@@ -5,7 +5,7 @@ import { useTotemGame } from '../hooks/useTotemGame';
 const ApprovalStatus = () => {
     const [isApproved, setIsApproved] = useState(false);
     const { address, provider, isSignedUp } = useUser();
-    const { checkTokenApproval, approveTokenSpend } = useTotemGame();
+    const { checkTokenApproval, approveTokens } = useTotemGame();
  
     useEffect(() => {
         const checkApproval = async () => {
@@ -20,7 +20,7 @@ const ApprovalStatus = () => {
     }, [address, provider, isSignedUp, checkTokenApproval]);
  
     const handleApprove = async () => {
-        const receipt = await approveTokenSpend();
+        const receipt = await approveTokens();
         const approved = await checkTokenApproval();
         console.log('Token Approval: ', approved, receipt);
         setIsApproved(approved);

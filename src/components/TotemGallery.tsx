@@ -1,23 +1,26 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Edit2, Coffee, Dumbbell, Check, X, Sparkles, LoaderCircle } from 'lucide-react';
+import { Edit2, Coffee, Dumbbell, Heart, Sparkles, LoaderCircle } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
+import { useGameActions } from '../utils/gameActions';
 import { useTotemGame } from '../hooks/useTotemGame';
-import { createTotemNFTContract } from '../config/contracts';
+import { createTotemNFTContract, createGameContract, TotemGameContract } from '../config/contracts';
 import { NFTMetadata, TotemAttributes, Rarity, Species, Color } from '../types/types';
+import { ActionType, ActionTracking, TokenActionTrackings } from '../types/types';
+import DisplayNameEditor from './DisplayNameEditor';
 
 const TotemGallery = () => {
     const { address, provider, isConnected, updateBalances, totemUpdated, totemUpdateCounter } = useUser();
-    const [nfts, setNfts] = useState<(NFTMetadata & { attributes: TotemAttributes })[]>([]);
+    const [nfts, setNfts] = useState<(NFTMetadata & { attributes: TotemAttributes, trackings: TokenActionTrackings })[]>([]);
+    const { canUseAction } = useGameActions();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [editingName, setEditingName] = useState<bigint | null>(null);
-    const [newName, setNewName] = useState('');
-    const { feed, train, evolve, setDisplayName } = useTotemGame();
+    const { feed, train, treat, evolve } = useTotemGame();
 
     // Experience thresholds for evolution
-    
     const STAGE_THRESHOLDS = [0, 500, 1500, 3500, 7500];
-    
+    const SECONDS_PER_DAY = 86400;
+
     const fetchNFTs = useCallback(async () => {
         if (!provider || !address || !isConnected) return;
 
@@ -27,29 +30,76 @@ const TotemGallery = () => {
         try {
             const contract = createTotemNFTContract(provider);
             const tokenIds = await contract.tokensOfOwner(address);
+            const gameContract = createGameContract(provider) as TotemGameContract;
+
+            const trackings = await Promise.all(tokenIds.map(async (tokenId) => {
+                const tokenTrackings: {[key in ActionType]?: ActionTracking} = {};
+                    
+                // Fetch tracking for each action type
+                for (const actionType of [
+                        ActionType.Feed, 
+                        ActionType.Train, 
+                        ActionType.Treat
+                    ]) {
+                        try {
+                            const tracking = await gameContract.getActionTracking(tokenId, actionType);
+                            tokenTrackings[actionType] = {
+                                lastUsed: Math.min(Number(tracking.lastUsed), Math.floor(Date.now() / 1000)),
+                                dailyUses: Number(tracking.dailyUses),
+                                dayStartTime: Math.min(Number(tracking.dayStartTime), Math.floor(Date.now() / 1000) + SECONDS_PER_DAY)
+                            };
+                        } catch (err) {
+                            console.error(`Error fetching tracking for token ${tokenId}, action ${actionType}:`, err);
+                            // Provide default tracking
+                            tokenTrackings[actionType] = {
+                                lastUsed: 0,
+                                dailyUses: 0,
+                                dayStartTime: 0
+                            };
+                        }
+                    }
+
+                    return { 
+                        tokenId: tokenId.toString(), 
+                        tracking: tokenTrackings 
+                    };
+                }));
+
+                // Convert to a more accessible object with explicit typing
+            const trackingMap: TokenActionTrackings = trackings.reduce((acc, item) => {
+                acc[item.tokenId] = item.tracking;
+                return acc;
+            }, {} as TokenActionTrackings);
+
             const nftData = await Promise.all(tokenIds.map(async (tokenId) => {
                 // Get on-chain attributes
                 console.log(contract);
-                const attrs = await contract.attributes(tokenId);
                 // Get IPFS metadata
                 const uri = await contract.tokenURI(tokenId);
                 const ipfsMetadata = await fetch(uri.replace('ipfs://', 'https://ipfs.io/ipfs/')).then(res => res.json());
+
+                // Get on-chain attributes
+                const attrs = await contract.attributes(tokenId) as any;
+                // Convert attributes to our expected format
+                const parsedAttributes: TotemAttributes = {
+                    species: Number(attrs[0]),     // Species enum
+                    color: Number(attrs[1]),       // Color enum
+                    rarity: Number(attrs[2]),      // Rarity enum
+                    happiness: Number(attrs[3]),   // uint256
+                    experience: Number(attrs[4]),  // uint256
+                    stage: Number(attrs[5]),       // uint256
+                    isStaked: Boolean(attrs[6]),   // bool
+                    displayName: attrs[7] ?? ''    // string
+                };
+
                 const parsed = {
                     id: tokenId,
                     tokenId: tokenId.toString(),
                     ...ipfsMetadata,
-                    attributes: {
-                        species: Number(attrs.species),
-                        color: Number(attrs.color),
-                        rarity: Number(attrs.rarity),
-                        happiness: Number(attrs.happiness),
-                        experience: Number(attrs.experience),
-                        stage: Number(attrs.stage),
-                        lastFed: Number(attrs.lastFed),
-                        isStaked: attrs.isStaked,
-                        displayName: attrs.displayName
-                    }
+                    attributes: parsedAttributes,
+                    trackings: trackingMap[tokenId.toString()] || {}
                 };
+                console.log(parsed);
                 return parsed;
             }));
 
@@ -66,49 +116,25 @@ const TotemGallery = () => {
         fetchNFTs();
     }, [totemUpdateCounter, fetchNFTs]);
 
-    const canFeed = (attr: TotemAttributes) => {
-        if (attr.happiness === 100) return false;
-    
-        const now = Math.floor(Date.now() / 1000);
-        const lastFedTime = attr.lastFed;
-        
-        // Get current UTC day start
-        const todayUTC = Math.floor(now / 86400) * 86400;
-        
-        // Define feeding windows (in seconds since day start)
-        const feedWindows = [
-            { start: 0,      end: 28800 },  // 00:00 - 08:00
-            { start: 28800,  end: 57600 },  // 08:00 - 16:00
-            { start: 57600,  end: 86400 }   // 16:00 - 24:00
-        ];
-        
-        // Get seconds since start of UTC day
-        const secondsIntoDay = now - todayUTC;
-        
-        // Find current window
-        const currentWindow = feedWindows.find(
-            window => secondsIntoDay >= window.start && secondsIntoDay < window.end
-        );
-        
-        if (!currentWindow) return false;
-        
-        // Check if last feed was in current window
-        const lastFedSecondsIntoDay = lastFedTime - Math.floor(lastFedTime / 86400) * 86400;
-        const lastFedDay = Math.floor(lastFedTime / 86400) * 86400;
-        
-        return todayUTC > lastFedDay || 
-               (todayUTC === lastFedDay && 
-                (lastFedSecondsIntoDay < currentWindow.start || 
-                 lastFedSecondsIntoDay >= currentWindow.end));
-    };
-
     const handleFeed = async (tokenId: bigint) => {
         try {
             await feed(tokenId);
             await updateBalances();
             totemUpdated(tokenId);
-        } catch (err) {
+        }
+        catch (err) {
             console.error('Error feeding totem:', err);
+        }
+    };
+
+    const handleTreat = async (tokenId: bigint) => {
+        try {
+            await treat(tokenId);
+            await updateBalances();
+            totemUpdated(tokenId);
+        }
+        catch (err) {
+            console.error('Error training totem:', err);
         }
     };
 
@@ -117,29 +143,18 @@ const TotemGallery = () => {
             await train(tokenId);
             await updateBalances();
             totemUpdated(tokenId);
-        } catch (err) {
+        }
+        catch (err) {
             console.error('Error training totem:', err);
         }
     };
-    
-    const handleUpdateName = async (tokenId: bigint) => {
-        if (!newName.trim()) return;
-        try {
-            await setDisplayName(tokenId, newName);
-            await updateBalances();
-            totemUpdated(tokenId);
-            setEditingName(null);
-            setNewName('');
-        } catch (err) {
-            console.error('Error updating name:', err);
-        }
-    };
-    
+
     const handleEvolve = async (tokenId: bigint) => {
         try {
             await evolve(tokenId);
             totemUpdated(tokenId);
-        } catch (err) {
+        }
+        catch (err) {
             console.error('Error evolving totem:', err);
         }
     };
@@ -153,6 +168,24 @@ const TotemGallery = () => {
             case Rarity.Legendary: return 'text-yellow-600';
             default: return 'text-gray-600';
         }
+    };
+
+    const formatDisplayName = (name: any) => {
+        // If name is null, undefined, or not a string, return default
+        if (name == null || typeof name !== 'string') {
+            return 'Set nickname...';
+        }
+        
+        // If name contains only special characters/boxes, treat as empty
+        if (/^[\u{FFF0}-\u{FFFF}\u{10FFFF}]+$/u.test(name)) {
+            return 'Set nickname...';
+        }
+    
+        // If it's just spaces or invisible characters
+        if (!name.trim()) return 'Set nickname...';
+    
+        // Otherwise show the name with quotes
+        return `"${name}"`;
     };
 
     const noneFoundMessage = nfts.length === 0 ? <div>
@@ -176,7 +209,46 @@ const TotemGallery = () => {
                 </div>
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {nfts.map((nft) => (
+                {nfts.map((nft) => {
+                    // Safely get the tracking for each action type
+                    const feedTracking = nft.trackings?.[ActionType.Feed] ?? {
+                        lastUsed: 0,
+                        dailyUses: 0,
+                        dayStartTime: 0
+                    };
+
+                    const trainTracking = nft.trackings?.[ActionType.Train] ?? {
+                        lastUsed: 0,
+                        dailyUses: 0,
+                        dayStartTime: 0
+                    };
+
+                    const treatTracking = nft.trackings?.[ActionType.Treat] ?? {
+                        lastUsed: 0,
+                        dailyUses: 0,
+                        dayStartTime: 0
+                    };
+
+                    // Calculate action availability
+                    const canFeed = canUseAction(
+                        nft.attributes, 
+                        ActionType.Feed,
+                        feedTracking
+                    );
+
+                    const canTrain = canUseAction(
+                        nft.attributes, 
+                        ActionType.Train,
+                        trainTracking
+                    );
+
+                    const canTreat = canUseAction(
+                        nft.attributes, 
+                        ActionType.Treat,
+                        treatTracking
+                    );
+
+                    return (
                     <div key={nft.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
                         <div className="aspect-w-1 aspect-h-1">
                             <img 
@@ -188,46 +260,26 @@ const TotemGallery = () => {
                         <div className="p-4">
                             <div className="flex justify-between items-start mb-2">
                                 {editingName === nft.tokenId ? (
-                                    <div className="flex items-center gap-2 pl-0">
-                                        <input
-                                            type="text"
-                                            value={newName}
-                                            onChange={(e) => setNewName(e.target.value)}
-                                            className="border rounded px-2 py-1 text-sm w-48"
-                                            placeholder="Enter nickname..."
-                                        />
-                                        <button
-                                            onClick={() => handleUpdateName(nft.tokenId)}
-                                            className="text-green-600 hover:text-green-800"
-                                            title="Save"
-                                        >
-                                            <Check size={16} />
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setEditingName(null);
-                                                setNewName('');
-                                            }}
-                                            className="text-red-600 hover:text-red-800"
-                                            title="Cancel"
-                                        >
-                                            <X size={16} />
-                                        </button>
-                                    </div>
+                                    <DisplayNameEditor
+                                        tokenId={nft.tokenId}
+                                        currentName={nft.attributes.displayName}
+                                        onClose={async () => {
+                                            setEditingName(null);
+                                            await updateBalances();
+                                            totemUpdated(nft.tokenId);
+                                        }}
+                                    />
                                 ) : (
-                                    <div className="flex flex-col">
-                                        <h3 className="font-semibold text-lg">{nft.name}</h3>
-                                        <div className="flex items-center gap-2">
-                                            <p className="text-sm text-gray-600 italic">
-                                                {nft.attributes.displayName ? `"${nft.attributes.displayName}"` : 'Set nickname...'}
-                                            </p>
-                                            <button
-                                                onClick={() => setEditingName(nft.tokenId)}
-                                                className="text-gray-400 hover:text-gray-600 mt-1"
-                                            >
-                                                <Edit2 size={14} />
-                                            </button>
-                                        </div>
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-sm text-gray-600 italic">
+                                            {formatDisplayName(nft.attributes.displayName || null)}
+                                        </p>
+                                        <button
+                                            onClick={() => setEditingName(nft.tokenId)}
+                                            className="text-gray-400 hover:text-gray-600"
+                                        >
+                                            <Edit2 size={14} />
+                                        </button>
                                     </div>
                                 )}
                                 <span className={`px-2 py-1 rounded-full text-sm ${getRarityColor(nft.attributes.rarity)}`}>
@@ -273,26 +325,37 @@ const TotemGallery = () => {
                                     )}
                                     <div className="flex gap-2 ml-auto">
                                         <button
-                                            onClick={() => { console.log(nft); handleFeed(nft.tokenId); }}
-                                            disabled={!canFeed(nft.attributes)}
+                                            onClick={() => handleTreat(nft.tokenId)}
+                                            disabled={!canTreat}
                                             className={`p-2 rounded-full ${
-                                                canFeed(nft.attributes)
-                                                    ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                                                canTreat
+                                                    ? 'bg-pink-100 text-pink-600 hover:bg-pink-200'
                                                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                             }`}
-                                            title={canFeed(nft.attributes) ? 'Feed' : 'Can feed after UTC midnight, 8am or 4pm, not at max happiness'}
+                                            title={canTrain ? 'Treat' : 'Need to wait 4 hrs to treat again'}
+                                        >
+                                            <Heart size={20} />
+                                        </button>
+                                        <button
+                                            onClick={() => { console.log(nft); handleFeed(nft.tokenId); }}
+                                            disabled={!canFeed}
+                                            className={`p-2 rounded-full ${
+                                                canFeed ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                            }`}
+                                            title={canFeed ? 'Feed' : 'Can feed after UTC midnight, 8am or 4pm, not at max happiness'}
                                         >
                                             <Coffee size={20} />
                                         </button>
                                         <button
                                             onClick={() => handleTrain(nft.tokenId)}
-                                            disabled={nft.attributes.happiness < 20}
+                                            disabled={!canTrain}
                                             className={`p-2 rounded-full ${
-                                                nft.attributes.happiness >= 20
+                                                canTrain
                                                     ? 'bg-blue-100 text-blue-600 hover:bg-blue-200'
                                                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                             }`}
-                                            title={nft.attributes.happiness >= 20 ? 'Train' : 'Need happiness ≥ 20 to train'}
+                                            title={canTrain ? 'Train' : 'Need happiness ≥ 20 to train'}
                                         >
                                             <Dumbbell size={20} />
                                         </button>
@@ -301,7 +364,7 @@ const TotemGallery = () => {
                             </div>
                         </div>
                     </div>
-                ))}
+                )})}
             </div>
         </div>
     );

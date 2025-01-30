@@ -19,11 +19,11 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "lint": "eslint . --ext .ts,.tsx",
+    "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "test:coverage": "react-scripts test --coverage --watchAll=false",
-    "test:ci": "react-scripts test --ci --coverage --watchAll=false",
     "check-types": "tsc --noEmit",
+    "test:coverage": "react-scripts test --coverage --watchAll=false",
+    "test:ci": "react-scripts test --ci --coverage --watchAll=false --maxWorkers=2",
     "validate": "npm run lint && npm run check-types && npm run test:coverage"
   },
   "eslintConfig": {

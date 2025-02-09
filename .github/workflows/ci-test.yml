@@ -41,9 +41,13 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-node-
 
-    - name: Install contracts dependencies
+    - name: Install Contracts dependencies
       working-directory: ./totem-contracts
       run: npm install
+
+    - name: Compile Contracts
+      working-directory: ./totem-contracts
+      run: npx hardhat compile
 
     - name: Export Contract ABIs
       working-directory: ./totem-contracts

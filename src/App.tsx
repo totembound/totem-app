@@ -1,64 +1,76 @@
 import React from 'react';
-import { UserProvider, useUser } from './contexts/UserContext';
+import { UserProvider } from './contexts/UserContext';
 import { GameProvider } from './contexts/GameContext';
-import { SignupForm } from './components/SignupForm';
-import { GameControls } from './components/GameControls';
-import TotemGallery from './components/TotemGallery';
-import Footer from './components/Footer';
+import TotemGallery from './components/pages/TotemGallery';
+import ShopInterface from './components/pages/ShopInterface';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { MainLayout } from './components/layouts/MainLayout';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { ThemeProvider } from './contexts/ThemeContext';
+import Home from './components/pages/Home';
+import Rewards from './components/pages/Rewards';
+import Challenges from './components/pages/Challenges';
+import Expeditions from './components/pages/Expeditions';
+import Achievements from './components/pages/Achievements';
 
-const AppContent: React.FC = (children) => {
-    const { address, isSignedUp, isConnected } = useUser();
-    
-    console.log('App Rendering - Detailed State:', { 
-        isConnected, 
-        address, 
-        isSignedUp,
-        addressLength: address?.length,
-        addressTrimmed: address ? address.slice(0, 6) : 'No Address'
-    });
+const AppRoutes: React.FC = () => {
+  return (
+    <Routes>
+        <Route path="/" element={<MainLayout />}>
+          {/* Public Routes */}
+          <Route index element={<Home />} />
 
-    // show signup form for new user
-    if (!isConnected || !isSignedUp) {
-        return (
-          <div className="flex flex-col p-4 sm:p-6 md:p-8">
-            <div className="relative p-2 py-3 sm:max-w-xl sm:mx-auto">
-              <SignupForm />
-            </div>
-          </div>
-        );
-    }
-
-    // Signed up - show main app views
-    return (
-        <div className="flex flex-col p-4 sm:p-6 md:p-8">
-            <div className="w-full max-w-6xl mx-auto items-start">
-                <SignupForm />
-                <GameControls />
+          {/* Protected routes */}
+          <Route path="totems" element={
+              <ProtectedRoute>
                 <TotemGallery />
-            </div>
-        </div>
-    );
+              </ProtectedRoute>
+            } />
+            <Route path="challenges" element={
+              <ProtectedRoute>
+                <Challenges />
+              </ProtectedRoute>
+            } />
+            <Route path="expeditions" element={
+              <ProtectedRoute>
+                <Expeditions />
+              </ProtectedRoute>
+            } />
+            <Route path="achievements" element={
+              <ProtectedRoute>
+                <Achievements />
+              </ProtectedRoute>
+            } />
+            <Route path="rewards" element={
+              <ProtectedRoute>
+                <Rewards />
+              </ProtectedRoute>
+            } />
+            <Route path="shop" element={
+              <ProtectedRoute>
+                <ShopInterface />
+              </ProtectedRoute>
+            } />
+
+            {/* 404 Route - Always last */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+    </Routes>
+  );
 };
 
 const App: React.FC = () => {
   return (
-    <UserProvider>
-      <GameProvider>
-        <div className="relative min-h-screen">
-          <div className="bg"></div>
-          <div className="absolute inset-0 bg-slate-900/20"></div>
-          <div className="relative z-10">
-            <div className="min-h-screen bg-gray-100/20 flex flex-col sm:py-12">
-              <div className="relative p-2 py-3 mx-auto w-full max-w-7xl">
-                <AppContent />
-                <Footer />
-              </div>
-            </div>
-          </div>
-        </div>
-      </GameProvider>
-    </UserProvider>
+    <BrowserRouter>
+      <ThemeProvider>
+        <UserProvider>
+          <GameProvider>
+            <AppRoutes />
+          </GameProvider>
+        </UserProvider>
+      </ThemeProvider>
+    </BrowserRouter>
   );
-}
+};
 
 export default App;

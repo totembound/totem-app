@@ -1,11 +1,13 @@
-import { Contract, BrowserProvider } from 'ethers';
-import { TotemAttributes } from '../types/types';
+import { Contract, BrowserProvider, EventFilter } from 'ethers';
+import { Achievement, AchievementProgress, TotemAttributes } from '../types/types';
 
 export const CONTRACT_ADDRESSES = {
     game: process.env.REACT_APP_GAME_ADDRESS as string,
     forwarder: process.env.REACT_APP_FORWARDER_ADDRESS as string,
     token: process.env.REACT_APP_TOKEN_ADDRESS as string,
     nft: process.env.REACT_APP_NFT_ADDRESS as string,
+    rewards: process.env.REACT_APP_REWARDS_ADDRESS as string,
+    achievements: process.env.REACT_APP_ACHIEVEMENTS_ADDRESS as string,
 };
 
 // ABI snippets for the functions we need
@@ -50,6 +52,39 @@ export const TOTEM_NFT_ABI = [
     'function setDisplayName(uint256 tokenId, string memory newName) external'
 ];
 
+export const REWARDS_ABI = [
+    // Core reward functions
+    "function claim(bytes32 rewardId) external returns (uint256)",
+    "function isClaimingAllowed(bytes32 rewardId, address user) external view returns (bool)",
+    
+    // Streak and status getters
+    "function getStreakStatus(bytes32 rewardId, address user) external view returns (tuple(uint256 currentStreak, uint256 bestStreak, uint256 nextClaimTime, uint256 gracePeriodEnd, bool canClaim, bool isProtected, uint256 protectionExpiry))",
+    "function getTimeUntilClaim(bytes32 rewardId, address user) external view returns (uint256)",
+    
+    // Protection related functions
+    "function purchaseProtection(bytes32 rewardId, uint8 tier) external",
+    "function getProtectionStatus(bytes32 rewardId, address user, uint8 tier) external view returns (bool canPurchase, bool isActive, uint256 remainingTime)",
+    "function getProtectionTier(bytes32 rewardId, uint8 tier) external view returns (tuple(uint256 cost, uint256 duration, uint256 requiredStreak, bool enabled))",
+    
+    // Reward configuration getters
+    "function getRewardInfo(bytes32 rewardId) external view returns (string memory name, string memory description, string memory iconURI, tuple(uint256 baseAmount, uint256 interval, uint256 streakBonus, uint256 maxStreakBonus, uint256 minStreak, uint256 gracePeriod, bool allowProtection, bool enabled, uint8 protectionTierCount) config)",
+    "function getRewardIds() external view returns (bytes32[])",
+    "function getUserInfo(bytes32 rewardId, address user) external view returns (tuple(uint256 lastClaim, uint256 currentStreak, uint256 bestStreak, uint256 totalClaims, uint256 protectionExpiry, uint8 activeTier))",
+    
+    // Events
+    "event RewardClaimed(bytes32 indexed rewardId, address indexed user, uint256 amount, uint256 streak)",
+    "event ProtectionPurchased(bytes32 indexed rewardId, address indexed user, uint8 tier, uint256 expiry)",
+    "event ProtectionUsed(bytes32 indexed rewardId, address indexed user, uint8 tier)"
+];
+
+export const ACHIEVEMENTS_ABI = [
+    "function hasAchievement(bytes32 achievementId, address user) external view returns (bool)",
+    "function getAchievementProgress(bytes32 id, address user) external view returns (bool isCompleted, uint256 currentCount, bool[] memory unlockedMilestones)",
+    "function getAchievementsByCategory(uint8 category, address user) external view returns (tuple(bytes32 id, string name, string description, uint8 achievementType, bytes32 subType, bool enabled, string badgeUri, tuple(string name, string description, string badgeUri, uint256 requirement)[] milestones, bool isCompleted, uint256 currentCount)[] memory)",
+    "function getDetailedProgress(bytes32 id, address user) external view returns (tuple(uint256 startTime, uint256 lastUpdate, uint256 count, bool achieved, bool[] unlockedMilestones))",
+    "function getUserCategoriesProgress(address user) external view returns (tuple(uint8 category, uint256 totalAchievements, uint256 completedAchievements, uint256 totalMilestones, uint256 unlockedMilestones)[] memory)"
+];
+
 // Define interface for contract functions
 export type TotemGameContract = Contract & {
     signup: () => Promise<any>;
@@ -74,6 +109,56 @@ export type TotemNFTContract = Contract & {
     tokenURI: (tokenId: bigint | number) => Promise<string>;
     evolve: (tokenId: bigint | number) => Promise<any>;
     setDisplayName: (tokenId: bigint | number, displayName: string) => Promise<any>;
+
+    // Add event filters
+    filters: {
+        Transfer: (
+            from?: string | null,
+            to?: string | null,
+            tokenId?: bigint | null
+        ) => EventFilter;
+    };
+    
+    // Add event listeners
+    on: (
+        event: 'Transfer',
+        listener: (from: string, to: string, tokenId: bigint, event: Event) => void
+    ) => TotemNFTContract;
+    
+    // Add once listeners
+    once: (
+        event: 'Transfer',
+        listener: (from: string, to: string, tokenId: bigint, event: Event) => void
+    ) => TotemNFTContract;
+
+    // Add queryFilter
+    queryFilter: (
+        event: EventFilter,
+        fromBlockOrBlockHash?: string | number | undefined,
+        toBlock?: string | number | undefined
+    ) => Promise<Array<Event>>;
+};
+
+export type TotemRewardsContract = Contract & {
+    getStreak: (rewardId: bigint, address: string) => Promise<bigint>;
+    getLastClaimed: (rewardId: bigint, address: string) => Promise<bigint>;
+    claimReward: (rewardId: bigint) => Promise<boolean>;
+};
+
+export type TotemAchievementsContract = Contract & {
+    getAchievementsByCategory(
+        category: number,
+        user: string
+    ): Promise<Achievement[]>;
+    hasAchievement(
+        achievementId: string,
+        user: string
+    ): Promise<boolean>;
+    
+    getAchievementProgress(
+        id: string,
+        user: string
+    ): Promise<AchievementProgress>;
 };
 
 export const createGameContract = (provider: BrowserProvider) => {
@@ -98,4 +183,20 @@ export const createTotemNFTContract = (provider: BrowserProvider) => {
         TOTEM_NFT_ABI,
         provider
     ) as TotemNFTContract;
+};
+
+export const createRewardsContract = (provider: BrowserProvider) => {
+    return new Contract(
+        CONTRACT_ADDRESSES.rewards,
+        REWARDS_ABI,
+        provider
+    ) as TotemRewardsContract;
+};
+
+export const createAchievementsContract = (provider: BrowserProvider) => {
+    return new Contract(
+        CONTRACT_ADDRESSES.achievements,
+        ACHIEVEMENTS_ABI,
+        provider
+    ) as TotemAchievementsContract;
 };

@@ -4,24 +4,8 @@ import { useForwarder } from './useForwarder';
 import { useUser } from '../contexts/UserContext';
 
 export const useTotemGame = () => {
-    const { provider, signer, address, isSignedUp } = useUser();
+    const { provider, signer, address, isSignedUp, isTokenApproved } = useUser();
     const forwarder = useForwarder(provider, signer);
-
-    const checkTokenApproval = async () => {
-        if (!provider || !address) return false;
-
-        try {
-            const tokenContract = createTokenContract(provider);
-            const allowance = await tokenContract.allowance(address, CONTRACT_ADDRESSES.game);
-            console.log('Token Allowance: ', allowance);
-    
-            return allowance > 0;
-        }
-        catch (error: any) {
-            console.error('Error checking token approval:', error);
-            return false;
-        }
-    };
 
     const signup = async () => {
         if (!provider || !address) throw new Error('Not connected');
@@ -128,8 +112,7 @@ export const useTotemGame = () => {
 
         try {
             // Check approval first
-            const isApproved = await checkTokenApproval();
-            if (!isApproved) {
+            if (!isTokenApproved) {
                 console.log('Approving tokens...');
                 await approveTokens();
             }
@@ -245,7 +228,6 @@ export const useTotemGame = () => {
         signupGasless,
         buyTokens,
         purchaseTotem,
-        checkTokenApproval,
         approveTokens,
         feed,
         train,

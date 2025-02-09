@@ -2,17 +2,39 @@
 import React, { createContext, useContext, useCallback, useEffect, useState } from 'react';
 import { useUser } from './UserContext';
 import { createGameContract } from '../config/contracts';
-import { ActionType, ActionConfig, TimeWindows, GameParameters } from '../types/types';
+import { ActionType, ActionConfig, TimeWindows, GameParameters, TotemAttributes, ActionTracking } from '../types/types';
 
-interface GameContextType {
+export interface GameContextType {
     actionConfigs: Record<ActionType, ActionConfig>;
-    timeWindows: TimeWindows | null;
-    gameParams: GameParameters | null;
+    timeWindows: {
+        window1Start: number;
+        window2Start: number;
+        window3Start: number;
+    } | null;
+    gameParams: any; // Define a more specific type if possible
     isLoading: boolean;
     error: string | null;
+    
+    // Existing methods
     refreshGameConfig: () => Promise<void>;
     debugTimeWindow: () => void;
     getFormattedWindowTimes(): { [key: string]: string };
+
+    canUseAction: (
+        attributes: TotemAttributes, 
+        actionType: ActionType, 
+        actionTracking?: ActionTracking
+    ) => boolean;
+
+    // New methods for action status
+    getActionStatus: (
+        actionType: ActionType,
+        attributes: TotemAttributes,
+        tracking: ActionTracking,
+        config: ActionConfig
+    ) => string;
+
+    getNextAvailableWindow: (tracking: ActionTracking) => string;
 }
 
 const defaultGetFormattedWindowTimes = () => {
@@ -22,6 +44,12 @@ const defaultGetFormattedWindowTimes = () => {
         window3: 'Loading...'
     };
 };
+const SECONDS_PER_DAY = 86400;
+
+// Default implementation to match the context creation
+const defaultCanUseAction = () => false;
+const defaultGetActionStatus = () => 'Action not configured';
+const defaultGetNextAvailableWindow = () => 'Available Now';
 
 const GameContext = createContext<GameContextType>({
     actionConfigs: {} as Record<ActionType, ActionConfig>,
@@ -31,7 +59,10 @@ const GameContext = createContext<GameContextType>({
     error: null,
     refreshGameConfig: async () => {},
     debugTimeWindow: () => {},
-    getFormattedWindowTimes: defaultGetFormattedWindowTimes
+    getFormattedWindowTimes: defaultGetFormattedWindowTimes,
+    canUseAction: defaultCanUseAction,
+    getActionStatus: defaultGetActionStatus,
+    getNextAvailableWindow: defaultGetNextAvailableWindow
 });
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -145,6 +176,145 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, [provider, loadGameConfigs]);
 
+    function getActionStatus(
+        actionType: ActionType,
+        attributes: TotemAttributes,
+        tracking: ActionTracking,
+        config: ActionConfig
+    ): string {
+        if (!tracking || !config) return 'Action not configured';
+    
+        const currentTime = Math.floor(Date.now() / 1000);
+        
+        // Check if action is enabled
+        if (!config.enabled) return 'Action disabled';
+    
+        // Happiness check
+        if (attributes.happiness < config.minHappiness) {
+            return `Needs ${config.minHappiness} happiness (current: ${attributes.happiness})`;
+        }
+    
+        // Cooldown check
+        if (config.cooldown > 0) {
+            const cooldownRemaining = (tracking.lastUsed + config.cooldown) - currentTime;
+            if (cooldownRemaining > 0) {
+                const minutes = Math.ceil(cooldownRemaining / 60);
+                return `Cooldown: ${minutes} minute${minutes !== 1 ? 's' : ''} remaining`;
+            }
+        }
+    
+        // Daily limit check
+        if (config.maxDaily > 0 && actionType !== ActionType.Feed) {
+            const currentDay = Math.floor(currentTime / SECONDS_PER_DAY) * SECONDS_PER_DAY;
+            if (currentDay === tracking.dayStartTime && tracking.dailyUses >= config.maxDaily) {
+                return `Daily limit (${config.maxDaily}) reached`;
+            }
+        }
+    
+        // Time windows check
+        if (config.useTimeWindows) {
+            return canUseInTimeWindow(tracking.lastUsed) 
+                ? 'Available in current time window' 
+                : 'Already fed, wait for next time window';
+        }
+    
+        return 'Available';
+    }
+    
+    function canUseAction(
+        attributes: TotemAttributes, 
+        actionType: ActionType, 
+        actionTracking?: ActionTracking
+    ): boolean {
+        const config = actionConfigs[actionType];
+        if (!config || !timeWindows) return false;
+
+        const currentTime = Math.floor(Date.now() / 1000);
+
+        // Add debug info
+        if (actionType === ActionType.Feed) {
+            //debugTimeWindow();
+        }
+
+        // Basic validation
+        if (!config.enabled) return false;
+        if (attributes.happiness < config.minHappiness) return false;
+        if (!actionTracking) return false;
+
+        // Cooldown check
+        if (config.cooldown > 0 && 
+            currentTime < actionTracking.lastUsed + config.cooldown) {
+            return false;
+        }
+
+        // Daily limit check
+        if (config.maxDaily > 0) {
+            const currentDay = Math.floor(currentTime / SECONDS_PER_DAY) * SECONDS_PER_DAY;
+            if (currentDay === actionTracking.dayStartTime && 
+                actionTracking.dailyUses >= config.maxDaily) {
+                return false;
+            }
+        }
+
+        // Time windows check
+        if (config.useTimeWindows) {
+            return canUseInTimeWindow(actionTracking.lastUsed);
+        }
+        
+        return true;
+    }
+
+    function canUseInTimeWindow(lastUsed: number): boolean {
+        const currentTime = Math.floor(Date.now() / 1000);
+        const todayUTC = Math.floor(currentTime / SECONDS_PER_DAY) * SECONDS_PER_DAY;
+        const lastUsedDay = Math.floor(lastUsed / SECONDS_PER_DAY) * SECONDS_PER_DAY;
+        
+        // Different day = always allowed
+        if (todayUTC > lastUsedDay) return true;
+        
+        const currentDaySeconds = currentTime - todayUTC;
+        const lastUsedDaySeconds = lastUsed - lastUsedDay;
+        
+        // Match the exact logic from the contract
+        if (currentDaySeconds < timeWindows?.window2Start!) {
+            // In Window 1 (00:00-08:00)
+            return lastUsedDaySeconds >= timeWindows?.window2Start! || 
+                lastUsedDaySeconds < timeWindows?.window1Start!;
+        }
+        else if (currentDaySeconds < timeWindows?.window3Start!) {
+            // In Window 2 (08:00-16:00)
+            return lastUsedDaySeconds < timeWindows?.window2Start! || 
+                lastUsedDaySeconds >= timeWindows?.window3Start!;
+        }
+        else {
+            // In Window 3 (16:00-00:00)
+            return lastUsedDaySeconds < timeWindows?.window3Start!;
+        }
+    }
+
+    function getNextAvailableWindow(tracking: ActionTracking): string {
+        const SECONDS_PER_DAY = 86400;
+        const currentTime = Math.floor(Date.now() / 1000);
+        const todayUTC = Math.floor(currentTime / SECONDS_PER_DAY) * SECONDS_PER_DAY;
+        const lastUsedDay = Math.floor(tracking.lastUsed / SECONDS_PER_DAY) * SECONDS_PER_DAY;
+        
+        // Different day = always allowed
+        if (todayUTC > lastUsedDay) return 'Available Now';
+        
+        const currentDaySeconds = currentTime - todayUTC;
+        
+        if (currentDaySeconds < 8 * 3600) {
+            // In Window 1 (00:00-08:00)
+            return 'Next Window: 08:00 UTC';
+        } else if (currentDaySeconds < 16 * 3600) {
+            // In Window 2 (08:00-16:00)
+            return 'Next Window: 16:00 UTC';
+        } else {
+            // In Window 3 (16:00-00:00)
+            return 'Next Window: 00:00 UTC (Next Day)';
+        }
+    }
+
     return (
         <GameContext.Provider value={{
             actionConfigs,
@@ -154,7 +324,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             error,
             debugTimeWindow,
             getFormattedWindowTimes,
-            refreshGameConfig
+            refreshGameConfig,
+            canUseAction,
+            getActionStatus,
+            getNextAvailableWindow
         }}>
             {children}
         </GameContext.Provider>

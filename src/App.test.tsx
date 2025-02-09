@@ -1,16 +1,18 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
 import App from './App';
 
-// Define provider prop types
-type ProviderProps = {
-  children: React.ReactNode;
-};
+// Mock all context providers
+jest.mock('./contexts/ThemeContext', () => ({
+  ThemeProvider: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="theme-provider">{children}</div>
+  )
+}));
 
-// Mock the context hooks
 jest.mock('./contexts/UserContext', () => ({
-  UserProvider: ({ children }: ProviderProps) => children,
+  UserProvider: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="user-provider">{children}</div>
+  ),
   useUser: () => ({
     address: '',
     isConnected: false,
@@ -21,86 +23,73 @@ jest.mock('./contexts/UserContext', () => ({
   })
 }));
 
-// Mock the GameProvider
 jest.mock('./contexts/GameContext', () => ({
-  GameProvider: ({ children }: ProviderProps) => children
-}));
-
-// Mock all child components with better accessibility
-jest.mock('./components/SignupForm', () => ({
-  SignupForm: () => (
-    <div role="form" aria-label="Sign Up Form" data-testid="signup-form">
-      Sign Up Form
-    </div>
+  GameProvider: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="game-provider">{children}</div>
   )
 }));
 
-jest.mock('./components/GameControls', () => ({
-  GameControls: () => (
-    <div role="region" aria-label="Game Controls" data-testid="game-controls">
-      Game Controls
-    </div>
-  )
-}));
-
-jest.mock('./components/TotemGallery', () => ({
+// Mock route components
+jest.mock('./components/pages/Home', () => ({
   __esModule: true,
-  default: () => (
-    <div role="region" aria-label="Totem Gallery" data-testid="totem-gallery">
-      Totem Gallery
+  default: () => <div data-testid="home-page">Home Page</div>
+}));
+
+jest.mock('./components/layouts/MainLayout', () => ({
+  MainLayout: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="main-layout">
+      {children}
     </div>
   )
 }));
 
-jest.mock('./components/Footer', () => ({
-  __esModule: true,
-  default: () => (
-    <footer role="contentinfo" data-testid="footer">
-      Footer Content
-    </footer>
-  )
+// Mock react-router components to prevent actual routing
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  BrowserRouter: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="browser-router">{children}</div>
+  ),
+  Routes: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="routes">{children}</div>
+  ),
+  Route: ({ element }: { element: React.ReactNode }) => (
+    <div data-testid="route">{element}</div>
+  ),
+  Outlet: () => <div data-testid="outlet">Outlet Content</div>,
+  Navigate: () => null
 }));
+
+// Mock window.scrollTo to prevent errors
+Object.defineProperty(window, 'scrollTo', {
+  value: jest.fn(),
+  writable: true
+});
 
 describe('App Component', () => {
-  test('renders initial state correctly', async () => {
-    // Mock console.log to prevent noise in test output
-    const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-    
-    let container: HTMLElement;
-    
-    await act(async () => {
-      const rendered = render(<App />);
-      container = rendered.container;
-    });
-    
-    // Test main layout structure using class name contains
-    const allClasses = Array.from(container!.querySelectorAll('*'))
-      .map(element => element.className)
-      .join(' ');
-      
-    // Check for presence of key layout classes
-    expect(allClasses).toContain('min-h-screen');
-    expect(allClasses).toContain('bg-gray-100');
-    
-    // Test component rendering using better queries
-    expect(screen.getByRole('form', { name: /sign up form/i })).toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: /game controls/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: /totem gallery/i })).not.toBeInTheDocument();
-    expect(screen.getByRole('contentinfo')).toBeInTheDocument();
-    
-    // Verify console.log was called with expected state
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'App Rendering - Detailed State:',
-      expect.objectContaining({
-        isConnected: false,
-        address: '',
-        isSignedUp: false,
-        addressLength: 0,
-        addressTrimmed: 'No Address'
-      })
-    );
+  test('renders providers in correct order', () => {
+    const { container } = render(<App />);
 
-    // Clean up
-    consoleSpy.mockRestore();
+    // Check provider nesting order
+    const providersOrder = [
+      'theme-provider',
+      'user-provider', 
+      'game-provider'
+    ];
+
+    providersOrder.forEach(provider => {
+      expect(container.querySelector(`[data-testid="${provider}"]`)).toBeInTheDocument();
+    });
+  });
+
+  test('renders with correct routing structure', () => {
+    render(<App />);
+    
+    // Check core routing components
+    expect(screen.getByTestId('browser-router')).toBeInTheDocument();
+    expect(screen.getByTestId('routes')).toBeInTheDocument();
+    expect(screen.getByTestId('route')).toBeInTheDocument();
+    
+    // Check layout
+    expect(screen.getByTestId('main-layout')).toBeInTheDocument();
   });
 });

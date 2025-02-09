@@ -21,5 +21,7 @@ console.log('Contract addresses:', {
   game: process.env.REACT_APP_GAME_ADDRESS,
   forwarder: process.env.REACT_APP_FORWARDER_ADDRESS,
   token: process.env.REACT_APP_TOKEN_ADDRESS,
-  nft: process.env.REACT_APP_NFT_ADDRESS
+  nft: process.env.REACT_APP_NFT_ADDRESS,
+  rewards: process.env.REACT_APP_REWARDS_ADDRESS,
+  achievements: process.env.REACT_APP_ACHIEVEMENTS_ADDRESS
 });

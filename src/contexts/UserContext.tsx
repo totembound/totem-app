@@ -1,27 +1,143 @@
 // contexts/UserContext.tsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
-import { UserContextType, UserContextState } from '../types/types';
-import { createGameContract, createTokenContract } from '../config/contracts';
+import { UserContextType, UserContextState, ActionType, ActionTracking, StreakStatus, WeeklyStatus } from '../types/types';
+import { CONTRACT_ADDRESSES, createGameContract, createTokenContract, createTotemNFTContract, createRewardsContract, TotemRewardsContract, TotemTokenContract, createAchievementsContract } from '../config/contracts';
 
 export const UserContext = createContext<UserContextType | null>(null);
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [state, setState] = useState<UserContextState>({
-        isSignedUp: false,
-        totemBalance: '0',
-        polBalance: '0',
         isConnected: false,
+        isSignedUp: false,
+        isTokenApproved: false,
         address: '',
         provider: null,
         signer: null,
+        totemBalance: '0',
+        polBalance: '0',
         totemUpdateCounter: 0,
-        lastUpdatedTotem: 0n
+        lastUpdatedTotem: 0n,
+        totemUpdates: new Map(),
+        isApprovalMessageDismissed: localStorage.getItem('approval-message-dismissed') === 'true',
+        streakStatus: null,
+        isClaimLoading: false,
+        weeklyStatus: null,
+        hasWeeklyUnlocked: false,
+        hasStakingUnlocked: false,
+        comingSoon: true
     });
-
     const normalizeAddress = (addr: string) => addr.toLowerCase();
+    const comingSoon = true;
 
-    console.log('UserContext - Provider:', state.provider);
+    //console.log('UserContext - Provider:', state.provider);
+    const SECONDS_PER_DAY = 86400;
 
+    const updateTotem = async (tokenId: bigint, type: ActionType) => {
+        if (!state.provider || !state.address) return;
+        
+        try {
+            const [contract, gameContract] = await Promise.all([
+                createTotemNFTContract(state.provider),
+                createGameContract(state.provider)
+            ]);
+    
+            // Get attributes first
+            const attrs = await contract.attributes(tokenId);
+            
+            // Create tracking object with the updated action
+            const trackings: {[key in ActionType]?: ActionTracking} = {};
+            const currentTime = Math.floor(Date.now() / 1000);
+
+            if (type < ActionType.Evolve) {
+                // Get tracking for the specific action that was just performed
+                const tracking = await gameContract.getActionTracking(tokenId, type);
+
+                trackings[type] = {
+                    lastUsed: Math.min(Number(tracking.lastUsed), currentTime),
+                    dailyUses: Number(tracking.dailyUses),
+                    dayStartTime: Math.min(
+                        Number(tracking.dayStartTime), 
+                        currentTime + SECONDS_PER_DAY
+                    )
+                };
+            }
+
+            // Try to get trackings, but don't fail if they error
+            try {
+                // Only get trackings for valid action types
+                const otherTypes = [
+                    ActionType.Feed,
+                    ActionType.Train,
+                    ActionType.Treat
+                ].filter(t => t !== type);
+
+                await Promise.all(otherTypes.map(async (actionType) => {
+                    try {
+                        const otherTracking = await gameContract.getActionTracking(tokenId, actionType);
+                        trackings[actionType as ActionType] = {
+                            lastUsed: Math.min(Number(otherTracking.lastUsed), currentTime),
+                            dailyUses: Number(otherTracking.dailyUses),
+                            dayStartTime: Math.min(
+                                Number(otherTracking.dayStartTime), 
+                                currentTime + SECONDS_PER_DAY
+                            )
+                        };
+                    }
+                    catch (err) {
+                        console.warn(`Could not fetch tracking for action type ${actionType}:`, err);
+                    }
+                }));
+            }
+            catch (err) {
+                console.warn('Error fetching additional trackings:', err);
+            }
+
+            // Get existing updates for this token
+            const existingUpdate = state.totemUpdates.get(tokenId.toString());
+            const existingTrackings = existingUpdate?.trackings || {};
+    
+            // Update state with new data, preserving existing tracking data
+            setState(prev => {
+                const newUpdates = new Map(prev.totemUpdates);
+                newUpdates.set(tokenId.toString(), {
+                    tokenId,
+                    attributes: {
+                        ...attrs,
+                        happiness: Number(attrs.happiness),
+                        experience: Number(attrs.experience),
+                        stage: Number(attrs.stage),
+                        species: Number(attrs.species),
+                        color: Number(attrs.color),
+                        rarity: Number(attrs.rarity),
+                        isStaked: Boolean(attrs.isStaked),
+                        displayName: attrs.displayName ?? ''
+                    },
+                    trackings: {
+                        ...existingTrackings,  // Preserve existing tracking data
+                        ...trackings           // Override with new tracking data
+                    }
+                });
+    
+                return {
+                    ...prev,
+                    totemUpdates: newUpdates,
+                    lastUpdatedTotem: tokenId,
+                    totemUpdateCounter: prev.totemUpdateCounter + 1
+                };
+            });
+    
+            await updateBalances();
+            
+        } catch (error) {
+            console.error('Error updating totem:', error);
+            // Still update the UI counter to trigger a refresh
+            setState(prev => ({
+                ...prev,
+                totemUpdateCounter: prev.totemUpdateCounter + 1
+            }));
+        }
+    };
+    
     const totemUpdated = (tokenId: bigint) => {
         setState(prev => ({
             ...prev,
@@ -29,6 +145,53 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             totemUpdateCounter: state.totemUpdateCounter + 1
         }));
     };
+
+    const checkTokenApproval = useCallback(async () => {
+        if (!state.provider || !state.address) return false;
+
+        try {
+            const tokenContract = createTokenContract(state.provider);
+            const allowance = await tokenContract.allowance(state.address, CONTRACT_ADDRESSES.game);
+            const isApproved = allowance > 0n;
+
+            // Update state if approval status has changed
+            setState(prev => ({
+                ...prev,
+                isTokenApproved: isApproved
+            }));
+
+            return isApproved;
+        }
+        catch (error) {
+            console.error('Error checking token approval:', error);
+            return false;
+        }
+    }, [state.provider, state.address]);
+
+    const approveTokens = useCallback(async () => {
+        console.log(state);
+        if (!state.provider || !state.signer) throw new Error('Not connected');
+
+        try {
+            const tokenContract = createTokenContract(state.provider);
+            const connectedToken = tokenContract.connect(state.signer) as TotemTokenContract;
+
+            const tx = await connectedToken.approve(CONTRACT_ADDRESSES.game, ethers.MaxUint256);
+
+            console.log('Approval tx:', tx.hash);
+            await tx.wait();
+            return true;
+        }
+        catch (error) {
+            console.error('Error approving tokens:', error);
+            return false;
+        }
+    }, [state.provider, state.signer]);
+
+    const setApprovalMessageDismissed = useCallback((dismissed: boolean) => {
+        setState(prev => ({ ...prev, isApprovalMessageDismissed: dismissed }));
+        localStorage.setItem('approval-message-dismissed', dismissed.toString());
+    }, []);
 
     const handleAccountsChanged = useCallback(async (accounts: any) => {
         if (!window.ethereum) return;
@@ -68,7 +231,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!window.ethereum) return;
         
         const provider = new ethers.BrowserProvider(window.ethereum);
-        setState(prev => ({ ...prev, provider }));
+        const signer = await provider.getSigner();
+        setState(prev => ({ ...prev, provider, signer }));
         
         // Check if already connected
         const accounts = await provider.listAccounts();
@@ -98,6 +262,217 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, [state.provider, state.address]);
 
+    const updateStreakStatus = async (): Promise<StreakStatus | undefined> => {
+        if (!state.provider || !state.address) return undefined;
+    
+        try {
+            const rewardsContract = createRewardsContract(state.provider);
+            const dailyRewardId = ethers.id("daily_login");
+            const status = await rewardsContract.getStreakStatus(dailyRewardId, state.address);
+            
+            const newStatus: StreakStatus = {
+                streakDays: Number(status.currentStreak),
+                canClaimToday: status.canClaim,
+                bestStreak: Number(status.bestStreak),
+                nextClaimTime: Number(status.nextClaimTime),
+                isProtected: status.isProtected,
+                protectionExpiry: Number(status.protectionExpiry)
+            };
+
+            setState(prev => ({
+                ...prev,
+                streakStatus: newStatus
+            }));
+
+            return newStatus;
+        } catch (error) {
+            console.error("Error fetching streak data:", error);
+            return undefined;
+        }
+    };
+
+    const getUserStreak = async (): Promise<StreakStatus | undefined> => {
+        return state.streakStatus || await updateStreakStatus();
+    };
+
+    const getWeeklyStatus = async (): Promise<WeeklyStatus | undefined> => {
+        return state.weeklyStatus || await updateWeeklyStatus();
+    };
+
+    const claimDailyReward = async () => {
+        if (!state.provider || !state.signer || !state.address) return false;
+        
+        setState(prev => ({ ...prev, isClaimLoading: true }));
+
+        try {
+            const rewardsContract = createRewardsContract(state.provider);
+            const connectedRewards = rewardsContract.connect(state.signer) as TotemRewardsContract;
+            const dailyRewardId = ethers.id("daily_login");
+
+            // Check if claiming is allowed first
+            const canClaim = await rewardsContract.isClaimingAllowed(dailyRewardId, state.address);
+            if (!canClaim) return false;
+
+            // Attempt to claim
+            const tx = await connectedRewards.claim(dailyRewardId);
+            await tx.wait();
+
+            // Update balances and streak status after successful claim
+            await Promise.all([
+                updateBalances(),
+                updateStreakStatus()
+            ]);
+
+            return true;
+        }
+        catch (error) {
+            console.error("Error claiming daily reward:", error);
+            return false;
+        }
+        finally {
+            setState(prev => ({ ...prev, isClaimLoading: false }));
+        }
+    };
+
+    const updateWeeklyStatus = async (): Promise<WeeklyStatus | undefined> => {
+        if (!state.provider || !state.address) return undefined;
+    
+        try {
+            const rewardsContract = createRewardsContract(state.provider);
+            const weeklyRewardId = ethers.id("weekly_bonus");
+            
+            // Get streak status from contract
+            const status = await rewardsContract.getStreakStatus(weeklyRewardId, state.address);
+            
+            // Get user info for additional details
+            const userInfo = await rewardsContract.getUserInfo(weeklyRewardId, state.address);
+
+            const newStatus: WeeklyStatus = {
+                weeklyStreak: Number(status.currentStreak),
+                canClaimWeekly: status.canClaim,
+                bestWeeklyStreak: Number(status.bestStreak),
+                nextClaimTime: Number(status.nextClaimTime),
+                isProtected: status.isProtected,
+                protectionExpiry: Number(status.protectionExpiry)
+            };
+
+            // Check for Week Warrior achievement
+            const achievementsContract = createAchievementsContract(state.provider);
+            const weekWarriorId = ethers.id("week_warrior");
+            const hasWeeklyUnlocked = await achievementsContract.hasAchievement(weekWarriorId, state.address);
+
+            setState(prev => ({
+                ...prev,
+                 weeklyStatus: newStatus,
+                hasWeeklyUnlocked
+            }));
+
+            return newStatus;
+        }
+        catch (error) {
+            console.error("Error fetching weekly streak data:", error);
+            return undefined;
+        }
+    };
+
+    const claimWeeklyReward = async () => {
+        if (!state.provider || !state.signer || !state.address) return false;
+        
+        try {
+          const rewardsContract = createRewardsContract(state.provider);
+          const connectedRewards = rewardsContract.connect(state.signer) as TotemRewardsContract;
+          const weeklyRewardId = ethers.id("weekly_bonus");
+    
+          // Check if claiming is allowed
+          const canClaim = await rewardsContract.isClaimingAllowed(weeklyRewardId, state.address);
+          if (!canClaim) return false;
+    
+          // Attempt to claim
+          const tx = await connectedRewards.claim(weeklyRewardId);
+          await tx.wait();
+    
+          // Update balances and status
+          await Promise.all([
+            updateBalances(),
+            updateWeeklyStatus()
+          ]);
+    
+          return true;
+        }
+        catch (error) {
+          console.error("Error claiming weekly reward:", error);
+          return false;
+        }
+    };
+    
+    const purchaseProtection = async (type: 'daily' | 'weekly', tier: number) => {
+        if (!state.provider || !state.signer || !state.address) return false;
+    
+        // Check streak requirements
+        const requiredStreak = type === 'daily' 
+            ? (tier === 0 ? 7 : 14)   // Daily: Tier 1 = 7 days, Tier 2 = 14 days
+            : 28;                     // Weekly: 4 weeks required
+    
+        const currentStreak = type === 'daily'
+            ? state.streakStatus?.streakDays || 0
+            : state.weeklyStatus?.weeklyStreak || 0;
+    
+        if (currentStreak < requiredStreak) {
+            throw new Error(`Insufficient streak. Required: ${requiredStreak}`);
+        }
+    
+        try {
+            const rewardsContract = createRewardsContract(state.provider);
+            const connectedRewards = rewardsContract.connect(state.signer) as TotemRewardsContract;
+            const rewardId = type === 'daily' ? ethers.id("daily_login") : ethers.id("weekly_bonus");
+    
+            // Check if protection is already active
+            const status = await rewardsContract.getStreakStatus(rewardId, state.address);
+            if (status.isProtected) {
+                throw new Error('Protection is already active');
+            }
+    
+            const tx = await connectedRewards.purchaseProtection(rewardId, tier);
+            await tx.wait();
+    
+            // Update status
+            await Promise.all([
+                updateStreakStatus(),
+                updateWeeklyStatus()
+            ]);
+    
+            return true;
+        }
+        catch (error) {
+            console.error("Error purchasing protection:", error);
+            throw error;
+        }
+    };
+
+    const updateAchievementStatus = async () => {
+        if (!state.provider || !state.address) return;
+
+        try {
+            const achievementsContract = createAchievementsContract(state.provider);
+            
+            // Check Week Warrior achievement
+            const weekWarriorId = ethers.id("week_warrior");
+            const weeklyUnlocked = await achievementsContract.hasAchievement(weekWarriorId, state.address);
+
+            // Check Elder Evolution achievement
+            const elderEvolutionId = ethers.id("evolution_progression");
+            const elderUnlocked = await achievementsContract.hasAchievement(elderEvolutionId, state.address);
+
+            setState(prev => ({
+                ...prev,
+                hasWeeklyUnlocked: weeklyUnlocked,
+                hasStakingUnlocked: elderUnlocked
+            }));
+        } catch (error) {
+            console.error("Error checking achievement status:", error);
+        }
+    };
+
     // Setup listeners only once on mount
     useEffect(() => {
         if (window.ethereum) {
@@ -112,12 +487,32 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, [handleAccountsChanged, initializeProvider]);
 
+    useEffect(() => {
+        if (state.isConnected && state.isSignedUp) {
+            // Update both daily and weekly status
+            const updateStatus = async () => {
+                await Promise.all([
+                    updateStreakStatus(),
+                    updateWeeklyStatus(),
+                    updateAchievementStatus()
+                ]);
+            };
+            
+            updateStatus();
+            
+            // Update every minute to keep status fresh
+            const interval = setInterval(updateStatus, 60000);
+            return () => clearInterval(interval);
+        }
+    }, [state.isConnected, state.isSignedUp]);
+
     // Watch for signed up users to update balances
     useEffect(() => {
         if (state.isConnected && state.isSignedUp) {
+            checkTokenApproval();
             updateBalances();
         }
-    }, [state.isConnected, state.isSignedUp, updateBalances]);
+    }, [state.isConnected, state.isSignedUp, checkTokenApproval, updateBalances]);
 
     const connect = async () => {
         if (!window.ethereum) {
@@ -137,6 +532,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     
     const disconnect = () => {
+        localStorage.removeItem("totem-notifications");
         setState(prev => ({
             ...prev,
             address: '',
@@ -165,6 +561,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         <UserContext.Provider
             value={{
                 isSignedUp: state.isSignedUp,
+                isTokenApproved: state.isTokenApproved,
                 totemBalance: state.totemBalance,
                 polBalance: state.polBalance,
                 isConnected: state.isConnected,
@@ -177,7 +574,26 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 disconnect,
                 totemUpdateCounter: state.totemUpdateCounter,
                 lastUpdatedTotem: state.lastUpdatedTotem,
-                totemUpdated
+                updateTotem,
+                totemUpdated,
+                totemUpdates: state.totemUpdates,
+                getUserStreak,
+                claimDailyReward,
+                checkTokenApproval,
+                approveTokens,
+                isApprovalMessageDismissed: state.isApprovalMessageDismissed,
+                setApprovalMessageDismissed,
+                streakStatus: state.streakStatus,
+                isClaimLoading: state.isClaimLoading,
+                updateStreakStatus,
+                weeklyStatus: state.weeklyStatus,
+                hasWeeklyUnlocked: state.hasWeeklyUnlocked,
+                hasStakingUnlocked: state.hasStakingUnlocked,
+                updateAchievementStatus,
+                updateWeeklyStatus,
+                claimWeeklyReward,
+                purchaseProtection,
+                comingSoon
             }}
         >
             {children}

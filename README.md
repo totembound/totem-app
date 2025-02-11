@@ -44,21 +44,34 @@ The frontend interacts with several smart contracts:
 1. Clone the repository:
 ```bash
 git clone https://github.com/totembound/totem-app.git
-cd totem-app
 ```
 
-2. Install dependencies:
+2. Clone the contracts repository:
 ```bash
+git clone https://github.com/totembound/totem-contracts.git
+cd totem-contracts
+```
+
+3. Build and export ABIs for frontend:
+```bash
+npm install
+npx hardhat compile
+npx hardhat export-abi 
+```
+
+4. Install app dependencies:
+```bash
+cd ../totem-app
 npm install
 ```
 
-3. Configure environment:
+5. Configure environment:
 Review the hardhat.config.ts for localhost deployment.
 ```bash
 cp .env.example .env
 ```
 
-4. Set up environment variables for testnet:
+6. Set up environment variables for testnet:
 ```plaintext
 REACT_APP_GAME_ADDRESS="game_address"
 REACT_APP_FORWARDER_ADDRESS="forwarder_address"
@@ -89,11 +102,6 @@ npm start
 ```plaintext
 src/
 ├── components/           # React components
-│   ├── ApprovalStatus
-│   ├── GameControls
-│   ├── SignupForm
-│   ├── TotemGallery
-│   └── UserInfoPanel
 ├── config/              # Configuration files
 │   ├── contracts.ts     # Contract ABIs and addresses
 │   └── network.ts       # Network configuration

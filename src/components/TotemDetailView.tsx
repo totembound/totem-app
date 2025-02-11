@@ -309,7 +309,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     };
 
     return (
-        <div ref={dialogRef} className="h-full w-full max-h-[90vh] flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+        <div ref={dialogRef} className="max-h-[90vh] flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
             {showEvolutionCelebration && (
                 <CelebrationModal
                     type="evolution"

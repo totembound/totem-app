@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import { ErrorDialogState } from '../components/ErrorDialog';
 
 export interface UserContextType extends UserContextState {
     checkSignupStatus: () => Promise<void>;
@@ -17,6 +18,8 @@ export interface UserContextType extends UserContextState {
     updateStreakStatus: () => Promise<StreakStatus | undefined>;
     updateWeeklyStatus: () => Promise<WeeklyStatus | undefined>;
     updateAchievementStatus: () => Promise<void>;
+    showError: (title: string, message: string) => void;
+    hideError: () => void;
 }
 
 export interface TotemUpdate {
@@ -48,6 +51,7 @@ export interface UserContextState {
     hasWeeklyUnlocked: boolean;
     hasStakingUnlocked: boolean;
     isClaimLoading: boolean;
+    errorDialog: ErrorDialogState;
     comingSoon: boolean;
 }
 
@@ -159,6 +163,86 @@ export interface TimeWindows {
     window3Start: number;    // UTC 16:00
 }
 
+export interface CategoryProgress {
+    category: number;           // AchievementCategory enum as number
+    totalAchievements: number;  // Total achievements in category
+    completedAchievements: number; // Number of completed achievements
+    totalMilestones: number;    // Total milestones across all achievements
+    unlockedMilestones: number; // Number of unlocked milestones
+}
+
+export enum AchievementCategory {
+    Evolution = 0,
+    Collection = 1,
+    Streak = 2,
+    Action = 3,
+    Challenge = 4,
+    Expedition = 5
+}
+
+export interface AchievementState {
+    achievements: Record<AchievementCategory, Achievement[]>;
+    progress: Record<string, AchievementProgress>;
+    loading: boolean;
+    error: string | null;
+  }
+  
+  export interface AchievementRequirement {
+    achievementId: string;
+    description: string;
+  }
+  
+  export interface AchievementNotification {
+    id: string;
+    type: 'achievement' | 'milestone';
+    title: string;
+    description: string;
+    timestamp: number;
+    badgeUri?: string;
+  }
+  
+  // Enhanced Achievement interface
+  export interface Achievement {
+    id: string;
+    name: string;
+    description: string;
+    achievementType: number;
+    subType: string;
+    enabled: boolean;
+    badgeUri: string;
+    milestones: Milestone[];
+    isCompleted: boolean;
+    currentCount: bigint;
+    category: AchievementCategory;
+    requirements: AchievementRequirement[];
+    rarity?: 'common' | 'rare' | 'epic' | 'legendary';
+    rewards?: {
+      type: string;
+      amount: number;
+    }[];
+}
+
+export enum AchievementType {
+    OneTime = 0,
+    Progression = 1
+}
+
+// Contract view of Achievement (used in getAchievementsByCategory response)
+export interface AchievementView {
+    id: string;
+    name: string;
+    description: string;
+    achievementType: AchievementType;
+    subType: string;
+    enabled: boolean;
+    badgeUri: string;
+    milestones: Milestone[];
+    isCompleted: boolean;
+    currentCount: bigint;
+    category: AchievementCategory;
+    requirements: string[]; // Just the IDs from contract
+}
+
 // Utility types
 export interface TokenActionTrackings {
     [key: string]: {
@@ -197,26 +281,13 @@ export interface Milestone {
     name: string;           // Display name of the milestone
     description: string;    // Description of the milestone
     badgeUri: string;      // IPFS URI for the badge
-    requirement: number;    // Required count/value to unlock
-}
-
-export interface Achievement {
-    id: string;
-    name: string;
-    description: string;
-    achievementType: number;
-    subType: string;
-    enabled: boolean;
-    badgeUri: string;
-    milestones: Milestone[];
-    isCompleted: boolean;
-    currentCount: number;
+    requirement: bigint;    // Required count/value to unlock
 }
 
 export interface AchievementProgress {
     startTime: number;
     lastUpdate: number;
-    count: number;
+    count: bigint;
     achieved: boolean;
     unlockedMilestones: boolean[];
 }

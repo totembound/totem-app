@@ -1,28 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { 
-    LayoutGrid, 
-    List, 
-    Filter, 
-    ChevronLeft,
-    ChevronRight,
-    Coffee, 
-    Heart,
-    Dumbbell,
-    Sparkles,
-    X,
-    Edit2,
-    ScrollText
-} from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { ChartBar, ScrollText } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { useGame } from '../../contexts/GameContext';
-import { useTotemGame } from '../../hooks/useTotemGame';
 import { NFTMetadata, TotemAttributes, Rarity, Species, Color, TokenActionTrackings, ActionTracking } from '../../types/types';
 import { ActionType } from '../../types/types';
-import DisplayNameEditor from '../DisplayNameEditor';
 import TotemDetailView from '../TotemDetailView';
 import { createTotemNFTContract, createGameContract, TotemGameContract } from '../../config/contracts';
 import { TotemGridCard, TotemListRow } from '../TotemGridAndListView';
 import Toolbar from '../layouts/GalleryToolbar';
+import _ from 'lodash';
+import TotemGalleryStats from './TotemGalleryStats';
 
 interface TotemCardProps {
     totem: NFTMetadata;
@@ -34,10 +21,6 @@ interface TotemCardProps {
 interface Attribute {
     trait_type: string;
     value: string | number;
-}
-  
-interface IpfsMetadata {
-    attributes: Attribute[];
 }
 
 type SortDirection = 'asc' | 'desc';
@@ -60,20 +43,18 @@ const TotemGallery = () => {
         domain: ''
     });
     const [currentPage, setCurrentPage] = useState(1);
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [sortConfig, setSortConfig] = useState<SortConfig>({
         key: 'created',
         direction: 'desc'
     });
+    const [showStats, setShowStats] = useState(false);
     const itemsPerPage = 8;
 
     // Reuse your existing hooks and state
     const { address, provider, isConnected, updateBalances, totemUpdated, totemUpdateCounter } = useUser();
     const { canUseAction } = useGame();
-    const { feed, train, treat, evolve } = useTotemGame();
     const [nfts, setNfts] = useState<NFTMetadata[]>([]);
     const [loading, setLoading] = useState(false);
-    const [editingName, setEditingName] = useState<bigint | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loadingTokens, setLoadingTokens] = useState<Set<string>>(new Set());
 
@@ -240,7 +221,32 @@ const TotemGallery = () => {
     }, [filters]);
     
     return (
-        <div className="container mx-auto max-w-7xl bg-gray-50 dark:bg-gray-900 rounded-lg">
+    <div className="p-6 bg-white dark:bg-gray-900 rounded-lg">
+        {/* Header Section */}
+        <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-6">
+                <div className="flex-grow flex justify-between items-center">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                            My Totems
+                        </h1>
+                        <p className="text-gray-600 dark:text-gray-400">
+                            Explore and manage your mystical collection of spirit companions.
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => setShowStats(!showStats)}
+                        className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 bg-gray-100 dark:bg-gray-800 rounded-lg transition-colors"
+                        title={showStats ? "Hide Statistics" : "Show Statistics"}
+                    >
+                        <ChartBar className="w-5 h-5" />
+                    </button>
+                </div>
+            </div>
+
+            {/* Stats Section */}
+            {nfts.length > 0 && showStats  && <TotemGalleryStats nfts={nfts} />}
+            
             <Toolbar 
                 viewMode={viewMode}
                 setViewMode={setViewMode}
@@ -255,7 +261,6 @@ const TotemGallery = () => {
             />
 
             {/* Main Content */}
-            <div className="py-4 sm:py-6 px-2 sm:px-4">
                 {sortedAndFilteredNFTs.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 sm:py-12 px-4">
                         <div className="text-gray-400 dark:text-gray-600 mb-4">
@@ -314,7 +319,7 @@ const TotemGallery = () => {
                     }}
                 >
                     <div 
-                        className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+                        className="bg-white mx-2 mb-6 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto"
                         aria-modal="true"
                         role="dialog"
                     >
@@ -328,82 +333,6 @@ const TotemGallery = () => {
                     </div>
                 </div>
             )}
-        </div>
-    );
-};
-
-const TotemCard: React.FC<TotemCardProps> = ({ totem, onClick, isSelected, isLoading }) => {
-    const { totemUpdates } = useUser();
-    const updates = totemUpdates.get(totem.tokenId.toString());
-
-    const getRarityColor = (rarity: Rarity) => {
-        const colors = {
-            [Rarity.Common]: 'text-gray-600 hover:text-gray-800',
-            [Rarity.Uncommon]: 'text-green-600 hover:text-green-800',
-            [Rarity.Rare]: 'text-blue-600 hover:text-blue-800',
-            [Rarity.Epic]: 'text-purple-600 hover:text-purple-800',
-            [Rarity.Legendary]: 'text-yellow-600 hover:text-yellow-800'
-        };
-        return colors[rarity] || colors[Rarity.Common];
-    };
-
-    const attributes = {
-        ...totem.attributes,
-        ...updates?.attributes
-    };
-    
-    const trackings = {
-        ...totem.trackings,
-        ...updates?.trackings
-    };
-
-
-    return (
-        <div 
-            onClick={onClick}
-            className={`
-                bg-white rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer
-                ${isSelected ? 'ring-2 ring-purple-500' : ''}
-                ${isLoading ? 'opacity-50' : ''}
-            `}
-        >
-            {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-                </div>
-            )}
-            <div className="aspect-square relative overflow-hidden rounded-t-lg">
-                <img 
-                    src={totem.image.replace('ipfs://', 'https://ipfs.io/ipfs/')}
-                    alt={totem.name}
-                    className="w-full h-full object-cover"
-                />
-                <div className={`
-                    absolute inset-0 bg-gradient-to-t from-black/50 to-transparent
-                    opacity-0 hover:opacity-100 transition-opacity
-                    flex flex-col justify-end p-4
-                `}>
-                    <div className="text-white">
-                        <div className="font-semibold">{totem.affinity}</div>
-                        <div className="text-sm">{totem.domain}</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold">
-                        {totem.attributes.displayName || Species[totem.attributes.species]}
-                    </h3>
-                    <span className={`text-sm font-medium ${getRarityColor(totem.attributes.rarity)}`}>
-                        {Rarity[totem.attributes.rarity]}
-                    </span>
-                </div>
-                
-                <div className="text-sm text-gray-600">
-                    Stage {totem.attributes.stage + 1}/5
-                </div>
-            </div>
         </div>
     );
 };

@@ -68,8 +68,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
     };
 
     return (
-        <div className="sticky top-0 bg-white dark:bg-gray-900 border-b dark:border-gray-700 shadow-sm rounded-t-lg">
-            <div className="p-3 sm:p-4">
+        <div className="bg-white dark:bg-gray-900 border-b dark:border-gray-700 shadow-sm rounded-t-lg z-10">
+            <div className="py-4 sm:py-4">
                 {/* Mobile Sort & Filter Bar */}
                 <div className="flex items-center gap-2 mb-3 lg:hidden">
                     <button
@@ -245,7 +245,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
             {/* Mobile Filters Panel */}
             {isMobileFiltersOpen && (
                 <div className="fixed inset-0 bg-black/50 z-50 lg:hidden">
-                    <div className="absolute bottom-0 w-full bg-white dark:bg-gray-800 rounded-t-2xl p-6 space-y-4">
+                    <div className="fixed inset-x-0 bottom-14 w-full bg-white dark:bg-gray-800 rounded-t-2xl p-6 space-y-4 z-50">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-lg font-semibold dark:text-white">Filter Totems</h3>
                             <button 
@@ -383,7 +383,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
             {/* Mobile Sort Menu */}
             {isSortOpen && (
                 <div className="fixed inset-0 bg-black/50 z-50 lg:hidden">
-                    <div className="absolute bottom-0 w-full bg-white dark:bg-gray-800 rounded-t-2xl p-6">
+                    <div className="fixed inset-x-0 bottom-14 w-full bg-white dark:bg-gray-800 rounded-t-2xl p-6 z-50">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-lg font-semibold dark:text-white">Sort Totems</h3>
                             <button 

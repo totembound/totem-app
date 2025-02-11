@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useUser } from '../../contexts/UserContext';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { SignupForm } from '../SignupForm';
-import { PawPrint, Trophy, Compass, Swords, Coins, ShoppingBag } from 'lucide-react';
+import { PawPrint, Trophy, Map, Swords, Coins, ShoppingBag } from 'lucide-react';
 
 const Home: React.FC = () => {
     const { isConnected, isSignedUp } = useUser();
@@ -26,6 +26,8 @@ const Home: React.FC = () => {
         <div className="bg-gray-50 dark:bg-gray-900 rounded-lg">
             {/* Top Section */}
             <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+
+
                 <h1 className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 dark:text-white">
                     Welcome to TotemBound!
                 </h1>
@@ -34,6 +36,7 @@ const Home: React.FC = () => {
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
                     {/* Quick Actions */}
                     <div className="bg-purple-100 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800/50">
                         <h2 className="text-xl font-semibold mb-3 text-purple-800 dark:text-purple-100">
@@ -88,7 +91,7 @@ const Home: React.FC = () => {
                                 to="/expeditions" 
                                 className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
                             >
-                                <Compass className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                                <Map className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                                 <span>Expeditions</span>
                             </Link>
                         </div>

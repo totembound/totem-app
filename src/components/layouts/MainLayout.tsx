@@ -5,9 +5,11 @@ import Navigation from './Navigation';
 import Footer from './Footer';
 import { Outlet } from 'react-router-dom';
 import GameBackground from './GameBackground';
+import AchievementEffectManager from '../effects/AchievementEffectManager';
+import ErrorDialog from '../ErrorDialog';
 
 export const MainLayout: React.FC = () => {
-  const { isConnected, isSignedUp } = useUser();
+  const { isConnected, isSignedUp, errorDialog, hideError } = useUser();
 
   return (
     <div className="min-h-screen flex flex-col relative">
@@ -15,21 +17,27 @@ export const MainLayout: React.FC = () => {
         {/* Game Background */}
         <GameBackground />
 
-        <div className="min-h-screen flex flex-col relative z-10">
+        <div className="min-h-screen w-auto flex flex-col relative z-1">
 
             <Header />
-        
+
             {isConnected && isSignedUp && <Navigation />}
         
-            <main className="flex-grow w-full flex flex-col">
+            <main className="flex-grow w-full flex flex-col pb-16 sm:pb-0">
                 <div className="max-w-screen-xl w-full mx-auto px-2 sm:px-4 py-2 sm:py-3 flex-grow">
                     <Outlet />
                 </div>
             </main>
+            <ErrorDialog
+                isOpen={errorDialog.isOpen}
+                title={errorDialog.title}
+                onClose={hideError}
+            >
+                {errorDialog.message}
+            </ErrorDialog>
+            <AchievementEffectManager />
 
-            <div className="bg-gray-900/95 backdrop-blur-[1px]">
-                <Footer />
-            </div>
+            <Footer />
         </div>
     </div>
   );

@@ -53,7 +53,7 @@ const ApprovalStatus: React.FC = () => {
         }
     };
 
-    if (isApprovalMessageDismissed) {
+    if (isTokenApproved && isApprovalMessageDismissed) {
         return null;
     }
 

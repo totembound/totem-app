@@ -100,6 +100,7 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
                 }
                 ${isLoading ? 'opacity-50 pointer-events-none' : ''}
                 transform hover:scale-105 active:scale-100
+                relative z-0 hover:z-10
             `}
         >
             {/* Top Content Section */}
@@ -118,7 +119,7 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
 
                 {/* Rarity Badge */}
                 <div className="group">
-                <div className={`
+                    <div className={`
                         px-2 py-1 mt-1 text-xs font-medium rounded-full border
                         ${getRarityColor(nft.attributes.rarity)}
                         transition-all duration-200
@@ -235,6 +236,7 @@ export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelecte
                 }
                 ${isLoading ? 'opacity-50 pointer-events-none' : ''}
                 transform hover:scale-[1.02] active:scale-100
+                relative z-0 hover:z-10
             `}
         >
             <div className="flex items-center gap-4">

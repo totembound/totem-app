@@ -73,7 +73,7 @@ const CelebrationModal = ({
         relative w-full max-w-lg transform transition-all
         bg-gradient-to-br ${getRarityColor(totem.attributes.rarity)}
         rounded-xl border-2 p-1
-        animate-fade-in scale-100
+        animate-fade-in scale-100 mx-4
       `}>
         <div className="absolute -inset-1">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur opacity-30 animate-pulse"></div>

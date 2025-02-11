@@ -314,9 +314,7 @@ const Rewards = () => {
                             </LockedOverlay>
                         }
                     </div>
-                </div>
-
-
+            </div>
     </div>
     );
 };

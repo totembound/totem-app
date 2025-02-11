@@ -13,7 +13,7 @@ const ShopInterface = () => {
   const [loading, setLoading] = useState(false);
   const [purchasingTotems, setPurchasingTotems] = useState<{[key: number]: boolean}>({});
   const [error, setError] = useState('');
-  const { updateBalances, polBalance, totemBalance, totemUpdated, provider } = useUser();
+  const { provider, updateBalances, polBalance, totemBalance, totemUpdated, showError } = useUser();
   const { buyTokens, purchaseTotem } = useTotemGame();
   const [purchasedTotem, setPurchasedTotem] = useState<any>(null);
 
@@ -116,8 +116,10 @@ const ShopInterface = () => {
           totemUpdated(tokenId);
       }
       catch (err) {
-          const message = err instanceof Error ? err.message : 'Failed to buy totem';
-          setError(message);
+          //const message = err instanceof Error ? err.message : 'Failed to buy totem';
+          showError("Error", "Failed to purchase totem. Try again shortly.");
+          //setError(message);
+          console.error(err);
       }
       finally {
           setPurchasingTotems(prev => ({ ...prev, [speciesId]: false }));

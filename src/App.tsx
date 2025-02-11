@@ -1,6 +1,7 @@
 import React from 'react';
 import { UserProvider } from './contexts/UserContext';
 import { GameProvider } from './contexts/GameContext';
+import { AchievementsProvider } from './contexts/AchievementsContext';
 import TotemGallery from './components/pages/TotemGallery';
 import ShopInterface from './components/pages/ShopInterface';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
@@ -65,7 +66,9 @@ const App: React.FC = () => {
       <ThemeProvider>
         <UserProvider>
           <GameProvider>
-            <AppRoutes />
+            <AchievementsProvider>
+              <AppRoutes />
+            </AchievementsProvider>
           </GameProvider>
         </UserProvider>
       </ThemeProvider>

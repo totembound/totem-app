@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { ethers } from 'ethers';
 import { UserContextType, UserContextState, ActionType, ActionTracking, StreakStatus, WeeklyStatus } from '../types/types';
 import { CONTRACT_ADDRESSES, createGameContract, createTokenContract, createTotemNFTContract, createRewardsContract, TotemRewardsContract, TotemTokenContract, createAchievementsContract } from '../config/contracts';
+import { STORAGE_KEYS } from '../config/constants';
 
 export const UserContext = createContext<UserContextType | null>(null);
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -18,19 +19,45 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         totemUpdateCounter: 0,
         lastUpdatedTotem: 0n,
         totemUpdates: new Map(),
-        isApprovalMessageDismissed: localStorage.getItem('approval-message-dismissed') === 'true',
+        isApprovalMessageDismissed: localStorage.getItem(STORAGE_KEYS.tokenApprovalMessageDismissed) === 'true',
         streakStatus: null,
         isClaimLoading: false,
         weeklyStatus: null,
         hasWeeklyUnlocked: false,
         hasStakingUnlocked: false,
+        errorDialog: {
+            isOpen: false,
+            title: '',
+            message: ''
+        },
         comingSoon: true
     });
     const normalizeAddress = (addr: string) => addr.toLowerCase();
-    const comingSoon = true;
+    const comingSoon = false;
 
     //console.log('UserContext - Provider:', state.provider);
     const SECONDS_PER_DAY = 86400;
+
+    const showError = (title: string, message: string) => {
+        setState(prev => ({
+            ...prev,
+            errorDialog: {
+                isOpen: true,
+                title,
+                message
+            }
+        }));
+    };
+    
+    const hideError = () => {
+        setState(prev => ({
+            ...prev,
+            errorDialog: {
+                ...prev.errorDialog,
+                isOpen: false
+            }
+        }));
+    };
 
     const updateTotem = async (tokenId: bigint, type: ActionType) => {
         if (!state.provider || !state.address) return;
@@ -190,7 +217,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const setApprovalMessageDismissed = useCallback((dismissed: boolean) => {
         setState(prev => ({ ...prev, isApprovalMessageDismissed: dismissed }));
-        localStorage.setItem('approval-message-dismissed', dismissed.toString());
+        localStorage.setItem(STORAGE_KEYS.tokenApprovalMessageDismissed, dismissed.toString());
     }, []);
 
     const handleAccountsChanged = useCallback(async (accounts: any) => {
@@ -532,12 +559,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     
     const disconnect = () => {
-        localStorage.removeItem("totem-notifications");
+        localStorage.removeItem(STORAGE_KEYS.notifications);
+        localStorage.removeItem(STORAGE_KEYS.tokenApprovalMessageDismissed);
+
         setState(prev => ({
             ...prev,
             address: '',
             signer: null,
-            isConnected: false
+            isConnected: false,
+            isTokenApproved: false,
+            isApprovalMessageDismissed: false
         }));
     };
 
@@ -593,6 +624,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 updateWeeklyStatus,
                 claimWeeklyReward,
                 purchaseProtection,
+                errorDialog: state.errorDialog,
+                showError,
+                hideError,
                 comingSoon
             }}
         >

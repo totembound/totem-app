@@ -6,7 +6,8 @@ export const UserMenu: React.FC = () => {
   const { address, disconnect, isSignedUp, totemBalance, polBalance } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  
+  const buttonRef = useRef(null);
+
   const shortenedAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
 
   // Close menu when clicking outside
@@ -21,9 +22,16 @@ export const UserMenu: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const rect = (buttonRef?.current || { getBoundingClientRect:()=>{return{right:320};}}).getBoundingClientRect();
+  let left = rect.right - 256;
+  if (window.innerWidth < 420) {
+      left = 28;
+  }
+
   return (
     <div className="relative" ref={menuRef}>
       <button
+        ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg
           border transition-all duration-200
@@ -43,10 +51,10 @@ export const UserMenu: React.FC = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-64 
+        <div className="fixed right-0 mt-2 w-[calc(100vw-2rem)] sm:w-64 
             bg-white dark:bg-gray-800 rounded-lg shadow-lg 
             border border-gray-200 dark:border-gray-700 
-            py-2 z-500">
+            py-2 z-50" style={{ top: '3rem', left: left + 'px' }}>
             {isSignedUp && (
             <>
                 <div className="px-4 py-3 space-y-1">

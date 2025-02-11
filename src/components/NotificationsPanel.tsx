@@ -7,7 +7,8 @@ function NotificationsPanel({ userAddress }: { userAddress: string | null }) {
     const [open, setOpen] = useState(false);
     const [copied, setCopied] = useState<{ [key: string]: boolean }>({});
     const panelRef = useRef<HTMLDivElement>(null);
-    
+    const buttonRef = useRef(null);
+
     // Handle copy to clipboard
     const handleCopy = (id: string, address: string) => {
         navigator.clipboard.writeText(address);
@@ -37,10 +38,17 @@ function NotificationsPanel({ userAddress }: { userAddress: string | null }) {
         }
     }, [open]);
 
+    const rect = (buttonRef?.current || { getBoundingClientRect:()=>{return{right:320};}}).getBoundingClientRect();
+    let left = rect.right - 320;
+    if (window.innerWidth < 420) {
+        left = 28;
+    }
+
     return (
         <div className="relative" ref={panelRef}>
             {/* Bell Icon Button */}
             <button 
+                ref={buttonRef}
                 onClick={() => setOpen(!open)} 
                 className="relative p-2 rounded-full transition-colors
                     bg-gray-100 hover:bg-gray-200
@@ -59,10 +67,10 @@ function NotificationsPanel({ userAddress }: { userAddress: string | null }) {
 
             {/* Notifications Panel */}
             {open && (
-                <div className="absolute right-0 mt-2 
+                <div className="fixed right-0 mt-2 
                     w-[calc(100vw-2rem)] sm:w-80
                     bg-white dark:bg-gray-800 shadow-lg rounded-lg border
-                    border-gray-200 dark:border-gray-700 z-50">
+                    border-gray-200 dark:border-gray-700 z-50" style={{ top: '3rem', left: left + 'px' }}>
                     <div className="p-3 border-b border-gray-200 dark:border-gray-700
                         flex items-center justify-between">
                         <h3 className="font-semibold dark:text-gray-100">Notifications</h3>

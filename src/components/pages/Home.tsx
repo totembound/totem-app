@@ -26,6 +26,8 @@ const Home: React.FC = () => {
         <div className="bg-gray-50 dark:bg-gray-900 rounded-lg">
             {/* Top Section */}
             <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+
+
                 <h1 className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 dark:text-white">
                     Welcome to TotemBound!
                 </h1>
@@ -34,6 +36,7 @@ const Home: React.FC = () => {
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
                     {/* Quick Actions */}
                     <div className="bg-purple-100 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800/50">
                         <h2 className="text-xl font-semibold mb-3 text-purple-800 dark:text-purple-100">

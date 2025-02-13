@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useUser } from '../../contexts/UserContext';
-import { ArrowUpRight, Calendar, Coins, Flame, Shield, Trophy, Lock, CheckCircle2 } from 'lucide-react';
+import { Calendar, Coins, Flame, Trophy, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ApprovalStatus from '../ApprovalStatus';
 import Tooltip from '../Tooltip';
 import TokensDisplay from '../TokensDisplay';
 import ProtectionDialog from '../ProtectionDialog';
+import CountdownTimer from '../CountdownTimer';
 
 interface AchievementLockProps {
     title: string;
@@ -54,7 +55,7 @@ const Rewards = () => {
             <div className={`
                 flex items-center justify-center w-8 h-8 rounded-full
                 ${unlocked 
-                    ? 'bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400' 
+                    ? 'bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400' 
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 animate-pulse'
                 }
             `}>
@@ -211,8 +212,13 @@ const Rewards = () => {
                         <div className="flex items-center gap-3 mb-7">
                             <Flame className="w-6 h-6 text-orange-500" />
                             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Daily Rewards</h2>
+                            
+                            { !streakStatus?.canClaimToday &&
+                                <div className="text-xs text-gray-900 dark:text-white ml-auto">
+                                    <CountdownTimer option="midnight"/>
+                                </div>
+                            }
                         </div>
-
                         <div className="mb-6">
                             <div className="flex justify-between mb-2">
                                 <span className="text-sm text-gray-800 dark:text-gray-200">Current Streak</span>
@@ -252,7 +258,7 @@ const Rewards = () => {
                             <ul className="space-y-1">
                                 <li>• Base: 10 TOTEM</li>
                                 <li>• Bonus: Up to 100%</li>
-                                <li>• Grace Period: 1 hour</li>
+                                <li>• Grace Period: Until 02:00 UTC</li>
                             </ul>
                         </div>
 

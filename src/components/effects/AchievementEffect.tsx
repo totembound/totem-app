@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Sparkles, Crown, Star } from 'lucide-react';
+import { Sparkles, Star, Trophy } from 'lucide-react';
 
 const AchievementEffect = ({ 
   title,
@@ -49,9 +49,9 @@ const AchievementEffect = ({
 
         {/* Content */}
         <div className="relative text-center space-y-3 sm:space-y-4">
-          {/* Crown icon */}
+          {/* Trophy icon */}
           <div className="flex justify-center mb-2 sm:mb-4">
-            <Crown className="w-10 h-10 sm:w-12 sm:h-12 text-yellow-500 animate-bounce" />
+            <Trophy className="w-10 h-10 sm:w-12 sm:h-12 text-yellow-500 animate-bounce" />
           </div>
 
           {/* Title */}

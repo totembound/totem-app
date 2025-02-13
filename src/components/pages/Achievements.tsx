@@ -64,6 +64,7 @@ const achievementOrder = {
     epic_evolution: 4,
     legendary_evolution: 5,
     color_collector_evolution: 6,
+    prestige_progression: 7,
     
     // Collection category
     collector_progression: 1,
@@ -440,8 +441,12 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
 
     // Check if all prerequisites are met
     const hasPrereqs = achievement.requirements.length === 0 ||
-        achievement.requirements.every(reqId =>
-            achievementsById[reqId]?.isCompleted
+        achievement.requirements.every(req =>
+            (achievementProgress?.requirementsMet ?? 
+                achievement.requirements.every(reqId =>
+                    achievementsById[req.achievementId]?.isCompleted
+                )
+            )
         );
     
     return (

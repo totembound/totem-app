@@ -187,22 +187,22 @@ export interface AchievementState {
     error: string | null;
   }
   
-  export interface AchievementRequirement {
+export interface AchievementRequirement {
     achievementId: string;
-    description: string;
-  }
-  
-  export interface AchievementNotification {
+    milestoneIndex: bigint;
+}
+
+export interface AchievementNotification {
     id: string;
     type: 'achievement' | 'milestone';
     title: string;
     description: string;
     timestamp: number;
     badgeUri?: string;
-  }
-  
-  // Enhanced Achievement interface
-  export interface Achievement {
+}
+
+// Enhanced Achievement interface
+export interface Achievement {
     id: string;
     name: string;
     description: string;
@@ -217,8 +217,8 @@ export interface AchievementState {
     requirements: AchievementRequirement[];
     rarity?: 'common' | 'rare' | 'epic' | 'legendary';
     rewards?: {
-      type: string;
-      amount: number;
+        type: string;
+        amount: number;
     }[];
 }
 
@@ -240,7 +240,8 @@ export interface AchievementView {
     isCompleted: boolean;
     currentCount: bigint;
     category: AchievementCategory;
-    requirements: string[]; // Just the IDs from contract
+    requirements: AchievementRequirement[];
+    requirementsMet : boolean;
 }
 
 // Utility types
@@ -290,6 +291,9 @@ export interface AchievementProgress {
     count: bigint;
     achieved: boolean;
     unlockedMilestones: boolean[];
+    requirementsMet : boolean;
 }
+
+export const ONETIME_REQUIREMENT = BigInt(ethers.MaxUint256);
 
 export {}

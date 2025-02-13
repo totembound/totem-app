@@ -305,13 +305,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (currentDaySeconds < 8 * 3600) {
             // In Window 1 (00:00-08:00)
-            return 'Next Window: 08:00 UTC';
+            return '08:00 UTC';
         } else if (currentDaySeconds < 16 * 3600) {
             // In Window 2 (08:00-16:00)
-            return 'Next Window: 16:00 UTC';
+            return '16:00 UTC';
         } else {
             // In Window 3 (16:00-00:00)
-            return 'Next Window: 00:00 UTC (Next Day)';
+            return '00:00 UTC (Next Day)';
         }
     }
 

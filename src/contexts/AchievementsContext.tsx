@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Achievement, AchievementCategory, AchievementProgress, AchievementView, Milestone } from '../types/types';
+import { Achievement, AchievementCategory, AchievementProgress, AchievementType, AchievementView, Milestone, ONETIME_REQUIREMENT } from '../types/types';
 import { createAchievementsContract, createRewardsContract } from '../config/contracts';
 import { useUser } from './UserContext';
 import { ethers } from 'ethers';
@@ -15,6 +15,7 @@ interface AchievementsContextType {
     hasAchievement: (id: string) => boolean;
     showAchievementEffect: (achievementId: string) => void;
     hideAchievementEffect: () => void;
+    checkSpecificAchievement: (id: string) => Promise<boolean>;
     activeAchievementEffect: string | null;
 }
 
@@ -28,6 +29,39 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeAchievementEffect, setActiveAchievementEffect] = useState<string | null>(null);
+
+    const checkAchievementRequirements = useCallback((
+        achievement: Achievement, 
+        progressMap: Record<string, AchievementProgress>
+    ): boolean => {
+        if (!achievement.requirements.length) return true;
+
+        return achievement.requirements.every(req => {
+            const requiredProgress = progressMap[req.achievementId];
+            if (!requiredProgress) return false;
+
+            const requiredAchievement = achievementsById[req.achievementId];
+            if (!requiredAchievement) return false;
+
+            // For one-time achievements
+            if (requiredAchievement.achievementType === AchievementType.OneTime) {
+                if (req.milestoneIndex !== ONETIME_REQUIREMENT) {
+                    console.warn('Invalid milestone index for one-time achievement:', req);
+                    return false;
+                }
+                return requiredProgress.achieved;
+            }
+
+            // For progression achievements
+            const milestoneIndex = Number(req.milestoneIndex);
+            if (milestoneIndex >= requiredAchievement.milestones.length) {
+                console.warn('Invalid milestone index:', req);
+                return false;
+            }
+
+            return requiredProgress.unlockedMilestones[milestoneIndex];
+        });
+    }, [achievementsById]);
 
     const loadAchievements = useCallback(async () => {
         if (!provider || !address) return;
@@ -54,12 +88,16 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
             await Promise.all(categories.map(async (category) => {
                 const categoryAchievements = await contract.getAchievementsByCategory(category);
 
-                // Convert to AchievementViews with progress
-                const achievementViews = await Promise.all(categoryAchievements.map(async (achievement) => {
+                // First, get all progress data
+                await Promise.all(categoryAchievements.map(async (achievement) => {
                     const progress = await contract.getDetailedProgress(achievement.id, address);
                     progressMap[achievement.id] = progress;
-                    
-                    // Create AchievementView with base data and progress
+                }));
+
+                // Then process achievements with the complete progress map
+                const achievementViews = await Promise.all(categoryAchievements.map(async (achievement) => {
+                    const progress = progressMap[achievement.id];
+
                     const view: AchievementView = {
                         id: achievement.id,
                         name: achievement.name,
@@ -70,7 +108,11 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
                         enabled: achievement.enabled,
                         badgeUri: achievement.badgeUri,
                         milestones: achievement.milestones,
-                        requirements: achievement.requirements.map(req => req.toString()), // Convert bytes32 to string
+                        requirements: achievement.requirements.map(req => ({
+                            achievementId: req.achievementId.toString(),
+                            milestoneIndex: BigInt(req.milestoneIndex)
+                        })),
+                        requirementsMet: progress.requirementsMet,
                         isCompleted: progress.achieved,
                         currentCount: progress.count
                     };
@@ -81,11 +123,6 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 
                 achievementsByCategory[category] = achievementViews;
 
-                // Load detailed progress for each achievement
-                await Promise.all(categoryAchievements.map(async (achievement) => {
-                    const progress = await contract.getDetailedProgress(achievement.id, address);
-                    progressMap[achievement.id] = progress;
-                }));
             }));
 
             setAchievements(achievementsByCategory);
@@ -100,6 +137,20 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
             setIsLoading(false);
         }
     }, [provider, address, totemUpdateCounter]);
+
+    // Helper function to check if specific achievement requirements are met
+    const checkSpecificAchievement = useCallback(async (id: string): Promise<boolean> => {
+        if (!provider || !address) return false;
+
+        try {
+            const contract = createAchievementsContract(provider);
+            const progress = await contract.getDetailedProgress(id, address);
+            return progress.requirementsMet;
+        } catch (error) {
+            console.error(`Error checking achievement ${id}:`, error);
+            return false;
+        }
+    }, [provider, address]);
 
     const refreshAchievements = useCallback(async () => {
         await loadAchievements();
@@ -208,7 +259,8 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
             hasAchievement,
             showAchievementEffect,
             hideAchievementEffect,
-            activeAchievementEffect
+            activeAchievementEffect,
+            checkSpecificAchievement
         }}>
             {children}
         </AchievementsContext.Provider>

@@ -33,6 +33,57 @@ interface TotemDetailViewProps {
     ) => boolean;
 }
 
+interface XPProgress {
+    type: string;
+    progress: number;
+    remaining: number;
+    nextThreshold: number;
+    prestigeLevel: number;
+}
+
+const STAGE_THRESHOLDS = [0, 500, 1500, 3500, 7500];
+const PRESTIGE_XP_REQUIREMENT = 2500;
+const BASE_ELDER_XP = 7500;
+
+const calculatePrestigeLevel = (experience: number): number => {
+    if (experience <= BASE_ELDER_XP) return 0;
+    return Math.floor((experience - BASE_ELDER_XP) / PRESTIGE_XP_REQUIREMENT);
+};
+
+const calculateXPProgress = (attributes: TotemAttributes): XPProgress => {
+    const { experience, stage } = attributes;
+    
+    // For non-Elder stages
+    if (stage < 4) { // Remember stage is 0-based
+        const nextThreshold = STAGE_THRESHOLDS[stage + 1];
+        const currentThreshold = STAGE_THRESHOLDS[stage];
+        const progress = ((experience - currentThreshold) / (nextThreshold - currentThreshold)) * 100;
+        const remaining = nextThreshold - experience;
+        return {
+            progress: Math.min(100, progress),
+            remaining,
+            nextThreshold,
+            type: 'stage',
+            prestigeLevel: 0
+        };
+    }
+    
+    // For Elder stage (Prestige calculations)
+    const prestigeLevel = calculatePrestigeLevel(experience);
+    const nextPrestigeThreshold = BASE_ELDER_XP + ((prestigeLevel + 1) * PRESTIGE_XP_REQUIREMENT);
+    const currentPrestigeThreshold = BASE_ELDER_XP + (prestigeLevel * PRESTIGE_XP_REQUIREMENT);
+    const progress = ((experience - currentPrestigeThreshold) / PRESTIGE_XP_REQUIREMENT) * 100;
+    const remaining = nextPrestigeThreshold - experience;
+    
+    return {
+        progress: Math.min(100, progress),
+        remaining,
+        nextThreshold: nextPrestigeThreshold,
+        type: 'prestige',
+        prestigeLevel
+    };
+};
+
 const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     totem,
     onClose,
@@ -48,8 +99,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     const [isEditingName, setIsEditingName] = useState(false);
     const [showEvolutionCelebration, setShowEvolutionCelebration] = useState(false);
     const [activeEffect, setActiveEffect] = useState<'treat' | 'feed' | 'train' | null>(null);
-    const STAGE_THRESHOLDS = [0, 500, 1500, 3500, 7500];
-    
+
     const dialogRef = useRef<HTMLDivElement>(null);
     const updates = totemUpdates.get(totem.tokenId.toString());
     
@@ -152,6 +202,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     const canTrain = canUseAction(currentAttributes, ActionType.Train, trainTracking);
     const canTreat = canUseAction(currentAttributes, ActionType.Treat, treatTracking);
     const canEvolve = currentAttributes.experience >= STAGE_THRESHOLDS[currentAttributes.stage + 1];
+    const xpProgress = calculateXPProgress(currentAttributes);
 
     useEffect(() => {
         setCurrentMetadata(totem);
@@ -272,6 +323,9 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                     {statusMessage}
                                 </>
                             )}
+                            {!canUse && type === ActionType.Feed && 
+                                <div>{getNextAvailableWindow(feedTracking!)}</div>
+                            }
                         </div>
                     </div>
                 )}
@@ -433,23 +487,27 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                         {/* Experience Progress */}
                         <div className="space-y-2">
                             <div className="flex justify-between text-xs sm:text-sm">
-                                <span className="text-gray-600 dark:text-gray-400">Experience Progress</span>
+                                <span className="text-gray-600 dark:text-gray-400">
+                                    {xpProgress.type === 'prestige' ? 'Prestige Progress' : 'Experience Progress'}
+                                </span>
                                 <span className="text-gray-900 dark:text-gray-100">
-                                    {currentAttributes.experience} XP
+                                    {currentAttributes.experience.toLocaleString()} XP
                                 </span>
                             </div>
                             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                                 <div 
-                                    className="bg-blue-600 dark:bg-blue-500 rounded-full h-2 transition-all"
-                                    style={{ 
-                                        width: `${Math.min(100, (currentAttributes.experience / 
-                                            STAGE_THRESHOLDS[currentAttributes.stage + 1]) * 100)}%`
-                                    }}
+                                    className={`rounded-full h-2 transition-all ${
+                                        xpProgress.type === 'prestige' 
+                                            ? 'bg-purple-600 dark:bg-purple-500'
+                                            : 'bg-blue-600 dark:bg-blue-500'
+                                    }`}
+                                    style={{ width: `${xpProgress.progress}%` }}
                                 />
                             </div>
                             <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                                {STAGE_THRESHOLDS[currentAttributes.stage + 1] - 
-                                    currentAttributes.experience} XP to next stage
+                                {xpProgress.type === 'prestige'
+                                    ? `${xpProgress.remaining.toLocaleString()} XP to Prestige ${xpProgress.prestigeLevel + 1}`
+                                    : `${xpProgress.remaining.toLocaleString()} XP to next stage`}
                             </div>
                         </div>
 

@@ -385,8 +385,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             // Check for Week Warrior achievement
             const achievementsContract = createAchievementsContract(state.provider);
-            const weekWarriorId = ethers.id("week_warrior");
-            const hasWeeklyUnlocked = await achievementsContract.hasAchievement(weekWarriorId, state.address);
+            const loginProgressionId = ethers.id("login_progression");
+            const progress = await achievementsContract.getDetailedProgress(loginProgressionId, state.address);
+            const hasWeeklyUnlocked = progress.count >= 7;
 
             setState(prev => ({
                 ...prev,
@@ -483,17 +484,22 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const achievementsContract = createAchievementsContract(state.provider);
             
             // Check Week Warrior achievement
-            const weekWarriorId = ethers.id("week_warrior");
-            const weeklyUnlocked = await achievementsContract.hasAchievement(weekWarriorId, state.address);
+            const loginProgressionId = ethers.id("login_progression");
+            const progress = await achievementsContract.getDetailedProgress(loginProgressionId, state.address);
+            const hasWeeklyUnlocked = progress.count >= 7;
 
             // Check Elder Evolution achievement
             const elderEvolutionId = ethers.id("evolution_progression");
-            const elderUnlocked = await achievementsContract.hasAchievement(elderEvolutionId, state.address);
+            const elderStatus = await achievementsContract.getDetailedProgress(elderEvolutionId, state.address);
+    
+            // Check if all evolution milestones are completed
+            const hasElderEvolution = elderStatus.unlockedMilestones.length === 4 && 
+                elderStatus.unlockedMilestones.every(milestone => milestone === true);
 
             setState(prev => ({
                 ...prev,
-                hasWeeklyUnlocked: weeklyUnlocked,
-                hasStakingUnlocked: elderUnlocked
+                hasWeeklyUnlocked: hasWeeklyUnlocked,
+                hasStakingUnlocked: hasElderEvolution
             }));
         } catch (error) {
             console.error("Error checking achievement status:", error);

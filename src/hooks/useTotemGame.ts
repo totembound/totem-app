@@ -103,6 +103,8 @@ export const useTotemGame = () => {
         const gameContract = createGameContract(provider);
         const connectedGame = gameContract.connect(signer) as TotemGameContract;
         const tx = await connectedGame.buyTokens({ value: amount }) ;
+        if (!tx) throw new Error('Transaction failed');
+
         console.log('Buy tokens transaction:', tx.hash);
         return await tx.wait();
     };
@@ -117,24 +119,93 @@ export const useTotemGame = () => {
                 await approveTokens();
             }
 
-            // Now purchase the totem
+            // Setup NFT contract to listen for mint
+            const nftContract = createTotemNFTContract(provider);
+            const mintPromise = new Promise<bigint>((resolve) => {
+                nftContract.once('Transfer', (from, to, tokenId) => {
+                    if (from === ethers.ZeroAddress && to === signer.address) {
+                        resolve(tokenId);
+                    }
+                });
+            });
+
+            // Purchase the totem
             const gameContract = createGameContract(provider);
             const connectedGame = gameContract.connect(signer) as TotemGameContract;
             console.log('Purchasing totem...', { speciesId });
+            
             const tx = await connectedGame.purchaseTotem(speciesId);
-            console.log('Purchase tx:', tx.hash);
-            const receipt = await tx.wait();
-            return receipt.hash;
+            if (!tx) throw new Error('Transaction failed');
+            console.log('Purchase tx sent:', tx.hash);
+            
+            // Wait for both the transaction receipt and the mint event
+            const [receipt, tokenId] = await Promise.all([
+                tx.wait(),
+                mintPromise
+            ]);
+            
+            console.log('Purchase tx mined:', receipt?.hash);
+            console.log('Token minted:', tokenId.toString());
+
+            return tokenId;
         }
         catch (error: any) {
             console.error('Purchase failed:', error);
             if (error.message.includes('user rejected')) {
                 throw new Error('User rejected transaction');
-            } else if (error.message.includes('insufficient')) {
+            }
+            else if (error.message.includes('insufficient')) {
                 throw new Error('Insufficient TOTEM balance');
-            } else {
+            }
+            else {
                 throw new Error('Failed to purchase totem: ' + error.message);
             }
+        }
+    };
+
+    const sellTotem = async (tokenId: bigint) => {
+        if (!provider || !signer) throw new Error('Not connected');
+        
+        try {
+             // Get contract instances
+            const nftContract = createTotemNFTContract(provider);
+            const gameContract = createGameContract(provider);
+            
+            // Get contract addresses
+            const gameAddress = CONTRACT_ADDRESSES.game; // Use the constant address
+            
+            // Connect contracts with signer
+            const nftWithSigner = nftContract.connect(signer) as TotemNFTContract;
+            const connectedGame = gameContract.connect(signer) as TotemGameContract;
+
+            console.log('Checking approval status...');
+            console.log('Game address:', gameAddress);
+            console.log('Token ID:', tokenId.toString());
+            
+            // Check if game contract is approved for NFT
+            const isApproved = await nftContract.isApprovedForAll(address, gameAddress) ||
+                            (await nftContract.getApproved(tokenId)) === gameAddress;
+
+            if (!isApproved) {
+                console.log('Approving NFT transfer...');
+                const approveTx = await nftWithSigner.approve(gameAddress, tokenId);
+                console.log('Approval tx:', approveTx.hash);
+                await approveTx.wait();
+                console.log('Approval confirmed');
+            }
+
+            console.log('Selling totem...');
+            const tx = await connectedGame.sellTotem(tokenId);
+            console.log('Sell tx:', tx.hash);
+            console.log('Waiting for confirmation...');
+            await tx.wait();
+            console.log('Sale completed');
+        }
+        catch (error: any) {
+            console.error('Sell totem failed:', error);
+            throw new Error(error.message.includes('user rejected') 
+                ? 'User rejected transaction' 
+                : 'Failed to sell totem');
         }
     };
 
@@ -228,6 +299,7 @@ export const useTotemGame = () => {
         signupGasless,
         buyTokens,
         purchaseTotem,
+        sellTotem,
         approveTokens,
         feed,
         train,

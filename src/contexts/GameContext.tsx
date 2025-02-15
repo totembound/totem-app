@@ -23,7 +23,7 @@ export interface GameContextType {
     canUseAction: (
         attributes: TotemAttributes, 
         actionType: ActionType, 
-        actionTracking?: ActionTracking
+        actionTracking?: ActionTracking | undefined
     ) => boolean;
 
     // New methods for action status

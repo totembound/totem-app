@@ -1,7 +1,7 @@
 // contexts/UserContext.tsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
-import { UserContextType, UserContextState, ActionType, ActionTracking, StreakStatus, WeeklyStatus } from '../types/types';
+import { UserContextType, UserContextState, ActionType, ActionTracking, StreakStatus, WeeklyStatus, NFTMetadata, TokenActionTrackings, Attribute } from '../types/types';
 import { CONTRACT_ADDRESSES, createGameContract, createTokenContract, createTotemNFTContract, createRewardsContract, TotemRewardsContract, TotemTokenContract, createAchievementsContract } from '../config/contracts';
 import { STORAGE_KEYS } from '../config/constants';
 
@@ -16,16 +16,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signer: null,
         totemBalance: '0',
         polBalance: '0',
-        totemUpdateCounter: 0,
-        lastUpdatedTotem: 0n,
-        totemUpdates: new Map(),
+        totems: [],
+        totemLoading: false,
+        totemError: null,
         isApprovalMessageDismissed: localStorage.getItem(STORAGE_KEYS.tokenApprovalMessageDismissed) === 'true',
         streakStatus: null,
         isClaimLoading: false,
         weeklyStatus: null,
         hasWeeklyUnlocked: false,
         hasStakingUnlocked: false,
-        errorDialog: {
+        messageDialog: {
             isOpen: false,
             title: '',
             message: ''
@@ -34,14 +34,20 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
     const normalizeAddress = (addr: string) => addr.toLowerCase();
     const comingSoon = false;
-
+    const [midnightTimeout, setMidnightTimeout] = useState<NodeJS.Timeout | null>(null);
+    const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
+    const [totems, setTotems] = useState<NFTMetadata[]>([]);
+    const [totemLoading, setTotemLoading] = useState(false);
+    const [totemError, setTotemError] = useState<string | null>(null);
+    const [totemCache, setTotemCache] = useState<Map<string, NFTMetadata>>(new Map());
+    
     //console.log('UserContext - Provider:', state.provider);
     const SECONDS_PER_DAY = 86400;
 
     const showError = (title: string, message: string) => {
         setState(prev => ({
             ...prev,
-            errorDialog: {
+            messageDialog: {
                 isOpen: true,
                 title,
                 message
@@ -52,125 +58,262 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const hideError = () => {
         setState(prev => ({
             ...prev,
-            errorDialog: {
-                ...prev.errorDialog,
+            messageDialog: {
+                ...prev.messageDialog,
                 isOpen: false
             }
         }));
     };
 
+    const fetchTotems = useCallback(async () => {
+        if (!state.provider || !state.address || !state.isConnected || !state.isSignedUp) return;
+
+        setTotemLoading(true);
+        setTotemError(null);
+
+        console.log('loading totems');
+        try {
+            const contract = createTotemNFTContract(state.provider);
+            const tokenIds = await contract.tokensOfOwner(state.address);
+            const gameContract = createGameContract(state.provider);
+
+            // Batch fetch trackings
+            const trackings = await Promise.all(tokenIds.map(async (tokenId) => {
+                const tokenTrackings: {[key in ActionType]?: ActionTracking} = {};
+                    
+                // Fetch tracking for each action type
+                for (const actionType of [ActionType.Feed, ActionType.Train, ActionType.Treat]) {
+                    try {
+                        const tracking = await gameContract.getActionTracking(tokenId, actionType);
+                        tokenTrackings[actionType] = {
+                            lastUsed: Math.min(Number(tracking.lastUsed), Math.floor(Date.now() / 1000)),
+                            dailyUses: Number(tracking.dailyUses),
+                            dayStartTime: Math.min(Number(tracking.dayStartTime), Math.floor(Date.now() / 1000) + SECONDS_PER_DAY)
+                        };
+                    } catch (err) {
+                        console.error(`Error fetching tracking for token ${tokenId}, action ${actionType}:`, err);
+                        // Provide default tracking
+                        tokenTrackings[actionType] = {
+                            lastUsed: 0,
+                            dailyUses: 0,
+                            dayStartTime: 0
+                        };
+                    }
+                }
+
+                return { 
+                    tokenId: tokenId.toString(), 
+                    tracking: tokenTrackings 
+                };
+            }));
+
+            // Convert to a more accessible object with explicit typing
+            const trackingMap: TokenActionTrackings = trackings.reduce((acc, item) => {
+                acc[item.tokenId] = item.tracking;
+                return acc;
+            }, {} as TokenActionTrackings);
+
+            // Process totems with cache
+            const updatedTotems = await Promise.all(tokenIds.map(async (tokenId) => {
+                const cachedTotem = totemCache.get(tokenId.toString());
+
+                // Check if we need to fetch new metadata
+                if (cachedTotem) {
+                    const attrs = await contract.attributes(tokenId);
+                    if (Number(attrs.stage) === cachedTotem.attributes.stage) {
+                        // Update only attributes and trackings
+                        return {
+                            ...cachedTotem,
+                            attributes: {
+                                ...cachedTotem.attributes,
+                                happiness: Number(attrs.happiness),
+                                experience: Number(attrs.experience),
+                                displayName: attrs.displayName
+                            },
+                            trackings: trackingMap[tokenId.toString()] || {}
+                        };
+                    }
+                }
+
+                // Fetch full metadata if needed
+                const uri = await contract.tokenURI(tokenId);
+                const ipfsMetadata = await fetch(uri.replace('ipfs://', 'https://ipfs.io/ipfs/')).then(res => res.json());
+                const attrs = await contract.attributes(tokenId);
+                const affinity = ipfsMetadata.attributes.find((a: Attribute) => a.trait_type === 'Affinity')?.value;
+                const domain = ipfsMetadata.attributes.find((a: Attribute) => a.trait_type === 'Domain')?.value;
+
+                const newTotem = {
+                    id: tokenId.toString(),
+                    tokenId,
+                    affinity,
+                    domain,
+                    ...ipfsMetadata,
+                    attributes: {
+                        species: Number(attrs.species),
+                        color: Number(attrs.color),
+                        rarity: Number(attrs.rarity),
+                        happiness: Number(attrs.happiness),
+                        experience: Number(attrs.experience),
+                        stage: Number(attrs.stage),
+                        isStaked: Boolean(attrs.isStaked),
+                        displayName: attrs.displayName
+                    },
+                    trackings: trackingMap[tokenId.toString()] || {}
+                };
+
+                // Update cache
+                setTotemCache(prev => new Map(prev.set(tokenId.toString(), newTotem)));
+                return newTotem;
+            }));
+
+            setTotems(updatedTotems);
+        }
+        catch (err) {
+            console.error('Error fetching totems:', err);
+            setTotemError('Failed to load your Totems. Please try again.');
+        }
+        finally {
+            setTotemLoading(false);
+        }
+    }, [state.provider, state.address, state.isConnected, state.isSignedUp, totemCache]);
+
     const updateTotem = async (tokenId: bigint, type: ActionType) => {
         if (!state.provider || !state.address) return;
         
         try {
-            const [contract, gameContract] = await Promise.all([
-                createTotemNFTContract(state.provider),
+            const contract = createTotemNFTContract(state.provider);
+            const [attrs, gameContract] = await Promise.all([
+                contract.attributes(tokenId),
                 createGameContract(state.provider)
             ]);
-    
-            // Get attributes first
-            const attrs = await contract.attributes(tokenId);
-            
-            // Create tracking object with the updated action
-            const trackings: {[key in ActionType]?: ActionTracking} = {};
-            const currentTime = Math.floor(Date.now() / 1000);
+                        
+            // Get new tracking data
+            const tracking = await gameContract.getActionTracking(tokenId, type);
 
-            if (type < ActionType.Evolve) {
-                // Get tracking for the specific action that was just performed
-                const tracking = await gameContract.getActionTracking(tokenId, type);
-
-                trackings[type] = {
-                    lastUsed: Math.min(Number(tracking.lastUsed), currentTime),
+            // Update single totem in state
+            setTotems(prev => prev.map(totem => 
+                totem.tokenId === tokenId ? {
+                ...totem,
+                attributes: {
+                    ...totem.attributes,
+                    happiness: Number(attrs.happiness),
+                    experience: Number(attrs.experience),
+                    stage: Number(attrs.stage)
+                },
+                trackings: {
+                    ...totem.trackings,
+                    [type]: {
+                    lastUsed: Math.min(Number(tracking.lastUsed), Math.floor(Date.now() / 1000)),
                     dailyUses: Number(tracking.dailyUses),
-                    dayStartTime: Math.min(
-                        Number(tracking.dayStartTime), 
-                        currentTime + SECONDS_PER_DAY
-                    )
-                };
-            }
-
-            // Try to get trackings, but don't fail if they error
-            try {
-                // Only get trackings for valid action types
-                const otherTypes = [
-                    ActionType.Feed,
-                    ActionType.Train,
-                    ActionType.Treat
-                ].filter(t => t !== type);
-
-                await Promise.all(otherTypes.map(async (actionType) => {
-                    try {
-                        const otherTracking = await gameContract.getActionTracking(tokenId, actionType);
-                        trackings[actionType as ActionType] = {
-                            lastUsed: Math.min(Number(otherTracking.lastUsed), currentTime),
-                            dailyUses: Number(otherTracking.dailyUses),
-                            dayStartTime: Math.min(
-                                Number(otherTracking.dayStartTime), 
-                                currentTime + SECONDS_PER_DAY
-                            )
-                        };
+                    dayStartTime: Math.min(Number(tracking.dayStartTime), Math.floor(Date.now() / 1000) + 86400)
                     }
-                    catch (err) {
-                        console.warn(`Could not fetch tracking for action type ${actionType}:`, err);
-                    }
-                }));
-            }
-            catch (err) {
-                console.warn('Error fetching additional trackings:', err);
-            }
+                }
+                } : totem
+            ));
 
-            // Get existing updates for this token
-            const existingUpdate = state.totemUpdates.get(tokenId.toString());
-            const existingTrackings = existingUpdate?.trackings || {};
-    
-            // Update state with new data, preserving existing tracking data
-            setState(prev => {
-                const newUpdates = new Map(prev.totemUpdates);
-                newUpdates.set(tokenId.toString(), {
-                    tokenId,
-                    attributes: {
-                        ...attrs,
-                        happiness: Number(attrs.happiness),
-                        experience: Number(attrs.experience),
-                        stage: Number(attrs.stage),
-                        species: Number(attrs.species),
-                        color: Number(attrs.color),
-                        rarity: Number(attrs.rarity),
-                        isStaked: Boolean(attrs.isStaked),
-                        displayName: attrs.displayName ?? ''
-                    },
-                    trackings: {
-                        ...existingTrackings,  // Preserve existing tracking data
-                        ...trackings           // Override with new tracking data
-                    }
+            // Check if evolution occurred
+            const currentTotem = totems.find(t => t.tokenId === tokenId);
+            if (currentTotem && Number(attrs.stage) !== currentTotem.attributes.stage) {
+                // Fetch new metadata after evolution
+                const uri = await contract.tokenURI(tokenId);
+                const ipfsMetadata = await fetch(uri.replace('ipfs://', 'https://ipfs.io/ipfs/')).then(res => res.json());
+
+                setTotems(prev => prev.map(totem =>
+                    totem.tokenId === tokenId ? {
+                        ...totem,
+                        ...ipfsMetadata,
+                        attributes: {
+                            ...totem.attributes,
+                            ...attrs
+                        }
+                    } : totem
+                ));
+
+                // Update cache
+                setTotemCache(prev => {
+                    const updated = new Map(prev);
+                    updated.delete(tokenId.toString()); // Force fresh metadata next fetch
+                    return updated;
                 });
-    
-                return {
-                    ...prev,
-                    totemUpdates: newUpdates,
-                    lastUpdatedTotem: tokenId,
-                    totemUpdateCounter: prev.totemUpdateCounter + 1
-                };
-            });
-    
+            }
+
             await updateBalances();
-            
+
         } catch (error) {
             console.error('Error updating totem:', error);
-            // Still update the UI counter to trigger a refresh
-            setState(prev => ({
-                ...prev,
-                totemUpdateCounter: prev.totemUpdateCounter + 1
-            }));
+            throw error;
         }
     };
     
-    const totemUpdated = (tokenId: bigint) => {
-        setState(prev => ({
-            ...prev,
-            lastUpdatedTotem: tokenId,
-            totemUpdateCounter: state.totemUpdateCounter + 1
-        }));
+    const addTotem = async (tokenId: bigint) => {
+        if (!state.provider || !state.address) return;
+
+        try {
+            const contract = createTotemNFTContract(state.provider);
+            const gameContract = createGameContract(state.provider);
+
+            // Get token tracking
+            const tokenTrackings: {[key in ActionType]?: ActionTracking} = {};
+            for (const actionType of [ActionType.Feed, ActionType.Train, ActionType.Treat]) {
+                try {
+                    const actionTracking = await gameContract.getActionTracking(tokenId, actionType);
+                    tokenTrackings[actionType] = {
+                        lastUsed: Math.min(Number(actionTracking.lastUsed), Math.floor(Date.now() / 1000)),
+                        dailyUses: Number(actionTracking.dailyUses),
+                        dayStartTime: Math.min(Number(actionTracking.dayStartTime), Math.floor(Date.now() / 1000) + 86400)
+                    };
+                }
+                catch (err) {
+                    console.warn(`Error fetching tracking for token ${tokenId}, action ${actionType}:`, err);
+                }
+            }
+
+            // Get metadata and attributes
+            const [uri, attrs] = await Promise.all([
+                contract.tokenURI(tokenId),
+                contract.attributes(tokenId)
+            ]);
+
+            const ipfsMetadata = await fetch(uri.replace('ipfs://', 'https://ipfs.io/ipfs/')).then(res => res.json());
+            const affinity = ipfsMetadata.attributes.find((a: Attribute) => a.trait_type === 'Affinity')?.value;
+            const domain = ipfsMetadata.attributes.find((a: Attribute) => a.trait_type === 'Domain')?.value;
+
+            const newTotem = {
+                id: tokenId.toString(),
+                tokenId,
+                affinity,
+                domain,
+                ...ipfsMetadata,
+                attributes: {
+                    species: Number(attrs.species),
+                    color: Number(attrs.color),
+                    rarity: Number(attrs.rarity),
+                    happiness: Number(attrs.happiness),
+                    experience: Number(attrs.experience),
+                    stage: Number(attrs.stage),
+                    isStaked: Boolean(attrs.isStaked),
+                    displayName: attrs.displayName
+                },
+                trackings: tokenTrackings
+            };
+
+            // Update cache and totems list
+            setTotemCache(prev => new Map(prev.set(tokenId.toString(), newTotem)));
+            setTotems(prev => [...prev, newTotem]);
+        }
+        catch (err) {
+            console.error('Error adding new totem:', err);
+            throw err;
+        }
+    };
+
+    const removeTotem = (tokenId: bigint) => {
+        setTotems(prev => prev.filter(totem => totem.tokenId !== tokenId));
+        setTotemCache(prev => {
+            const updated = new Map(prev);
+            updated.delete(tokenId.toString());
+            return updated;
+        });
     };
 
     const checkTokenApproval = useCallback(async () => {
@@ -296,7 +439,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const rewardsContract = createRewardsContract(state.provider);
             const dailyRewardId = ethers.id("daily_login");
             const status = await rewardsContract.getStreakStatus(dailyRewardId, state.address);
-            
             const newStatus: StreakStatus = {
                 streakDays: Number(status.currentStreak),
                 canClaimToday: status.canClaim,
@@ -521,23 +663,83 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [handleAccountsChanged, initializeProvider]);
 
     useEffect(() => {
-        if (state.isConnected && state.isSignedUp) {
-            // Update both daily and weekly status
-            const updateStatus = async () => {
+        if (!state.isConnected || !state.isSignedUp) return;
+    
+        // Calculate time until next UTC midnight
+        const getTimeUntilMidnight = () => {
+            const now = new Date();
+            const tomorrow = new Date(Date.UTC(
+                now.getUTCFullYear(),
+                now.getUTCMonth(),
+                now.getUTCDate() + 1,
+                0, 0, 0
+            ));
+            return tomorrow.getTime() - now.getTime();
+        };
+    
+        // Handle midnight rollover
+        const handleMidnightRollover = async () => {
+            try {
+                // Update all states
                 await Promise.all([
                     updateStreakStatus(),
                     updateWeeklyStatus(),
                     updateAchievementStatus()
                 ]);
-            };
-            
-            updateStatus();
-            
-            // Update every minute to keep status fresh
-            const interval = setInterval(updateStatus, 60000);
-            return () => clearInterval(interval);
+            } catch (error) {
+                console.error('Error handling midnight rollover:', error);
+            }
+        };
+    
+        // Set up periodic refresh (every 30 seconds)
+        const refreshStates = async () => {
+            try {
+                console.log('refreshing state');
+                await Promise.all([
+                    updateBalances(),
+                    updateStreakStatus(),
+                    updateWeeklyStatus(),
+                    updateAchievementStatus()
+                ]);
+            } catch (error) {
+                console.error('Error refreshing states:', error);
+            }
+        };
+    
+        // Initial check for midnight + 1 minute window
+        const now = new Date();
+        if (now.getUTCHours() === 0 && now.getUTCMinutes() === 0) {
+            handleMidnightRollover();
         }
-    }, [state.isConnected, state.isSignedUp]);
+    
+        // Set up midnight timer
+        const timeUntilMidnight = getTimeUntilMidnight();
+        const midnight = setTimeout(async () => {
+            await handleMidnightRollover();
+            
+            // Set up recurring daily check
+            setMidnightTimeout(setInterval(handleMidnightRollover, 24 * 60 * 60 * 1000));
+        }, timeUntilMidnight);
+    
+        // Set up refresh interval
+        const refresh = setInterval(refreshStates, 30000); // 30 seconds
+    
+        // Store the timeouts/intervals
+        setMidnightTimeout(midnight);
+        setRefreshInterval(refresh);
+    
+        // Call immediately
+        refreshStates();
+
+        // Cleanup function
+        return () => {
+            if (midnightTimeout) clearTimeout(midnightTimeout);
+            if (refreshInterval) clearInterval(refreshInterval);
+        };
+    }, [
+        state.isConnected, 
+        state.isSignedUp
+    ]);
 
     // Watch for signed up users to update balances
     useEffect(() => {
@@ -546,6 +748,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             updateBalances();
         }
     }, [state.isConnected, state.isSignedUp, checkTokenApproval, updateBalances]);
+
+    useEffect(() => {
+        if (state.isConnected && state.isSignedUp) {
+            fetchTotems();
+        } else {
+            setTotems([]);
+            setTotemCache(new Map());
+        }
+    }, [state.isConnected, state.isSignedUp]);
 
     const connect = async () => {
         if (!window.ethereum) {
@@ -609,11 +820,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 updateBalances,
                 connect,
                 disconnect,
-                totemUpdateCounter: state.totemUpdateCounter,
-                lastUpdatedTotem: state.lastUpdatedTotem,
+                totems,
+                totemLoading,
+                totemError,
+                addTotem,
+                removeTotem,
                 updateTotem,
-                totemUpdated,
-                totemUpdates: state.totemUpdates,
                 getUserStreak,
                 claimDailyReward,
                 checkTokenApproval,
@@ -630,7 +842,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 updateWeeklyStatus,
                 claimWeeklyReward,
                 purchaseProtection,
-                errorDialog: state.errorDialog,
+                messageDialog: state.messageDialog,
                 showError,
                 hideError,
                 comingSoon

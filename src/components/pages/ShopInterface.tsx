@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Lock, Coins, Sparkles } from 'lucide-react';
+import { Lock, Coins, Sparkles, AlertTriangle } from 'lucide-react';
 import { ethers } from 'ethers';
 import { useUser } from '../../contexts/UserContext';
 import { useTotemGame } from '../../hooks/useTotemGame';
@@ -7,30 +7,31 @@ import { createTotemNFTContract } from '../../config/contracts';
 import CelebrationModal from '../CelebrationModal';
 import ApprovalStatus from '../ApprovalStatus';
 import TokensDisplay from '../TokensDisplay';
+import SellTotemsInterface from './SellTotemsInterface';
 
 const ShopInterface = () => {
   const [activeTab, setActiveTab] = useState('totems');
   const [loading, setLoading] = useState(false);
   const [purchasingTotems, setPurchasingTotems] = useState<{[key: number]: boolean}>({});
   const [error, setError] = useState('');
-  const { provider, updateBalances, polBalance, totemBalance, totemUpdated, showError } = useUser();
+  const { provider, updateBalances, addTotem, showError } = useUser();
   const { buyTokens, purchaseTotem } = useTotemGame();
   const [purchasedTotem, setPurchasedTotem] = useState<any>(null);
 
   // Available species data
   const availableSpecies = [
-    { id: 0, name: 'Goose', available: false, emoji: '🦢' },
-    { id: 1, name: 'Otter', available: true, emoji: '🦦' },
-    { id: 2, name: 'Wolf', available: true, emoji: '🐺' },
-    { id: 3, name: 'Falcon', available: false, emoji: '🦅' },
-    { id: 4, name: 'Beaver', available: false, emoji: '🦫' },
-    { id: 5, name: 'Deer', available: false, emoji: '🦌' },
-    { id: 6, name: 'Woodpecker', available: false, emoji: '🐦' },
-    { id: 7, name: 'Salmon', available: false, emoji: '🐟' },
-    { id: 8, name: 'Bear', available: false, emoji: '🐻' },
-    { id: 9, name: 'Raven', available: false, emoji: '🦅' },
+    { id: 11, name: 'Owl', available: true, emoji: '🦉' },
     { id: 10, name: 'Snake', available: false, emoji: '🐍' },
-    { id: 11, name: 'Owl', available: true, emoji: '🦉' }
+    { id: 9, name: 'Raven', available: false, emoji: '🦅' },
+    { id: 8, name: 'Bear', available: false, emoji: '🐻' },
+    { id: 7, name: 'Salmon', available: false, emoji: '🐟' },
+    { id: 6, name: 'Woodpecker', available: false, emoji: '🐦' },
+    { id: 5, name: 'Deer', available: false, emoji: '🦌' },
+    { id: 4, name: 'Beaver', available: false, emoji: '🦫' },
+    { id: 3, name: 'Falcon', available: false, emoji: '🦅' },
+    { id: 2, name: 'Wolf', available: true, emoji: '🐺' },
+    { id: 1, name: 'Otter', available: true, emoji: '🦦' },
+    { id: 0, name: 'Goose', available: false, emoji: '🦢' }
   ];
   
   const tokenPackages = [
@@ -44,8 +45,8 @@ const ShopInterface = () => {
       setLoading(true);
       setError('');
       try {
-          const tx = await buyTokens(ethers.parseEther(polAmount));
-          console.log('Token purchase transaction:', tx.hash);
+          const receipt = await buyTokens(ethers.parseEther(polAmount));
+          console.log('Token purchase complete:', receipt);
           await updateBalances();
       }
       catch (err) {
@@ -62,30 +63,12 @@ const ShopInterface = () => {
       setPurchasingTotems(prev => ({ ...prev, [speciesId]: true }));
       setError('');
       try {
-          const txHash = await purchaseTotem(speciesId);
-          console.log(`Purchased totem ${speciesId}:`, txHash);
-          let tokenId = 0n;
+          const tokenId = await purchaseTotem(speciesId);
+          console.log(`Purchased totem ${speciesId}:`, tokenId);
 
           // Wait for transaction confirmation and get the token ID
           if (provider) {
-              const receipt = await provider.getTransactionReceipt(txHash);
               const nftContract = createTotemNFTContract(provider);
-
-              // Find NFT Transfer event (it has 4 topics with the last one being tokenId)
-              const nftTransferLog = receipt?.logs.find(log => 
-                log.topics.length === 4 && // ERC721 Transfer has 4 topics
-                log.topics[1] === '0x0000000000000000000000000000000000000000000000000000000000000000' // from zero address (mint)
-              );
-
-              if (!nftTransferLog) {
-                  console.error('Could not find NFT mint event in logs');
-                  throw new Error('Failed to find minted token');
-              }
-
-              // Get tokenId from the last topic
-              tokenId = BigInt(nftTransferLog.topics[3]);
-              console.log('Minted token ID:', tokenId);
-              
               // Get the NFT metadata from contract
               const [attributes, tokenURI] = await Promise.all([
                 nftContract.attributes(tokenId),
@@ -113,7 +96,7 @@ const ShopInterface = () => {
           }
 
           await updateBalances();
-          totemUpdated(tokenId);
+          addTotem(tokenId);
       }
       catch (err) {
           //const message = err instanceof Error ? err.message : 'Failed to buy totem';
@@ -203,7 +186,7 @@ const ShopInterface = () => {
                 <div>
                   <h3 className="font-bold text-lg text-purple-900 dark:text-purple-200">Limited Time</h3>
                   <p className="text-purple-800 dark:text-purple-300 text-base mb-2 leading-relaxed">
-                  {Number(5000).toLocaleString()} TOTEM tokens and an exclusive totem skin!
+                  {Number(5000).toLocaleString()} TOTEM tokens and unlock an epic color!
                   </p>
                 </div>
                 <span className="bg-purple-100 text-purple-600 dark:bg-purple-800 dark:text-purple-300 px-2 py-1 rounded text-sm">
@@ -247,68 +230,86 @@ const ShopInterface = () => {
         <div className="pt-6">
           {/* Totems Shop */}
           {activeTab === 'totems' && (
+            <div className="space-y-6">
+              <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-gray-100">Totem Marketplace</h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Discover young spirit companions waiting for a new keeper. 
+                  These totems range in color and rarity, from common to legendary, based on achievement progression, and is determined randomly. 
+                  Your new totem will begin their journey at stage 1, and requires dedicated care, training, and love to unlock their full potential.
+                </p>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {availableSpecies.map((species) => (
-                <div 
-                  key={species.id}
-                  className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden
-                    ${species.available ? '' : 'opacity-75'}`}
-                >
-                  {/* Totem Image */}
-                  <div className="aspect-square bg-gray-100 dark:bg-gray-700 relative">
-                    <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500">
-                      <span className="text-6xl">{species.emoji}</span>
-                    </div>
-                    {!species.available && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 dark:bg-opacity-60">
-                        <div className="bg-gray-800 dark:bg-gray-700 text-white px-3 py-1 rounded-full flex items-center">
-                          <Lock className="w-4 h-4 mr-1" />
-                          Coming Soon
-                        </div>
+                {availableSpecies.map((species) => (
+                  <div 
+                    key={species.id}
+                    className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden
+                      ${species.available ? '' : 'opacity-75'}`}
+                  >
+                    {/* Totem Image */}
+                    <div className="aspect-square bg-gray-100 dark:bg-gray-700 relative">
+                      <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500">
+                        <span className="text-6xl">{species.emoji}</span>
                       </div>
-                    )}
-                  </div>
-
-                  {/* Totem Info */}
-                  <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-bold text-lg dark:text-gray-200">{species.name}</h3>
-                      <span className="text-sm bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 px-2 py-1 rounded">
-                        500 TOTEM
-                      </span>
+                      {!species.available && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 dark:bg-opacity-60">
+                          <div className="bg-gray-800 dark:bg-gray-700 text-white px-3 py-1 rounded-full flex items-center">
+                            <Lock className="w-4 h-4 mr-1" />
+                            Coming Soon
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                      Mystical {species.name} Spirit
-                    </p>
-                    <button
-                      onClick={() => species.available && handlePurchaseTotem(species.id)}
-                      disabled={!species.available || purchasingTotems[species.id]}
-                      className={`w-full py-2 px-4 rounded font-semibold
-                        ${species.available
-                          ? 'bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600'
-                          : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                        } disabled:opacity-50`}
-                    >
-                      {purchasingTotems[species.id] ? 'Purchasing...' : 
-                      (species.available ? 'Purchase' : 'Coming Soon')}
-                    </button>
+
+                    {/* Totem Info */}
+                    <div className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-bold text-lg dark:text-gray-200">{species.name}</h3>
+                        <span className="text-sm bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 px-2 py-1 rounded">
+                          500 TOTEM
+                        </span>
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                        Mystical {species.name} Spirit
+                      </p>
+                      <button
+                        onClick={() => species.available && handlePurchaseTotem(species.id)}
+                        disabled={!species.available || purchasingTotems[species.id]}
+                        className={`w-full py-2 px-4 rounded font-semibold
+                          ${species.available
+                            ? 'bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600'
+                            : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                          } disabled:opacity-50`}
+                      >
+                        {purchasingTotems[species.id] ? 'Purchasing...' : 
+                        (species.available ? 'Buy Totem' : 'Coming Soon')}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-              {/* Celebration Modal */}
-              {purchasedTotem && (
-                <CelebrationModal
-                  type="purchase"
-                  totem={purchasedTotem}
-                  onClose={() => setPurchasedTotem(null)}
-                />
-              )}
+                ))}
+                {/* Celebration Modal */}
+                {purchasedTotem && (
+                  <CelebrationModal
+                    type="purchase"
+                    totem={purchasedTotem}
+                    onClose={() => setPurchasedTotem(null)}
+                  />
+                )}
+              </div>
             </div>
           )}
 
           {/* Token Shop */}
           {activeTab === 'tokens' && (
-              <div>
+              <div className="space-y-6">
+                <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                  <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-gray-100">Token Vault</h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Fuel the spirit realm and support our gasless infrastructure by purchasing TOTEM tokens. 
+                    Your contributions directly support the game's ecosystem, enabling smooth, 
+                    fee-free transactions and supporting the continued evolution of our mystical world. 
+                  </p>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {tokenPackages.map((pkg) => (
                   <div 
@@ -356,44 +357,27 @@ const ShopInterface = () => {
           {/* Sell Interface */}
           {activeTab === 'sell' && (
             <div className="space-y-6">
-            <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-gray-100">Sell Your Totems</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Select a Totem to sell back to the game. You'll receive TOTEM tokens based on the Totem's stage and rarity.
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Example sellable totem card */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="font-bold text-gray-900 dark:text-gray-100">Elder Wolf</h3>
-                  <span className="bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 px-2 py-1 rounded text-sm">
-                    Stage 4
-                  </span>
-                </div>
-                <div className="aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg mb-4 relative">
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500">
-                    <span className="text-6xl">🐺</span>
+              <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-gray-100">Sell Your Totems</h3>
+                <div className="space-y-3 text-gray-600 dark:text-gray-400">
+                  <p>
+                    
+                    When you sell a totem, it becomes <span className="font-medium text-gray-900 dark:text-gray-300">Unbound</span> and 
+                    enters the marketplace. You'll receive TOTEM tokens based on the totem's stage and rarity.
+                  </p>
+
+                  <div className="mt-4 flex items-start gap-2">
+                    <AlertTriangle className="h-5 w-5 text-yellow-500 dark:text-yellow-400 mt-1 flex-shrink-0" />
+                    <div>
+                      <p>You'll need to approve the transfer of your totem to the marketplace. This is a one-time transaction for each totem you want to sell.</p>
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-2 mb-4">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Rarity:</span>
-                    <span className="font-medium text-gray-900 dark:text-gray-200">Rare</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Value:</span>
-                    <span className="font-medium text-gray-900 dark:text-gray-200">260 TOTEM</span>
-                  </div>
-                </div>
-                <button className="w-full bg-red-600 text-white py-2 px-4 rounded font-semibold 
-                  hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600">
-                  Sell Totem
-                </button>
+
               </div>
+
+              <SellTotemsInterface />
             </div>
-          </div>
           )}
         </div>
 

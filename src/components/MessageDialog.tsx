@@ -1,25 +1,25 @@
-// components/ErrorDialog.tsx
 import React from 'react';
 import { X } from 'lucide-react';
 
-// types/types.ts
-export interface ErrorDialogState {
+export interface MessageDialogState {
   isOpen: boolean;
   title: string;
   message: string;
 }
 
-interface ErrorDialogProps {
+interface MessageDialogProps {
   title: string;
   children: React.ReactNode;
   isOpen: boolean;
+  showDismiss: boolean;
   onClose: () => void;
 }
 
-const ErrorDialog: React.FC<ErrorDialogProps> = ({
+const MessageDialog: React.FC<MessageDialogProps> = ({
   title,
   children,
   isOpen,
+  showDismiss,
   onClose
 }) => {
   if (!isOpen) return null;
@@ -45,23 +45,25 @@ const ErrorDialog: React.FC<ErrorDialogProps> = ({
             {title}
           </h2>
           
-          <div className="text-gray-600 dark:text-gray-300 mb-6">
+          <div className="text-gray-600 dark:text-gray-300">
             {children}
           </div>
 
           {/* Dismiss button */}
-          <div className="flex justify-end">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md text-gray-900 dark:text-gray-100 transition-colors"
-            >
-              Dismiss
-            </button>
-          </div>
+          {showDismiss && 
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md text-gray-900 dark:text-gray-100 transition-colors"
+              >
+                Dismiss
+              </button>
+            </div>
+          }
         </div>
       </div>
     </div>
   );
 };
 
-export default ErrorDialog;
+export default MessageDialog;

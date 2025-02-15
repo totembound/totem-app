@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { NFTMetadata, TotemAttributes, Rarity, Species, Color } from '../types/types';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { NFTMetadata, TotemAttributes, Rarity, Species, Color, ActionTracking } from '../types/types';
 import { ActionType } from '../types/types';
 import { 
     ChevronLeft, 
@@ -15,7 +15,6 @@ import {
 import { useUser } from '../contexts/UserContext';
 import { useGame } from '../contexts/GameContext';
 import { useTotemGame } from '../hooks/useTotemGame';
-import { createTotemNFTContract } from '../config/contracts';
 import { Edit2 } from 'lucide-react';
 import DisplayNameEditor from './DisplayNameEditor';
 import ActionEffect from './effects/ActionEffect';
@@ -90,29 +89,20 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     onPrev,
     onNext
 }) => {
-    const { updateTotem, totemUpdates, provider, totemUpdateCounter, totemBalance } = useUser();
+    const { totems, updateTotem, totemBalance } = useUser();
     const { actionConfigs, canUseAction, getActionStatus, getNextAvailableWindow } = useGame();
     const { feed, train, treat, evolve } = useTotemGame();
     const [isLoading, setIsLoading] = useState<ActionType | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [currentMetadata, setCurrentMetadata] = useState<NFTMetadata>(totem);
     const [isEditingName, setIsEditingName] = useState(false);
     const [showEvolutionCelebration, setShowEvolutionCelebration] = useState(false);
     const [activeEffect, setActiveEffect] = useState<'treat' | 'feed' | 'train' | null>(null);
-
     const dialogRef = useRef<HTMLDivElement>(null);
-    const updates = totemUpdates.get(totem.tokenId.toString());
     
-    // Merge updates with base data
-    const currentAttributes = {
-        ...currentMetadata.attributes,
-        ...updates?.attributes
-    };
-    
-    const currentTrackings = {
-        ...currentMetadata.trackings,
-        ...updates?.trackings
-    };
+    const currentTotem = useMemo(() => 
+        totems.find(t => t.tokenId === totem.tokenId) ?? totem,
+        [totems, totem.tokenId, totem]
+    );
 
     // Action handlers
     const handleAction = async (action: ActionType, handler: () => Promise<void>) => {
@@ -123,15 +113,12 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
             await updateTotem(totem.tokenId, action);
 
             if (action == ActionType.Evolve) {
-                await refreshMetadata();
                 setShowEvolutionCelebration(true);
             }
         }
         catch (err) {
             console.error(`Error with ${ActionType[action]}:`, err);
             setError(`Failed to ${ActionType[action].toLowerCase()}. Please try again.`);
-            // Force a refresh of metadata even on error
-            await refreshMetadata();
         }
         finally {
             setIsLoading(null);
@@ -139,42 +126,6 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
             setTimeout(() => {
                 setActiveEffect(null);
             }, 2000);
-        }
-    };
-
-    const refreshMetadata = async () => {
-        if (!provider) return;
-        
-        try {
-            const contract = createTotemNFTContract(provider);
-            const tokenURI = await contract.tokenURI(totem.tokenId);
-            const response = await fetch(tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/'));
-            const newMetadata = await response.json();
-            
-            // Get updated on-chain attributes
-            const attrs = await contract.attributes(totem.tokenId);
-            
-            // Create full attributes object
-            const parsedAttributes: TotemAttributes = {
-                species: Number(attrs.species),
-                color: Number(attrs.color),
-                rarity: Number(attrs.rarity),
-                happiness: Number(attrs.happiness),
-                experience: Number(attrs.experience),
-                stage: Number(attrs.stage),
-                isStaked: Boolean(attrs.isStaked),
-                displayName: attrs.displayName ?? ''
-            };
-
-            setCurrentMetadata(prev => ({
-                ...prev,
-                ...newMetadata,
-                attributes: parsedAttributes,
-                image: newMetadata.image // Ensure new image URL is set
-            }));
-        }
-        catch (err) {
-            console.error('Error refreshing metadata:', err);
         }
     };
     
@@ -194,9 +145,12 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
         await handleAction(ActionType.Evolve, () => evolve(totem.tokenId));
     };
 
-    const feedTracking = currentTrackings?.[ActionType.Feed];
-    const trainTracking = currentTrackings?.[ActionType.Train];
-    const treatTracking = currentTrackings?.[ActionType.Treat];
+    const currentAttributes = currentTotem?.attributes || totem.attributes;
+    const currentTrackings = currentTotem?.trackings || totem.trackings;
+
+    const feedTracking = currentTrackings[ActionType.Feed];
+    const trainTracking = currentTrackings[ActionType.Train];
+    const treatTracking = currentTrackings[ActionType.Treat];
 
     const canFeed = canUseAction(currentAttributes, ActionType.Feed, feedTracking);
     const canTrain = canUseAction(currentAttributes, ActionType.Train, trainTracking);
@@ -205,12 +159,10 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     const xpProgress = calculateXPProgress(currentAttributes);
 
     useEffect(() => {
-        setCurrentMetadata(totem);
-    }, [totem.tokenId]);
-
-    useEffect(() => {
-        refreshMetadata();
-    }, [totem.tokenId, updates, totemUpdateCounter]);
+        if (!currentTotem) {
+            onClose();
+        }
+    }, [currentTotem, onClose]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -368,8 +320,8 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                 <CelebrationModal
                     type="evolution"
                     totem={{
-                        name: currentMetadata.name,
-                        image: currentMetadata.image,
+                        name: currentTotem.name,
+                        image: currentTotem.image,
                         attributes: currentAttributes
                     }}
                     onClose={() => setShowEvolutionCelebration(false)}
@@ -379,14 +331,14 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
             <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <h2 className="text-lg sm:text-xl font-bold truncate">
-                        {currentMetadata.name || Species[currentAttributes.species]}
+                        {currentTotem.name || Species[currentAttributes.species]}
                     </h2>
                     {isEditingName ? (
                     <DisplayNameEditor
-                        tokenId={BigInt(currentMetadata.tokenId)}
+                        tokenId={BigInt(currentTotem.tokenId)}
                         currentName={currentAttributes.displayName || ''}
                         onClose={async () => {
-                            await updateTotem(currentMetadata.tokenId, ActionType.None);
+                            await updateTotem(currentTotem.tokenId, ActionType.None);
                             setIsEditingName(false);
                         }}
                     />
@@ -418,8 +370,8 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                         {/* Image - Smaller padding on mobile */}
                         <div className="aspect-square rounded-lg overflow-hidden relative">
                             <img 
-                                src={currentMetadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/')}
-                                alt={currentMetadata.name}
+                                src={currentTotem.image.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                                alt={currentTotem.name}
                                 className="w-full h-full object-cover sticky"
                             />
                             <ActionEffect 

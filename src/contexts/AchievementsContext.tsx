@@ -22,7 +22,7 @@ interface AchievementsContextType {
 const AchievementsContext = createContext<AchievementsContextType | null>(null);
 
 export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { provider, address, isConnected, totemUpdateCounter } = useUser();
+    const { provider, address, isConnected } = useUser();
     const [achievements, setAchievements] = useState<Record<AchievementCategory, AchievementView[]>>({} as Record<AchievementCategory, AchievementView[]>);
     const [achievementsById, setAchievementsById] = useState<Record<string, AchievementView>>({});
     const [progress, setProgress] = useState<Record<string, AchievementProgress>>({});
@@ -136,7 +136,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         finally {
             setIsLoading(false);
         }
-    }, [provider, address, totemUpdateCounter]);
+    }, [provider, address]);
 
     // Helper function to check if specific achievement requirements are met
     const checkSpecificAchievement = useCallback(async (id: string): Promise<boolean> => {

@@ -265,13 +265,19 @@ const AchievementStatsRow: React.FC<AchievementStatsRowProps> = ({
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2 pb-6">
             <div className="w-full grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-7 gap-2 sm:gap-26">
                 {/* Total Progress */}
-                <div className="col-span-2 sm:col-span-1">
-                    <DialChart
-                        value={totalPercentage}
-                        Icon={Trophy}
-                        label={`${totalPercentage}%`}
-                        sublabel={`${totalCompleted}/${totalAchievements}`}
-                    />
+                <div className="col-span-2 sm:col-span-1 text-center">
+                    <Tooltip 
+                        content={`Total: ${totalCompleted} of ${totalAchievements} completed\n(includes all categories, achievements & milestones)`}
+                    >
+                        <div className="relative z-10">
+                            <DialChart
+                                value={totalPercentage}
+                                Icon={Trophy}
+                                label={`${totalPercentage}%`}
+                                sublabel={`${totalCompleted}/${totalAchievements}`}
+                            />
+                        </div>
+                    </Tooltip>
                 </div>
                 {/* Category Progress */}
                 {stats.map(stat => {

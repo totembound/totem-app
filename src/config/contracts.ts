@@ -1,4 +1,4 @@
-import { Contract, BrowserProvider, EventFilter } from 'ethers';
+import { Contract, BrowserProvider, EventFilter, TransactionResponse } from 'ethers';
 import TotemAchievementsABI from '../contracts/TotemAchievements.abi.json';
 import TotemGameABI from '../contracts/TotemGame.abi.json';
 import TotemNFTABI from '../contracts/TotemNFT.abi.json';
@@ -28,11 +28,12 @@ export const FORWARDER_ABI = [
 export type TotemGameContract = Contract & {
     signup: () => Promise<any>;
     hasAccount: (address: string) => Promise<boolean>;
-    buyTokens: (overrides?: { value: bigint }) => Promise<any>;
-    purchaseTotem: (speciesId: number) => Promise<any>;
-    feed: (tokenId: bigint) => Promise<any>;
-    train: (tokenId: bigint) => Promise<any>;
-    treat: (tokenId: bigint) => Promise<any>;
+    buyTokens: (overrides?: { value: bigint }) => Promise<TransactionResponse>;
+    purchaseTotem: (speciesId: number) => Promise<TransactionResponse>;
+    sellTotem: (tokenId: bigint) => Promise<TransactionResponse>; 
+    feed: (tokenId: bigint) => Promise<TransactionResponse>;
+    train: (tokenId: bigint) => Promise<TransactionResponse>;
+    treat: (tokenId: bigint) => Promise<TransactionResponse>;
     canUseAction: (tokenId: bigint, actionType: Number) => Promise<boolean>;
 };
 

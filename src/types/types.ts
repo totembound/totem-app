@@ -1,12 +1,13 @@
 import { ethers } from 'ethers';
-import { ErrorDialogState } from '../components/ErrorDialog';
+import { MessageDialogState } from '../components/MessageDialog';
 
 export interface UserContextType extends UserContextState {
     checkSignupStatus: () => Promise<void>;
     updateBalances: () => Promise<void>;
     connect: () => Promise<void>;
     disconnect: () => void;
-    totemUpdated: (tokenId: bigint) => void;
+    addTotem: (tokenId: bigint) => Promise<void>;
+    removeTotem: (tokenId: bigint) => void;
     updateTotem: (tokenId: bigint, type: ActionType) => Promise<void>;
     getUserStreak: () => Promise<StreakStatus | undefined>;
     claimDailyReward: () => Promise<boolean | undefined>;
@@ -41,17 +42,18 @@ export interface UserContextState {
     address: string;
     provider: ethers.BrowserProvider | null;
     signer: ethers.JsonRpcSigner | null;
+    // totems
+    totems: NFTMetadata[];
+    totemLoading: boolean;
+    totemError: string | null;
     // control state for updates
-    totemUpdateCounter: number;
-    lastUpdatedTotem: bigint;
-    totemUpdates: Map<string, TotemUpdate>;
     isApprovalMessageDismissed: boolean;
     streakStatus: StreakStatus | null;
     weeklyStatus: WeeklyStatus | null;
     hasWeeklyUnlocked: boolean;
     hasStakingUnlocked: boolean;
     isClaimLoading: boolean;
-    errorDialog: ErrorDialogState;
+    messageDialog: MessageDialogState;
     comingSoon: boolean;
 }
 
@@ -292,6 +294,11 @@ export interface AchievementProgress {
     achieved: boolean;
     unlockedMilestones: boolean[];
     requirementsMet : boolean;
+}
+
+export interface Attribute {
+    trait_type: string;
+    value: string | number;
 }
 
 export const ONETIME_REQUIREMENT = BigInt(ethers.MaxUint256);

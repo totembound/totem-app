@@ -7,7 +7,8 @@ import { createTotemNFTContract } from '../../config/contracts';
 import CelebrationModal from '../CelebrationModal';
 import ApprovalStatus from '../ApprovalStatus';
 import TokensDisplay from '../TokensDisplay';
-import SellTotemsInterface from './SellTotemsInterface';
+import SellTotemsShop from './SellTotemsShop';
+import UnboundTotemsShop from './UnboundTotemsShop';
 
 const ShopInterface = () => {
   const [activeTab, setActiveTab] = useState('totems');
@@ -213,6 +214,12 @@ const ShopInterface = () => {
             Totems
           </button>
           <button
+            onClick={() => setActiveTab('unbound')}
+            className={getTabStyle('unbound')}
+          >
+            Unbound Totems
+          </button>
+          <button
             onClick={() => setActiveTab('tokens')}
             className={getTabStyle('tokens')}
           >
@@ -299,6 +306,11 @@ const ShopInterface = () => {
             </div>
           )}
 
+          {/* Unbound Totems Shop */}
+          {activeTab === 'unbound' && (
+            <UnboundTotemsShop />
+          )}
+
           {/* Token Shop */}
           {activeTab === 'tokens' && (
               <div className="space-y-6">
@@ -376,7 +388,7 @@ const ShopInterface = () => {
 
               </div>
 
-              <SellTotemsInterface />
+              <SellTotemsShop />
             </div>
           )}
         </div>

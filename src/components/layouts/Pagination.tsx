@@ -13,22 +13,16 @@ export const Pagination: React.FC<PaginationProps> = ({
     currentPage, 
     totalPages, 
     totalItems, 
-    onPageChange,
-    isMobile = false
+    onPageChange
 }) => {
-    const paginationClasses = isMobile 
-        ? "flex items-center justify-between p-4 border-t dark:border-gray-700" 
-        : "sm:flex flex items-center gap-2 hidden";
-
-    const containerClasses = isMobile 
-        ? ""
-        : "h-10 flex items-center border rounded-lg px-2 bg-white dark:bg-gray-800 dark:border-gray-600";
+    const paginationClasses = "sm:flex flex items-center gap-2";
+    const containerClasses = "h-10 flex items-center border rounded-lg px-2 bg-white dark:bg-gray-800 dark:border-gray-600";
 
     return (
         <div className={paginationClasses}>
             {/* Total Items */}
-            <span className={`text-sm text-gray-600 dark:text-gray-300 ${isMobile ? '' : 'hidden sm:block'}`}>
-                {totalItems} Totems
+            <span className="text-sm text-gray-600 dark:text-gray-300">
+                {totalItems} Total
             </span>
 
             {/* Pagination Controls */}

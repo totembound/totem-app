@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Lock, Coins, Sparkles, AlertTriangle } from 'lucide-react';
+import { Lock, Coins, Sparkles, AlertTriangle, Brain, Cloud, Dumbbell, Mountain, Waves, Wind } from 'lucide-react';
 import { ethers } from 'ethers';
 import { useUser } from '../../contexts/UserContext';
 import { useTotemGame } from '../../hooks/useTotemGame';
@@ -7,8 +7,108 @@ import { createTotemNFTContract } from '../../config/contracts';
 import CelebrationModal from '../CelebrationModal';
 import ApprovalStatus from '../ApprovalStatus';
 import TokensDisplay from '../TokensDisplay';
-import SellTotemsShop from './SellTotemsShop';
-import UnboundTotemsShop from './UnboundTotemsShop';
+import SellTotems from '../shop/SellTotems';
+import UnboundTotems from '../shop/UnboundTotems';
+import { getSpeciesEmoji } from '../../utils/totems';
+import { Species } from '../../types/types';
+import React from 'react';
+import SpecialOffers from '../shop/SpecialOffers';
+
+const AFFINITY_ICONS = {
+  'Strength': Dumbbell,
+  'Wisdom': Brain,
+  'Agility': Wind
+} as const;
+
+const DOMAIN_ICONS = {
+  'Air': Cloud,
+  'Land': Mountain,
+  'Water': Waves
+} as const;
+
+// Available species data
+const availableSpecies = [
+  { id: 0, name: 'Goose', species: Species.Goose, 
+    title: 'The Watchful Guardian',
+    desc: 'The Goose represents protection, vigilance, and leadership. Known for its strong instincts and devotion to its flock, it ensures the safety of all who travel under its watchful eye.',
+    affinity: 'Wisdom',
+    domain: 'Air',
+    available: false, image: '' },
+  { id: 1, name: 'Otter', species: Species.Otter, 
+    title: 'The Joyful Trickster',
+    desc: 'The Otter represents adaptability, curiosity, and playfulness. It approaches challenges with an open mind, embracing creativity and joy even in difficult situations.',
+    affinity: 'Agility',
+    domain: 'Water',
+    available: true, image: '' },
+  { id: 2, name: 'Wolf', species: Species.Wolf, 
+    title: 'The Pack Leader',
+    desc: 'The Wolf represents strategy, loyalty, and teamwork. As a natural pack hunter, it excels in coordination and thrives when working together with others.',
+    affinity: 'Strength',
+    domain: 'Land',
+    available: true, image: '' },
+  { id: 3, name: 'Falcon', species: Species.Falcon, 
+    title: 'The Swift Hunter',
+    desc: 'The Falcon represents precision, agility, and speed. With unmatched vision and lightning-fast reflexes, it never loses sight of its target.',
+    affinity: 'Agility',
+    domain: 'Air',
+    available: false, image: '' },
+  { id: 4, name: 'Beaver', species: Species.Beaver, 
+    title: 'The Tireless Builder',
+    desc: 'The Beaver represents ingenuity, determination, and resourcefulness. It constructs solutions to any problem, always working toward long-term success.',
+    affinity: 'Strength',
+    domain: 'Water',
+    available: false, image: '' },
+  { id: 5, name: 'Deer', species: Species.Deer, 
+    title: 'The Gentle Pathfinder',
+    desc: 'The Deer represents grace, awareness, and intuition. It moves with ease through difficult terrain, staying alert to potential dangers.',
+    affinity: 'Agility',
+    domain: 'Land',
+    available: false, image: '' },
+  { id: 6, name: 'Woodpecker', species: Species.Woodpecker, 
+    title: 'The Relentless Worker',
+    desc: 'The Woodpecker represents persistence, rhythm, and focus. It never tires in its pursuit, chiseling away at obstacles until success is achieved.',
+    affinity: 'Agility',
+    domain: 'Air',
+    available: false, image: '' },
+  { id: 7, name: 'Salmon', species: Species.Salmon, 
+    title: 'The Unyielding Navigator',
+    desc: 'The Salmon represents perseverance, instinct, and endurance. It always finds its way, pushing forward despite overwhelming currents.',
+    affinity: 'Strength',
+    domain: 'Water',
+    available: false, image: '' },
+  { id: 8, name: 'Bear', species: Species.Bear, 
+    title: 'The Unstoppable Force',
+    desc: 'The Bear represents strength, resilience, and dominance. It relies on brute force to overcome adversity, clearing obstacles through sheer power.',
+    affinity: 'Strength',
+    domain: 'Land',
+    available: false, image: '' },
+  { id: 9, name: 'Raven', species: Species.Raven, 
+    title: 'The Shadowed Trickster',
+    desc: 'The Raven represents intelligence, cunning, and mystery. A master of deception, it sees paths unseen by others.',
+    affinity: 'Wisdom',
+    domain: 'Air',
+    available: false, image: '' },    
+  { id: 10, name: 'Snake', species: Species.Snake, 
+    title: 'The Silent Observer',
+    desc: 'The Snake represents stealth, transformation, and wisdom. It moves unnoticed, striking only when the time is right.',
+    affinity: 'Wisdom',
+    domain: 'Land',
+    available: false, image: '' },
+  { id: 11, name: 'Owl', species: Species.Owl, 
+    title: 'The Eternal Watcher', 
+    desc: 'The Owl represents knowledge, insight, and patience. It sees beyond the present, guiding those who seek the truth.',
+    affinity: 'Wisdom',
+    domain: 'Air',
+    available: true, 
+    image: '/totems/owlgroup.png' }  
+];
+
+const tokenPackages = [
+  { amount: '100', cost: '1', popular: false },
+  { amount: '500', cost: '5', popular: true },
+  { amount: '1000', cost: '10', popular: false },
+  { amount: '10000', cost: '100', popular: false }
+];
 
 const ShopInterface = () => {
   const [activeTab, setActiveTab] = useState('totems');
@@ -18,29 +118,6 @@ const ShopInterface = () => {
   const { provider, updateBalances, addTotem, showError } = useUser();
   const { buyTokens, purchaseTotem } = useTotemGame();
   const [purchasedTotem, setPurchasedTotem] = useState<any>(null);
-
-  // Available species data
-  const availableSpecies = [
-    { id: 11, name: 'Owl', available: true, emoji: '🦉' },
-    { id: 10, name: 'Snake', available: false, emoji: '🐍' },
-    { id: 9, name: 'Raven', available: false, emoji: '🦅' },
-    { id: 8, name: 'Bear', available: false, emoji: '🐻' },
-    { id: 7, name: 'Salmon', available: false, emoji: '🐟' },
-    { id: 6, name: 'Woodpecker', available: false, emoji: '🐦' },
-    { id: 5, name: 'Deer', available: false, emoji: '🦌' },
-    { id: 4, name: 'Beaver', available: false, emoji: '🦫' },
-    { id: 3, name: 'Falcon', available: false, emoji: '🦅' },
-    { id: 2, name: 'Wolf', available: true, emoji: '🐺' },
-    { id: 1, name: 'Otter', available: true, emoji: '🦦' },
-    { id: 0, name: 'Goose', available: false, emoji: '🦢' }
-  ];
-  
-  const tokenPackages = [
-    { amount: '100', cost: '1', popular: false },
-    { amount: '500', cost: '5', popular: true },
-    { amount: '1000', cost: '10', popular: false },
-    { amount: '10000', cost: '100', popular: false }
-  ];
 
   const handleBuyTokens = async (polAmount: string) => {
       setLoading(true);
@@ -139,67 +216,8 @@ const ShopInterface = () => {
       </div>
 
       {/* Special Offers Section */}
-      <div className="border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="w-6 h-6 text-yellow-500 dark:text-yellow-400" />
-          <h2 className="text-2xl font-bold dark:text-gray-200">Special Offers</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="bg-yellow-50/50 dark:bg-yellow-900/20 rounded-lg p-6 border border-yellow-200/50 dark:border-yellow-800/50 flex flex-col">
-            <div className="flex-grow">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="font-bold text-lg text-yellow-900 dark:text-yellow-200">New Player Bundle</h3>
-                  <p className="text-yellow-800 dark:text-yellow-300 text-base mb-2 leading-relaxed">
-                  {Number(1000).toLocaleString()} TOTEM tokens and a mysterious spirit totem!
-                  </p>
-                </div>
-                <span className="bg-yellow-100 text-yellow-600 dark:bg-yellow-800 dark:text-yellow-300 px-2 py-1 rounded text-sm">
-                  Starter
-                </span>
-              </div>
-            </div>
-            <button className="w-full bg-yellow-500 text-white py-2 px-4 rounded font-semibold hover:bg-yellow-600 dark:bg-yellow-700 dark:hover:bg-yellow-600 mt-auto">
-              Claim for 8 POL
-            </button>
-          </div>
-          <div className="bg-blue-50/50 dark:bg-blue-900/20 rounded-lg p-6 border border-blue-200/50 dark:border-blue-800/50 flex flex-col">
-            <div className="flex-grow">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="font-bold text-lg text-blue-900 dark:text-blue-200">Weekly Special</h3>
-                  <p className="text-blue-800 dark:text-blue-300 text-base mb-2 leading-relaxed">
-                  {Number(2000).toLocaleString()} TOTEM tokens and unlock a rare totem color!
-                  </p>
-                </div>
-                <span className="bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-300 px-2 py-1 rounded text-sm">
-                  Popular
-                </span>
-              </div>
-            </div>
-            <button className="w-full bg-blue-500 text-white py-2 px-4 rounded font-semibold hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 mt-auto">
-              Buy for 15 POL
-            </button>
-          </div>
-          <div className="bg-purple-50/50 dark:bg-purple-900/20 rounded-lg p-6 border border-purple-200/50 dark:border-purple-800/50 flex flex-col">
-            <div className="flex-grow">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="font-bold text-lg text-purple-900 dark:text-purple-200">Limited Time</h3>
-                  <p className="text-purple-800 dark:text-purple-300 text-base mb-2 leading-relaxed">
-                  {Number(5000).toLocaleString()} TOTEM tokens and unlock an epic color!
-                  </p>
-                </div>
-                <span className="bg-purple-100 text-purple-600 dark:bg-purple-800 dark:text-purple-300 px-2 py-1 rounded text-sm">
-                  Exclusive
-                </span>
-              </div>
-            </div>
-            <button className="w-full bg-purple-500 text-white py-2 px-4 rounded font-semibold hover:bg-purple-600 dark:bg-purple-700 dark:hover:bg-purple-600 mt-auto">
-              Buy for 40 POL
-            </button>
-          </div>
-        </div>
+      <div className="mb-6">
+          <SpecialOffers />
       </div>
 
       {/* Shop Container */}
@@ -250,13 +268,23 @@ const ShopInterface = () => {
                 {availableSpecies.map((species) => (
                   <div 
                     key={species.id}
-                    className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden
+                    className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden h-full flex flex-col
                       ${species.available ? '' : 'opacity-75'}`}
                   >
                     {/* Totem Image */}
                     <div className="aspect-square bg-gray-100 dark:bg-gray-700 relative">
                       <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500">
-                        <span className="text-6xl">{species.emoji}</span>
+                        {species.image ? (
+                            <img
+                                src={species.image.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                                alt={species.name}
+                                className="w-full h-full object-contain"
+                            />
+                        ) : (
+                            <div className="text-6xl text-gray-400 dark:text-gray-500">
+                              <span className="text-6xl">{getSpeciesEmoji(species.species)}</span>
+                            </div>
+                        )}
                       </div>
                       {!species.available && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 dark:bg-opacity-60">
@@ -269,28 +297,66 @@ const ShopInterface = () => {
                     </div>
 
                     {/* Totem Info */}
-                    <div className="p-4">
+                    <div className="p-4 flex flex-col flex-1">
                       <div className="flex justify-between items-start mb-2">
                         <h3 className="font-bold text-lg dark:text-gray-200">{species.name}</h3>
                         <span className="text-sm bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 px-2 py-1 rounded">
                           500 TOTEM
                         </span>
                       </div>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                        Mystical {species.name} Spirit
+
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
+                        <b>{species.title}</b>
                       </p>
-                      <button
-                        onClick={() => species.available && handlePurchaseTotem(species.id)}
-                        disabled={!species.available || purchasingTotems[species.id]}
-                        className={`w-full py-2 px-4 rounded font-semibold
-                          ${species.available
-                            ? 'bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600'
-                            : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                          } disabled:opacity-50`}
-                      >
-                        {purchasingTotems[species.id] ? 'Purchasing...' : 
-                        (species.available ? 'Buy Totem' : 'Coming Soon')}
-                      </button>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                        {species.desc}
+                      </p>
+
+                      <div className="mt-auto">
+                        {/* Affinity & Domain */}
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="flex items-center gap-1.5">
+                                {/* Affinity */}
+                                <div className="p-1 rounded-md bg-yellow-50 dark:bg-yellow-900/20">
+                                    {React.createElement(AFFINITY_ICONS[species.affinity as keyof typeof AFFINITY_ICONS], {
+                                        size: 14,
+                                        className: "text-yellow-600 dark:text-yellow-400"
+                                    })}
+                                </div>
+                                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                                    {species.affinity}
+                                </span>
+                            </div>
+                            
+                            <span className="text-gray-300 dark:text-gray-600">•</span>
+                            
+                            {/* Domain */}
+                            <div className="flex items-center gap-1.5">
+                                <div className="p-1 rounded-md bg-cyan-50 dark:bg-cyan-900/20">
+                                    {React.createElement(DOMAIN_ICONS[species.domain as keyof typeof DOMAIN_ICONS], {
+                                        size: 14,
+                                        className: "text-cyan-600 dark:text-cyan-400"
+                                    })}
+                                </div>
+                                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                                    {species.domain}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <button
+                          onClick={() => species.available && handlePurchaseTotem(species.id)}
+                          disabled={!species.available || purchasingTotems[species.id]}
+                          className={`w-full py-2 px-4 rounded font-semibold
+                            ${species.available
+                              ? 'bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600'
+                              : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                            } disabled:opacity-50`}
+                        >
+                          {purchasingTotems[species.id] ? 'Purchasing...' : 
+                          (species.available ? 'Buy Totem' : 'Coming Soon')}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -308,7 +374,7 @@ const ShopInterface = () => {
 
           {/* Unbound Totems Shop */}
           {activeTab === 'unbound' && (
-            <UnboundTotemsShop />
+            <UnboundTotems />
           )}
 
           {/* Token Shop */}
@@ -373,22 +439,12 @@ const ShopInterface = () => {
                 <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-gray-100">Sell Your Totems</h3>
                 <div className="space-y-3 text-gray-600 dark:text-gray-400">
                   <p>
-                    
-                    When you sell a totem, it becomes <span className="font-medium text-gray-900 dark:text-gray-300">Unbound</span> and 
+                    When you sell a totem, it becomes <span className="font-medium text-gray-900 dark:text-gray-300">unbound</span> and 
                     enters the marketplace. You'll receive TOTEM tokens based on the totem's stage and rarity.
                   </p>
-
-                  <div className="mt-4 flex items-start gap-2">
-                    <AlertTriangle className="h-5 w-5 text-yellow-500 dark:text-yellow-400 mt-1 flex-shrink-0" />
-                    <div>
-                      <p>You'll need to approve the transfer of your totem to the marketplace. This is a one-time transaction for each totem you want to sell.</p>
-                    </div>
-                  </div>
                 </div>
-
               </div>
-
-              <SellTotemsShop />
+              <SellTotems />
             </div>
           )}
         </div>

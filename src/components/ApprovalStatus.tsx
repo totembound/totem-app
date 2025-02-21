@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useUser } from '../contexts/UserContext';
-import { AlertTriangle, CheckCircle2, Coins, Gamepad2, PawPrint, ShoppingCart, Swords, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Coins, PawPrint, ShoppingCart, Swords, X } from 'lucide-react';
 
 const ApprovalStatus: React.FC = () => {
     const { 

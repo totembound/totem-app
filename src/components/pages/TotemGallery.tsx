@@ -40,23 +40,6 @@ const TotemGallery = () => {
     const { totems, totemLoading, totemError } = useUser();
     const { canUseAction } = useGame();
 
-    // Navigation handlers
-    const handlePrevTotem = () => {
-        if (!selectedTotem) return;
-        const currentIndex = filteredTotems.findIndex(t => t.id === selectedTotem.id);
-        if (currentIndex > 0) {
-            setSelectedTotem(filteredTotems[currentIndex - 1]);
-        }
-    };
-
-    const handleNextTotem = () => {
-        if (!selectedTotem) return;
-        const currentIndex = filteredTotems.findIndex(t => t.id === selectedTotem.id);
-        if (currentIndex < filteredTotems.length - 1) {
-            setSelectedTotem(filteredTotems[currentIndex + 1]);
-        }
-    };
-        
     const sortTotems = (totems: NFTMetadata[]) => {
         return [...totems].sort((a, b) => {
             const multiplier = sortConfig.direction === 'desc' ? -1 : 1;
@@ -95,6 +78,23 @@ const TotemGallery = () => {
 
     const sortedAndFilteredNFTs = sortTotems(filteredTotems);
     const totalPages = Math.max(1, Math.ceil(sortedAndFilteredNFTs.length / itemsPerPage));
+
+    // Navigation handlers
+    const handlePrevTotem = () => {
+        if (!selectedTotem) return;
+        const currentIndex = sortedAndFilteredNFTs.findIndex(t => t.id === selectedTotem.id);
+        if (currentIndex > 0) {
+            setSelectedTotem(sortedAndFilteredNFTs[currentIndex - 1]);
+        }
+    };
+
+    const handleNextTotem = () => {
+        if (!selectedTotem) return;
+        const currentIndex = sortedAndFilteredNFTs.findIndex(t => t.id === selectedTotem.id);
+        if (currentIndex < sortedAndFilteredNFTs.length - 1) {
+            setSelectedTotem(sortedAndFilteredNFTs[currentIndex + 1]);
+        }
+    };
 
     // Reset page when filters change
     useEffect(() => {

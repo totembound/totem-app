@@ -89,7 +89,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     onPrev,
     onNext
 }) => {
-    const { totems, updateTotem, totemBalance } = useUser();
+    const { totems, updateTotem, updateTotemEvolved, totemBalance } = useUser();
     const { actionConfigs, canUseAction, getActionStatus, getNextAvailableWindow } = useGame();
     const { feed, train, treat, evolve } = useTotemGame();
     const [isLoading, setIsLoading] = useState<ActionType | null>(null);
@@ -110,10 +110,13 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
         setError(null);
         try {
             await handler();
-            await updateTotem(totem.tokenId, action);
 
             if (action == ActionType.Evolve) {
+                await updateTotemEvolved(totem.tokenId);
                 setShowEvolutionCelebration(true);
+            }
+            else {
+                await updateTotem(totem.tokenId, action);
             }
         }
         catch (err) {

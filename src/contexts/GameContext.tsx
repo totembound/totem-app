@@ -1,8 +1,10 @@
 // contexts/GameContext.tsx
 import React, { createContext, useContext, useCallback, useEffect, useState } from 'react';
 import { useUser } from './UserContext';
-import { createGameContract } from '../config/contracts';
-import { ActionType, ActionConfig, TimeWindows, GameParameters, TotemAttributes, ActionTracking } from '../types/types';
+import { createChallengesContract, createGameContract, TotemGameContract } from '../config/contracts';
+import { ActionType, ActionConfig, TimeWindows, GameParameters, TotemAttributes, ActionTracking, ChallengeState, ChallengeInfo, ChallengeStatus, NFTMetadata } from '../types/types';
+import { ethers } from 'ethers';
+import { getTotemStage } from '../utils/totems';
 
 export interface GameContextType {
     actionConfigs: Record<ActionType, ActionConfig>;
@@ -35,6 +37,14 @@ export interface GameContextType {
     ) => string;
 
     getNextAvailableWindow: (tracking: ActionTracking) => string;
+
+    // Challenge-related state and methods
+    challengeState: ChallengeState;
+    refreshChallenges: () => Promise<void>;
+    getEligibleTotems: (challengeId: string) => NFTMetadata[];
+    canAttemptChallenge: (challengeId: string, tokenId: string) => boolean;
+    getChallengeStatus: (challengeId: string) => string;
+    completeChallenge: (challengeId: string, tokenId: string, score: number) => Promise<void>;
 }
 
 const defaultGetFormattedWindowTimes = () => {
@@ -50,6 +60,9 @@ const SECONDS_PER_DAY = 86400;
 const defaultCanUseAction = () => false;
 const defaultGetActionStatus = () => 'Action not configured';
 const defaultGetNextAvailableWindow = () => 'Available Now';
+const defaultCanAttemptChallenge = () => false;
+const defaultGetEligibleTotems = () => [];
+const defaultGetChallengeStatus = () => 'Challenge not available';
 
 const GameContext = createContext<GameContextType>({
     actionConfigs: {} as Record<ActionType, ActionConfig>,
@@ -62,19 +75,40 @@ const GameContext = createContext<GameContextType>({
     getFormattedWindowTimes: defaultGetFormattedWindowTimes,
     canUseAction: defaultCanUseAction,
     getActionStatus: defaultGetActionStatus,
-    getNextAvailableWindow: defaultGetNextAvailableWindow
+    getNextAvailableWindow: defaultGetNextAvailableWindow,
+    // Challenge state and methods
+    challengeState: {
+        challenges: {},
+        userStatus: {},
+        loading: false,
+        error: null
+    },
+    refreshChallenges: async () => {},
+    canAttemptChallenge: defaultCanAttemptChallenge,
+    getEligibleTotems: defaultGetEligibleTotems,
+    getChallengeStatus: defaultGetChallengeStatus,
+    completeChallenge: async () => { 
+        throw new Error('Challenge system not initialized');
+    }
 });
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { provider } = useUser();
+    const { provider, address, signer, totems } = useUser();
     const [actionConfigs, setActionConfigs] = useState<Record<ActionType, ActionConfig>>({} as Record<ActionType, ActionConfig>);
     const [timeWindows, setTimeWindows] = useState<TimeWindows | null>(null);
     const [gameParams, setGameParams] = useState<GameParameters | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [challengeState, setChallengeState] = useState<ChallengeState>({
+        challenges: {},
+        userStatus: {},
+        loading: false,
+        error: null
+    });
 
     const loadGameConfigs = useCallback(async () => {
         if (!provider) return;
+        console.log('loading game config');
 
         try {
             setIsLoading(true);
@@ -125,6 +159,153 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, [provider]);
 
+    const loadChallenges = useCallback(async () => {
+        if (!provider || !address) return;
+        console.log('loading challenges');
+
+        try {
+            setChallengeState(prev => ({ ...prev, loading: true, error: null }));
+            const challengesContract = createChallengesContract(provider);
+
+            // Get all challenge IDs
+            const challengeIds = await challengesContract.getChallengeIds();
+
+            // Fetch challenge info and user status for each challenge
+            const challengeInfoPromises = challengeIds.map(id => 
+                challengesContract.getChallengeInfo(id)
+            );
+            const userStatusPromises = challengeIds.map(id =>
+                challengesContract.getUserChallengeStatus(id, address)
+            );
+
+            const [challengeInfos, userStatuses] = await Promise.all([
+                Promise.all(challengeInfoPromises),
+                Promise.all(userStatusPromises)
+            ]);
+
+            // Build challenge state
+            const challenges: Record<string, ChallengeInfo> = {};
+            const userStatus: Record<string, ChallengeStatus> = {};
+
+            challengeIds.forEach((id, index) => {
+                const info = challengeInfos[index];
+                const status = userStatuses[index];
+
+                challenges[id] = {
+                    id,
+                    name: info.name,
+                    description: info.description,
+                    challengeType: info.challengeType,
+                    attribute: info.attribute,
+                    requirements: info.requirements,
+                    maxDailyAttempts: info.maxDailyAttempts,
+                    maxScore: info.maxScore,
+                    enabled: info.enabled
+                };
+
+                userStatus[id] = {
+                    lastAttemptTime: Math.floor(Date.now() / 1000), // Current timestamp for new attempts
+                    dailyAttempts: status.dailyAttempts,
+                    attemptsRemaining: status.attemptsRemaining,
+                    highScore: status.highScore,
+                    totalAttempts: status.totalAttempts,
+                    totalScore: status.totalScore
+                };
+            });
+
+            setChallengeState({
+                challenges,
+                userStatus,
+                loading: false,
+                error: null
+            });
+        } catch (err) {
+            console.error('Error loading challenges:', err);
+            setChallengeState(prev => ({
+                ...prev,
+                loading: false,
+                error: 'Failed to load challenges'
+            }));
+        }
+    }, [provider, address]);
+
+    // Check if a totem can attempt a challenge
+    const canAttemptChallenge = useCallback((challengeId: string, tokenId: string) => {
+        const challenge = challengeState.challenges[challengeId];
+        const status = challengeState.userStatus[challengeId];
+        if (!challenge || !status || !challenge.enabled) return false;
+
+        // Check attempts remaining
+        if (status.attemptsRemaining <= 0) return false;
+
+        // Find totem
+        const totem = totems.find(t => t.id === tokenId);
+        if (!totem) return false;
+
+        // Check requirements
+        const reqs = challenge.requirements;
+        return (
+            totem.attributes.stage >= reqs.stage &&
+            totem.attributes.strength >= reqs.strength &&
+            totem.attributes.agility >= reqs.agility &&
+            totem.attributes.wisdom >= reqs.wisdom
+        );
+    }, [challengeState, totems]);
+
+    // Get eligible totems for a challenge
+    const getEligibleTotems = useCallback((challengeId: string) => {
+        const id = ethers.id(challengeId);
+        const challenge = challengeState.challenges[id];
+        if (!challenge) return [];
+
+        return totems
+            .filter(totem => {
+                const reqs = challenge.requirements;
+                return getTotemStage(totem) >= Number(reqs.stage) &&
+                       totem.attributes.strength >= Number(reqs.strength) &&
+                       totem.attributes.agility >= Number(reqs.agility) &&
+                       totem.attributes.wisdom >= Number(reqs.wisdom);
+            });
+    }, [challengeState, totems]);
+
+    // Get user-friendly status message
+    const getChallengeStatus = useCallback((challengeId: string) => {
+        const id = ethers.id(challengeId);
+        const challenge = challengeState.challenges[id];
+        const status = challengeState.userStatus[id];
+        
+        if (!challenge) return 'Challenge not found';
+        if (!challenge.enabled) return 'Challenge disabled';
+        if (!status) return 'No attempts yet';
+        if (status.attemptsRemaining <= 0) return 'No attempts remaining today';
+        
+        return `${status.attemptsRemaining} attempts remaining`;
+    }, [challengeState]);
+
+    // Complete a challenge attempt
+    const completeChallenge = useCallback(async (
+        challengeId: string,
+        tokenId: string,
+        score: number
+    ) => {
+        if (!provider || !address) throw new Error('Not connected');
+
+        const id = ethers.id(challengeId);
+        const challenge = challengeState.challenges[id];
+
+        if (!challenge) throw new Error('Challenge not found');
+        if (!challenge.enabled) throw new Error('Challenge disabled');
+
+        const gameContract = createGameContract(provider);
+        const connectedGame = gameContract.connect(signer) as TotemGameContract;
+
+        const tx = await connectedGame.attemptChallenge(id, tokenId, score);
+        await tx.wait();
+
+        // Refresh challenge state
+        await loadChallenges();
+    }, [provider, address, challengeState, loadChallenges]);
+
     // Helper to convert UTC hours to seconds since day start
     function utcHoursToSeconds(hours: number): number {
         return hours * 3600;
@@ -173,8 +354,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => {
         if (provider) {
             loadGameConfigs();
+            loadChallenges();
         }
-    }, [provider, loadGameConfigs]);
+    }, [provider, address, loadGameConfigs, loadChallenges]);
 
     function getActionStatus(
         actionType: ActionType,
@@ -327,7 +509,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             refreshGameConfig,
             canUseAction,
             getActionStatus,
-            getNextAvailableWindow
+            getNextAvailableWindow,
+            challengeState,
+            refreshChallenges: loadChallenges,
+            canAttemptChallenge,
+            getEligibleTotems,
+            getChallengeStatus,
+            completeChallenge
         }}>
             {children}
         </GameContext.Provider>

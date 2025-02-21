@@ -128,7 +128,7 @@ const UnboundTotemCard: React.FC<{
     );
 };
 
-const UnboundTotemsShop: React.FC = () => {
+const UnboundTotems: React.FC = () => {
     const [unboundTotems, setUnboundTotems] = useState<UnboundTotem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -327,4 +327,4 @@ const UnboundTotemsShop: React.FC = () => {
     );
 };
 
-export default UnboundTotemsShop;
+export default UnboundTotems;

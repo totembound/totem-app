@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowUpDown, Clock, Heart, Loader2, Sparkles } from 'lucide-react';
+import { AlertTriangle, ArrowUpDown, Clock, Heart, Loader2, Sparkles } from 'lucide-react';
 import { useTotemGame } from '../../hooks/useTotemGame';
 import { useUser } from '../../contexts/UserContext';
 import { Species, Rarity, NFTMetadata, Color } from '../../types/types';
@@ -103,7 +103,7 @@ const SellTotemCard: React.FC<SellTotemCardProps> = ({ totem, onSellClick }) => 
     );
 };
 
-const SellTotemsShop: React.FC = () => {
+const SellTotems: React.FC = () => {
     const { totems, removeTotem, updateBalances } = useUser();
     const { sellTotem } = useTotemGame();
     const [selectedTotem, setSelectedTotem] = useState<NFTMetadata | null>(null);
@@ -316,7 +316,9 @@ const SellTotemsShop: React.FC = () => {
                 </h3>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {sortedAndFiltered.map((totem) => (
+                    {sortedAndFiltered
+                        .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                        .map((totem) => (
                         <SellTotemCard
                             key={totem.id}
                             totem={totem}
@@ -340,9 +342,15 @@ const SellTotemsShop: React.FC = () => {
                             <span className="font-semibold text-gray-900 dark:text-gray-100">
                                 {selectedTotem?.attributes.displayName || selectedTotem?.name}
                             </span>{' '}
-                            for {sellValue.toLocaleString()} TOTEM?
+                            for <span className="font-semibold text-gray-900 dark:text-gray-100">{sellValue.toLocaleString()} TOTEM</span>?
                         </p>
-                        <p className="text-red-600 dark:text-red-400 font-medium">
+                        <div className="mt-4 flex items-start gap-2">
+                            <AlertTriangle className="h-5 w-5 text-yellow-500 dark:text-yellow-400 mt-1 flex-shrink-0" />
+                            <div>
+                            <p>You'll need to approve the transfer of your totem to the marketplace. This is a one-time transaction for each totem you want to sell.</p>
+                            </div>
+                        </div>
+                        <p className="text-red-600 dark:text-red-400 font-medium mt-4">
                             Warning: This action cannot be undone. Your totem will be permanently removed.
                         </p>
                     </div>
@@ -380,4 +388,4 @@ const SellTotemsShop: React.FC = () => {
     );
 };
 
-export default SellTotemsShop;
+export default SellTotems;

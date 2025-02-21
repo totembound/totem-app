@@ -65,6 +65,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     const loadAchievements = useCallback(async () => {
         if (!provider || !address) return;
+        console.log('loading achievements');
 
         try {
             setIsLoading(true);

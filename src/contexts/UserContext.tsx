@@ -1,9 +1,10 @@
 // contexts/UserContext.tsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
-import { UserContextType, UserContextState, ActionType, ActionTracking, StreakStatus, WeeklyStatus, NFTMetadata, TokenActionTrackings, Attribute } from '../types/types';
+import { UserContextType, UserContextState, ActionType, ActionTracking, StreakStatus, WeeklyStatus, NFTMetadata, TokenActionTrackings, Attribute, Species, ChallengeRequirements } from '../types/types';
 import { CONTRACT_ADDRESSES, createGameContract, createTokenContract, createTotemNFTContract, createRewardsContract, TotemRewardsContract, TotemTokenContract, createAchievementsContract } from '../config/contracts';
 import { STORAGE_KEYS } from '../config/constants';
+import { getSpeciesBaseStats, getTotemStage } from '../utils/totems';
 
 export const UserContext = createContext<UserContextType | null>(null);
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -141,6 +142,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const attrs = await contract.attributes(tokenId);
                 const affinity = ipfsMetadata.attributes.find((a: Attribute) => a.trait_type === 'Affinity')?.value;
                 const domain = ipfsMetadata.attributes.find((a: Attribute) => a.trait_type === 'Domain')?.value;
+                const stats = getSpeciesBaseStats(Number(attrs.species), Number(attrs.rarity));
 
                 const newTotem = {
                     id: tokenId.toString(),
@@ -155,8 +157,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         happiness: Number(attrs.happiness),
                         experience: Number(attrs.experience),
                         stage: Number(attrs.stage),
+                        strength: stats.strength,
+                        agility: stats.agility,
+                        wisdom: stats.wisdom,
                         isStaked: Boolean(attrs.isStaked),
-                        displayName: attrs.displayName
+                        displayName: attrs.displayName,
+                        prestigeLevel: attrs.prestigeLevel
                     },
                     trackings: trackingMap[tokenId.toString()] || {}
                 };
@@ -177,6 +183,53 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, [state.provider, state.address, state.isConnected, state.isSignedUp, totemCache]);
 
+    const updateTotemEvolved = async (tokenId: bigint) => {
+        if (!state.provider || !state.address) return;
+
+        try {
+            const contract = createTotemNFTContract(state.provider);
+            const [attrs, gameContract] = await Promise.all([
+                contract.attributes(tokenId),
+                createGameContract(state.provider)
+            ]);
+                        
+            // Check if evolution occurred
+            const currentTotem = totems.find(t => t.tokenId === tokenId);
+            if (currentTotem && Number(attrs.stage) !== currentTotem.attributes.stage) {
+                // Fetch new metadata after evolution
+                const uri = await contract.tokenURI(tokenId);
+                const ipfsMetadata = await fetch(uri.replace('ipfs://', 'https://ipfs.io/ipfs/')).then(res => res.json());
+console.log(currentTotem);
+                setTotems(prev => prev.map(totem =>
+                    totem.tokenId === tokenId ? {
+                        ...totem,
+                        ...ipfsMetadata,
+                        attributes: {
+                            ...totem.attributes,
+                            happiness: Number(attrs.happiness),
+                            experience: Number(attrs.experience),
+                            stage: Number(attrs.stage),
+                            isStaked: Boolean(attrs.isStaked),
+                            displayName: attrs.displayName,
+                            prestigeLevel: attrs.prestigeLevel
+                        },
+                    } : totem
+                ));
+
+                // Update cache
+                setTotemCache(prev => {
+                    const updated = new Map(prev);
+                    updated.delete(tokenId.toString()); // Force fresh metadata next fetch
+                    return updated;
+                });
+            }
+            await updateBalances();
+        } catch (error) {
+            console.error('Error updating totem:', error);
+            throw error;
+        }
+    };
+
     const updateTotem = async (tokenId: bigint, type: ActionType) => {
         if (!state.provider || !state.address) return;
         
@@ -186,30 +239,52 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 contract.attributes(tokenId),
                 createGameContract(state.provider)
             ]);
-                        
-            // Get new tracking data
-            const tracking = await gameContract.getActionTracking(tokenId, type);
 
-            // Update single totem in state
-            setTotems(prev => prev.map(totem => 
-                totem.tokenId === tokenId ? {
-                ...totem,
-                attributes: {
-                    ...totem.attributes,
-                    happiness: Number(attrs.happiness),
-                    experience: Number(attrs.experience),
-                    stage: Number(attrs.stage)
-                },
-                trackings: {
-                    ...totem.trackings,
-                    [type]: {
-                    lastUsed: Math.min(Number(tracking.lastUsed), Math.floor(Date.now() / 1000)),
-                    dailyUses: Number(tracking.dailyUses),
-                    dayStartTime: Math.min(Number(tracking.dayStartTime), Math.floor(Date.now() / 1000) + 86400)
+            if (type === ActionType.None) {
+                // Update single totem in min state, no tracking 
+                setTotems(prev => prev.map(totem => 
+                    totem.tokenId === tokenId ? {
+                    ...totem,
+                    attributes: {
+                        ...totem.attributes,
+                        happiness: Number(attrs.happiness),
+                        experience: Number(attrs.experience),
+                        stage: Number(attrs.stage),
+                        isStaked: Boolean(attrs.isStaked),
+                        displayName: attrs.displayName,
+                        prestigeLevel: attrs.prestigeLevel
                     }
-                }
-                } : totem
-            ));
+                    } : totem
+                ));
+            }
+            else {
+                // Get new tracking data
+                const tracking = await gameContract.getActionTracking(tokenId, type);
+
+                // Update single totem in state
+                setTotems(prev => prev.map(totem => 
+                    totem.tokenId === tokenId ? {
+                    ...totem,
+                    attributes: {
+                        ...totem.attributes,
+                        happiness: Number(attrs.happiness),
+                        experience: Number(attrs.experience),
+                        stage: Number(attrs.stage),
+                        isStaked: Boolean(attrs.isStaked),
+                        displayName: attrs.displayName,
+                        prestigeLevel: attrs.prestigeLevel
+                    },
+                    trackings: {
+                        ...totem.trackings,
+                        [type]: {
+                            lastUsed: Math.min(Number(tracking.lastUsed), Math.floor(Date.now() / 1000)),
+                            dailyUses: Number(tracking.dailyUses),
+                            dayStartTime: Math.min(Number(tracking.dayStartTime), Math.floor(Date.now() / 1000) + 86400)
+                        }
+                    }
+                    } : totem
+                ));
+            }
 
             // Check if evolution occurred
             const currentTotem = totems.find(t => t.tokenId === tokenId);
@@ -238,7 +313,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             await updateBalances();
-
         } catch (error) {
             console.error('Error updating totem:', error);
             throw error;
@@ -277,6 +351,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const ipfsMetadata = await fetch(uri.replace('ipfs://', 'https://ipfs.io/ipfs/')).then(res => res.json());
             const affinity = ipfsMetadata.attributes.find((a: Attribute) => a.trait_type === 'Affinity')?.value;
             const domain = ipfsMetadata.attributes.find((a: Attribute) => a.trait_type === 'Domain')?.value;
+            const stats = getSpeciesBaseStats(Number(attrs.species), Number(attrs.rarity));
 
             const newTotem = {
                 id: tokenId.toString(),
@@ -291,6 +366,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     happiness: Number(attrs.happiness),
                     experience: Number(attrs.experience),
                     stage: Number(attrs.stage),
+                    strength: stats.strength,
+                    agility: stats.agility,
+                    wisdom: stats.wisdom,
                     isStaked: Boolean(attrs.isStaked),
                     displayName: attrs.displayName
                 },
@@ -362,7 +440,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setState(prev => ({ ...prev, isApprovalMessageDismissed: dismissed }));
         localStorage.setItem(STORAGE_KEYS.tokenApprovalMessageDismissed, dismissed.toString());
     }, []);
-
+    
     const handleAccountsChanged = useCallback(async (accounts: any) => {
         if (!window.ethereum) return;
         try {
@@ -826,6 +904,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 addTotem,
                 removeTotem,
                 updateTotem,
+                updateTotemEvolved,
                 getUserStreak,
                 claimDailyReward,
                 checkTokenApproval,

@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import { MessageDialogState } from '../components/MessageDialog';
+import TotemDetailView from '../components/TotemDetailView';
 
 export interface UserContextType extends UserContextState {
     checkSignupStatus: () => Promise<void>;
@@ -9,6 +10,7 @@ export interface UserContextType extends UserContextState {
     addTotem: (tokenId: bigint) => Promise<void>;
     removeTotem: (tokenId: bigint) => void;
     updateTotem: (tokenId: bigint, type: ActionType) => Promise<void>;
+    updateTotemEvolved: (tokenId: bigint) => Promise<void>;
     getUserStreak: () => Promise<StreakStatus | undefined>;
     claimDailyReward: () => Promise<boolean | undefined>;
     claimWeeklyReward: () => Promise<boolean | undefined>;
@@ -88,8 +90,8 @@ export enum Color {
     EmeraldGreen,
     CrimsonRed,
     DeepSapphire,
-    RadiantGold,
     EtherealSilver,
+    RadiantGold,
     None
 }
 
@@ -108,7 +110,11 @@ export interface TotemAttributes {
     happiness: number;
     experience: number;
     stage: number;
+    strength: number;
+    agility: number;
+    wisdom: number;
     displayName: string;
+    prestigeLevel: number;
     isStaked: boolean;
 }
 
@@ -302,5 +308,52 @@ export interface Attribute {
 }
 
 export const ONETIME_REQUIREMENT = BigInt(ethers.MaxUint256);
+
+export interface ChallengeRequirements {
+    stage: number;
+    strength: number;
+    agility: number;
+    wisdom: number;
+    domain: string;
+}
+
+export enum ChallengeType {
+    Trial,
+    Arena
+}
+
+export enum ChallengeAttribute {
+    Strength,
+    Agility,
+    Wisdom
+}
+
+export interface ChallengeInfo {
+    id: string;
+    name: string;
+    description: string;
+    challengeType: ChallengeType;
+    attribute: ChallengeAttribute;
+    requirements: ChallengeRequirements;
+    maxDailyAttempts: number;
+    maxScore: number;
+    enabled: boolean;
+}
+
+export interface ChallengeStatus {
+    lastAttemptTime: number;    // Last time challenge was attempted
+    dailyAttempts: number;      // Current day's attempts
+    attemptsRemaining: number;  // Remaining attempts today
+    highScore: number;          // Personal best
+    totalAttempts: number;      // Lifetime attempts
+    totalScore: number;         // Cumulative score
+}
+
+export interface ChallengeState {
+    challenges: Record<string, ChallengeInfo>;
+    userStatus: Record<string, ChallengeStatus>;
+    loading: boolean;
+    error: string | null;
+}
 
 export {}

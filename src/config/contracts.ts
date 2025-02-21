@@ -4,6 +4,7 @@ import TotemGameABI from '../contracts/TotemGame.abi.json';
 import TotemNFTABI from '../contracts/TotemNFT.abi.json';
 import TotemTokenABI from '../contracts/TotemToken.abi.json';
 import TotemRewardsABI from '../contracts/TotemRewards.abi.json';
+import TotemChallengesABI from '../contracts/TotemChallenges.abi.json';
 import { Achievement, AchievementProgress, AchievementView, CategoryProgress, TotemAttributes } from '../types/types';
 
 export const CONTRACT_ADDRESSES = {
@@ -13,6 +14,7 @@ export const CONTRACT_ADDRESSES = {
     nft: process.env.REACT_APP_NFT_ADDRESS as string,
     rewards: process.env.REACT_APP_REWARDS_ADDRESS as string,
     achievements: process.env.REACT_APP_ACHIEVEMENTS_ADDRESS as string,
+    challenges: process.env.REACT_APP_CHALLENGES_ADDRESS as string,
 };
 
 // ABI snippets for the functions we need
@@ -108,6 +110,40 @@ export type TotemAchievementsContract = Contract & {
     ): TotemAchievementsContract;
 };
 
+export type TotemChallengesContract = Contract & {
+    getChallengeIds: () => Promise<string[]>;
+    getChallengeInfo: (challengeId: string) => Promise<{
+        name: string;
+        description: string;
+        challengeType: number;
+        attribute: number;
+        requirements: {
+            stage: number;
+            strength: number;
+            agility: number;
+            wisdom: number;
+            domain: string;
+        };
+        maxDailyAttempts: number;
+        maxScore: number;
+        enabled: boolean;
+    }>;
+    getUserChallengeStatus: (challengeId: string, user: string) => Promise<{
+        lastAttemptTime: bigint;
+        dailyAttempts: number;
+        attemptsRemaining: number;
+        highScore: number;
+        totalAttempts: number;
+        totalScore: number;
+    }>;
+    completeChallenge: (
+        challengeId: string,
+        user: string,
+        tokenId: bigint,
+        score: number
+    ) => Promise<any>;
+};
+
 export const createAchievementsContract = (provider: BrowserProvider) => {
     return new Contract(
         CONTRACT_ADDRESSES.achievements,
@@ -146,4 +182,12 @@ export const createRewardsContract = (provider: BrowserProvider) => {
         TotemRewardsABI,
         provider
     ) as TotemRewardsContract;
+};
+
+export const createChallengesContract = (provider: BrowserProvider) => {
+    return new Contract(
+        CONTRACT_ADDRESSES.challenges,
+        TotemChallengesABI,
+        provider
+    ) as TotemChallengesContract;
 };

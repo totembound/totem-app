@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Sparkles, X } from 'lucide-react';
 import { Rarity } from '../types/types';
+import { getRarityColor } from '../utils/totems';
 
 interface CelebrationModalProps {
   totem: { 
@@ -21,24 +22,7 @@ const CelebrationModal = ({
   type,
   onClose 
 }: CelebrationModalProps) => {
-  // Rarity-based styling
-  const getRarityColor = (rarity: Rarity) => {
-    switch(rarity) {
-      case Rarity.Common: 
-        return 'from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border-gray-300';
-      case Rarity.Uncommon: 
-        return 'from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-900/50 border-green-300';
-      case Rarity.Rare: 
-        return 'from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-900/50 border-blue-300';
-      case Rarity.Epic: 
-        return 'from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-900/50 border-purple-300';
-      case Rarity.Legendary: 
-        return 'from-yellow-100 to-yellow-200 dark:from-yellow-900/30 dark:to-yellow-900/50 border-yellow-300';
-      default: 
-        return 'from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border-gray-300';
-    }
-  };
-
+  
   // Animation effect on mount
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -128,6 +112,7 @@ const CelebrationModal = ({
               {totem.attributes.displayName || totem.name}
             </h3>
             <p className={`text-sm font-medium ${
+              totem.attributes.rarity === Rarity.Limited ? 'text-yellow-600 dark:text-yellow-400' :
               totem.attributes.rarity === Rarity.Legendary ? 'text-yellow-600 dark:text-yellow-400' :
               totem.attributes.rarity === Rarity.Epic ? 'text-purple-600 dark:text-purple-400' :
               totem.attributes.rarity === Rarity.Rare ? 'text-blue-600 dark:text-blue-400' :

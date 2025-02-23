@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { NFTMetadata, Rarity, Species, Color } from '../../types/types';
 import _ from 'lodash';
+import { getRarityBadgeColor } from '../../utils/totems';
 
 const TotemGalleryStats: React.FC<{ nfts: NFTMetadata[] }> = ({ nfts }) => {
     // Species Distribution
@@ -37,14 +38,6 @@ const TotemGalleryStats: React.FC<{ nfts: NFTMetadata[] }> = ({ nfts }) => {
             percentage: Math.round((group.length / nfts.length) * 100)
         })).sort((a, b) => a.name.localeCompare(b.name));
     }, [nfts]);
-
-    const RARITY_COLORS = {
-        Common: 'text-gray-600 dark:text-gray-300 border-gray-400 dark:border-gray-600 bg-gray-50 dark:bg-gray-800',
-        Uncommon: 'text-green-600 dark:text-green-400 border-green-400 dark:border-green-600 bg-green-50 dark:bg-green-900/30',
-        Rare: 'text-blue-600 dark:text-blue-400 border-blue-400 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/30',
-        Epic: 'text-purple-600 dark:text-purple-400 border-purple-400 dark:border-purple-600 bg-purple-50 dark:bg-purple-900/30',
-        Legendary: 'text-yellow-600 dark:text-yellow-400 border-yellow-400 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-900/30'
-    };
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-4">
@@ -89,7 +82,7 @@ const TotemGalleryStats: React.FC<{ nfts: NFTMetadata[] }> = ({ nfts }) => {
                             <div className="group w-32">
                                 <div className={`
                                     px-2 py-1 mt-1 text-xs text-center font-medium rounded-full border
-                                    ${RARITY_COLORS[rarity.name as keyof typeof RARITY_COLORS]}
+                                    ${getRarityBadgeColor(Rarity[rarity.name as keyof typeof Rarity])}
                                     transition-all duration-200
                                     group-hover:scale-110
                                 `}>

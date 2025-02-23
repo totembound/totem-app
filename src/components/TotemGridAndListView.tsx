@@ -9,6 +9,7 @@ import {
     Mountain, // Land
     Waves // Water
 } from 'lucide-react';
+import { getRarityBadgeColor, getRarityBorderColor } from '../utils/totems';
 
 interface TotemViewProps {
     nft: NFTMetadata;
@@ -17,20 +18,9 @@ interface TotemViewProps {
     isLoading?: boolean;
 }
 
-const getRarityColor = (rarity: Rarity) => {
-    switch(rarity) {
-        case Rarity.Common: return 'text-gray-600 dark:text-gray-300 border-gray-400 dark:border-gray-600 bg-gray-50 dark:bg-gray-800';
-        case Rarity.Uncommon: return 'text-green-600 dark:text-green-400 border-green-400 dark:border-green-600 bg-green-50 dark:bg-green-900/30';
-        case Rarity.Rare: return 'text-blue-600 dark:text-blue-400 border-blue-400 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/30';
-        case Rarity.Epic: return 'text-purple-600 dark:text-purple-400 border-purple-400 dark:border-purple-600 bg-purple-50 dark:bg-purple-900/30';
-        case Rarity.Legendary: return 'text-yellow-600 dark:text-yellow-400 border-yellow-400 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-900/30';
-        default: return 'text-gray-600 dark:text-gray-300 border-gray-400 dark:border-gray-600 bg-gray-50 dark:bg-gray-800';
-    }
-};
-
 const getRarityBadge = (rarity: Rarity) => {
     return (
-        <span className={`px-2 py-0.5 text-xs rounded-full border ${getRarityColor(rarity)}`}>
+        <span className={`px-2 py-0.5 text-xs rounded-full border ${getRarityBadgeColor(rarity)}`}>
             {Rarity[rarity]}
         </span>
     );
@@ -51,32 +41,6 @@ const DOMAIN_ICONS = {
     'Water': Waves
 } as const;
 
-const getRarityBorderColors = (rarity: Rarity) => {
-    const colors = {
-        [Rarity.Common]: {
-            border: 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500',
-            ring: 'ring-gray-300 dark:ring-gray-600 hover:ring-gray-400 dark:hover:ring-gray-500',
-        },
-        [Rarity.Uncommon]: {
-            border: 'border-green-300 dark:border-green-600 hover:border-green-400 dark:hover:border-green-500',
-            ring: 'ring-green-300 dark:ring-green-600 hover:ring-green-400 dark:hover:ring-green-500',
-        },
-        [Rarity.Rare]: {
-            border: 'border-blue-300 dark:border-blue-600 hover:border-blue-400 dark:hover:border-blue-500',
-            ring: 'ring-blue-300 dark:ring-blue-600 hover:ring-blue-400 dark:hover:ring-blue-500',
-        },
-        [Rarity.Epic]: {
-            border: 'border-purple-300 dark:border-purple-600 hover:border-purple-400 dark:hover:border-purple-500',
-            ring: 'ring-purple-300 dark:ring-purple-600 hover:ring-purple-400 dark:hover:ring-purple-500',
-        },
-        [Rarity.Legendary]: {
-            border: 'border-yellow-300 dark:border-yellow-600 hover:border-yellow-400 dark:hover:border-yellow-500',
-            ring: 'ring-yellow-300 dark:ring-yellow-600 hover:ring-yellow-400 dark:hover:ring-yellow-500',
-        }
-    };
-    return colors[rarity] || colors[Rarity.Common];
-};
-
 export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelected, isLoading }) => {
     const nextThreshold = STAGE_THRESHOLDS[nft.attributes.stage + 1] || STAGE_THRESHOLDS[nft.attributes.stage];
     const currentStageThreshold = STAGE_THRESHOLDS[nft.attributes.stage];
@@ -84,7 +48,7 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
         ((nft.attributes.experience - currentStageThreshold) / 
         (nextThreshold - currentStageThreshold)) * 100);
 
-    const rarityBorderColors = getRarityBorderColors(nft.attributes.rarity);
+    const rarityBorderColors = getRarityBorderColor(nft.attributes.rarity);
 
     return (
         <div 
@@ -121,7 +85,7 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
                 <div className="group">
                     <div className={`
                         px-2 py-1 mt-1 text-xs font-medium rounded-full border
-                        ${getRarityColor(nft.attributes.rarity)}
+                        ${getRarityBadgeColor(nft.attributes.rarity)}
                         transition-all duration-200
                         group-hover:scale-110
                     `}>
@@ -220,7 +184,7 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
 };
 
 export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelected, isLoading }) => {
-    const rarityBorderColors = getRarityBorderColors(nft.attributes.rarity);
+    const rarityBorderColors = getRarityBorderColor(nft.attributes.rarity);
 
     return (
         <div 

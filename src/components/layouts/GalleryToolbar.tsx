@@ -3,8 +3,6 @@ import {
     LayoutGrid, 
     List, 
     Filter,
-    ChevronLeft,
-    ChevronRight,
     ArrowUpDown,
     Clock,
     Sparkles,

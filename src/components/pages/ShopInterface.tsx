@@ -177,9 +177,7 @@ const ShopInterface = () => {
           addTotem(tokenId);
       }
       catch (err) {
-          //const message = err instanceof Error ? err.message : 'Failed to buy totem';
           showError("Error", "Failed to purchase totem. Try again shortly.");
-          //setError(message);
           console.error(err);
       }
       finally {
@@ -189,7 +187,7 @@ const ShopInterface = () => {
 
   // Tab selection styles
   const getTabStyle = (tabName: string) => 
-    `px-4 py-2 font-semibold ${
+    `px-2 py-2 font-semibold ${
       activeTab === tabName
         ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-600 dark:border-purple-400'
         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
@@ -217,7 +215,7 @@ const ShopInterface = () => {
 
       {/* Special Offers Section */}
       <div className="mb-6">
-          <SpecialOffers />
+          <SpecialOffers onPurchased={setPurchasedTotem} />
       </div>
 
       {/* Shop Container */}
@@ -225,29 +223,17 @@ const ShopInterface = () => {
 
         {/* Tab Navigation */}
         <div className="flex border-b border-gray-200 dark:border-gray-700">
-          <button
-            onClick={() => setActiveTab('totems')}
-            className={getTabStyle('totems')}
-          >
+          <button onClick={() => setActiveTab('totems')} className={getTabStyle('totems')}>
             Totems
           </button>
-          <button
-            onClick={() => setActiveTab('unbound')}
-            className={getTabStyle('unbound')}
-          >
-            Unbound Totems
-          </button>
-          <button
-            onClick={() => setActiveTab('tokens')}
-            className={getTabStyle('tokens')}
-          >
+          <button onClick={() => setActiveTab('tokens')} className={getTabStyle('tokens')}>
             TOTEM Tokens
           </button>
-          <button
-            onClick={() => setActiveTab('sell')}
-            className={getTabStyle('sell')}
-          >
+          <button onClick={() => setActiveTab('sell')} className={getTabStyle('sell')}>
             Sell Totems
+          </button>
+          <button onClick={() => setActiveTab('unbound')} className={getTabStyle('unbound')}>
+            Unbound Totems
           </button>
         </div>
 

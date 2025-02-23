@@ -5,7 +5,7 @@ import { Species, Rarity, Color } from '../../types/types';
 import { createGameContract, createTotemNFTContract, TotemGameContract } from '../../config/contracts';
 import MessageDialog from '../MessageDialog';
 import { Pagination } from '../layouts/Pagination';
-import { getRarityStyle } from '../../utils/totems';
+import { getRarityBadgeColor } from '../../utils/totems';
 
 interface UnboundTotem {
     tokenId: bigint;
@@ -86,7 +86,7 @@ const UnboundTotemCard: React.FC<{
                         <span className="text-sm bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 px-2 py-1 rounded">
                             Stage {Number(totem.stage) + 1}
                         </span>
-                        <span className={`text-sm px-2 py-1 rounded border ${getRarityStyle(totem.rarity)}`}>
+                        <span className={`text-sm px-2 py-1 rounded border ${getRarityBadgeColor(Number(totem.rarity))}`}>
                             {Rarity[totem.rarity]}
                         </span>
                     </div>

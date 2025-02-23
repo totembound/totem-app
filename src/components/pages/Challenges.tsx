@@ -155,7 +155,7 @@ interface TabButtonProps {
 const TabButton: React.FC<TabButtonProps> = ({ isActive, onClick, children }) => (
     <button
         onClick={onClick}
-        className={`px-4 py-2 font-semibold ${isActive
+        className={`px-2 py-2 font-semibold ${isActive
             ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-600 dark:border-purple-400'
             : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
     >

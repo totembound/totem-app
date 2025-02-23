@@ -209,6 +209,45 @@ export const useTotemGame = () => {
         }
     };
 
+    const purchaseBundle = async (bundleId: number, polAmount: bigint) => {
+        if (!provider || !signer) throw new Error('Not connected');
+        
+        try {
+            // Setup NFT contract to listen for mint
+            const nftContract = createTotemNFTContract(provider);
+            const mintPromise = new Promise<bigint>((resolve) => {
+                nftContract.once('Transfer', (from, to, tokenId) => {
+                    if (from === ethers.ZeroAddress && to === signer.address) {
+                        resolve(tokenId);
+                    }
+                });
+            });
+
+            const gameContract = createGameContract(provider);
+            const connectedGame = gameContract.connect(signer) as TotemGameContract;
+            console.log('Purchasing bundle...', { bundleId });
+
+            const tx = await connectedGame.purchaseBundle(bundleId, { value: polAmount });
+            if (!tx) throw new Error('Transaction failed');
+            console.log('Purchase tx sent:', tx.hash);
+
+            // Wait for both the transaction receipt and the mint event
+            const [receipt, tokenId] = await Promise.all([
+                tx.wait(),
+                mintPromise
+            ]);
+
+            return tokenId;
+        }
+        catch (error: any) {
+            console.error('Bundle purchase failed:', error);
+            if (error.message.includes('user rejected')) {
+                throw new Error('User rejected transaction');
+            }
+            throw new Error('Failed to purchase bundle: ' + error.message);
+        }
+    };
+
     const feed = async (tokenId: bigint) => {
         if (!provider || !signer) throw new Error('Not connected');
         
@@ -299,6 +338,7 @@ export const useTotemGame = () => {
         signupGasless,
         buyTokens,
         purchaseTotem,
+        purchaseBundle,
         sellTotem,
         approveTokens,
         feed,

@@ -19,6 +19,7 @@ import { Edit2 } from 'lucide-react';
 import DisplayNameEditor from './DisplayNameEditor';
 import ActionEffect from './effects/ActionEffect';
 import CelebrationModal from './CelebrationModal';
+import { getRarityBadgeColor } from '../utils/totems';
 
 interface TotemDetailViewProps {
     totem: NFTMetadata;
@@ -306,17 +307,6 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
         return `"${name}"`;
     };
 
-    const getRarityColor = (rarity: Rarity) => {
-        switch(rarity) {
-            case Rarity.Common: return 'text-gray-600 dark:text-gray-300 border-gray-400 dark:border-gray-600';
-            case Rarity.Uncommon: return 'text-green-600 dark:text-green-400 border-green-400 dark:border-green-600';
-            case Rarity.Rare: return 'text-blue-600 dark:text-blue-400 border-blue-400 dark:border-blue-600';
-            case Rarity.Epic: return 'text-purple-600 dark:text-purple-400 border-purple-400 dark:border-purple-600';
-            case Rarity.Legendary: return 'text-yellow-600 dark:text-yellow-400 border-yellow-400 dark:border-yellow-600';
-            default: return 'text-gray-600 dark:text-gray-300 border-gray-400 dark:border-gray-600';
-        }
-    };
-
     return (
         <div ref={dialogRef} className="max-h-[90vh] flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
             {showEvolutionCelebration && (
@@ -414,7 +404,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                     value: Rarity[currentAttributes.rarity],
                                     render: () => (
                                         <span className={`text-sm font-medium px-2.5 py-1 rounded-full border ${
-                                            getRarityColor(currentAttributes.rarity)
+                                            getRarityBadgeColor(currentAttributes.rarity)
                                         }`}>
                                             {Rarity[currentAttributes.rarity]}
                                         </span>

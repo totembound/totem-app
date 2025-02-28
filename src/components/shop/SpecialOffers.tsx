@@ -1,5 +1,9 @@
 import { ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { useState } from 'react';
+import { useUser } from '../../contexts/UserContext';
+import { useTotemGame } from '../../hooks/useTotemGame';
+import { ethers } from 'ethers';
+import { createTotemNFTContract } from '../../config/contracts';
 
 // Monthly Special Totems data
 const monthlySpecials = [
@@ -10,7 +14,7 @@ const monthlySpecials = [
         baseSpecies: 'Otter',
         price: 250,
         tokenAmount: 10000,
-        image: '/totems/rosypink-otter-4.png',
+        image: 'https://ipfs.io/ipfs/bafybeidsydwaidnhrygqk3iqrp6eiwt4jr6ipfpjsl7pgesoq7poks6yqy',
         month: 1 // February
     },
     {
@@ -35,26 +39,82 @@ const monthlySpecials = [
     }
 ];
 
+interface SpecialOffersViewProps {
+    onPurchased: (purchased: any) => void;
+}
+
 // Special Offers Section Component
-const SpecialOffers = () => {
+const SpecialOffers: React.FC<SpecialOffersViewProps> = ({
+    onPurchased
+}) => {
     const currentMonth = new Date().getMonth();
     const currentMonthlySpecial = monthlySpecials.find(special => special.month === currentMonth);
     const [isExpanded, setIsExpanded] = useState(true);
-    
+    const [loading, setLoading] = useState<{[key: string]: boolean}>({});
+    const { updateBalances, addTotem, showError, provider } = useUser();
+    const { purchaseBundle } = useTotemGame();
+
+    const handlePurchaseBundle = async (bundleId: number, polAmount: number) => {
+        setLoading(prev => ({ ...prev, [bundleId]: true }));
+        
+        try {
+            const polValue = ethers.parseEther(polAmount.toString());
+            const tokenId = await purchaseBundle(bundleId, polValue);
+            console.log(`Purchased bundle ${bundleId}, received totem:`, tokenId);
+
+            if (provider) {
+                // Get the NFT metadata from contract
+                const nftContract = createTotemNFTContract(provider);
+                const [attributes, tokenURI] = await Promise.all([
+                    nftContract.attributes(tokenId),
+                    nftContract.tokenURI(tokenId)
+                ]);
+                console.log('Token URI:', tokenURI);
+                console.log('Attributes:', attributes);
+
+                // Fetch IPFS metadata
+                const response = await fetch(tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/'));
+                const metadata = await response.json();
+  
+                // Set the purchased NFT data for the celebration modal
+                onPurchased({
+                    id: tokenId.toString(),
+                    name: metadata.name,
+                    image: metadata.image,
+                    attributes: {
+                        rarity: Number(attributes.rarity),
+                        displayName: attributes.displayName || metadata.name,
+                        species: Number(attributes.species)
+                    }
+                });
+            }
+
+            await updateBalances();
+            await addTotem(tokenId);
+        }
+        catch (err) {
+            showError("Error", "Failed to purchase bundle. Try again shortly.");
+            console.error(err);
+        }
+        finally {
+            setLoading(prev => ({ ...prev, [bundleId]: false }));
+        }
+    };
+
     return (
         <div className="space-y-6">
             {/* Header with Toggle */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-left">
                 <div className="flex items-center gap-2">
                     <Sparkles className="w-6 h-6 text-yellow-500 dark:text-yellow-400" />
                     <h2 className="text-2xl font-bold dark:text-gray-200">Special Offers</h2>
                 </div>
                 <button 
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors"
+                    className="flex items-center gap-2 ml-4 px-3 py-1.5 rounded-lg text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors"
                 >
                     <span className="text-sm font-medium">
-                        {isExpanded ? 'Hide' : 'Show'}
+                        {isExpanded ? 'hide' : 'show'}
                     </span>
                     {isExpanded ? (
                         <ChevronUp className="w-4 h-4" />
@@ -69,7 +129,7 @@ const SpecialOffers = () => {
             <div className="grid grid-cols-1 md:grid-cols-10 gap-4">
 
             {/* Regular Bundles - 3 column grid */}
-            <div className="col-span-4 grid grid-cols-1 md:grid-cols-1 gap-4">
+            <div className="col-span-1 md:col-span-4 space-y-4">
                 {/* New Player Bundle */}
                 <div className="bg-green-50/50 dark:bg-green-900/20 rounded-lg p-6 border border-green-200/50 dark:border-green-800/50">
                     <div className="flex justify-between items-start mb-4">
@@ -83,8 +143,13 @@ const SpecialOffers = () => {
                             Starter
                         </span>
                     </div>
-                    <button className="w-full bg-green-500 text-white py-2 px-4 rounded font-semibold hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-600 mt-4">
-                        Claim for 10 POL
+                    <button 
+                        onClick={() => handlePurchaseBundle(0, 10)}
+                        disabled={loading[0]}
+                        className="w-full bg-green-500 text-white py-2 px-4 rounded font-semibold 
+                            hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-600 mt-4
+                            disabled:opacity-50 disabled:cursor-not-allowed">
+                        {loading[0] ? 'Processing...' : `Claim for 10 POL`}
                     </button>
                 </div>
 
@@ -101,8 +166,13 @@ const SpecialOffers = () => {
                             Popular
                         </span>
                     </div>
-                    <button className="w-full bg-blue-500 text-white py-2 px-4 rounded font-semibold hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 mt-4">
-                        Claim for 20 POL
+                    <button 
+                        onClick={() => handlePurchaseBundle(1, 20)}
+                        disabled={loading[1]}
+                        className="w-full bg-blue-500 text-white py-2 px-4 rounded font-semibold 
+                            hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 mt-4
+                            disabled:opacity-50 disabled:cursor-not-allowed">
+                        {loading[1] ? 'Processing...' : `Claim for 20 POL`}
                     </button>
                 </div>
 
@@ -119,15 +189,21 @@ const SpecialOffers = () => {
                             Exclusive
                         </span>
                     </div>
-                    <button className="w-full bg-purple-500 text-white py-2 px-4 rounded font-semibold hover:bg-purple-600 dark:bg-purple-700 dark:hover:bg-purple-600 mt-4">
-                        Claim for 50 POL
+                    <button 
+                        onClick={() => handlePurchaseBundle(2, 50)}
+                        disabled={loading[2]}
+                        className="w-full bg-purple-500 text-white py-2 px-4 rounded font-semibold 
+                            hover:bg-purple-600 dark:bg-purple-700 dark:hover:bg-purple-600 mt-4
+                            disabled:opacity-50 disabled:cursor-not-allowed">
+                        
+                        {loading[2] ? 'Processing...' : `Claim for 50 POL`}
                     </button>
                 </div>
             </div>
 
             {/* Monthly Special - Full width section */}
             {currentMonthlySpecial && (
-                <div className="col-span-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6 border border-amber-200/50 dark:border-amber-800/50">
+                <div className="col-span-1 md:col-span-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6 border border-amber-200/50 dark:border-amber-800/50">
                     {/* Header */}
                     <div className="flex justify-between items-start mb-6">
                         <h3 className="font-bold text-2xl text-amber-900 dark:text-amber-200">
@@ -174,8 +250,14 @@ const SpecialOffers = () => {
                         </div>
                     </div>
                     <div className="mt-4">
-                        <button className="w-full bg-amber-500 text-white py-3 px-4 rounded font-semibold hover:bg-amber-600 dark:bg-amber-700 dark:hover:bg-amber-600 text-lg">
-                            Claim for {currentMonthlySpecial.price} POL
+                        <button 
+                            onClick={() => handlePurchaseBundle(3, currentMonthlySpecial.price)}
+                            disabled={loading[3]}
+                            className="w-full bg-amber-500 text-white py-3 px-4 rounded font-semibold 
+                                hover:bg-amber-600 dark:bg-amber-700 dark:hover:bg-amber-600 text-lg 
+                                disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {loading[3] ? 'Processing...' : `Claim for ${currentMonthlySpecial.price} POL`}
                         </button>
                     </div>
                     <div className="mt-4 text-gray-900 dark:text-gray-100 text-sm">

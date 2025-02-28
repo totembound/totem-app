@@ -92,6 +92,18 @@ export enum Color {
     DeepSapphire,
     EtherealSilver,
     RadiantGold,
+    FrostbiteBlue,
+    RosyPink,
+    VerdantGold,
+    RaindropTeal,
+    FloralViolet,
+    SunsetOrange,
+    EmberRed,
+    OceanicAzure,
+    HarvestGold,
+    PhantomBlack,
+    EmberwoodBrown,
+    StarlitSilver,
     None
 }
 
@@ -100,7 +112,8 @@ export enum Rarity {
     Uncommon,
     Rare,
     Epic,
-    Legendary
+    Legendary,
+    Limited
 }
 
 export interface TotemAttributes {

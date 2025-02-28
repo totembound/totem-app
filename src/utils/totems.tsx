@@ -7,20 +7,64 @@ interface TotemStats {
     primaryStat: 'strength' | 'agility' | 'wisdom';
 }
 
-export const getRarityStyle = (rarity: number) => {
+export const getRarityBadgeColor = (rarity: Rarity) => {
+    switch(rarity) {
+        case Rarity.Common: return 'text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800';
+        case Rarity.Uncommon: return 'text-green-600 dark:text-green-400 border-green-300 dark:border-green-600 bg-green-50 dark:bg-green-900/30';
+        case Rarity.Rare: return 'text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/30';
+        case Rarity.Epic: return 'text-purple-600 dark:text-purple-400 border-purple-300 dark:border-purple-600 bg-purple-50 dark:bg-purple-900/30';
+        case Rarity.Legendary: return 'text-orange-600 dark:text-orange-400 border-orange-300 dark:border-orange-600 bg-orange-50 dark:bg-orange-900/30';
+        case Rarity.Limited: return 'text-yellow-600 dark:text-yellow-400 border-yellow-300 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-900/30';
+        default: return 'text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800';
+    }
+};
+
+export const getRarityBorderColor = (rarity: Rarity) => {
+    const colors = {
+        [Rarity.Common]: {
+            border: 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500',
+            ring: 'ring-gray-300 dark:ring-gray-600 hover:ring-gray-400 dark:hover:ring-gray-500',
+        },
+        [Rarity.Uncommon]: {
+            border: 'border-green-300 dark:border-green-600 hover:border-green-400 dark:hover:border-green-500',
+            ring: 'ring-green-300 dark:ring-green-600 hover:ring-green-400 dark:hover:ring-green-500',
+        },
+        [Rarity.Rare]: {
+            border: 'border-blue-300 dark:border-blue-600 hover:border-blue-400 dark:hover:border-blue-500',
+            ring: 'ring-blue-300 dark:ring-blue-600 hover:ring-blue-400 dark:hover:ring-blue-500',
+        },
+        [Rarity.Epic]: {
+            border: 'border-purple-300 dark:border-purple-600 hover:border-purple-400 dark:hover:border-purple-500',
+            ring: 'ring-purple-300 dark:ring-purple-600 hover:ring-purple-400 dark:hover:ring-purple-500',
+        },
+        [Rarity.Legendary]: {
+            border: 'border-orange-300 dark:border-orange-600 hover:border-orange-400 dark:hover:border-orange-500',
+            ring: 'ring-orange-300 dark:ring-orange-600 hover:ring-orange-400 dark:hover:ring-orange-500',
+        },
+        [Rarity.Limited]: {
+            border: 'border-yellow-300 dark:border-yellow-600 hover:border-yellow-400 dark:hover:border-yellow-500',
+            ring: 'ring-yellow-300 dark:ring-yellow-600 hover:ring-yellow-400 dark:hover:ring-yellow-500',
+        }
+    };
+    return colors[rarity] || colors[Rarity.Common];
+};
+
+export const getRarityColor = (rarity: Rarity) => {
     switch (rarity) {
-        case 0: // Common
-            return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600';
-        case 1: // Uncommon
-            return 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-900/50';
-        case 2: // Rare
-            return 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-900/50';
-        case 3: // Epic
-            return 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 border-purple-200 dark:border-purple-900/50';
-        case 4: // Legendary
-            return 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-900/50';
+        case Rarity.Common:
+            return 'from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border-gray-300';
+        case Rarity.Uncommon:
+            return 'from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-900/50 border-green-300';
+        case Rarity.Rare:
+            return 'from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-900/50 border-blue-300';
+        case Rarity.Epic:
+            return 'from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-900/50 border-purple-300';
+        case Rarity.Legendary:
+            return 'from-yellow-100 to-yellow-200 dark:from-yellow-900/30 dark:to-yellow-900/50 border-yellow-300';
+        case Rarity.Limited:
+            return 'from-yellow-100 to-yellow-200 dark:from-yellow-900/30 dark:to-yellow-900/50 border-yellow-300';
         default:
-            return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600';
+            return 'from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border-gray-300';
     }
 };
 
@@ -28,7 +72,7 @@ export function getRarityBonusStat(rarity: Rarity): number {
     if (rarity === Rarity.Common || rarity === Rarity.Uncommon || rarity === Rarity.Rare) {
         return 0;
     }
-    if (rarity === Rarity.Epic) {
+    if (rarity === Rarity.Epic || rarity === Rarity.Limited) {
         return 1;
     }
     if (rarity === Rarity.Legendary) {

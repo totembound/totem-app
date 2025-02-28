@@ -199,7 +199,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 // Fetch new metadata after evolution
                 const uri = await contract.tokenURI(tokenId);
                 const ipfsMetadata = await fetch(uri.replace('ipfs://', 'https://ipfs.io/ipfs/')).then(res => res.json());
-console.log(currentTotem);
+
                 setTotems(prev => prev.map(totem =>
                     totem.tokenId === tokenId ? {
                         ...totem,

@@ -9,8 +9,6 @@ type Point = {
   active: boolean;
 };
 
-//type GameState = 'ready' | 'playing' | 'success' | 'failed';
-
 type DifficultySettings = {
   pointCount: number;
   timeLimit: number;

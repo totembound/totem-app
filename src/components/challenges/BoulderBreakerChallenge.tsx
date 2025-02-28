@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AlertCircle } from 'lucide-react';
+import { GameState } from '../../types/types';
 
 type Point = {
   x: number;
@@ -8,7 +9,7 @@ type Point = {
   active: boolean;
 };
 
-type GameState = 'ready' | 'playing' | 'success' | 'failed';
+//type GameState = 'ready' | 'playing' | 'success' | 'failed';
 
 type DifficultySettings = {
   pointCount: number;

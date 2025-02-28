@@ -369,4 +369,6 @@ export interface ChallengeState {
     error: string | null;
 }
 
+export type GameState = 'ready' | 'playing' | 'success' | 'failed';
+
 export {}

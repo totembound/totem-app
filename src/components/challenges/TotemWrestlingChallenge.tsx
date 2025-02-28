@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Timer, AlertCircle } from 'lucide-react';
-
-type GameState = 'ready' | 'playing' | 'success' | 'failed';
+import { GameState } from '../../types/types';
 
 type GameSettings = {
   initialPlayerScore: number;
   initialComputerScore: number;
   computerIncreaseRate: number;
   playerClickValue: number;
-  minimumScore: number;
   timeLimit: number;
 };
 
@@ -44,9 +41,8 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
   const gameSettings: GameSettings = {
     initialPlayerScore: 50,
     initialComputerScore: 50,
-    computerIncreaseRate: 0.3 + (difficulty * 0.2),
-    playerClickValue: strength * 0.5,
-    minimumScore: 80 + (difficulty * 20),
+    computerIncreaseRate: 0.4 + (difficulty * 0.2),
+    playerClickValue: (strength + difficulty) * 0.5,
     timeLimit: 12 - (difficulty * 2),
   };
 
@@ -67,9 +63,9 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
     }
 
     // Player won by reaching the instant win condition
-    // Calculate score based on how quickly they won, up to 2000 points (changed from 5000)
+    // Calculate score based on how quickly they won, up to 2000 points 
     const timePercentage = 1 - (timeElapsed / timeLimit);
-    return 1000 + Math.round(timePercentage * 1000); // 1000 to 2000 range (changed from 4000)
+    return 1000 + Math.round(timePercentage * 1000); // 1000 to 2000 range 
 
   }, []);
 
@@ -247,7 +243,7 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
   useEffect(() => {
     if (gameState !== 'playing' || endTimeRef.current === null) return;
 
-    if (playerScore >= gameSettings.minimumScore && playerScore >= computerScore * 2) {
+    if (playerScore >= computerScore * 2) {
       // Calculate time elapsed for the instant win
       const now = Date.now();
       const elapsed = (gameSettings.timeLimit * 1000) - (endTimeRef.current - now);
@@ -256,17 +252,17 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
       // End game with win
       handleGameEnd(true, elapsedSeconds);
     }
-  }, [playerScore, computerScore, gameSettings.minimumScore, gameSettings.timeLimit, gameState, handleGameEnd]);
+  }, [playerScore, computerScore, gameSettings.timeLimit, gameState, handleGameEnd]);
 
   // Check for instant lose condition
   useEffect(() => {
     if (gameState !== 'playing') return;
 
-    if (computerScore >= gameSettings.minimumScore && computerScore >= playerScore * 2) {
+    if (computerScore >= playerScore * 2) {
       // End game with loss
       handleGameEnd(false);
     }
-  }, [playerScore, computerScore, gameSettings.minimumScore, gameState, handleGameEnd]);
+  }, [playerScore, computerScore, gameState, handleGameEnd]);
 
   // Show alert when time is running low
   useEffect(() => {

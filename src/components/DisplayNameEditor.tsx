@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {Check, X } from 'lucide-react';
-import { useTotemGame } from '../hooks/useTotemGame';
+import { useGame } from '../contexts/GameContext';
 
 const DisplayNameEditor: React.FC<{
     tokenId: bigint;
@@ -10,7 +10,7 @@ const DisplayNameEditor: React.FC<{
     const [newName, setNewName] = useState(currentName || '');
     const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { setDisplayName } = useTotemGame();
+    const { setDisplayName } = useGame();
 
     const handleUpdate = async () => {
         if (!newName.trim()) {

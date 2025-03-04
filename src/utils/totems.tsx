@@ -147,8 +147,8 @@ export function getSpeciesBaseStats(species: Species, rarity: Rarity): TotemStat
         },
         [Species.Otter]: {
             agility: 10 + bonus,
-            strength: 9 + bonus,
-            wisdom: 5 + bonus,
+            strength: 8 + bonus,
+            wisdom: 6 + bonus,
             primaryStat: 'agility'
         },
         [Species.Woodpecker]: {
@@ -192,6 +192,18 @@ export function getSpeciesEmoji(species: Species): string {
 export const getTotemStage = (totem: NFTMetadata) => {
     if (!totem) return 0;
     return totem.attributes.stage+1;
+}
+
+export function getCurrentMonth() {
+    const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+
+    const currentDate = new Date();
+    const monthIndex = currentDate.getMonth();
+
+    return months[monthIndex];
 }
 
 export const getGameDifficulty = (totem: NFTMetadata, reqStage: number) => {

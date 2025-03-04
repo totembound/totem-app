@@ -1,10 +1,11 @@
 // contexts/GameContext.tsx
 import React, { createContext, useContext, useCallback, useEffect, useState } from 'react';
 import { useUser } from './UserContext';
-import { createChallengesContract, createGameContract, TotemGameContract } from '../config/contracts';
-import { ActionType, ActionConfig, TimeWindows, GameParameters, TotemAttributes, ActionTracking, ChallengeState, ChallengeInfo, ChallengeStatus, NFTMetadata } from '../types/types';
+import { createAchievementsContract, createChallengesContract, createGameContract, createRewardsContract, TotemGameContract, TotemRewardsContract } from '../config/contracts';
+import { ActionType, ActionConfig, TimeWindows, GameParameters, TotemAttributes, ActionTracking, ChallengeState, ChallengeInfo, ChallengeStatus, NFTMetadata, StreakStatus, WeeklyStatus, RewardsState } from '../types/types';
 import { ethers } from 'ethers';
 import { getTotemStage } from '../utils/totems';
+import { useTransactionService } from '../hooks/useTransactionService';
 
 export interface GameContextType {
     actionConfigs: Record<ActionType, ActionConfig>;
@@ -45,6 +46,15 @@ export interface GameContextType {
     canAttemptChallenge: (challengeId: string, tokenId: string) => boolean;
     getChallengeStatus: (challengeId: string) => string;
     completeChallenge: (challengeId: string, tokenId: string, score: number) => Promise<void>;
+
+    // rewards
+    rewardsState: RewardsState;
+    getUserStreak: () => Promise<StreakStatus | undefined>;
+    claimDailyReward: () => Promise<boolean>;
+    claimWeeklyReward: () => Promise<boolean>;
+    purchaseProtection: (type: 'daily' | 'weekly', tier: number) => Promise<boolean>;
+
+    setDisplayName: (tokenId: bigint, newName: string) => Promise<void>;
 }
 
 const defaultGetFormattedWindowTimes = () => {
@@ -89,11 +99,24 @@ const GameContext = createContext<GameContextType>({
     getChallengeStatus: defaultGetChallengeStatus,
     completeChallenge: async () => { 
         throw new Error('Challenge system not initialized');
-    }
+    },
+    // Rewards state and methods
+    rewardsState: {
+        streakStatus: null,
+        isClaimLoading: false,
+        weeklyStatus: null,
+        hasWeeklyUnlocked: false,
+        hasStakingUnlocked: false
+    },
+    getUserStreak: async () => undefined,
+    claimDailyReward: async () => false,
+    claimWeeklyReward: async () => false,
+    purchaseProtection: async () => false,
+    setDisplayName: async() => {}
 });
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { provider, address, signer, totems } = useUser();
+    const { provider, address, signer, totems, updateBalances, isGaslessEnabled } = useUser();
     const [actionConfigs, setActionConfigs] = useState<Record<ActionType, ActionConfig>>({} as Record<ActionType, ActionConfig>);
     const [timeWindows, setTimeWindows] = useState<TimeWindows | null>(null);
     const [gameParams, setGameParams] = useState<GameParameters | null>(null);
@@ -104,6 +127,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         userStatus: {},
         loading: false,
         error: null
+    });
+    const [rewardsState, setRewardsState] = useState<RewardsState>({
+        streakStatus: null,
+        isClaimLoading: false,
+        weeklyStatus: null,
+        hasWeeklyUnlocked: false,
+        hasStakingUnlocked: false
+    })
+
+    const txService = useTransactionService({
+        gaslessEnabled: isGaslessEnabled,
+        waitForConfirmation: true
     });
 
     const loadGameConfigs = useCallback(async () => {
@@ -289,6 +324,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         score: number
     ) => {
         if (!provider || !address) throw new Error('Not connected');
+        if (!txService) throw new Error('Transaction service not initialized');
 
         const id = ethers.id(challengeId);
         const challenge = challengeState.challenges[id];
@@ -299,8 +335,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const gameContract = createGameContract(provider);
         const connectedGame = gameContract.connect(signer) as TotemGameContract;
 
-        const tx = await connectedGame.attemptChallenge(id, tokenId, score);
-        await tx.wait();
+        const result = await txService.completeChallenge(id, BigInt(tokenId), score);
+
+        //const tx = await connectedGame.attemptChallenge(id, tokenId, score);
+        //await tx.wait();
 
         // Refresh challenge state
         await loadChallenges();
@@ -497,6 +535,209 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }
 
+    const updateStreakStatus = async (): Promise<StreakStatus | undefined> => {
+        if (!provider || !address) return undefined;
+
+        try {
+            const rewardsContract = createRewardsContract(provider);
+            const dailyRewardId = ethers.id("daily_login");
+            const status = await rewardsContract.getStreakStatus(dailyRewardId, address);
+            const newStatus: StreakStatus = {
+                streakDays: Number(status.currentStreak),
+                canClaimToday: status.canClaim,
+                bestStreak: Number(status.bestStreak),
+                nextClaimTime: Number(status.nextClaimTime),
+                isProtected: status.isProtected,
+                protectionExpiry: Number(status.protectionExpiry)
+            };
+
+            setRewardsState(prev => ({
+                ...prev,
+                streakStatus: newStatus
+            }));
+
+            return newStatus;
+        } catch (error) {
+            console.error("Error fetching streak data:", error);
+            return undefined;
+        }
+    };
+
+    const getUserStreak = async (): Promise<StreakStatus | undefined> => {
+        return rewardsState.streakStatus || await updateStreakStatus();
+    };
+
+    const getWeeklyStatus = async (): Promise<WeeklyStatus | undefined> => {
+        return rewardsState.weeklyStatus || await updateWeeklyStatus();
+    };
+
+    const claimDailyReward = async () => {
+        if (!provider || !signer || !address) return false;
+
+        setRewardsState(prev => ({ ...prev, isClaimLoading: true }));
+
+        try {
+            if (!txService) throw new Error('Transaction service not initialized');
+
+            // Check if claiming is allowed first
+            const dailyRewardId = ethers.id("daily_login");
+            const rewardsContract = createRewardsContract(provider);
+            const canClaim = await rewardsContract.isClaimingAllowed(dailyRewardId, address);
+            if (!canClaim) return false;
+
+            // Attempt to claim
+            const result = await txService.claimDailyReward();
+
+            // Update balances and streak status after successful claim
+            await Promise.all([
+                updateBalances(),
+                updateStreakStatus()
+            ]);
+
+            return true;
+        }
+        catch (error) {
+            console.error("Error claiming daily reward:", error);
+            return false;
+        }
+        finally {
+            setRewardsState(prev => ({ ...prev, isClaimLoading: false }));
+        }
+    };
+
+    const updateWeeklyStatus = async (): Promise<WeeklyStatus | undefined> => {
+        if (!provider || !address) return undefined;
+
+        try {
+            const rewardsContract = createRewardsContract(provider);
+            const weeklyRewardId = ethers.id("weekly_bonus");
+
+            // Get streak status from contract
+            const status = await rewardsContract.getStreakStatus(weeklyRewardId, address);
+
+            // Get user info for additional details
+            const userInfo = await rewardsContract.getUserInfo(weeklyRewardId, address);
+
+            const newStatus: WeeklyStatus = {
+                weeklyStreak: Number(status.currentStreak),
+                canClaimWeekly: status.canClaim,
+                bestWeeklyStreak: Number(status.bestStreak),
+                nextClaimTime: Number(status.nextClaimTime),
+                isProtected: status.isProtected,
+                protectionExpiry: Number(status.protectionExpiry)
+            };
+
+            // Check for Week Warrior achievement
+            const achievementsContract = createAchievementsContract(provider);
+            const loginProgressionId = ethers.id("login_progression");
+            const progress = await achievementsContract.getDetailedProgress(loginProgressionId, address);
+            const hasWeeklyUnlocked = progress.count >= 7;
+
+            setRewardsState(prev => ({
+                ...prev,
+                weeklyStatus: newStatus,
+                hasWeeklyUnlocked
+            }));
+
+            return newStatus;
+        }
+        catch (error) {
+            console.error("Error fetching weekly streak data:", error);
+            return undefined;
+        }
+    };
+
+    const claimWeeklyReward = async () => {
+        if (!provider || !signer || !address) return false;
+        if (!txService) throw new Error('Transaction service not initialized');
+
+        try {
+            // Check if claiming is allowed
+            const weeklyRewardId = ethers.id("weekly_bonus");
+            const rewardsContract = createRewardsContract(provider);
+            const canClaim = await rewardsContract.isClaimingAllowed(weeklyRewardId, address);
+            if (!canClaim) return false;
+
+            // Attempt to claim
+            const result = await txService.claimWeeklyReward();
+
+            // Update balances and status
+            await Promise.all([
+                updateBalances(),
+                updateWeeklyStatus()
+            ]);
+
+            return true;
+        }
+        catch (error) {
+            console.error("Error claiming weekly reward:", error);
+            return false;
+        }
+    };
+
+    const purchaseProtection = async (type: 'daily' | 'weekly', tier: number) => {
+        if (!provider || !signer || !address) return false;
+        if (!txService) throw new Error('Transaction service not initialized');
+
+        // Check streak requirements
+        const requiredStreak = type === 'daily'
+            ? (tier === 0 ? 7 : 14)   // Daily: Tier 1 = 7 days, Tier 2 = 14 days
+            : 28;                     // Weekly: 4 weeks required
+
+        const currentStreak = type === 'daily'
+            ? rewardsState.streakStatus?.streakDays || 0
+            : rewardsState.weeklyStatus?.weeklyStreak || 0;
+
+        if (currentStreak < requiredStreak) {
+            throw new Error(`Insufficient streak. Required: ${requiredStreak}`);
+        }
+
+        try {
+            const rewardsContract = createRewardsContract(provider);
+            const rewardId = type === 'daily' ? ethers.id("daily_login") : ethers.id("weekly_bonus");
+
+            // Check if protection is already active
+            const status = await rewardsContract.getStreakStatus(rewardId, address);
+            if (status.isProtected) {
+                throw new Error('Protection is already active');
+            }
+
+            const result = await txService.purchaseProtection(rewardId, tier);
+
+            // Update status
+            await Promise.all([
+                updateStreakStatus(),
+                updateWeeklyStatus()
+            ]);
+
+            return true;
+        }
+        catch (error) {
+            console.error("Error purchasing protection:", error);
+            throw error;
+        }
+    };
+
+    const setDisplayName = async (tokenId: bigint, newName: string) => {
+        if (!provider || !signer) throw new Error('Not connected');
+        if (!txService) throw new Error('Transaction service not initialized');
+
+        try {
+            const result = await txService.setDisplayName(tokenId, newName);
+        }
+        catch (error: any) {
+            console.error('Name update failed:', error);
+            throw new Error(error.message.includes('user rejected') 
+                ? 'User rejected transaction' 
+                : 'Failed to update name');
+        }
+    };
+
+    useEffect(() => {
+        updateStreakStatus();
+        updateWeeklyStatus();
+    }, [provider, address]);
+    
     return (
         <GameContext.Provider value={{
             actionConfigs,
@@ -515,7 +756,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             canAttemptChallenge,
             getEligibleTotems,
             getChallengeStatus,
-            completeChallenge
+            completeChallenge,
+            rewardsState,
+            getUserStreak,
+            claimDailyReward,
+            claimWeeklyReward,
+            purchaseProtection,
+            setDisplayName
         }}>
             {children}
         </GameContext.Provider>

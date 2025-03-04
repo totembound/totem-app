@@ -100,8 +100,10 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
                     onClose();
                 }, 2000);
             }, 2000); // Wait for score effect to complete
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to submit challenge');
+        }
+        catch (error) {
+            console.error('Complete challenge failed:', error);
+            setError('Failed to submit challenge');
             setIsSubmitting(false);
         }
     };

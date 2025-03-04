@@ -49,7 +49,7 @@ async function initializeProvider() {
   try {
     console.log('Deployment RPC URL:', process.env.RPC_URL);
     console.log('Deployer Private Key:', process.env.FORWARDER_PRIVATE_KEY);
-    
+
     provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
     wallet = new ethers.Wallet(process.env.FORWARDER_PRIVATE_KEY, provider);
     forwarderContract = new ethers.Contract(
@@ -57,14 +57,15 @@ async function initializeProvider() {
       FORWARDER_ABI,
       wallet
     );
-    
+
     const balance = await wallet.provider.getBalance(wallet.address);
     console.log(`Relayer wallet balance: ${ethers.formatEther(balance)} POL`);
-    
+
     if (ethers.formatEther(balance) < 0.1) {
       console.warn('WARNING: Relayer wallet balance is low. Please fund the wallet.');
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to initialize provider:', error);
     process.exit(1);
   }
@@ -77,17 +78,17 @@ app.get('/health', (req, res) => {
 
 // Relay endpoint
 app.post('/relay', async (req, res) => {
-    // API Key validation
-    const providedApiKey = req.headers['x-api-key'];
-    
-    if (!providedApiKey || providedApiKey !== API_KEY) {
-        return res.status(401).json({ 
-            error: 'Unauthorized',
-            message: 'Invalid or missing API key'
-        });
-    }
+  // API Key validation
+  const providedApiKey = req.headers['x-api-key'];
 
-    try {
+  if (!providedApiKey || providedApiKey !== API_KEY) {
+    return res.status(401).json({
+      error: 'Unauthorized',
+      message: 'Invalid or missing API key'
+    });
+  }
+
+  try {
     const { contractType, functionName, request, signature } = req.body;
 
     // Validate request
@@ -108,9 +109,9 @@ app.post('/relay', async (req, res) => {
     // Check gas price
     const feeData = await provider.getFeeData();
     const maxGasPrice = ethers.parseUnits(process.env.MAX_GAS_PRICE || '50', 'gwei');
-    
+
     if (feeData.gasPrice > maxGasPrice) {
-      return res.status(503).json({ 
+      return res.status(503).json({
         error: 'Gas price too high',
         currentGasPrice: ethers.formatUnits(feeData.gasPrice, 'gwei'),
         maxGasPrice: ethers.formatUnits(maxGasPrice, 'gwei')
@@ -122,11 +123,11 @@ app.post('/relay', async (req, res) => {
     const minBalance = ethers.parseEther(process.env.MIN_WALLET_BALANCE || '0.1');
 
     if (balance < minBalance) {
-        return res.status(503).json({ 
-            error: 'Insufficient forwarder balance',
-            currentBalance: ethers.formatEther(balance),
-            minBalance: ethers.formatUnits(minBalance, 'ether')
-        });
+      return res.status(503).json({
+        error: 'Insufficient forwarder balance',
+        currentBalance: ethers.formatEther(balance),
+        minBalance: ethers.formatUnits(minBalance, 'ether')
+      });
     }
 
     // Log request information
@@ -161,7 +162,8 @@ app.post('/relay', async (req, res) => {
 
     const newBalance = await wallet.provider.getBalance(wallet.address);
     console.log(`Relayer wallet balance: ${ethers.formatEther(newBalance)} POL`);
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Relay error:', error);
     res.status(500).json({
       success: false,

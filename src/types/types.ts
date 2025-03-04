@@ -11,18 +11,15 @@ export interface UserContextType extends UserContextState {
     removeTotem: (tokenId: bigint) => void;
     updateTotem: (tokenId: bigint, type: ActionType) => Promise<void>;
     updateTotemEvolved: (tokenId: bigint) => Promise<void>;
-    getUserStreak: () => Promise<StreakStatus | undefined>;
-    claimDailyReward: () => Promise<boolean | undefined>;
-    claimWeeklyReward: () => Promise<boolean | undefined>;
-    purchaseProtection: (type: 'daily' | 'weekly', tier: number) => Promise<boolean>;
     checkTokenApproval: () => Promise<boolean>;
     approveTokens: () => Promise<boolean>;
     setApprovalMessageDismissed: (dismissed: boolean) => void;
-    updateStreakStatus: () => Promise<StreakStatus | undefined>;
-    updateWeeklyStatus: () => Promise<WeeklyStatus | undefined>;
     updateAchievementStatus: () => Promise<void>;
     showError: (title: string, message: string) => void;
     hideError: () => void;
+    setGaslessEnabled: (enabled: boolean) => void;
+    setGaslessApiKey: (apiKey: string) => void;
+    updateAccountType: (providedApiKey?: string) => AccountType;
 }
 
 export interface TotemUpdate {
@@ -32,6 +29,8 @@ export interface TotemUpdate {
         [key in ActionType]?: ActionTracking;
     };
 }
+
+export type AccountType = 'Free' | 'Premium' | 'Web3';
 
 export interface UserContextState {
         // user state
@@ -50,12 +49,10 @@ export interface UserContextState {
     totemError: string | null;
     // control state for updates
     isApprovalMessageDismissed: boolean;
-    streakStatus: StreakStatus | null;
-    weeklyStatus: WeeklyStatus | null;
-    hasWeeklyUnlocked: boolean;
-    hasStakingUnlocked: boolean;
-    isClaimLoading: boolean;
     messageDialog: MessageDialogState;
+    isGaslessEnabled: boolean;
+    gaslessApiKey: string;
+    accountType: AccountType;
     comingSoon: boolean;
 }
 
@@ -368,5 +365,50 @@ export interface ChallengeState {
     loading: boolean;
     error: string | null;
 }
+
+export interface RewardsState {
+    streakStatus: StreakStatus | null;
+    weeklyStatus: WeeklyStatus | null;
+    hasWeeklyUnlocked: boolean;
+    hasStakingUnlocked: boolean;
+    isClaimLoading: boolean;
+}
+
+export type ContractType = 'game' | 'nft' | 'token' | 'rewards' | 'challenges';
+
+export interface TransactionConfig {
+  gaslessEnabled?: boolean;
+  apiKey?: string;
+  relayerUrl?: string;
+  waitForConfirmation?: boolean;
+  forwarderAddress?: string;
+}
+
+export interface ForwardRequest {
+  from: string;
+  to: string;
+  value: bigint;
+  gas: bigint;
+  nonce: bigint;
+  data: string;
+}
+
+export interface ContractEvent {
+  contract: ethers.Contract;
+  eventName: string;
+  filter: any[];
+}
+
+export interface TransactionResult {
+  hash: string;
+  success: boolean;
+  events?: Array<{
+    eventName: string;
+    args: any[];
+  }>;
+  receipt?: ethers.TransactionReceipt;
+  data?: any;
+}
+
 
 export {}

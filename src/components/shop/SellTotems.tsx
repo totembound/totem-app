@@ -6,6 +6,7 @@ import { Species, Rarity, NFTMetadata, Color } from '../../types/types';
 import MessageDialog from '../MessageDialog';
 import { Pagination } from '../layouts/Pagination';
 import { getRarityBadgeColor } from '../../utils/totems';
+import { useTransactionService } from '../../hooks/useTransactionService';
 
 interface SellTotemCardProps {
     totem: NFTMetadata;
@@ -104,7 +105,7 @@ const SellTotemCard: React.FC<SellTotemCardProps> = ({ totem, onSellClick }) => 
 };
 
 const SellTotems: React.FC = () => {
-    const { totems, removeTotem, updateBalances } = useUser();
+    const { totems, removeTotem, updateBalances, isGaslessEnabled } = useUser();
     const { sellTotem } = useTotemGame();
     const [selectedTotem, setSelectedTotem] = useState<NFTMetadata | null>(null);
     const [sellValue, setSellValue] = useState(0);
@@ -123,6 +124,11 @@ const SellTotems: React.FC = () => {
         direction: 'desc'
     });
     const itemsPerPage = 8;
+
+    const txService = useTransactionService({
+        gaslessEnabled: isGaslessEnabled,
+        waitForConfirmation: true
+    });
 
     const sortTotems = (totems: NFTMetadata[]) => {
         return [...totems].sort((a, b) => {
@@ -194,10 +200,12 @@ const SellTotems: React.FC = () => {
 
     const handleConfirmSell = async () => {
         if (!selectedTotem) return;
+        if (!txService) throw new Error('Transaction service not initialized');
 
         setIsSelling(true);
         try {
-            await sellTotem(selectedTotem.tokenId);
+            
+            await txService.sellTotem(selectedTotem.tokenId);
             await updateBalances();
             removeTotem(selectedTotem.tokenId);
             setIsConfirmOpen(false);
@@ -344,12 +352,6 @@ const SellTotems: React.FC = () => {
                             </span>{' '}
                             for <span className="font-semibold text-gray-900 dark:text-gray-100">{sellValue.toLocaleString()} TOTEM</span>?
                         </p>
-                        <div className="mt-4 flex items-start gap-2">
-                            <AlertTriangle className="h-5 w-5 text-yellow-500 dark:text-yellow-400 mt-1 flex-shrink-0" />
-                            <div>
-                            <p>You'll need to approve the transfer of your totem to the marketplace. This is a one-time transaction for each totem you want to sell.</p>
-                            </div>
-                        </div>
                         <p className="text-red-600 dark:text-red-400 font-medium mt-4">
                             Warning: This action cannot be undone. Your totem will be permanently removed.
                         </p>

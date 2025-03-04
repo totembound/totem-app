@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useUser } from '../../contexts/UserContext';
+import { useGame } from '../../contexts/GameContext'; 
 import { WalletButton } from './WalletButton';
 import { UserMenu } from './UserMenu';
 import NotificationsPanel from '../NotificationsPanel';
@@ -8,12 +9,16 @@ import { ThemeToggle } from './ThemeToggle';
 import { Flame, X } from 'lucide-react';
 
 const Header: React.FC = () => {
-  const { isConnected, isSignedUp, address, streakStatus, isClaimLoading, claimDailyReward, isTokenApproved } = useUser();
+  const { isConnected, isSignedUp, address, isTokenApproved } = useUser();
+  const { rewardsState, claimDailyReward } = useGame();
   const [showStreakTracker, setShowStreakTracker] = useState<boolean>(true);
-  const disabledStyle = !streakStatus?.canClaimToday ? 'opacity-50 cursor-not-allowed' : '';
+  const disabledStyle = !rewardsState.streakStatus?.canClaimToday ? 'opacity-50 cursor-not-allowed' : '';
+
+  const isClaimLoading = rewardsState.isClaimLoading;
+  const streakStatus = rewardsState.streakStatus;
 
   const handleClaimReward = async () => {
-      if (!streakStatus?.canClaimToday || isClaimLoading) return;
+      if (!rewardsState.streakStatus?.canClaimToday || isClaimLoading) return;
     
       const success = await claimDailyReward();
       if (success) {

@@ -6,6 +6,7 @@ import { createGameContract, createTotemNFTContract, TotemGameContract } from '.
 import MessageDialog from '../MessageDialog';
 import { Pagination } from '../layouts/Pagination';
 import { getRarityBadgeColor } from '../../utils/totems';
+import { useTransactionService } from '../../hooks/useTransactionService';
 
 interface UnboundTotem {
     tokenId: bigint;
@@ -135,12 +136,17 @@ const UnboundTotems: React.FC = () => {
     const [selectedTotem, setSelectedTotem] = useState<UnboundTotem | null>(null);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [purchasingTotems, setPurchasingTotems] = useState<{[key: string]: boolean}>({});
-    const { provider, signer, addTotem, updateBalances } = useUser();
+    const { provider, signer, addTotem, updateBalances, isGaslessEnabled } = useUser();
     const [totalItems, setTotalItems] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
     const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
     
+    const txService = useTransactionService({
+        gaslessEnabled: isGaslessEnabled,
+        waitForConfirmation: true
+    });
+
     const loadUnboundTotems = async () => {
         if (!provider) return;
 
@@ -186,11 +192,7 @@ const UnboundTotems: React.FC = () => {
         setPurchasingTotems(prev => ({ ...prev, [tokenId.toString()]: true }));
         
         try {
-            const gameContract = createGameContract(provider);
-            const connectedContract = gameContract.connect(signer) as TotemGameContract;
-            // Wait for transaction confirmation
-            const tx = await connectedContract.purchaseUnboundTotem(tokenId);
-            await tx.wait();
+            const result = await txService?.purchaseUnboundTotem(tokenId);
 
             await Promise.all([
                 updateBalances(),

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useGame } from '../../contexts/GameContext';
 import { useUser } from '../../contexts/UserContext';
 import BoulderBreakerChallenge from './BoulderBreakerChallenge';
+import TotemWrestlingChallenge from './TotemWrestlingChallenge';
 import { ActionType, ChallengeInfo, TotemAttributes } from '../../types/types';
 import { ethers } from 'ethers';
 import ExperienceEffect from '../effects/ExperienceEffect';
@@ -128,8 +129,15 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
             {/* Challenge Game */}
             <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-100 
               dark:border-gray-700 shadow-sm">
-                {challengeType === 'strength' && (
+                {challengeType === 'strength' && challengeId === 'strength-challenge-1' && (
                     <BoulderBreakerChallenge
+                        strength={attributes.strength}
+                        difficulty={difficulty}
+                        onComplete={handleScore}
+                    />
+                )}
+                {challengeType === 'strength' && challengeId === 'strength-challenge-2' && (
+                    <TotemWrestlingChallenge
                         strength={attributes.strength}
                         difficulty={difficulty}
                         onComplete={handleScore}

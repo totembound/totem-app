@@ -154,7 +154,7 @@ export const ChallengeDialog: React.FC<ChallengeDialogProps> = ({
                                 </div>
                             </div>
                             <div className="text-gray-900 dark:text-gray-100 mr-2">
-                                Level {difficulty}
+                                Difficulty {difficulty}
                             </div>
                         </div>
 

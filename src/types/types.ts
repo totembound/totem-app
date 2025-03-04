@@ -410,5 +410,6 @@ export interface TransactionResult {
   data?: any;
 }
 
+export type GameState = 'ready' | 'playing' | 'success' | 'failed';
 
 export {}

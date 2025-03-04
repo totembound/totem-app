@@ -1,10 +1,10 @@
 // contexts/UserContext.tsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
-import { UserContextType, UserContextState, ActionType, ActionTracking, StreakStatus, WeeklyStatus, NFTMetadata, TokenActionTrackings, Attribute, Species, ChallengeRequirements } from '../types/types';
-import { CONTRACT_ADDRESSES, createGameContract, createTokenContract, createTotemNFTContract, createRewardsContract, TotemRewardsContract, TotemTokenContract, createAchievementsContract } from '../config/contracts';
+import { UserContextType, UserContextState, ActionType, ActionTracking, NFTMetadata, TokenActionTrackings, Attribute, AccountType } from '../types/types';
+import { CONTRACT_ADDRESSES, createGameContract, createTokenContract, createTotemNFTContract, TotemTokenContract, createAchievementsContract } from '../config/contracts';
 import { STORAGE_KEYS } from '../config/constants';
-import { getSpeciesBaseStats, getTotemStage } from '../utils/totems';
+import { getSpeciesBaseStats } from '../utils/totems';
 
 export const UserContext = createContext<UserContextType | null>(null);
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -21,16 +21,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         totemLoading: false,
         totemError: null,
         isApprovalMessageDismissed: localStorage.getItem(STORAGE_KEYS.tokenApprovalMessageDismissed) === 'true',
-        streakStatus: null,
-        isClaimLoading: false,
-        weeklyStatus: null,
-        hasWeeklyUnlocked: false,
-        hasStakingUnlocked: false,
         messageDialog: {
             isOpen: false,
             title: '',
             message: ''
         },
+        isGaslessEnabled: localStorage.getItem(STORAGE_KEYS.isGaslessEnabled) === 'true',
+        gaslessApiKey: localStorage.getItem(STORAGE_KEYS.gaslessApiKey) || '',
+        accountType: initialAccountType(),
         comingSoon: true
     });
     const normalizeAddress = (addr: string) => addr.toLowerCase();
@@ -41,8 +39,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [totemLoading, setTotemLoading] = useState(false);
     const [totemError, setTotemError] = useState<string | null>(null);
     const [totemCache, setTotemCache] = useState<Map<string, NFTMetadata>>(new Map());
-    
-    //console.log('UserContext - Provider:', state.provider);
     const SECONDS_PER_DAY = 86400;
 
     const showError = (title: string, message: string) => {
@@ -510,193 +506,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, [state.provider, state.address]);
 
-    const updateStreakStatus = async (): Promise<StreakStatus | undefined> => {
-        if (!state.provider || !state.address) return undefined;
-    
-        try {
-            const rewardsContract = createRewardsContract(state.provider);
-            const dailyRewardId = ethers.id("daily_login");
-            const status = await rewardsContract.getStreakStatus(dailyRewardId, state.address);
-            const newStatus: StreakStatus = {
-                streakDays: Number(status.currentStreak),
-                canClaimToday: status.canClaim,
-                bestStreak: Number(status.bestStreak),
-                nextClaimTime: Number(status.nextClaimTime),
-                isProtected: status.isProtected,
-                protectionExpiry: Number(status.protectionExpiry)
-            };
-
-            setState(prev => ({
-                ...prev,
-                streakStatus: newStatus
-            }));
-
-            return newStatus;
-        } catch (error) {
-            console.error("Error fetching streak data:", error);
-            return undefined;
-        }
-    };
-
-    const getUserStreak = async (): Promise<StreakStatus | undefined> => {
-        return state.streakStatus || await updateStreakStatus();
-    };
-
-    const getWeeklyStatus = async (): Promise<WeeklyStatus | undefined> => {
-        return state.weeklyStatus || await updateWeeklyStatus();
-    };
-
-    const claimDailyReward = async () => {
-        if (!state.provider || !state.signer || !state.address) return false;
-        
-        setState(prev => ({ ...prev, isClaimLoading: true }));
-
-        try {
-            const rewardsContract = createRewardsContract(state.provider);
-            const connectedRewards = rewardsContract.connect(state.signer) as TotemRewardsContract;
-            const dailyRewardId = ethers.id("daily_login");
-
-            // Check if claiming is allowed first
-            const canClaim = await rewardsContract.isClaimingAllowed(dailyRewardId, state.address);
-            if (!canClaim) return false;
-
-            // Attempt to claim
-            const tx = await connectedRewards.claim(dailyRewardId);
-            await tx.wait();
-
-            // Update balances and streak status after successful claim
-            await Promise.all([
-                updateBalances(),
-                updateStreakStatus()
-            ]);
-
-            return true;
-        }
-        catch (error) {
-            console.error("Error claiming daily reward:", error);
-            return false;
-        }
-        finally {
-            setState(prev => ({ ...prev, isClaimLoading: false }));
-        }
-    };
-
-    const updateWeeklyStatus = async (): Promise<WeeklyStatus | undefined> => {
-        if (!state.provider || !state.address) return undefined;
-    
-        try {
-            const rewardsContract = createRewardsContract(state.provider);
-            const weeklyRewardId = ethers.id("weekly_bonus");
-            
-            // Get streak status from contract
-            const status = await rewardsContract.getStreakStatus(weeklyRewardId, state.address);
-            
-            // Get user info for additional details
-            const userInfo = await rewardsContract.getUserInfo(weeklyRewardId, state.address);
-
-            const newStatus: WeeklyStatus = {
-                weeklyStreak: Number(status.currentStreak),
-                canClaimWeekly: status.canClaim,
-                bestWeeklyStreak: Number(status.bestStreak),
-                nextClaimTime: Number(status.nextClaimTime),
-                isProtected: status.isProtected,
-                protectionExpiry: Number(status.protectionExpiry)
-            };
-
-            // Check for Week Warrior achievement
-            const achievementsContract = createAchievementsContract(state.provider);
-            const loginProgressionId = ethers.id("login_progression");
-            const progress = await achievementsContract.getDetailedProgress(loginProgressionId, state.address);
-            const hasWeeklyUnlocked = progress.count >= 7;
-
-            setState(prev => ({
-                ...prev,
-                 weeklyStatus: newStatus,
-                hasWeeklyUnlocked
-            }));
-
-            return newStatus;
-        }
-        catch (error) {
-            console.error("Error fetching weekly streak data:", error);
-            return undefined;
-        }
-    };
-
-    const claimWeeklyReward = async () => {
-        if (!state.provider || !state.signer || !state.address) return false;
-        
-        try {
-          const rewardsContract = createRewardsContract(state.provider);
-          const connectedRewards = rewardsContract.connect(state.signer) as TotemRewardsContract;
-          const weeklyRewardId = ethers.id("weekly_bonus");
-    
-          // Check if claiming is allowed
-          const canClaim = await rewardsContract.isClaimingAllowed(weeklyRewardId, state.address);
-          if (!canClaim) return false;
-    
-          // Attempt to claim
-          const tx = await connectedRewards.claim(weeklyRewardId);
-          await tx.wait();
-    
-          // Update balances and status
-          await Promise.all([
-            updateBalances(),
-            updateWeeklyStatus()
-          ]);
-    
-          return true;
-        }
-        catch (error) {
-          console.error("Error claiming weekly reward:", error);
-          return false;
-        }
-    };
-    
-    const purchaseProtection = async (type: 'daily' | 'weekly', tier: number) => {
-        if (!state.provider || !state.signer || !state.address) return false;
-    
-        // Check streak requirements
-        const requiredStreak = type === 'daily' 
-            ? (tier === 0 ? 7 : 14)   // Daily: Tier 1 = 7 days, Tier 2 = 14 days
-            : 28;                     // Weekly: 4 weeks required
-    
-        const currentStreak = type === 'daily'
-            ? state.streakStatus?.streakDays || 0
-            : state.weeklyStatus?.weeklyStreak || 0;
-    
-        if (currentStreak < requiredStreak) {
-            throw new Error(`Insufficient streak. Required: ${requiredStreak}`);
-        }
-    
-        try {
-            const rewardsContract = createRewardsContract(state.provider);
-            const connectedRewards = rewardsContract.connect(state.signer) as TotemRewardsContract;
-            const rewardId = type === 'daily' ? ethers.id("daily_login") : ethers.id("weekly_bonus");
-    
-            // Check if protection is already active
-            const status = await rewardsContract.getStreakStatus(rewardId, state.address);
-            if (status.isProtected) {
-                throw new Error('Protection is already active');
-            }
-    
-            const tx = await connectedRewards.purchaseProtection(rewardId, tier);
-            await tx.wait();
-    
-            // Update status
-            await Promise.all([
-                updateStreakStatus(),
-                updateWeeklyStatus()
-            ]);
-    
-            return true;
-        }
-        catch (error) {
-            console.error("Error purchasing protection:", error);
-            throw error;
-        }
-    };
-
     const updateAchievementStatus = async () => {
         if (!state.provider || !state.address) return;
 
@@ -760,8 +569,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             try {
                 // Update all states
                 await Promise.all([
-                    updateStreakStatus(),
-                    updateWeeklyStatus(),
+                    //updateStreakStatus(),
+                    //updateWeeklyStatus(),
                     updateAchievementStatus()
                 ]);
             } catch (error) {
@@ -775,8 +584,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 console.log('refreshing state');
                 await Promise.all([
                     updateBalances(),
-                    updateStreakStatus(),
-                    updateWeeklyStatus(),
+                    //updateStreakStatus(),
+                    //updateWeeklyStatus(),
                     updateAchievementStatus()
                 ]);
             } catch (error) {
@@ -836,6 +645,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, [state.isConnected, state.isSignedUp]);
 
+    useEffect(() => {
+        updateAccountType();
+    }, []);
+
     const connect = async () => {
         if (!window.ethereum) {
           alert('Please install MetaMask!');
@@ -866,6 +679,55 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             isApprovalMessageDismissed: false
         }));
     };
+
+    const setGaslessEnabled = (enabled: boolean) => {
+        localStorage.setItem(STORAGE_KEYS.isGaslessEnabled, enabled.toString());
+        setState(prev => ({ ...prev, isGaslessEnabled: enabled }));
+        updateAccountType();
+    };
+    
+    const setGaslessApiKey = (apiKey: string) => {
+        localStorage.setItem(STORAGE_KEYS.gaslessApiKey, apiKey);
+        setState(prev => ({ ...prev, gaslessApiKey: apiKey }));
+        updateAccountType();
+    };
+    
+    const updateAccountType = (providedApiKey?: string) => {
+        const isEnabled = localStorage.getItem(STORAGE_KEYS.isGaslessEnabled) === 'true';
+        const apiKey = providedApiKey || localStorage.getItem(STORAGE_KEYS.gaslessApiKey) || '';
+        
+        let accountType: AccountType = 'Free';
+        
+        if (!isEnabled) {
+            accountType = 'Web3';
+        } else if (apiKey && apiKey.trim() !== '') {
+            // If gasless is enabled and they have an API key, check key type
+            if (apiKey.startsWith('premium_') || apiKey.length >= 32) {
+                accountType = 'Premium';
+            } else {
+                accountType = 'Free';
+            }
+        } else {
+            // Gasless enabled but no key should be Advanced
+            accountType = 'Web3';
+        }
+        
+        localStorage.setItem(STORAGE_KEYS.accountType, accountType);
+        setState(prev => ({ ...prev, accountType }));
+        
+        return accountType;
+    };
+
+    function initialAccountType() {
+        const isEnabled = localStorage.getItem(STORAGE_KEYS.isGaslessEnabled) === 'true';
+        const apiKey = localStorage.getItem(STORAGE_KEYS.gaslessApiKey) || '';
+        
+        if (!isEnabled) return 'Web3';
+        if (apiKey && apiKey.trim() !== '') {
+            return apiKey.startsWith('premium_') || apiKey.length >= 32 ? 'Premium' : 'Free';
+        }
+        return 'Web3';
+    }
 
     const checkSignupStatus = useCallback(async () => {
         if (!state.provider || !state.address) return;
@@ -905,25 +767,20 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 removeTotem,
                 updateTotem,
                 updateTotemEvolved,
-                getUserStreak,
-                claimDailyReward,
                 checkTokenApproval,
                 approveTokens,
                 isApprovalMessageDismissed: state.isApprovalMessageDismissed,
                 setApprovalMessageDismissed,
-                streakStatus: state.streakStatus,
-                isClaimLoading: state.isClaimLoading,
-                updateStreakStatus,
-                weeklyStatus: state.weeklyStatus,
-                hasWeeklyUnlocked: state.hasWeeklyUnlocked,
-                hasStakingUnlocked: state.hasStakingUnlocked,
                 updateAchievementStatus,
-                updateWeeklyStatus,
-                claimWeeklyReward,
-                purchaseProtection,
                 messageDialog: state.messageDialog,
                 showError,
                 hideError,
+                isGaslessEnabled: state.isGaslessEnabled,
+                setGaslessEnabled,
+                gaslessApiKey: state.gaslessApiKey,
+                setGaslessApiKey,
+                accountType: state.accountType,
+                updateAccountType,
                 comingSoon
             }}
         >

@@ -45,6 +45,7 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
   const [showAlert, setShowAlert] = useState<boolean>(false);
   const [alertMessage, setAlertMessage] = useState<string>("Time's Running Out!");
   const [containerHeight, setContainerHeight] = useState<number>(500);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
   
   // Create refs for various game state tracking
   const nextRockIdRef = useRef<number>(1);
@@ -82,11 +83,20 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
     rocksRef.current = rocks;
   }, [rocks]);
 
-  // Update container dimensions
+  // Update container dimensions and check if mobile
   useEffect(() => {
+    const checkIfMobile = () => {
+      return window.innerWidth < 768; // Standard breakpoint for mobile devices
+    };
+    
     const updateDimensions = () => {
       if (containerRef.current) {
-        const aspectRatio = 2 / 1;
+        const currentIsMobile = checkIfMobile();
+        setIsMobile(currentIsMobile);
+        
+        // Use different aspect ratios based on device type
+        // Taller for mobile (1.2/1), wider for desktop (2/1)
+        const aspectRatio = currentIsMobile ? 1.2 / 1 : 2 / 1;
         setContainerHeight(containerRef.current.clientWidth / aspectRatio);
       }
     };
@@ -263,7 +273,7 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
   }, []);
 
   // Optimized rock click handler
-  const handleRockClick = useCallback((e: React.MouseEvent<HTMLDivElement>, rockId: number) => {
+  const handleRockClick = useCallback((e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>, rockId: number) => {
     e.stopPropagation();
     
     if (gameStateRef.current !== 'playing') return;
@@ -338,7 +348,7 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
             {rocks.map(rock => (
               <div
                 key={rock.id}
-                className="absolute transition-transform"
+                className="absolute"
                 style={{
                   left: `${rock.x}%`,
                   top: `${rock.y}%`,
@@ -346,9 +356,11 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
                   height: 'auto',
                   pointerEvents: 'auto',
                   cursor: rock.clicked ? 'default' : 'pointer',
-                  zIndex: 10
+                  zIndex: 10,
+                  touchAction: 'auto' // This is critical for mobile touch events
                 }}
                 onClick={(e) => handleRockClick(e, rock.id)}
+                onTouchStart={(e) => handleRockClick(e, rock.id)} // Add touch handler
               >
                 <img
                   src={rock.clicked ? "/challenges/FallingRocksBroken.png" : "/challenges/FallingRocks.png"}

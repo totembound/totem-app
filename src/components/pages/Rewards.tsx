@@ -1,5 +1,6 @@
 import React from 'react';
 import { useUser } from '../../contexts/UserContext';
+import { useGame } from '../../contexts/GameContext'; 
 import { Calendar, Coins, Flame, Trophy, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ApprovalStatus from '../ApprovalStatus';
@@ -23,9 +24,16 @@ interface LockedOverlayProps {
 }
 
 const Rewards = () => {
-    const {streakStatus, weeklyStatus, claimDailyReward, claimWeeklyReward, isClaimLoading, isTokenApproved, hasWeeklyUnlocked, hasStakingUnlocked } = useUser();
+    const { isTokenApproved } = useUser();
+    const { rewardsState, claimDailyReward, claimWeeklyReward } = useGame();
     const navigate = useNavigate();
     const disabledStyle = !isTokenApproved ? 'opacity-50 cursor-not-allowed' : '';
+
+    const streakStatus = rewardsState.streakStatus;
+    const weeklyStatus = rewardsState.weeklyStatus;
+    const isClaimLoading = rewardsState.isClaimLoading;
+    const hasWeeklyUnlocked = rewardsState.hasWeeklyUnlocked;
+    const hasStakingUnlocked = rewardsState.hasStakingUnlocked;
 
     // Check streak requirements
     const canPurchaseDailyProtection = (streakStatus?.streakDays || 0) >= 7;

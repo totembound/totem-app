@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { NFTMetadata, TotemAttributes, Rarity, Species, Color, ActionTracking } from '../types/types';
+import { NFTMetadata, TotemAttributes, Rarity, Species, Color, TransactionResult } from '../types/types';
 import { ActionType } from '../types/types';
 import { 
     ChevronLeft, 
@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import { useGame } from '../contexts/GameContext';
-import { useTotemGame } from '../hooks/useTotemGame';
+import { useTransactionService } from '../hooks/useTransactionService';
 import { Edit2 } from 'lucide-react';
 import DisplayNameEditor from './DisplayNameEditor';
 import ActionEffect from './effects/ActionEffect';
@@ -90,9 +90,8 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     onPrev,
     onNext
 }) => {
-    const { totems, updateTotem, updateTotemEvolved, totemBalance } = useUser();
+    const { totems, updateTotem, updateTotemEvolved, totemBalance, isGaslessEnabled } = useUser();
     const { actionConfigs, canUseAction, getActionStatus, getNextAvailableWindow } = useGame();
-    const { feed, train, treat, evolve } = useTotemGame();
     const [isLoading, setIsLoading] = useState<ActionType | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isEditingName, setIsEditingName] = useState(false);
@@ -100,17 +99,26 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     const [activeEffect, setActiveEffect] = useState<'treat' | 'feed' | 'train' | null>(null);
     const dialogRef = useRef<HTMLDivElement>(null);
     
+    const txService = useTransactionService({
+        gaslessEnabled: isGaslessEnabled,
+        waitForConfirmation: true
+    });
+    
+
     const currentTotem = useMemo(() => 
         totems.find(t => t.tokenId === totem.tokenId) ?? totem,
         [totems, totem.tokenId, totem]
     );
 
     // Action handlers
-    const handleAction = async (action: ActionType, handler: () => Promise<void>) => {
+    const handleAction = async (action: ActionType, handler: () => Promise<TransactionResult | null>) => {
         setIsLoading(action);
         setError(null);
         try {
-            await handler();
+            const result = await handler();
+            if (!result) {
+                throw new Error('Transaction failed');
+            }
 
             if (action == ActionType.Evolve) {
                 await updateTotemEvolved(totem.tokenId);
@@ -132,21 +140,36 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
             }, 2000);
         }
     };
-    
+
     const handleTrain = () => {
-        setActiveEffect('train');
-        return handleAction(ActionType.Train, () => train(totem.tokenId));
+        if (!txService) throw new Error('Transaction service not initialized');
+        handleAction(ActionType.Train, async () => {
+            setActiveEffect('train');
+            return await txService.train(totem.tokenId);
+        });
     };
+
     const handleFeed = () => {
-        setActiveEffect('feed');
-        return handleAction(ActionType.Feed, () => feed(totem.tokenId));
+        if (!txService) throw new Error('Transaction service not initialized');
+        handleAction(ActionType.Feed, async () => {
+            setActiveEffect('feed');
+            return await txService.feed(totem.tokenId);
+        });
     }
+
     const handleTreat = () => {
-        setActiveEffect('treat');
-        return handleAction(ActionType.Treat, () => treat(totem.tokenId));
+        if (!txService) throw new Error('Transaction service not initialized');
+        handleAction(ActionType.Treat, async () => {
+            setActiveEffect('treat');
+            return await txService.treat(totem.tokenId);
+        });
     }
+
     const handleEvolve = async () => {
-        await handleAction(ActionType.Evolve, () => evolve(totem.tokenId));
+        if (!txService) throw new Error('Transaction service not initialized');
+        handleAction(ActionType.Evolve, async () => {
+            return await txService.evolveTotem(totem.tokenId);
+        });
     };
 
     const currentAttributes = currentTotem?.attributes || totem.attributes;
@@ -208,7 +231,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
         type: ActionType, 
         icon: React.ReactNode, 
         label: string, 
-        handler: () => Promise<void>,
+        handler: () => void,
         canUse: boolean
     ) => {
         const actionCost = formatTokenCost(actionConfigs[type]?.cost || 0);

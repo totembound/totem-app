@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { Shield, AlertCircle, X } from 'lucide-react';
+import { useGame } from '../contexts/GameContext';
 
 interface ProtectionDialogProps {
   type: 'daily' | 'weekly';
@@ -14,7 +15,8 @@ interface ProtectionTier {
 }
 
 const ProtectionDialog: React.FC<ProtectionDialogProps> = ({ type, children }) => {
-  const { streakStatus, isTokenApproved, purchaseProtection } = useUser();
+  const { isTokenApproved } = useUser();
+  const { rewardsState, purchaseProtection } = useGame();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedTier, setSelectedTier] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -29,6 +31,7 @@ const ProtectionDialog: React.FC<ProtectionDialogProps> = ({ type, children }) =
   ];
 
   const tiers = type === 'daily' ? dailyTiers : weeklyTiers;
+  const streakStatus = rewardsState.streakStatus;
 
   const handlePurchase = async (tier: number) => {
     if (!purchaseProtection) return;

@@ -3,21 +3,30 @@ import { useTotemGame } from '../hooks/useTotemGame';
 import { useUser } from '../contexts/UserContext';
 import { ComingSoon } from './ComingSoon';
 import { Feature } from './Feature';
+import { useTransactionService } from '../hooks/useTransactionService';
 
 export const SignupForm: React.FC = () => {
-    const { isSignedUp, checkSignupStatus, isConnected, connect, disconnect, address, comingSoon } = useUser();
+    const { isSignedUp, checkSignupStatus, isConnected, connect, disconnect, address, isGaslessEnabled, comingSoon } = useUser();
     const { signup } = useTotemGame();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const normalizedAddress = (address as string || '').toLowerCase();
 
+    const txService = useTransactionService({
+        gaslessEnabled: isGaslessEnabled,
+        waitForConfirmation: true
+    });
+
     const handleSignup = async () => {
         setLoading(true);
         setError('');
-        
+
         try {
-            const tx = await signup();
-            console.log('Signup transaction complete:', tx);
+            if (!txService) throw new Error('Transaction service not initialized');
+
+            const result = await txService.signup();
+            //const tx = await signup();
+            console.log('Signup transaction complete:', result);
             // Add a small delay before checking status
             await new Promise(resolve => setTimeout(resolve, 1000));
             await checkSignupStatus(); // Update global state

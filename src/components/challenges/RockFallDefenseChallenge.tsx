@@ -44,8 +44,6 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [showAlert, setShowAlert] = useState<boolean>(false);
   const [alertMessage, setAlertMessage] = useState<string>("Time's Running Out!");
-  const [containerHeight, setContainerHeight] = useState<number>(500);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
   
   // Create refs for various game state tracking
   const nextRockIdRef = useRef<number>(1);
@@ -61,7 +59,7 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
   
   // Calculate game settings based on difficulty and strength
   const gameSettings: GameSettings = {
-    rockSize: 8,
+    rockSize: 10,
     initialRockCount: 5 + difficulty,
     maxRocks: 10 + (difficulty * 3),
     rockSpawnRate: 800 - (difficulty * 100),
@@ -82,29 +80,6 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
   useEffect(() => {
     rocksRef.current = rocks;
   }, [rocks]);
-
-  // Update container dimensions and check if mobile
-  useEffect(() => {
-    const checkIfMobile = () => {
-      return window.innerWidth < 768; // Standard breakpoint for mobile devices
-    };
-    
-    const updateDimensions = () => {
-      if (containerRef.current) {
-        const currentIsMobile = checkIfMobile();
-        setIsMobile(currentIsMobile);
-        
-        // Use different aspect ratios based on device type
-        // Taller for mobile (1.2/1), wider for desktop (2/1)
-        const aspectRatio = currentIsMobile ? 1.2 / 1 : 2 / 1;
-        setContainerHeight(containerRef.current.clientWidth / aspectRatio);
-      }
-    };
-
-    updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
-  }, []);
 
   // Create a single rock with the given ID
   const createRock = useCallback((): Rock => {
@@ -273,7 +248,7 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
   }, []);
 
   // Optimized rock click handler
-  const handleRockClick = useCallback((e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>, rockId: number) => {
+  const handleRockClick = useCallback((e: React.MouseEvent<HTMLDivElement>, rockId: number) => {
     e.stopPropagation();
     
     if (gameStateRef.current !== 'playing') return;
@@ -336,8 +311,7 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
       <>
         <div className="bg-slate-800 rounded-lg mb-4">
           <div 
-            className="relative w-full bg-slate-700 rounded-lg overflow-hidden"
-            style={{ height: `${containerHeight}px` }}
+            className="relative w-full h-96 bg-slate-700 rounded-lg overflow-hidden"
           >
             <img
               src="/challenges/rockfall-defense-background.png"
@@ -356,11 +330,9 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
                   height: 'auto',
                   pointerEvents: 'auto',
                   cursor: rock.clicked ? 'default' : 'pointer',
-                  zIndex: 10,
-                  touchAction: 'auto' // This is critical for mobile touch events
+                  zIndex: 10
                 }}
                 onClick={(e) => handleRockClick(e, rock.id)}
-                onTouchStart={(e) => handleRockClick(e, rock.id)} // Add touch handler
               >
                 <img
                   src={rock.clicked ? "/challenges/FallingRocksBroken.png" : "/challenges/FallingRocks.png"}

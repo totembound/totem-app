@@ -285,17 +285,17 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
     return (
       <>
         {/* Game area with flexible height */}
-        <div className="bg-slate-800 rounded-lg mb-4">
+        <div className="bg-slate-800 rounded-lg mb-4 max-w-2xl mx-auto">
           <div 
             ref={gameAreaRef}
-            className="relative w-full bg-slate-700 rounded-lg overflow-hidden cursor-pointer"
+            className="relative w-full h-96 bg-slate-700 rounded-lg overflow-hidden cursor-pointer"
             onClick={handleGameAreaClick}
           >
             {/* Static Background Image */}
             <img
               src="/challenges/forest-background.png"
               alt="Background"
-              className="w-full object-cover"
+              className="w-full h-full object-cover"
             />
 
             {/* Moving Character (Foreground) */}

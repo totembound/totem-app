@@ -102,10 +102,10 @@ const TotemGallery = () => {
     }, [filters]);
 
     return (
-        <div className="p-6 bg-white dark:bg-gray-900 rounded-lg">
+        <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg">
             {/* Header Section */}
-            <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row gap-6">
+            <div className="space-y-2 sm:space-y-4">
+                <div className="flex flex-col sm:flex-row sm:gap-6">
                     <div className="flex-grow flex justify-between items-center">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
@@ -117,7 +117,7 @@ const TotemGallery = () => {
                         </div>
                         <button
                             onClick={() => setShowStats(!showStats)}
-                            className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 bg-gray-100 dark:bg-gray-800 rounded-lg transition-colors"
+                            className="p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 bg-gray-100 dark:bg-gray-800 rounded-lg transition-colors"
                             title={showStats ? "Hide Statistics" : "Show Statistics"}
                         >
                             <ChartBar className="w-5 h-5" />
@@ -143,21 +143,21 @@ const TotemGallery = () => {
 
                 {/* Main Content */}
                 {sortedAndFilteredNFTs.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-8 sm:py-12 px-4">
-                        <div className="text-gray-400 dark:text-gray-600 mb-4">
-                            <ScrollText size={48} className="w-12 h-12 sm:w-16 sm:h-16" />
+                     <div className="flex flex-col items-center justify-center py-4 sm:py-8 px-2 sm:px-4">
+                        <div className="text-gray-400 dark:text-gray-600 mb-2 sm:mb-4">
+                            <ScrollText size={32} className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16" />
                         </div>
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 text-center">
+                        <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2 text-center">
                             No Totems Found
                         </h3>
-                        <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 text-center max-w-xs">
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 text-center max-w-xs">
                             {Object.values(filters).some(filter => filter !== '') 
                                 ? "Try adjusting your filters to see more results"
                                 : "You don't have any Totems yet. Visit the Shop to get started!"}
                         </p>
                     </div>
                 ) : viewMode === 'grid' ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+                    <div className="grid grid-cols-4 gap-1 sm:gap-2 md:gap-3">
                         {sortedAndFilteredNFTs
                             .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                             .map((nft) => (
@@ -172,7 +172,7 @@ const TotemGallery = () => {
                         }
                     </div>
                 ) : (
-                    <div className="flex flex-col gap-3 sm:gap-4">
+                    <div className="flex flex-col gap-1 sm:gap-2 md:gap-3">
                         {sortedAndFilteredNFTs
                             .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                             .map((nft) => (
@@ -191,7 +191,7 @@ const TotemGallery = () => {
 
             {/* Detail View Modal */}
             {selectedTotem && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-1 sm:p-2"
                     onClick={(e) => {
                         // Only close if the click was on the background overlay
                         if (e.target === e.currentTarget) {
@@ -200,7 +200,7 @@ const TotemGallery = () => {
                     }}
                 >
                     <div 
-                        className="bg-white mx-2 mb-6 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+                        className="bg-white dark:bg-gray-900 rounded-lg w-full max-w-[98vw] sm:max-w-[95vw] md:max-w-4xl h-[90vh] sm:h-auto sm:max-h-[95vh] overflow-hidden"
                         aria-modal="true"
                         role="dialog"
                     >

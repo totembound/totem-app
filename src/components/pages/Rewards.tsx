@@ -194,7 +194,7 @@ const Rewards = () => {
     };
 
     return (
-        <div className="p-6 bg-white dark:bg-gray-900 rounded-lg">
+        <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg">
 
             {/* Header with Balance */}
             <div className="mb-6 space-y-4 sm:space-y-0">

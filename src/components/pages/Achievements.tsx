@@ -659,14 +659,14 @@ const Achievements: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="p-6 text-center">
+            <div className="p-2 sm:p-4 md:p-6 text-center">
                 <span className="text-gray-600 dark:text-gray-400">Loading achievements...</span>
             </div>
         );
     }
 
     return (
-        <div className="p-6 bg-white dark:bg-gray-900 rounded-lg pb-6">
+        <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg pb-6">
             {/* Header Section */}
             <div className="space-y-4">
                 <div className="flex justify-between items-start">

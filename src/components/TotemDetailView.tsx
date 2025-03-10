@@ -129,6 +129,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     const currentTrackings = currentTotem?.trackings || {};
 
     const canEvolve = currentAttributes.experience >= STAGE_THRESHOLDS[currentAttributes.stage + 1];
+    const trainExp = Number(actionConfigs[ActionType.Train]?.experienceGain);
 
     useEffect(() => {
         if (!currentTotem) {
@@ -203,7 +204,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
 
                         {showExpEffect && (
                             <ExperienceEffect 
-                                exp={50}
+                                exp={trainExp}
                                 onComplete={() => setShowExpEffect(false)}
                             />
                         )}

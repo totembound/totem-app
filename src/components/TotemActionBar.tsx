@@ -117,7 +117,7 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
                         `}
                     >
                         {isLoading === type ? (
-                            <Loader2 size={20} className="animate-spin" />
+                            <Loader2 size={24} className="animate-spin" />
                         ) : icon}
                         <div className="flex flex-col items-center">
                             <span className="text-sm font-medium">{label}</span>

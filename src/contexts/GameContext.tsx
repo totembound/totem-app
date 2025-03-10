@@ -435,7 +435,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (config.useTimeWindows) {
             return canUseInTimeWindow(tracking.lastUsed) 
                 ? 'Available in current time window' 
-                : 'Already fed, wait for next time window';
+                : 'Next time window';
         }
     
         return 'Available';

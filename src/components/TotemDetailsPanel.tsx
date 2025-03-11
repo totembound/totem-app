@@ -62,7 +62,7 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
                     <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600 dark:text-gray-400">Stage</span>
                         <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {stage+1}
+                            {stage+1}/5
                         </span>
                     </div>
 

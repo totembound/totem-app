@@ -1,6 +1,6 @@
 // src/services/TransactionService.ts
 import { ethers } from 'ethers';
-import { FORWARDER_ABI } from '../config/contracts';
+import { CONTRACT_ADDRESSES, FORWARDER_ABI } from '../config/contracts';
 import { createGameContract, createTokenContract, createTotemNFTContract, createRewardsContract } from '../config/contracts';
 import { ContractEvent, ContractType, ForwardRequest, TransactionConfig, TransactionResult } from '../types/types';
 
@@ -273,6 +273,7 @@ export class TransactionService {
             'purchaseTotem': 1000000n, // Increase substantially
             'sellTotem': 500000n,
             'signup': 500000n,
+            'approve': 500000n,
             'feed': 500000n,
             'train': 500000n,
             'treat': 500000n,
@@ -350,6 +351,17 @@ export class TransactionService {
         }];
 
         return this.executeTransaction('game', 'signup', [], expectedEvents);
+    }
+
+    public async approveTokens(): Promise<TransactionResult> {
+        const tokenContract = await this.getContract('token');
+        const expectedEvents = [{
+            contract: tokenContract,
+            eventName: 'Approval',
+            filter: [this.userAddress]
+        }];
+
+        return this.executeTransaction('token', 'approve', [CONTRACT_ADDRESSES.game, ethers.MaxUint256], expectedEvents);
     }
 
     public async purchaseTotem(speciesId: number): Promise<TransactionResult> {

@@ -1,20 +1,25 @@
 import React, { useState } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { AlertTriangle, CheckCircle2, Coins, PawPrint, ShoppingCart, Swords, X } from 'lucide-react';
+import { useTransactionService } from '../hooks/useTransactionService';
 
 const ApprovalStatus: React.FC = () => {
     const { 
         address, 
         provider, 
-        isSignedUp, 
         isTokenApproved, 
         checkTokenApproval,
-        approveTokens,
         isApprovalMessageDismissed,
-        setApprovalMessageDismissed
+        setApprovalMessageDismissed,
+        isGaslessEnabled
     } = useUser();
     const [isApproving, setIsApproving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const txService = useTransactionService({
+        gaslessEnabled: isGaslessEnabled,
+        waitForConfirmation: true
+    });
 
     const handleApprove = async () => {
         if (!address || !provider) {
@@ -26,10 +31,10 @@ const ApprovalStatus: React.FC = () => {
         setError(null);
 
         try {
-            // Assuming approveTokens is a method in useTotemGame hook
-            const success = await approveTokens();
-            
-            if (success) {
+            if (!txService) throw new Error('Transaction service not initialized');
+
+            const result = await txService.approveTokens();
+            if (result.success) {
                 // Double-check approval status
                 const approved = await checkTokenApproval();
                 
@@ -129,10 +134,8 @@ const ApprovalStatus: React.FC = () => {
                 <button 
                     className={`
                         w-full md:w-auto px-6 py-3 rounded-md font-bold transition-all duration-300
-                        ${isApproving 
-                            ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed' 
-                            : 'bg-green-500 hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-600 text-white'
-                        }
+                        bg-green-500 hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-600 text-white
+                        ${isApproving ? 'opacity-50 cursor-not-allowed' : ''}
                     `}
                     onClick={handleApprove}
                     disabled={isApproving}

@@ -1,25 +1,28 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { CONTRACT_ADDRESSES } from '../config/contracts';
+import { Notification } from "../types/types";
 import gameABI from "../contracts/TotemGame.abi.json";
 import nftABI from "../contracts/TotemNFT.abi.json";
 import rewardsABI from "../contracts/TotemRewards.abi.json";
 import achievementsABI from "../contracts/TotemAchievements.abi.json";
+import { getUserStorage, setUserStorage } from "../utils/localStorage";
+import { STORAGE_KEYS } from "../config/constants";
+
 const gameAddress = CONTRACT_ADDRESSES.game;
 const nftAddress = CONTRACT_ADDRESSES.nft;
 const rewardsAddress = CONTRACT_ADDRESSES.rewards;
 const achievementsAddress = CONTRACT_ADDRESSES.achievements;
 
 export function useContractEvents(userAddress: string | null) {
-    const [notifications, setNotifications] = useState<{ id: string, message: string }[]>(() => {
+    const [notifications, setNotifications] = useState<Notification[]>(() => {
         // Load saved notifications from localStorage on startup
-        const saved = localStorage.getItem("totem-notifications");
-        return saved ? JSON.parse(saved) : [];
+        return getUserStorage<Notification[]>(STORAGE_KEYS.notifications, userAddress, []);
     });
     const eventHashes = new Set<string>(notifications.map(n => n.id)); // Hash-based duplicate tracking
 
-    const saveToLocalStorage = (notifications: { id: string, message: string }[]) => {
-        localStorage.setItem("totem-notifications", JSON.stringify(notifications));
+    const saveNotifications = (notifications: Notification[]) => {
+        setUserStorage(STORAGE_KEYS.notifications, userAddress, notifications);
     };
 
     const hashMessage = async (message: string): Promise<string> => {
@@ -29,6 +32,34 @@ export function useContractEvents(userAddress: string | null) {
         return Array.from(new Uint8Array(hashBuffer))
             .map(byte => byte.toString(16).padStart(2, "0"))
             .join("");
+    };
+
+    const updateNotifications = (newNotifications: Notification[]) => {
+        setNotifications(newNotifications);
+        saveNotifications(newNotifications);
+    };
+
+    // Mark notification as read
+    const markAsRead = (id: string) => {
+        const updatedNotifications = notifications.map(notification => 
+            notification.id === id 
+                ? { ...notification, isRead: true } 
+                : notification
+        );
+        updateNotifications(updatedNotifications);
+    };
+
+    const removeNotification = (id: string) => {
+        const updatedNotifications = notifications.filter(notification => notification.id !== id);
+        updateNotifications(updatedNotifications);
+    };
+
+    const markAllAsRead = () => {
+        const updatedNotifications = notifications.map(notification => ({
+            ...notification,
+            isRead: true
+        }));
+        updateNotifications(updatedNotifications);
     };
 
     useEffect(() => {
@@ -52,9 +83,14 @@ export function useContractEvents(userAddress: string | null) {
             const hash = await hashMessage(message);
             if (!eventHashes.has(hash)) {
                 eventHashes.add(hash);
-                const newNotifications = [...notifications, { id: hash, message }];
-                setNotifications(newNotifications);
-                saveToLocalStorage(newNotifications);
+                const newNotification: Notification = { 
+                    id: hash, 
+                    message, 
+                    isRead: false,
+                    timestamp: Date.now()
+                };
+                const newNotifications = [...notifications, newNotification];
+                updateNotifications(newNotifications);
             }
         };
 
@@ -90,5 +126,11 @@ export function useContractEvents(userAddress: string | null) {
         };
     }, [userAddress]);
 
-    return { notifications, setNotifications };
+    return { 
+        notifications, 
+        setNotifications: updateNotifications, 
+        markAsRead,
+        removeNotification,
+        markAllAsRead
+    };
 }

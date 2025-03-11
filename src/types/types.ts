@@ -412,4 +412,11 @@ export interface TransactionResult {
 
 export type GameState = 'ready' | 'playing' | 'success' | 'failed';
 
+export interface Notification {
+    id: string;
+    message: string;
+    isRead?: boolean;
+    timestamp?: number;
+}
+
 export {}

@@ -6,6 +6,7 @@ export const BASE_ELDER_XP = 7500;
 export const STAGE_THRESHOLDS = [0, 500, 1500, 3500, 7500];
 
 export const STORAGE_KEYS = {
+    theme: 'totem-theme',
     notifications: 'totem-notifications',
     tokenApprovalMessageDismissed: 'totem-approval-message-dismissed',
     isGaslessEnabled: 'totem-gasless-enabled',

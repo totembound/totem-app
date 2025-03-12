@@ -33,7 +33,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         comingSoon: true
     });
     const normalizeAddress = (addr: string) => addr.toLowerCase();
-    const comingSoon = false;
+    const comingSoon = true;
     const [midnightTimeout, setMidnightTimeout] = useState<NodeJS.Timeout | null>(null);
     const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
     const [totems, setTotems] = useState<NFTMetadata[]>([]);

@@ -50,16 +50,18 @@ const TotemGalleryStats: React.FC<{ nfts: NFTMetadata[] }> = ({ nfts }) => {
                 <div className="space-y-2">
                     {speciesDistribution.map((species, index) => (
                         <div key={index} className="flex items-center gap-2">
+                            <div className="group w-32">
+                                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                                    {species.name}
+                                </span>
+                            </div>
                             <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
                                 <div 
                                     className="bg-purple-500 h-2 rounded-full" 
                                     style={{ width: `${species.percentage}%` }}
                                 />
                             </div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                                    {species.name}
-                                </span>
+                            <div className="group">
                                 <span className="text-sm text-gray-500 dark:text-gray-400">
                                     {species.count}
                                 </span>
@@ -112,6 +114,11 @@ const TotemGalleryStats: React.FC<{ nfts: NFTMetadata[] }> = ({ nfts }) => {
                 <div className="space-y-2">
                     {stageDistribution.map((stage, index) => (
                         <div key={index} className="flex items-center gap-2">
+                            <div className="group w-32">
+                                <span className="text-sm font-medium text-gray-600 dark:text-gray-300 text-nowrap">
+                                    {stage.name}
+                                </span>
+                            </div>
                             <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
                                 <div 
                                     className="bg-green-500 h-2 rounded-full" 
@@ -119,9 +126,6 @@ const TotemGalleryStats: React.FC<{ nfts: NFTMetadata[] }> = ({ nfts }) => {
                                 />
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-gray-600 dark:text-gray-300 text-nowrap">
-                                    {stage.name}
-                                </span>
                                 <span className="text-sm text-gray-500 dark:text-gray-400">
                                     {stage.count}
                                 </span>

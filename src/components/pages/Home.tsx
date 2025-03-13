@@ -25,7 +25,7 @@ const Home: React.FC = () => {
     return (
         <div className="bg-gray-50 dark:bg-gray-900 rounded-lg">
             {/* Top Section */}
-            <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+            <div className="p-2 sm:p-4 md:p-6 border-b border-gray-100 dark:border-gray-700">
 
 
                 <h1 className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 dark:text-white">
@@ -100,7 +100,7 @@ const Home: React.FC = () => {
             </div>
 
             {/* News & Updates Section */}
-            <div className="p-6">
+            <div className="p-2 sm:p-4 md:p-6">
                 <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
                     📰 Latest Updates
                 </h2>

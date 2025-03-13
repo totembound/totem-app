@@ -5,6 +5,7 @@ import { UserContextType, UserContextState, ActionType, ActionTracking, NFTMetad
 import { CONTRACT_ADDRESSES, createGameContract, createTokenContract, createTotemNFTContract, TotemTokenContract, createAchievementsContract } from '../config/contracts';
 import { STORAGE_KEYS } from '../config/constants';
 import { getSpeciesBaseStats } from '../utils/totems';
+import { getUserStorage, setUserStorage } from '../utils/localStorage';
 
 export const UserContext = createContext<UserContextType | null>(null);
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -20,15 +21,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         totems: [],
         totemLoading: false,
         totemError: null,
-        isApprovalMessageDismissed: localStorage.getItem(STORAGE_KEYS.tokenApprovalMessageDismissed) === 'true',
+        isApprovalMessageDismissed: getUserStorage(STORAGE_KEYS.tokenApprovalMessageDismissed, '', false),
         messageDialog: {
             isOpen: false,
             title: '',
             message: ''
         },
-        isGaslessEnabled: localStorage.getItem(STORAGE_KEYS.isGaslessEnabled) === 'true',
-        gaslessApiKey: localStorage.getItem(STORAGE_KEYS.gaslessApiKey) || '',
-        accountType: initialAccountType(),
+        isGaslessEnabled: getUserStorage(STORAGE_KEYS.isGaslessEnabled, '', false),
+        gaslessApiKey: getUserStorage(STORAGE_KEYS.gaslessApiKey, '', ''),
+        accountType: initialAccountType(''),
         comingSoon: true
     });
     const normalizeAddress = (addr: string) => addr.toLowerCase();
@@ -434,8 +435,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const setApprovalMessageDismissed = useCallback((dismissed: boolean) => {
         setState(prev => ({ ...prev, isApprovalMessageDismissed: dismissed }));
-        localStorage.setItem(STORAGE_KEYS.tokenApprovalMessageDismissed, dismissed.toString());
-    }, []);
+        setUserStorage(STORAGE_KEYS.tokenApprovalMessageDismissed, state.address, dismissed);
+    }, [state.address]);
     
     const handleAccountsChanged = useCallback(async (accounts: any) => {
         if (!window.ethereum) return;
@@ -462,7 +463,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 isSignedUp: hasSignedUp,
                 address: normalizedAddress,
                 signer,
-                isConnected: true
+                isConnected: true,
+                isApprovalMessageDismissed: getUserStorage(STORAGE_KEYS.tokenApprovalMessageDismissed, normalizedAddress, false),
+                isGaslessEnabled: getUserStorage(STORAGE_KEYS.isGaslessEnabled, normalizedAddress, false),
+                gaslessApiKey: getUserStorage(STORAGE_KEYS.gaslessApiKey, normalizedAddress, ''),
+                accountType: initialAccountType(normalizedAddress),
             }));
         }
         catch (err) {
@@ -569,8 +574,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             try {
                 // Update all states
                 await Promise.all([
-                    //updateStreakStatus(),
-                    //updateWeeklyStatus(),
                     updateAchievementStatus()
                 ]);
             } catch (error) {
@@ -584,8 +587,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 console.log('refreshing state');
                 await Promise.all([
                     updateBalances(),
-                    //updateStreakStatus(),
-                    //updateWeeklyStatus(),
                     updateAchievementStatus()
                 ]);
             } catch (error) {
@@ -681,20 +682,20 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const setGaslessEnabled = (enabled: boolean) => {
-        localStorage.setItem(STORAGE_KEYS.isGaslessEnabled, enabled.toString());
+        setUserStorage(STORAGE_KEYS.isGaslessEnabled, state.address, enabled);
         setState(prev => ({ ...prev, isGaslessEnabled: enabled }));
         updateAccountType();
     };
     
     const setGaslessApiKey = (apiKey: string) => {
-        localStorage.setItem(STORAGE_KEYS.gaslessApiKey, apiKey);
+        setUserStorage(STORAGE_KEYS.gaslessApiKey, state.address, apiKey);
         setState(prev => ({ ...prev, gaslessApiKey: apiKey }));
         updateAccountType();
     };
     
     const updateAccountType = (providedApiKey?: string) => {
-        const isEnabled = localStorage.getItem(STORAGE_KEYS.isGaslessEnabled) === 'true';
-        const apiKey = providedApiKey || localStorage.getItem(STORAGE_KEYS.gaslessApiKey) || '';
+        const isEnabled = getUserStorage(STORAGE_KEYS.isGaslessEnabled, state.address, false);
+        const apiKey = providedApiKey || getUserStorage(STORAGE_KEYS.gaslessApiKey, state.address, '');
         
         let accountType: AccountType = 'Free';
         
@@ -712,15 +713,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             accountType = 'Web3';
         }
         
-        localStorage.setItem(STORAGE_KEYS.accountType, accountType);
+        setUserStorage<AccountType>(STORAGE_KEYS.accountType, state.address, accountType);
         setState(prev => ({ ...prev, accountType }));
         
         return accountType;
     };
 
-    function initialAccountType() {
-        const isEnabled = localStorage.getItem(STORAGE_KEYS.isGaslessEnabled) === 'true';
-        const apiKey = localStorage.getItem(STORAGE_KEYS.gaslessApiKey) || '';
+    function initialAccountType(addr: string) {
+        const isEnabled = getUserStorage<boolean>(STORAGE_KEYS.isGaslessEnabled, addr, false);
+        const apiKey = getUserStorage<string>(STORAGE_KEYS.gaslessApiKey, addr, '');
         
         if (!isEnabled) return 'Web3';
         if (apiKey && apiKey.trim() !== '') {

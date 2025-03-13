@@ -187,7 +187,7 @@ const Challenges = () => {
     const currentChallenge = getSelectedChallenge();
 
     return (
-        <div className="p-6 bg-white dark:bg-gray-900 rounded-lg">
+        <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg">
 
             {/* Welcome */}
             <div className="border-gray-200 dark:border-gray-700 space-y-4">

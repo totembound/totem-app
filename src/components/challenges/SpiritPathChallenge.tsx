@@ -25,7 +25,7 @@ interface SpiritPathProps {
 
 const SpiritPath: React.FC<SpiritPathProps> = ({
   difficulty = 1,
-  agility = 3,
+  agility = 10,
   onComplete = (score: number) => console.log('Challenge complete:', score),
   onFail = () => console.log('Challenge failed')
 }) => {
@@ -616,7 +616,7 @@ const SpiritPath: React.FC<SpiritPathProps> = ({
       Time: {timeLeft ? timeLeft.toFixed(1) : '-'}s | Score: {Math.floor(finalScore)}
     </div>
   );
-  
+
   // Render a tile with proper styling based on its state
   const renderTile = (tile: Tile, hasPlayer: boolean) => {
     const { row, col } = tile.position;
@@ -692,7 +692,7 @@ const SpiritPath: React.FC<SpiritPathProps> = ({
             {/* Background image */}
             <div className="absolute inset-0">
               <img
-                src="/challenges/tilebackground.png"
+                src="/challenges/spiritpath-background.png"
                 alt="Game background"
                 className="w-full h-full object-cover"
               />

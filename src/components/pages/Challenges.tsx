@@ -68,7 +68,7 @@ const agilityChallenges: Challenge[] = [
         type: 'agility',
         title: 'Spirit Path Navigation',
         description: 'Navigate a magical path of vanishing tiles, racing from start to finish before the ground disappears beneath you..',
-        image: '/challenges/tilebackground.png',
+        image: '/challenges/spiritpath-background.png',
         requirements: {
             stage: 2,
             strength: 5,

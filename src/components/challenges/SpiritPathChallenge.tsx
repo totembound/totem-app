@@ -613,10 +613,10 @@ const SpiritPath: React.FC<SpiritPathProps> = ({
   // Score ticker component
   const scoreTicker = (
     <div className="text-gray-300 font-bold">
-      Time: {timeLeft ? timeLeft.toFixed(1) : '-'}s | Moves: {moves} | Score: {Math.floor(finalScore)}
+      Time: {timeLeft ? timeLeft.toFixed(1) : '-'}s | Score: {Math.floor(finalScore)}
     </div>
   );
-
+  
   // Render a tile with proper styling based on its state
   const renderTile = (tile: Tile, hasPlayer: boolean) => {
     const { row, col } = tile.position;
@@ -688,7 +688,7 @@ const SpiritPath: React.FC<SpiritPathProps> = ({
       <>
         {/* Game area with grid */}
         <div className="rounded-lg mb-4">
-          <div className="relative w-full h-96 rounded-lg p-4 flex items-center justify-center overflow-hidden">
+          <div className="relative w-full h-96 rounded-lg flex items-center justify-center overflow-hidden">
             {/* Background image */}
             <div className="absolute inset-0">
               <img
@@ -782,7 +782,7 @@ const SpiritPath: React.FC<SpiritPathProps> = ({
   };
 
   return (
-    <div ref={containerRef} className="w-full max-w-lg mx-auto">
+    <div ref={containerRef} className="w-full mx-auto">
       {/* Game content */}
       {renderGameContent()}
     </div>

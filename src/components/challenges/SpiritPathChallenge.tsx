@@ -699,7 +699,11 @@ const SpiritPath: React.FC<SpiritPathProps> = ({
             </div>
 
             {/* Square grid container - this will maintain aspect ratio */}
-            <div className="relative z-10 h-full aspect-square">
+            <div className="relative z-10 mx-auto" style={{
+              maxWidth: "90%",
+              width: "min(90vw, 350px)",
+              height: "min(90vw, 350px)"
+            }}>
               {/* The actual grid - fills the square container */}
               <div className="grid gap-1 w-full h-full" style={{
                 gridTemplateColumns: `repeat(${gameSettings.gridSize}, 1fr)`,
@@ -707,7 +711,7 @@ const SpiritPath: React.FC<SpiritPathProps> = ({
               }}>
                 {grid.map((row, rowIndex) =>
                   row.map((tile, colIndex) => (
-                    <div key={`${rowIndex}-${colIndex}`} className="w-full h-full">
+                    <div key={`${rowIndex}-${colIndex}`}>
                       {renderTile(
                         tile,
                         playerPosition !== null &&

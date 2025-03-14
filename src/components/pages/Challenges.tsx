@@ -67,8 +67,8 @@ const agilityChallenges: Challenge[] = [
         id: 'agility-challenge-1',
         type: 'agility',
         title: 'Spirit Path Navigation',
-        description: 'Navigate an obstacle course quickly. Agility affects speed and reaction time. Harder versions add moving obstacles.',
-        image: '/challenges/spirit-path-background.png',
+        description: 'Navigate a magical path of vanishing tiles, racing from start to finish before the ground disappears beneath you..',
+        image: '/challenges/spiritpath-background.png',
         requirements: {
             stage: 2,
             strength: 5,

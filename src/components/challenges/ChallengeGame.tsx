@@ -7,6 +7,7 @@ import { ActionType, ChallengeInfo, TotemAttributes } from '../../types/types';
 import { ethers } from 'ethers';
 import ExperienceEffect from '../effects/ExperienceEffect';
 import RockFallDefenseChallenge from './RockFallDefenseChallenge';
+import SpiritPathChallenge from './SpiritPathChallenge';
 
 interface ChallengeGameProps {
     challengeId: string;
@@ -147,6 +148,13 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
                 {challengeType === 'strength' && challengeId === 'strength-challenge-3' && (
                     <RockFallDefenseChallenge
                         strength={attributes.strength}
+                        difficulty={difficulty}
+                        onComplete={handleScore}
+                    />
+                )}
+                {challengeType === 'agility' && challengeId === 'agility-challenge-1' && (
+                    <SpiritPathChallenge
+                        agility={attributes.agility}
                         difficulty={difficulty}
                         onComplete={handleScore}
                     />

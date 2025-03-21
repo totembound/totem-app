@@ -165,8 +165,8 @@ const PremiumSignup: React.FC<PremiumSignupProps> = ({ onCheckout }) => {
                 }
 
                 // Call API to cancel subscription
-                const response = await fetch(`${API_GATEWAY_URL}/cancel-subscription`, {
-                    method: 'POST',
+                const response = await fetch(`${API_GATEWAY_URL}/subscription`, {
+                    method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -187,7 +187,7 @@ const PremiumSignup: React.FC<PremiumSignupProps> = ({ onCheckout }) => {
             }
             else {
                 // Handle premium upgrade - redirect to Stripe checkout
-                const response = await fetch(`${API_GATEWAY_URL}/create-checkout`, {
+                const response = await fetch(`${API_GATEWAY_URL}/stripe/checkout`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

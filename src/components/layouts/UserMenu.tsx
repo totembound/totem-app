@@ -3,6 +3,7 @@ import { useUser } from '../../contexts/UserContext';
 import { User, LogOut, Settings, ChevronDown, Coins, Shield } from 'lucide-react';
 import UserSettingsDialog from '../UserSettingsDialog';
 import { AccountType } from '../../types/types';
+import { Link } from 'react-router-dom';
 
 export const UserMenu: React.FC = () => {
   const { address, disconnect, isSignedUp, totemBalance, polBalance, accountType } = useUser();
@@ -35,9 +36,9 @@ export const UserMenu: React.FC = () => {
   const getAccountTypeColor = () => {
     switch (accountType) {
       case 'Premium':
-        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400';  
+        return 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400';    
       case 'Web3':
-        return 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400';  
+        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400';    
       default: // Free
         return 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400';
     }
@@ -132,6 +133,18 @@ export const UserMenu: React.FC = () => {
                   <Settings size={16} className="text-gray-500 dark:text-gray-400" />
                   <span className="text-sm">Settings</span>
                 </button>
+                <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
+                <Link
+                  to="/accounts/settings"
+                  onClick={() => setIsOpen(false)}
+                  className="w-full px-4 py-2 text-left flex items-center gap-2 
+                      text-gray-700 dark:text-gray-300
+                      hover:bg-gray-50 dark:hover:bg-gray-700/50 
+                      transition-colors"
+                >
+                  <Settings size={16} className="text-gray-500 dark:text-gray-400" />
+                  <span className="text-sm">Account Settings</span>
+                </Link>
                 <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
             </>
             )}

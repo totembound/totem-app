@@ -13,49 +13,81 @@ import Rewards from './components/pages/Rewards';
 import Challenges from './components/pages/Challenges';
 import Expeditions from './components/pages/Expeditions';
 import Achievements from './components/pages/Achievements';
+import AccountSettings from './components/pages/AccountSettings';
+import ApiKeySignup from './components/ApiKeySignup';
+import PremiumSignup from './components/PremiumSignup';
 
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
-        <Route path="/" element={<MainLayout />}>
-          {/* Public Routes */}
-          <Route index element={<Home />} />
+      <Route path="/" element={<MainLayout />}>
+        {/* Public Routes */}
+        <Route index element={<Home />} />
 
-          {/* Protected routes */}
-          <Route path="totems" element={
-              <ProtectedRoute>
-                <TotemGallery />
-              </ProtectedRoute>
-            } />
-            <Route path="challenges" element={
-              <ProtectedRoute>
-                <Challenges />
-              </ProtectedRoute>
-            } />
-            <Route path="expeditions" element={
-              <ProtectedRoute>
-                <Expeditions />
-              </ProtectedRoute>
-            } />
-            <Route path="achievements" element={
-              <ProtectedRoute>
-                <Achievements />
-              </ProtectedRoute>
-            } />
-            <Route path="rewards" element={
-              <ProtectedRoute>
-                <Rewards />
-              </ProtectedRoute>
-            } />
-            <Route path="shop" element={
-              <ProtectedRoute>
-                <ShopInterface />
-              </ProtectedRoute>
-            } />
-
-            {/* 404 Route - Always last */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Protected routes */}
+        <Route path="accounts">
+          <Route index element={<Navigate to="/accounts/settings" replace />} />
+          <Route path="settings" element={
+            <ProtectedRoute>
+              <AccountSettings />
+            </ProtectedRoute>
+          } />
+          <Route path="api-key" element={
+            <ProtectedRoute>
+              <ApiKeySignup />
+            </ProtectedRoute>
+          } />
+          <Route path="premium" element={
+            <ProtectedRoute>
+              <PremiumSignup />
+            </ProtectedRoute>
+          } />
+          <Route path="success" element={
+            <ProtectedRoute>
+              <div className="p-8 text-center">
+                <h1 className="text-2xl font-bold mb-4">Payment Successful!</h1>
+                <p>Your premium subscription has been activated. Your new API key has been sent to your email.</p>
+                <a href="/accounts/settings" className="mt-4 inline-block text-blue-600 hover:underline">
+                  Back to Account Settings
+                </a>
+              </div>
+            </ProtectedRoute>
+          } />
         </Route>
+        <Route path="totems" element={
+          <ProtectedRoute>
+            <TotemGallery />
+          </ProtectedRoute>
+        } />
+        <Route path="challenges" element={
+          <ProtectedRoute>
+            <Challenges />
+          </ProtectedRoute>
+        } />
+        <Route path="expeditions" element={
+          <ProtectedRoute>
+            <Expeditions />
+          </ProtectedRoute>
+        } />
+        <Route path="achievements" element={
+          <ProtectedRoute>
+            <Achievements />
+          </ProtectedRoute>
+        } />
+        <Route path="rewards" element={
+          <ProtectedRoute>
+            <Rewards />
+          </ProtectedRoute>
+        } />
+        <Route path="shop" element={
+          <ProtectedRoute>
+            <ShopInterface />
+          </ProtectedRoute>
+        } />
+
+        {/* 404 Route - Always last */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
     </Routes>
   );
 };

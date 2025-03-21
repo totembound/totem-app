@@ -701,14 +701,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (!isEnabled) {
             accountType = 'Web3';
-        } else if (apiKey && apiKey.trim() !== '') {
+        }
+        else if (apiKey && apiKey.trim() !== '') {
             // If gasless is enabled and they have an API key, check key type
-            if (apiKey.startsWith('premium_') || apiKey.length >= 32) {
+            if (apiKey.startsWith('premium_')) {
                 accountType = 'Premium';
             } else {
                 accountType = 'Free';
             }
-        } else {
+        }
+        else {
             // Gasless enabled but no key should be Advanced
             accountType = 'Web3';
         }

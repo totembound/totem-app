@@ -33,10 +33,10 @@ The frontend interacts with several smart contracts:
 - ✅ Basic game mechanics
 - ✅ NFT minting and management
 - ✅ Training and evolution system
-- 🔲 Gasless transactions
-- 🔲 Staking mechanism
+- ✅ Challenge system
+- ✅ Gasless transactions
 - 🔲 New Totem species
-- 🔲 Challenge system
+- 🔲 Staking mechanism
 - 🔲 Marketplace for trading
 - 🔲 Accessories and customization
 

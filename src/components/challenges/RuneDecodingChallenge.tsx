@@ -131,46 +131,6 @@ const RuneMemoryChallenge: React.FC<RuneMemoryChallengeProps> = ({
     }
   }, [timeLeft]);
 
-  // Resume the timer after pattern display
-  const resumeTimer = useCallback(() => {
-    if (pausedTimeLeftRef.current === null) return;
-    
-    // Calculate new end time based on remaining time
-    const now = Date.now();
-    const remainingMs = pausedTimeLeftRef.current * 1000;
-    endTimeRef.current = now + remainingMs;
-    
-    // Start timer with the remaining time
-    if (timerRef.current) {
-      window.clearInterval(timerRef.current);
-    }
-    
-    timerRef.current = window.setInterval(() => {
-      if (endTimeRef.current === null) return;
-
-      const now = Date.now();
-      const remaining = Math.max(0, endTimeRef.current - now);
-      const remainingSeconds = remaining / 1000;
-
-      // Update timeLeft
-      setTimeLeft(remainingSeconds);
-
-      // Check if timer has expired
-      if (remainingSeconds <= 0) {
-        // Clear timer
-        if (timerRef.current) {
-          window.clearInterval(timerRef.current);
-          timerRef.current = null;
-        }
-
-        // Time's up - game over
-        handleGameEnd(false);
-      }
-    }, 100);
-    
-    pausedTimeLeftRef.current = null;
-  }, []);
-
   // Function to handle game ending
   const handleGameEnd = useCallback((success: boolean, elapsedTime: number | null = null) => {
     // Clear any active timers
@@ -209,6 +169,48 @@ const RuneMemoryChallenge: React.FC<RuneMemoryChallengeProps> = ({
     onFail, 
     attemptsLeft
   ]);
+
+  const resumeTimer = useCallback(() => {
+    // Use either the pausedTimeLeftRef value or fall back to the timeLeft state
+    const remainingTime = pausedTimeLeftRef.current !== null ? 
+      pausedTimeLeftRef.current : 
+      (timeLeft !== null ? timeLeft : gameSettings.timeLimit);
+    
+    // Calculate new end time based on remaining time
+    const now = Date.now();
+    const remainingMs = remainingTime * 1000;
+    endTimeRef.current = now + remainingMs;
+    
+    // Start timer with the remaining time
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current);
+    }
+    
+    timerRef.current = window.setInterval(() => {
+      if (endTimeRef.current === null) return;
+  
+      const now = Date.now();
+      const remaining = Math.max(0, endTimeRef.current - now);
+      const remainingSeconds = remaining / 1000;
+  
+      // Update timeLeft
+      setTimeLeft(remainingSeconds);
+  
+      // Check if timer has expired
+      if (remainingSeconds <= 0) {
+        // Clear timer
+        if (timerRef.current) {
+          window.clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+  
+        // Time's up - game over
+        handleGameEnd(false);
+      }
+    }, 100);
+    
+    pausedTimeLeftRef.current = null;
+  }, [handleGameEnd, timeLeft, gameSettings.timeLimit]);
 
   // Display the pattern sequence to the player
   const displayPattern = useCallback((patternToDisplay: number[]) => {

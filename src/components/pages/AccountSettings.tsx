@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Info, AlertCircle, Zap, Award, Key } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { Link } from 'react-router-dom';
+import SubscriptionStatus from '../SubscriptionStatus';
 
 const AccountSettings = () => {
     const {
@@ -52,11 +53,11 @@ const AccountSettings = () => {
     const getAccountTypeColor = () => {
         switch (accountType) {
             case 'Premium':
-                return 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/20';
+                return 'text-purple-600 bg-purple-50 dark:text-purple-400 dark:bg-purple-900/20';
             case 'Free':
                 return 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/20';
             default: // Web3
-                return 'text-purple-600 bg-purple-50 dark:text-purple-400 dark:bg-purple-900/20';
+                return 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/20';
         }
     };
 
@@ -219,7 +220,7 @@ const AccountSettings = () => {
                                 Get a free API key to enable gasless transactions and enhance your gaming experience.
                             </p>
                             <Link
-                                to="/accounts/api-key"
+                                to="/account/api-key"
                                 className="block w-full text-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors"
                             >
                                 Get Free API Key
@@ -228,14 +229,14 @@ const AccountSettings = () => {
                     }
                     {/* Upgrade Card */}
                     {accountType !== "Premium" && 
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-white">
-                            <h3 className="font-semibold text-lg mb-3">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <h3 className="font-semibold text-lg mb-3 text-gray-900 dark:text-gray-100">
                                 Upgrade to Premium
                             </h3>
-                            <p className="text-white/90 text-sm mb-4">
+                            <p className="text-sm mb-4 text-gray-600 dark:text-gray-400">
                                 Unlock higher transaction limits, priority processing, and exclusive features.
                             </p>
-                            <ul className="text-sm space-y-2 mb-4">
+                            <ul className="text-sm space-y-2 mb-4 text-gray-600 dark:text-gray-400">
                                 <li className="flex items-center gap-2">
                                     <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -256,12 +257,16 @@ const AccountSettings = () => {
                                 </li>
                             </ul>
                             <Link
-                                to="/accounts/premium"
+                                to="/account/premium"
                                 className="block w-full text-center px-4 py-2 text-white rounded-md transition-colors bg-purple-600 hover:bg-purple-700 text-white"
                             >
                                 Upgrade Now
                             </Link>
                         </div>
+                    }
+                    {/* Premium Options */}
+                    {accountType === "Premium" && 
+                        <SubscriptionStatus/>
                     }
                 </div>
             </div>

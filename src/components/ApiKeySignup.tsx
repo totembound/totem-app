@@ -130,9 +130,9 @@ const ApiKeySignup: React.FC<ApiKeySignupProps> = ({ onSuccess }) => {
                     <button
                         type="submit"
                         disabled={isSubmitting || !address}
-                        className={`w-full py-2 px-4 rounded-md text-white font-medium ${isSubmitting || !address
-                                ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-purple-600 hover:bg-purple-700'
+                        className={`w-full py-2 px-4 rounded-md text-white font-medium bg-purple-600 hover:bg-purple-700 ${isSubmitting || !address
+                                ? 'opacity-50 cursor-not-allowed' 
+                                : ''
                             }`}
                     >
                         {isSubmitting ? 'Generating...' : 'Get Free API Key'}
@@ -143,7 +143,7 @@ const ApiKeySignup: React.FC<ApiKeySignupProps> = ({ onSuccess }) => {
                             Want higher limits and priority processing?
                         </p>
                         <Link
-                            to="/accounts/premium"
+                            to="/account/premium"
                             className="text-sm font-medium text-purple-600 hover:text-purple-800 dark:text-purple-400"
                         >
                             Upgrade to Premium

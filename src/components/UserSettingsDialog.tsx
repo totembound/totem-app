@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Info, AlertCircle } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
+import { Link } from 'react-router-dom';
 
 interface UserSettingsDialogProps {
     isOpen: boolean;
@@ -173,12 +174,13 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({
                             <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                                 <Info size={12} />
                                 Request an API key at{" "}
-                                <a 
-                                    href="/accounts" 
+                                <Link
+                                    to="/account/api-key" 
+                                    onClick={onClose}
                                     className="text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 font-medium underline underline-offset-2 transition-colors"
                                 >
-                                    accounts
-                                </a>
+                                    account
+                                </Link>
                             </p>
 
                             {error && (

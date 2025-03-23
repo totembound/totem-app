@@ -25,8 +25,8 @@ const AppRoutes: React.FC = () => {
         <Route index element={<Home />} />
 
         {/* Protected routes */}
-        <Route path="accounts">
-          <Route index element={<Navigate to="/accounts/settings" replace />} />
+        <Route path="account">
+          <Route index element={<Navigate to="/account/settings" replace />} />
           <Route path="settings" element={
             <ProtectedRoute>
               <AccountSettings />
@@ -47,7 +47,7 @@ const AppRoutes: React.FC = () => {
               <div className="p-8 text-center">
                 <h1 className="text-2xl font-bold mb-4">Payment Successful!</h1>
                 <p>Your premium subscription has been activated. Your new API key has been sent to your email.</p>
-                <a href="/accounts/settings" className="mt-4 inline-block text-blue-600 hover:underline">
+                <a href="/account/settings" className="mt-4 inline-block text-blue-600 hover:underline">
                   Back to Account Settings
                 </a>
               </div>

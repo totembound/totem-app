@@ -49,7 +49,7 @@ const RuneMemoryChallenge: React.FC<RuneMemoryChallengeProps> = ({
     patternLength: Math.min(9, Math.max(5, Math.floor(difficulty * 2 + 3))), // 5 to 9 runes based on difficulty
     displaySpeed: Math.max(500, 1250 - (difficulty * 250)), // 500ms to 1000ms display time
     maxAttempts: wisdom - 9, // Wisdom determines number of attempts
-    timeLimit: 20, // 20 seconds time limit
+    timeLimit: 12 + (difficulty * 3), // 20 seconds time limit
   };
 
   // Calculate the optimal grid size based on container dimensions
@@ -365,8 +365,13 @@ const RuneMemoryChallenge: React.FC<RuneMemoryChallengeProps> = ({
 
   // Handle player clicks on a rune
   const handleRuneClick = useCallback((index: number) => {
-    if (gameState !== 'playing' || isDisplayingPattern) return;
-
+    // Prevent clicks if not in playing state, during pattern display, or after an incorrect selection
+    if (
+      gameState !== 'playing' || 
+      isDisplayingPattern || 
+      playerPattern.length === pattern.length
+    ) return;
+  
     // Flash the clicked rune
     setCurrentDisplay(index);
     setTimeout(() => setCurrentDisplay(null), 300);
@@ -381,19 +386,28 @@ const RuneMemoryChallenge: React.FC<RuneMemoryChallengeProps> = ({
     );
     
     if (!isCorrect) {
-      // Incorrect selection
-      setAttemptsLeft(prev => prev - 1);
-      setPlayerPattern([]);
+      // Prevent further clicks during pattern re-display
+      setIsDisplayingPattern(true);
       
-      if (attemptsLeft <= 1) {
-        // No more attempts - game over
-        handleGameEnd(false);
-      } else {
-        // Show pattern again
+      // Reduce attempts only once
+      setAttemptsLeft(prev => {
+        const newAttempts = prev - 1;
+        
+        if (newAttempts <= 0) {
+          // No more attempts - game over
+          handleGameEnd(false);
+          return 0;
+        }
+        
+        // Show pattern again after a short delay
         setTimeout(() => {
+          setPlayerPattern([]);
+          setIsDisplayingPattern(false);
           displayPattern(pattern);
         }, 1000);
-      }
+        
+        return newAttempts;
+      });
     } else if (newPlayerPattern.length === pattern.length) {
       // Player has correctly matched the entire pattern - they win
       if (endTimeRef.current === null) return;
@@ -411,7 +425,6 @@ const RuneMemoryChallenge: React.FC<RuneMemoryChallengeProps> = ({
     isDisplayingPattern, 
     playerPattern, 
     pattern, 
-    attemptsLeft, 
     handleGameEnd, 
     gameSettings.timeLimit, 
     displayPattern

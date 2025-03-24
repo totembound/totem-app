@@ -33,6 +33,7 @@ const RuneMemoryChallenge: React.FC<RuneMemoryChallengeProps> = ({
   const [finalScore, setFinalScore] = useState<number>(0);
   const [gridSize, setGridSize] = useState<number>(0);
   const [isDisplayingPattern, setIsDisplayingPattern] = useState<boolean>(false);
+  const [showTurnMessage, setShowTurnMessage] = useState<boolean>(false);
 
   // References for timer implementation
   const containerRef = useRef<HTMLDivElement>(null);
@@ -121,6 +122,7 @@ const RuneMemoryChallenge: React.FC<RuneMemoryChallengeProps> = ({
 
   // Pause the timer when displaying pattern
   const pauseTimer = useCallback(() => {
+    // Only attempt to pause if a timer actually exists
     if (timerRef.current) {
       window.clearInterval(timerRef.current);
       timerRef.current = null;
@@ -169,6 +171,47 @@ const RuneMemoryChallenge: React.FC<RuneMemoryChallengeProps> = ({
     onFail, 
     attemptsLeft
   ]);
+
+    // Start the timer
+    const startTimer = useCallback(() => {
+      // Clear any existing timer
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current);
+      }
+  
+      // Calculate when the timer should end
+      const now = Date.now();
+      const duration = gameSettings.timeLimit * 1000; // convert seconds to milliseconds
+      endTimeRef.current = now + duration;
+  
+      // Set initial timeLeft
+      setTimeLeft(gameSettings.timeLimit);
+  
+      // Start a new timer that updates every 100ms for smoother countdown
+      timerRef.current = window.setInterval(() => {
+        if (endTimeRef.current === null) return;
+  
+        const now = Date.now();
+        const remaining = Math.max(0, endTimeRef.current - now);
+        const remainingSeconds = remaining / 1000;
+  
+        // Update timeLeft
+        setTimeLeft(remainingSeconds);
+  
+        // Check if timer has expired
+        if (remainingSeconds <= 0) {
+          // Clear timer
+          if (timerRef.current) {
+            window.clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
+  
+          // Time's up - game over
+          handleGameEnd(false);
+        }
+      }, 100); // Update more frequently for smoother countdown
+  
+    }, [gameSettings.timeLimit, handleGameEnd]);
 
   const resumeTimer = useCallback(() => {
     // Use either the pausedTimeLeftRef value or fall back to the timeLeft state
@@ -226,7 +269,6 @@ const RuneMemoryChallenge: React.FC<RuneMemoryChallengeProps> = ({
     }
     
     // Create a flat sequence that includes "off" states between each display
-    // This ensures consecutive identical runes are visible as separate pulses
     const displaySequence: Array<number | null> = [];
     
     // For each item in the pattern, add the item followed by null (off state)
@@ -252,76 +294,62 @@ const RuneMemoryChallenge: React.FC<RuneMemoryChallengeProps> = ({
         }
         
         setIsDisplayingPattern(false);
+
+        // Show turn message
+        setShowTurnMessage(true);
         
-        // Resume the timer after pattern display
-        resumeTimer();
-      }
-    }, Math.floor(gameSettings.displaySpeed / 2)); // Use half the display speed for a more snappy feel
-    
-  }, [gameSettings.displaySpeed, pauseTimer, resumeTimer]);
-
-  // Start the timer
-  const startTimer = useCallback(() => {
-    // Clear any existing timer
-    if (timerRef.current) {
-      window.clearInterval(timerRef.current);
-    }
-
-    // Calculate when the timer should end
-    const now = Date.now();
-    const duration = gameSettings.timeLimit * 1000; // convert seconds to milliseconds
-    endTimeRef.current = now + duration;
-
-    // Set initial timeLeft
-    setTimeLeft(gameSettings.timeLimit);
-
-    // Start a new timer that updates every 100ms for smoother countdown
-    timerRef.current = window.setInterval(() => {
-      if (endTimeRef.current === null) return;
-
-      const now = Date.now();
-      const remaining = Math.max(0, endTimeRef.current - now);
-      const remainingSeconds = remaining / 1000;
-
-      // Update timeLeft
-      setTimeLeft(remainingSeconds);
-
-      // Check if timer has expired
-      if (remainingSeconds <= 0) {
-        // Clear timer
-        if (timerRef.current) {
-          window.clearInterval(timerRef.current);
-          timerRef.current = null;
+        // Hide turn message after 1 second
+        setTimeout(() => {
+          setShowTurnMessage(false);
+        }, 1000);
+        
+        // If timer hasn't started yet, start it; otherwise, resume it
+        if (timerRef.current === null) {
+          startTimer();
+        } else {
+          resumeTimer();
         }
-
-        // Time's up - game over
-        handleGameEnd(false);
       }
-    }, 100); // Update more frequently for smoother countdown
-
-  }, [gameSettings.timeLimit, handleGameEnd]);
+    }, Math.floor(gameSettings.displaySpeed / 2));
+    
+  }, [gameSettings.displaySpeed, pauseTimer, startTimer, resumeTimer]);
 
   // Initialize the game
   const startGame = useCallback(() => {
+    // Reset all game-related states more explicitly
     setPlayerPattern([]);
+    setPattern([]); // Explicitly clear the previous pattern
     setAttemptsLeft(gameSettings.maxAttempts);
-    setGameState('playing');
-    setFinalScore(0);
-    setCurrentDisplay(null);
-    setIsDisplayingPattern(false);
-    pausedTimeLeftRef.current = null;
+    setGameState('ready'); // First set to 'ready'
     
-    // Generate a new pattern
-    const newPattern = generatePattern();
-    
-    // Start the timer
-    startTimer();
-    
-    // Display the pattern after a short delay
+    // Use a short timeout to ensure state is reset
     setTimeout(() => {
-      displayPattern(newPattern);
-    }, 1000);
-  }, [gameSettings.maxAttempts, generatePattern, displayPattern, startTimer]);
+      setGameState('playing');
+      setFinalScore(0);
+      setCurrentDisplay(null);
+      setIsDisplayingPattern(false);
+      pausedTimeLeftRef.current = null;
+      endTimeRef.current = null;
+      
+      // Clear any existing timers
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      if (displayTimerRef.current) {
+        window.clearInterval(displayTimerRef.current);
+        displayTimerRef.current = null;
+      }
+      
+      // Generate a new pattern
+      const newPattern = generatePattern();
+      
+      // Display the pattern after a short delay
+      setTimeout(() => {
+        displayPattern(newPattern);
+      }, 1000);
+    }, 50); // Small delay to ensure state reset
+  }, [gameSettings.maxAttempts, generatePattern, displayPattern]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -447,6 +475,15 @@ const RuneMemoryChallenge: React.FC<RuneMemoryChallengeProps> = ({
               className="w-full h-full object-cover opacity-60"
             />
           </div>
+
+          {/* Turn Message Overlay */}
+          {showTurnMessage && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center">
+              <div className="bg-black/70 text-white text-2xl font-bold px-6 py-4 rounded-lg animate-pulse">
+                Your Turn!
+              </div>
+            </div>
+          )}
           
           {/* Content positioned above background with proper sizing */}
           <div className="relative z-10 h-full flex items-center justify-center p-2">

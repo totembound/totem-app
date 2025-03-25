@@ -70,7 +70,7 @@ export const SignupForm: React.FC = () => {
                 </p>
 
                 <div className="space-y-3 md:space-y-4">
-                    <Feature icon="🦉" text="Collect unique NFT companions with real power" />
+                    <Feature icon="🦉" text="Collect unique companions with real power" />
                     <Feature icon="⚡" text="Train and evolve your mystical animal spirits" />
                     <Feature icon="💎" text="Trade and grow your collection of rare Totems" />
                     <Feature icon="🌿" text="Unlock new abilities and rewards" />

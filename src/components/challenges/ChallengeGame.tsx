@@ -8,6 +8,7 @@ import { ethers } from 'ethers';
 import ExperienceEffect from '../effects/ExperienceEffect';
 import RockFallDefenseChallenge from './RockFallDefenseChallenge';
 import SpiritPathChallenge from './SpiritPathChallenge';
+import RuneDecodingChallenge from './RuneDecodingChallenge';
 
 interface ChallengeGameProps {
     challengeId: string;
@@ -155,6 +156,13 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
                 {challengeType === 'agility' && challengeId === 'agility-challenge-1' && (
                     <SpiritPathChallenge
                         agility={attributes.agility}
+                        difficulty={difficulty}
+                        onComplete={handleScore}
+                    />
+                )}
+                {challengeType === 'wisdom' && challengeId === 'wisdom-challenge-1' && (
+                    <RuneDecodingChallenge
+                        wisdom={attributes.wisdom}
                         difficulty={difficulty}
                         onComplete={handleScore}
                     />

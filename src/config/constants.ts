@@ -45,7 +45,7 @@ export const AVAILABLE_SPECIES = [
     desc: 'The Falcon represents precision, agility, and speed. With unmatched vision and lightning-fast reflexes, it never loses sight of its target.',
     affinity: 'Agility',
     domain: 'Air',
-    available: false,
+    available: true,
     image: '/totems/falconplacecard.png'
   }, {
     id: 4, name: 'Beaver', species: Species.Beaver, 

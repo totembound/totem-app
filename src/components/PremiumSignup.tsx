@@ -66,7 +66,7 @@ const PremiumSignup: React.FC<PremiumSignupProps> = ({ onCheckout }) => {
         {
             id: 'premium',
             name: 'Premium',
-            price: 9.99,
+            price: 10.00,
             description: 'Premium gasless experience for active players',
             features: [
                 'Enhanced gasless transactions',
@@ -139,7 +139,7 @@ const PremiumSignup: React.FC<PremiumSignupProps> = ({ onCheckout }) => {
 
         if (tierId === 'free' && accountType === 'Web3') {
             // redirect to get free api key
-            navigate('/accounts/api-key');
+            navigate('/account/api-key');
             return;
         }
 

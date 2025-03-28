@@ -64,7 +64,7 @@ export enum Species {
     Beaver,
     Deer,
     Woodpecker,
-    Salmon,
+    Turtle,
     Bear,
     Raven,
     Snake,

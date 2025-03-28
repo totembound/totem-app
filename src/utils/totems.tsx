@@ -103,7 +103,7 @@ export function getSpeciesBaseStats(species: Species, rarity: Rarity): TotemStat
             agility: 5 + bonus,
             primaryStat: 'strength'
         },
-        [Species.Salmon]: {
+        [Species.Turtle]: {
             strength: 10 + bonus,
             agility: 8 + bonus,
             wisdom: 6 + bonus,
@@ -174,7 +174,7 @@ export function getSpeciesEmoji(species: Species): string {
         [Species.Bear]: '🐻',
         [Species.Wolf]: '🐺',
         [Species.Beaver]: '🦫',
-        [Species.Salmon]: '🐟',
+        [Species.Turtle]: '🐢',
         [Species.Owl]: '🦉',
         [Species.Raven]: '🦅',
         [Species.Goose]: '🦢',

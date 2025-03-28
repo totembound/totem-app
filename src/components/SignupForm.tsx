@@ -87,7 +87,7 @@ export const SignupForm: React.FC = () => {
                 </p>
                 
                 <div className="text-xl text-center mt-6">
-                    🐻🐺🦫🐟🦉<span className="raven-emoji">🦅</span>🦢🐍🦅🦌🦦🐦
+                    🐻🐺🦫🐢🦉<span className="raven-emoji">🦅</span>🦢🐍🦅🦌🦦🐦
                 </div>
             </div>
 
@@ -164,7 +164,7 @@ export const SignupForm: React.FC = () => {
                         </div>
 
                         <div className="text-xl text-center mt-6">
-                            🐻🐺🦫🐟🦉<span className="raven-emoji">🦅</span>🦢🐍🦅🦌🦦🐦
+                            🐻🐺🦫🐢🦉<span className="raven-emoji">🦅</span>🦢🐍🦅🦌🦦🐦
                         </div>
                     </div>
 

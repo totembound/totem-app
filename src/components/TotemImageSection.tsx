@@ -13,7 +13,7 @@ const HABITAT_BACKGROUNDS: Record<Species, string> = {
     [Species.Beaver]: 'bg-gradient-to-b from-amber-200 to-amber-600 dark:from-amber-800 dark:to-amber-950',
     [Species.Deer]: 'bg-gradient-to-b from-green-200 to-green-600 dark:from-green-800 dark:to-green-950',
     [Species.Woodpecker]: 'bg-gradient-to-b from-orange-200 to-red-400 dark:from-orange-900 dark:to-red-900',
-    [Species.Salmon]: 'bg-gradient-to-b from-blue-200 to-indigo-500 dark:from-blue-900 dark:to-indigo-950',
+    [Species.Turtle]: 'bg-gradient-to-b from-blue-200 to-indigo-500 dark:from-blue-900 dark:to-indigo-950',
     [Species.Bear]: 'bg-gradient-to-b from-amber-300 to-amber-700 dark:from-amber-800 dark:to-amber-950',
     [Species.Raven]: 'bg-gradient-to-b from-purple-300 to-gray-600 dark:from-purple-900 dark:to-gray-950',
     [Species.Snake]: 'bg-gradient-to-b from-green-200 to-emerald-600 dark:from-green-800 dark:to-emerald-950',
@@ -50,7 +50,7 @@ const HABITAT_ELEMENTS: Record<Species, React.ReactNode> = {
     [Species.Woodpecker]: (
         <div className="absolute right-8 h-3/4 w-8 rounded-t-lg bg-amber-800/30 dark:bg-amber-950/40" />
     ),
-    [Species.Salmon]: (
+    [Species.Turtle]: (
         <div className="absolute bottom-0 w-full h-1/3 bg-blue-500/30 dark:bg-blue-900/40 backdrop-blur-sm" />
     ),
     [Species.Bear]: (

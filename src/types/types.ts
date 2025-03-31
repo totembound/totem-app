@@ -30,7 +30,7 @@ export interface TotemUpdate {
     };
 }
 
-export type AccountType = 'Free' | 'Premium' | 'Web3';
+export type AccountType = 'Free' | 'Premium' | 'Advanced';
 
 export interface UserContextState {
         // user state

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
-import { Crown } from 'lucide-react';
+import { AlertCircle, CalendarClock, CreditCard, Crown, Loader2, RefreshCw, X } from 'lucide-react';
 
 interface SubscriptionData {
   tier: 'free' | 'premium' | 'web3';
   memberSince?: string;
   renewalDate?: string;
+  canceled?: boolean;
   cancelledAt?: string;
   status?: string;
 }
@@ -13,42 +14,46 @@ interface SubscriptionData {
 const SubscriptionStatus: React.FC = () => {
   const { address, accountType, gaslessApiKey, showError } = useUser();
   const [loading, setLoading] = useState(false);
+  const [waiting, setWaiting] = useState(false);
+  const [showRefreshPrompt, setShowRefreshPrompt] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [subscriptionData, setSubscriptionData] = useState<SubscriptionData | null>(null);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
 
   const API_GATEWAY_URL = process.env.REACT_APP_API_GATEWAY_URL || 'https://api.totembound.com/v1';
   
-  useEffect(() => {
-    const fetchSubscriptionStatus = async () => {
-      if (!gaslessApiKey) return;
-      
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetch(`${API_GATEWAY_URL}/subscription`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Api-Key': gaslessApiKey
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch subscription status');
-        }
-        
-        const data = await response.json();
-        setSubscriptionData(data);
-      } catch (err) {
-        console.error('Error fetching subscription status:', err);
-        setError((err as Error).message || 'An error occurred while fetching subscription status');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchSubscriptionStatus = async () => {
+    if (!gaslessApiKey) return;
     
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${API_GATEWAY_URL}/subscription`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Api-Key': gaslessApiKey
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch subscription status');
+      }
+      
+      const data = await response.json();
+      setSubscriptionData(data);
+    }
+    catch (err) {
+      console.error('Error fetching subscription status:', err);
+      setError((err as Error).message || 'An error occurred while fetching subscription status');
+    }
+    finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchSubscriptionStatus();
   }, [gaslessApiKey, API_GATEWAY_URL]);
 
@@ -64,170 +69,135 @@ const SubscriptionStatus: React.FC = () => {
 
   const handleOpenPortal = async () => {
     try {
-      setLoading(true);
-      const response = await fetch(`${API_GATEWAY_URL}/stripe/customer-portal`, {
-        method: 'POST',
+      setWaiting(true);
+      const response = await fetch(`${API_GATEWAY_URL}/subscription/portal`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'X-Api-Key': gaslessApiKey
-        },
-        body: JSON.stringify({
-          walletAddress: address
-        })
+        }
       });
       
       if (!response.ok) {
         throw new Error('Failed to create customer portal session');
       }
       
-      const { url } = await response.json();
+      const { portalUrl } = await response.json();
       
       // Open portal in a new window
-      window.open(url, '_blank');
-    } catch (err) {
+      window.open(portalUrl, '_blank', 'noopener,noreferrer');
+      setShowRefreshPrompt(true);
+    }
+    catch (err) {
       console.error('Error opening customer portal:', err);
       showError('Portal Error', 'Could not open customer portal. Please try again later.');
-    } finally {
-      setLoading(false);
+    }
+    finally {
+      setWaiting(false);
     }
   };
 
-  const handleCancelSubscription = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${API_GATEWAY_URL}/subscription`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Api-Key': gaslessApiKey
-        },
-        body: JSON.stringify({
-          walletAddress: address
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to cancel subscription');
-      }
-      
-      setCancelConfirmOpen(false);
-      showError(
-        "Subscription Cancelled", 
-        "Your subscription has been cancelled. You will still have Premium access until the end of your current billing period."
-      );
-      
-      // Update local subscription data
-      if (subscriptionData) {
-        setSubscriptionData({
-          ...subscriptionData,
-          cancelledAt: new Date().toISOString(),
-          status: 'canceled'
-        });
-      }
-    } catch (err) {
-      console.error('Error cancelling subscription:', err);
-      showError('Cancellation Error', 'Could not cancel your subscription. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-purple-600 dark:text-purple-400" />
+        <span className="ml-2 text-gray-600 dark:text-gray-400">Loading subscription details...</span>
+      </div>
+    );
+  }
 
+  if (error) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="flex items-center text-red-500 dark:text-red-400 mb-4">
+          <AlertCircle className="w-5 h-5 mr-2" />
+          <span>Error loading subscription details</span>
+        </div>
+        <p className="text-gray-600 dark:text-gray-400 text-sm">{error}</p>
+      </div>
+    );
+  }
+  
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="font-semibold text-lg text-gray-900 dark:text-white flex items-center">
-          <Crown className="h-5 w-5 text-purple-500 mr-2" />
-          Subscription
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+          <Crown className="h-6 w-6 text-purple-500 mr-2" />
+          Membership
         </h3>
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-          Active
+        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+          subscriptionData?.canceled 
+            ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-400' 
+            : 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-400'
+        }`}>
+          {subscriptionData?.canceled ? 'Ending Soon' : 'Active'}
         </span>
       </div>
-      
-      {loading ? (
-        <div className="py-4 flex justify-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
-        </div>
-      ) : error ? (
-        <div className="text-red-500 dark:text-red-400 text-sm py-2">
-          {error}
-        </div>
-      ) : (
-        <div className="space-y-4">
+
+      <div className="space-y-5 mb-6">
+        {/* Membership Info */}
+        <div className="flex items-start">
+          <CalendarClock className="w-5 h-5 mr-3 text-purple-500 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Current Plan
+            <p className="font-medium text-gray-900 dark:text-white">Subscription</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Premium member since: <span className="font-medium">{formatDate(subscriptionData?.memberSince)}</span>
+              {subscriptionData?.canceled && ' (Canceled)'}
             </p>
-            <p className="mt-1 text-base font-medium text-gray-900 dark:text-white">
-              Premium ($10/month)
-            </p>
-          </div>
-          
-          {subscriptionData?.renewalDate && (
-            <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                Next Billing Date
-              </p>
-              <p className="mt-1 text-base text-gray-900 dark:text-white">
-                {formatDate(subscriptionData.renewalDate)}
-              </p>
-            </div>
-          )}
-          
-          {subscriptionData?.memberSince && (
-            <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                Member Since
-              </p>
-              <p className="mt-1 text-base text-gray-900 dark:text-white">
-                {formatDate(subscriptionData.memberSince)}
-              </p>
-            </div>
-          )}
-          
-          <div className="pt-4 space-y-2">
-            <button 
-              onClick={handleOpenPortal}
-              disabled={loading}
-              className="w-full py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors duration-200 ease-in-out disabled:opacity-50"
-            >
-              Manage Billing
-            </button>
-            
-            {!cancelConfirmOpen ? (
-              <button 
-                onClick={() => setCancelConfirmOpen(true)}
-                disabled={loading}
-                className="w-full py-2 px-3 bg-transparent border border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors duration-200 ease-in-out disabled:opacity-50"
-              >
-                Cancel Subscription
-              </button>
-            ) : (
-              <div className="space-y-2 p-3 border border-red-200 dark:border-red-800 rounded-md bg-red-50 dark:bg-red-900/20">
-                <p className="text-sm text-red-600 dark:text-red-400">
-                  Are you sure you want to cancel? You'll lose access at the end of your current billing period.
-                </p>
-                <div className="flex space-x-2">
-                  <button 
-                    onClick={handleCancelSubscription}
-                    disabled={loading}
-                    className="flex-1 py-2 px-3 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors duration-200 ease-in-out disabled:opacity-50"
-                  >
-                    Yes, Cancel
-                  </button>
-                  <button 
-                    onClick={() => setCancelConfirmOpen(false)}
-                    disabled={loading}
-                    className="flex-1 py-2 px-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md transition-colors duration-200 ease-in-out disabled:opacity-50"
-                  >
-                    No, Keep It
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
-      )}
+
+        {/* Billing Info */}
+        <div className="flex items-start">
+          <CreditCard className="w-5 h-5 mr-3 text-purple-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium text-gray-900 dark:text-white">Billing</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {subscriptionData?.canceled 
+                ? "Your subscription will expire at the end of the current billing period: "
+                : "Next billing date: "
+              }
+              <span className="font-medium">{formatDate(subscriptionData?.renewalDate)}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="pt-4 space-y-2">
+        <button 
+          onClick={handleOpenPortal}
+          disabled={waiting}
+          className="w-full py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors duration-200 ease-in-out disabled:opacity-50"
+        >
+          Manage Billing
+        </button>
+        
+        {showRefreshPrompt && (
+          <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md relative">
+            <p className="text-sm text-blue-600 dark:text-blue-400 mb-2 text-center">
+              Made changes in the billing portal? Your subscription information may have changed.
+            </p>
+            <button 
+                onClick={() => setShowRefreshPrompt(false)}
+                className="absolute top-1 right-1 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                aria-label="Dismiss message"
+            >
+                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            </button>
+            <button 
+              onClick={fetchSubscriptionStatus}
+              className="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md font-medium transition-colors"
+            >
+              Refresh Now
+            </button>
+          </div>
+          )}
+
+        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
+            Use the Billing Portal to manage your subscription, update payment methods, view billing history, or cancel your plan.
+        </p>
+
+      </div>
     </div>
   );
 };

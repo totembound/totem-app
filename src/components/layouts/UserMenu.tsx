@@ -1,14 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useUser } from '../../contexts/UserContext';
 import { User, LogOut, Settings, ChevronDown, Coins, Shield } from 'lucide-react';
-import UserSettingsDialog from '../UserSettingsDialog';
-import { AccountType } from '../../types/types';
 import { Link } from 'react-router-dom';
+import { TIER_TYPES } from '../../config/constants';
 
 export const UserMenu: React.FC = () => {
   const { address, disconnect, isSignedUp, totemBalance, polBalance, accountType } = useUser();
   const [isOpen, setIsOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef(null);
 
@@ -35,9 +33,9 @@ export const UserMenu: React.FC = () => {
   // Get account type badge color
   const getAccountTypeColor = () => {
     switch (accountType) {
-      case 'Premium':
+      case TIER_TYPES.premium:
         return 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400';    
-      case 'Web3':
+      case TIER_TYPES.advanced:
         return 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400';    
       default: // Free
         return 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400';
@@ -46,9 +44,9 @@ export const UserMenu: React.FC = () => {
 
   const getAccountTypeName = (accountType: string) => {
     switch (accountType) {
-      case 'Premium':
+      case TIER_TYPES.premium:
         return 'Mystic';
-      case 'Web3':
+      case TIER_TYPES.advanced:
         return 'Elder';
       default: // Free
         return 'Seeker';
@@ -88,10 +86,10 @@ export const UserMenu: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <Shield size={16} className="text-gray-500 dark:text-gray-400" />
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {getAccountTypeName(accountType)}
-                    </span>
-                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${getAccountTypeColor()}`}>
                       {accountType} Tier
+                    </span>
+                    <span className={`text-sm font-medium px-2 py-1 rounded-full ${getAccountTypeColor()}`}>
+                      {getAccountTypeName(accountType)}
                     </span>
                   </div>
                 </div>
@@ -120,20 +118,6 @@ export const UserMenu: React.FC = () => {
                 </div>
                 </div>
                 <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
-                <button
-                  onClick={() => {
-                    setIsSettingsOpen(true);
-                    setIsOpen(false);
-                  }}
-                  className="w-full px-4 py-2 text-left flex items-center gap-2 
-                      text-gray-700 dark:text-gray-300
-                      hover:bg-gray-50 dark:hover:bg-gray-700/50 
-                      transition-colors"
-                >
-                  <Settings size={16} className="text-gray-500 dark:text-gray-400" />
-                  <span className="text-sm">Settings</span>
-                </button>
-                <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
                 <Link
                   to="/account/settings"
                   onClick={() => setIsOpen(false)}
@@ -143,7 +127,7 @@ export const UserMenu: React.FC = () => {
                       transition-colors"
                 >
                   <Settings size={16} className="text-gray-500 dark:text-gray-400" />
-                  <span className="text-sm">Account Settings</span>
+                  <span className="text-sm">Settings</span>
                 </Link>
                 <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
             </>
@@ -160,11 +144,6 @@ export const UserMenu: React.FC = () => {
             </button>
         </div>
       )}
-      {/* Settings Dialog */}
-      <UserSettingsDialog 
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-      />
     </div>
   );
 };

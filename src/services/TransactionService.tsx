@@ -399,6 +399,19 @@ export class TransactionService {
         };
     }
 
+    public updateConfig(newConfig: Partial<TransactionConfig>): void {
+        // Merge the new configuration with existing config
+        this.config = {
+            ...this.config,
+            ...newConfig
+        };
+    }
+
+    public setGaslessEnabled(enabled: boolean, apiKey: string): void {
+        this.config.gaslessEnabled = enabled;
+        this.config.apiKey = apiKey;
+    }
+
     public async feed(tokenId: bigint): Promise<TransactionResult> {
         const gameContract = await this.getContract('game');
         const expectedEvents = [{

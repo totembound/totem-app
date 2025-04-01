@@ -38,7 +38,7 @@ const monthlySpecials = [
         baseSpecies: 'Falcon',
         price: 250,
         tokenAmount: 10000,
-        image: '/totems/owlgroup.png',
+        image: 'https://ipfs.io/ipfs/bafybeie4a3o2dz6zd7fdtefcj3cn75hmdt4p2abd5hezdogzbu2fapx26m',
         month: 3 // April
     }
 ];

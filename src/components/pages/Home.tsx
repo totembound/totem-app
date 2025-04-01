@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { useUser } from '../../contexts/UserContext';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { PawPrint, Trophy, Map, Swords, Gift, ShoppingBag } from 'lucide-react';
 import { SignupForm } from '../SignupForm';
-import { PawPrint, Trophy, Map, Swords, Coins, ShoppingBag } from 'lucide-react';
 
 const Home: React.FC = () => {
     const { isConnected, isSignedUp } = useUser();
@@ -77,7 +77,7 @@ const Home: React.FC = () => {
                                 to="/rewards" 
                                 className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
                             >
-                                <Coins className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                                <Gift className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
                                 <span>Daily Rewards</span>
                             </Link>
                             <Link 

@@ -59,15 +59,14 @@ const RingDiveChallenge: React.FC<RingDiveChallengeProps> = ({
     playerHeight: 50,
     hoopHeight: 100,
     hoopWidth: 50,
-    hoopSpeed: 7 + (difficulty * 1.5),
+    hoopSpeed: 4 + (difficulty * 1.5),
     gravity: 0.06,
     jumpStrength: -1.5 - (agility * 0.1),
     spawnInterval: Math.max(500, 1500 - (difficulty * 200)),
     hoopScore: 10 * agility,
     maxScore: 2000,
-    playerXPosition: 160, // 20% of 800px (fixed position horizontally)
+    playerRelativePosition: 1/3, // Position player at 1/3 of the container width
     scoreDetectionBuffer: 10, // Buffer to make scoring more forgiving
-    debugMode: false // Set to true to visualize collision boxes
   });
 
   // Check if player is passing through a hoop
@@ -116,17 +115,44 @@ const RingDiveChallenge: React.FC<RingDiveChallengeProps> = ({
     hoopsRef.current = [];
     scoredHoopsRef.current.clear();
     
-    // Start player in the middle of the screen
+    // Calculate player X position based on container width
+    let containerWidth = config.gameWidth;
+    if (gameAreaRef.current) {
+      containerWidth = gameAreaRef.current.clientWidth;
+    }
+    
+    // Set player X position to 1/3 of the container width
+    const playerXPosition = containerWidth * config.playerRelativePosition - (config.playerWidth / 2);
+    
+    // Start player in the middle of the screen vertically
     const startY = config.gameHeight / 2 - config.playerHeight / 2;
     playerRef.current = {
-      x: config.playerXPosition,
+      x: playerXPosition,
       y: startY,
       width: config.playerWidth,
       height: config.playerHeight,
       velocity: 0
     };
   
-    console.log('Game initialized, starting player at:', startY);
+    console.log('Game initialized, starting player at:', playerXPosition, startY);
+  }, []);
+
+  // Handle window resize to adjust player position
+  useEffect(() => {
+    const handleResize = () => {
+      if (gameAreaRef.current && gameStateRef.current === 'playing') {
+        const containerWidth = gameAreaRef.current.clientWidth;
+        const config = gameConfig.current;
+        
+        // Update player X position to maintain the relative position
+        playerRef.current.x = containerWidth * config.playerRelativePosition - (config.playerWidth / 2);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   // Game loop
@@ -150,12 +176,21 @@ const RingDiveChallenge: React.FC<RingDiveChallengeProps> = ({
       }
     }, 100);
   
+    // Get current container width for proper positioning
+    let containerWidth = gameConfig.current.gameWidth;
+    if (gameAreaRef.current) {
+      containerWidth = gameAreaRef.current.clientWidth;
+      
+      // Update game config to use actual container width
+      gameConfig.current.gameWidth = containerWidth;
+    }
+  
     // Hoop spawn interval
     const spawnInterval = setInterval(() => {
       const config = gameConfig.current;
       const newHoop: Hoop = {
         id: Date.now(),
-        x: config.gameWidth,
+        x: containerWidth, // Use the current container width
         y: Math.random() * (config.gameHeight - config.hoopHeight),
         width: config.hoopHeight
       };
@@ -327,22 +362,6 @@ const RingDiveChallenge: React.FC<RingDiveChallengeProps> = ({
                 }}
               />
             </div>
-            
-            {/* Debug collision box */}
-            {gameConfig.current.debugMode && (
-              <div
-                className="absolute border-2 border-green-500"
-                style={{
-                  left: `${hoop.x}px`,
-                  top: `${hoop.y + gameConfig.current.scoreDetectionBuffer}px`,
-                  width: '50px',
-                  height: `${hoop.width - (gameConfig.current.scoreDetectionBuffer * 2)}px`,
-                  zIndex: 40,
-                  borderColor: scoredHoopsRef.current.has(hoop.id) ? 'rgba(255, 0, 0, 0.5)' : 'rgba(0, 255, 0, 0.5)',
-                  backgroundColor: 'rgba(0, 255, 0, 0.1)'
-                }}
-              />
-            )}
           </React.Fragment>
         ))}
 
@@ -360,22 +379,6 @@ const RingDiveChallenge: React.FC<RingDiveChallengeProps> = ({
             zIndex: 20
           }}
         />
-        
-        {/* Debug collision box for player */}
-        {gameConfig.current.debugMode && (
-          <div
-            className="absolute border-2 border-blue-500"
-            style={{
-              left: `${playerRef.current.x + gameConfig.current.scoreDetectionBuffer}px`,
-              top: `${playerRef.current.y + gameConfig.current.scoreDetectionBuffer}px`,
-              width: `${playerRef.current.width - (gameConfig.current.scoreDetectionBuffer * 2)}px`,
-              height: `${playerRef.current.height - (gameConfig.current.scoreDetectionBuffer * 2)}px`,
-              zIndex: 40,
-              borderColor: 'rgba(0, 0, 255, 0.5)',
-              backgroundColor: 'rgba(0, 0, 255, 0.1)'
-            }}
-          />
-        )}
         
         {/* Score Messages using our new component */}
         <ScoreMessages 

@@ -15,7 +15,7 @@ interface ScoreMessagesProps {
   textClass?: string;
 }
 
-const ScoreMessages: React.FC<ScoreMessagesProps> = ({ 
+const ScoreMessagesEffect: React.FC<ScoreMessagesProps> = ({ 
   messages, 
   duration = 1000, 
   floatDistance = 40,
@@ -53,4 +53,4 @@ const ScoreMessages: React.FC<ScoreMessagesProps> = ({
   );
 };
 
-export default ScoreMessages;
+export default ScoreMessagesEffect;

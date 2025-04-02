@@ -1,6 +1,5 @@
 import { CheckCircle } from 'lucide-react';
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react';
 
 const PremiumSuccess: React.FC = () => {
     return (

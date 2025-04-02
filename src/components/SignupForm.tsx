@@ -3,7 +3,7 @@ import { useUser } from '../contexts/UserContext';
 import { ComingSoon } from './ComingSoon';
 import { Feature } from './Feature';
 import { useTransactionService } from '../hooks/useTransactionService';
-import { ArrowRight, ArrowLeft, CheckCircle, Shield, Check, Info, Wallet, Key, Award, Zap } from 'lucide-react';
+import { ArrowRight, ArrowLeft, CheckCircle, Shield, Check, Info, Wallet, Key, Award, Zap, ChevronDown } from 'lucide-react';
 
 type OnboardingStep = 'welcome' | 'connect' | 'plans' | 'email' | 'key-requested' | 'enter-api-key' | 'advanced' | 'processing' | 'success';
 
@@ -16,13 +16,13 @@ export const SignupForm: React.FC = () => {
     const [email, setEmail] = useState('');
     const normalizedAddress = (address as string || '').toLowerCase();
     const [apiKey, setApiKey] = useState('');
+    const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
     const API_GATEWAY_URL = process.env.REACT_APP_API_GATEWAY_URL || 'https://api.totembound.com/v1';
     
     const txService = useTransactionService({
         gaslessEnabled: isGaslessEnabled,
         waitForConfirmation: true
     });
-    
 
     // Effect to manage steps based on wallet connection
     useEffect(() => {
@@ -54,7 +54,7 @@ export const SignupForm: React.FC = () => {
                 localStorage.removeItem('signupState'); // Remove invalid state
             }
         }
-    }, [isSignedUp]);
+    }, [isConnected]);
     
     // Function to handle API key requests
     const requestApiKey = async () => {
@@ -349,7 +349,7 @@ export const SignupForm: React.FC = () => {
                     <>
                         {renderProgressIndicator()}
                         
-                        <h2 className="text-2xl font-bold mb-4 text-center text-gray-900 dark:text-white mt-4">
+                        <h2 className="text-2xl font-bold mb-4 text-center text-gray-900 dark:text-white mt-6">
                             Set Up Your Account
                         </h2>
                         
@@ -412,6 +412,103 @@ export const SignupForm: React.FC = () => {
                             <ArrowLeft className="mr-1 h-4 w-4" />
                             Back to welcome
                         </button>
+
+
+                        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg">
+                            <h3 className="font-medium text-gray-900 dark:text-white mb-3">
+                                Common Questions
+                            </h3>
+
+                            <div className="space-y-3">
+                                {/* FAQ Item 1 */}
+                                <div className="border border-blue-100 dark:border-blue-800 rounded-lg overflow-hidden">
+                                <button 
+                                    onClick={() => setExpandedFaq(expandedFaq === 'wallet' ? null : 'wallet')}
+                                    className="flex justify-between items-center w-full px-4 py-3 text-left bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                >
+                                    <span className="font-medium text-gray-900 dark:text-white text-sm">Why do I need to connect a wallet?</span>
+                                    <ChevronDown className={`h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform ${expandedFaq === 'wallet' ? 'rotate-180' : ''}`} />
+                                </button>
+                                
+                                {expandedFaq === 'wallet' && (
+                                    <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/10 text-sm text-gray-700 dark:text-gray-300 border-t border-blue-100 dark:border-blue-800">
+                                    <p>Wallets provide a secure way to authenticate without passwords. You own your game assets directly, and we never store or have access to your credentials. This means better security for your account and true ownership of your in-game items.</p>
+                                    </div>
+                                )}
+                                </div>
+
+                                {/* FAQ Item 2 */}
+                                <div className="border border-blue-100 dark:border-blue-800 rounded-lg overflow-hidden">
+                                <button 
+                                    onClick={() => setExpandedFaq(expandedFaq === 'security' ? null : 'security')}
+                                    className="flex justify-between items-center w-full px-4 py-3 text-left bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                >
+                                    <span className="font-medium text-gray-900 dark:text-white text-sm">Is my wallet and data secure?</span>
+                                    <ChevronDown className={`h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform ${expandedFaq === 'security' ? 'rotate-180' : ''}`} />
+                                </button>
+                                
+                                {expandedFaq === 'security' && (
+                                    <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/10 text-sm text-gray-700 dark:text-gray-300 border-t border-blue-100 dark:border-blue-800">
+                                    <p><strong>Yes!</strong> We use industry-standard security practices. Your wallet is non-custodial, meaning you always maintain full control of your assets and private keys - we never have access to them.</p>
+                                    <p className="mt-2">Our wallet connection only requests the minimum permissions needed to verify your identity and process specific actions you initiate. This is significantly more secure than traditional username/password systems where services store your credentials on their servers.</p>
+                                    </div>
+                                )}
+                                </div>
+
+                                {/* FAQ Item 3 */}
+                                <div className="border border-blue-100 dark:border-blue-800 rounded-lg overflow-hidden">
+                                <button 
+                                    onClick={() => setExpandedFaq(expandedFaq === 'fees' ? null : 'fees')}
+                                    className="flex justify-between items-center w-full px-4 py-3 text-left bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                >
+                                    <span className="font-medium text-gray-900 dark:text-white text-sm">Do I need to pay cryptocurrency fees?</span>
+                                    <ChevronDown className={`h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform ${expandedFaq === 'fees' ? 'rotate-180' : ''}`} />
+                                </button>
+                                
+                                {expandedFaq === 'fees' && (
+                                    <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/10 text-sm text-gray-700 dark:text-gray-300 border-t border-blue-100 dark:border-blue-800">
+                                    <p><strong>No.</strong> With our Standard and Premium plans, you won't need to use cryptocurrency or pay gas fees. All transaction costs are handled for you!</p>
+                                    </div>
+                                )}
+                                </div>
+
+                                {/* FAQ Item 4 */}
+                                <div className="border border-blue-100 dark:border-blue-800 rounded-lg overflow-hidden">
+                                <button 
+                                    onClick={() => setExpandedFaq(expandedFaq === 'blockchain' ? null : 'blockchain')}
+                                    className="flex justify-between items-center w-full px-4 py-3 text-left bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                >
+                                    <span className="font-medium text-gray-900 dark:text-white text-sm">Why does TotemBound use blockchain technology?</span>
+                                    <ChevronDown className={`h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform ${expandedFaq === 'blockchain' ? 'rotate-180' : ''}`} />
+                                </button>
+                                
+                                {expandedFaq === 'blockchain' && (
+                                    <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/10 text-sm text-gray-700 dark:text-gray-300 border-t border-blue-100 dark:border-blue-800">
+                                    <p>Blockchain allows us to reduce platform overhead costs, provide true item ownership to players, and ensure the longevity of your game assets. You're not just "renting" your game items - you truly own them. This technology enables us to build a more player-centered gaming experience with lower fees.</p>
+                                    </div>
+                                )}
+                                </div>
+
+                                {/* FAQ Item 5 */}
+                                <div className="border border-blue-100 dark:border-blue-800 rounded-lg overflow-hidden">
+                                <button 
+                                    onClick={() => setExpandedFaq(expandedFaq === 'technical' ? null : 'technical')}
+                                    className="flex justify-between items-center w-full px-4 py-3 text-left bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                >
+                                    <span className="font-medium text-gray-900 dark:text-white text-sm">Do I need technical knowledge?</span>
+                                    <ChevronDown className={`h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform ${expandedFaq === 'technical' ? 'rotate-180' : ''}`} />
+                                </button>
+                                
+                                {expandedFaq === 'technical' && (
+                                    <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/10 text-sm text-gray-700 dark:text-gray-300 border-t border-blue-100 dark:border-blue-800">
+                                    <p><strong>Not at all!</strong> We've designed the experience to be as simple as possible. You just play the game and enjoy the benefits, without needing to understand blockchain details.</p>
+                                    <p className="mt-2">You'll occasionally need to approve signature requests, which are simple confirmations that don't cost anything. With Standard and Premium plans, transaction fees are covered for you.</p>
+                                    <p className="mt-2">For certain store purchases or advanced features, you may see transaction requests that require confirmation. Advanced Tier users will see transaction requests for all actions, as they're managing their own fees.</p>
+                                    </div>
+                                )}
+                                </div>
+                            </div>
+                        </div>
                     </>
                 );
                 
@@ -420,7 +517,7 @@ export const SignupForm: React.FC = () => {
                     <>
                         {renderProgressIndicator()}
                         
-                        <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white mt-4">
+                        <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white mt-6">
                             Choose Your Play Style
                         </h2>
                         <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">
@@ -438,7 +535,7 @@ export const SignupForm: React.FC = () => {
                                 <div className="flex justify-between items-start mb-2">
                                     <h3 className="font-medium text-gray-900 dark:text-white flex items-center">
                                         <Key className="h-4 w-4 text-green-500 dark:text-green-400 mr-2" />
-                                        Standard Plan
+                                        Standard Tier
                                     </h3>
                                     <span className="text-sm font-medium rounded-full px-2 py-0.5 bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400">
                                         Free
@@ -473,7 +570,7 @@ export const SignupForm: React.FC = () => {
                                 <div className="flex justify-between items-start mb-2">
                                     <h3 className="font-medium text-gray-900 dark:text-white flex items-center">
                                         <Award className="h-4 w-4 text-purple-500 dark:text-purple-400 mr-2" />
-                                        Premium Plan
+                                        Premium Tier
                                     </h3>
                                     <span className="text-sm font-medium rounded-full px-2 py-0.5 bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400">
                                         $10/month
@@ -499,6 +596,10 @@ export const SignupForm: React.FC = () => {
                                         <Check className="h-3.5 w-3.5 text-purple-500 dark:text-purple-400 mr-1.5" />
                                         <span>Monthly bonus credits</span>
                                     </li>
+                                    <li className="flex items-center">
+                                        <Check className="h-3.5 w-3.5 text-purple-500 dark:text-purple-400 mr-1.5" />
+                                        <span>Premium support</span>
+                                    </li>
                                 </ul>
                             </div>
                             
@@ -512,7 +613,7 @@ export const SignupForm: React.FC = () => {
                                 <div className="flex justify-between items-start mb-2">
                                     <h3 className="font-medium text-gray-900 dark:text-white flex items-center">
                                         <Zap className="h-4 w-4 text-blue-500 dark:text-blue-400 mr-2" />
-                                        Advanced Mode
+                                        Advanced Tier
                                     </h3>
                                     <span className="text-sm font-medium rounded-full px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400">
                                         Self-managed
@@ -534,6 +635,10 @@ export const SignupForm: React.FC = () => {
                                         <Check className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400 mr-1.5" />
                                         <span>Direct transaction management</span>
                                     </li>
+                                    <li className="flex items-center">
+                                        <Check className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400 mr-1.5" />
+                                        <span>Pay your own network fees directly</span>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
@@ -543,7 +648,7 @@ export const SignupForm: React.FC = () => {
                                 onClick={() => setCurrentStep('enter-api-key')}
                                 className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg mb-3"
                             >
-                                I already have an API key!
+                                I already have my API key!
                             </button>
                         }
 
@@ -576,7 +681,7 @@ export const SignupForm: React.FC = () => {
                     <>
                         {renderProgressIndicator()}
                         
-                        <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white mt-4">
+                        <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white mt-6">
                             Request Your API Key
                         </h2>
                         <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">
@@ -667,7 +772,7 @@ export const SignupForm: React.FC = () => {
                     <>
                         {renderProgressIndicator()}
                         
-                        <div className="text-center">
+                        <div className="text-center mt-6">
                             <div className="w-20 h-20 mx-auto mb-6 text-green-500 dark:text-green-400">
                                 <CheckCircle className="w-full h-full" />
                             </div>
@@ -716,7 +821,7 @@ export const SignupForm: React.FC = () => {
                     <>
                         {renderProgressIndicator()}
                         
-                        <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white mt-4">
+                        <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white mt-6">
                             Complete Your Account Setup
                         </h2>
                         <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">
@@ -798,7 +903,7 @@ export const SignupForm: React.FC = () => {
                     <>
                         {renderProgressIndicator()}
                         
-                        <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white mt-4">
+                        <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white mt-6">
                             Ready for Advanced Mode
                         </h2>
                         <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">
@@ -824,6 +929,16 @@ export const SignupForm: React.FC = () => {
                                     <span>Can switch to Standard or Premium later</span>
                                 </li>
                             </ul>
+                        </div>
+                        
+                        <div className="p-3 bg-blue-100 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg mb-6">
+                            <h3 className="font-medium text-gray-900 dark:text-white mb-2 flex items-center">
+                                <Info className="h-4 w-4 text-blue-500 dark:text-blue-400 mr-2" />
+                                Complete Setup
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                You'll be registered as a TotemBound user and receive your welcome gift of 2000 TOTEM.
+                            </p>
                         </div>
                         
                         <div className="flex space-x-3">
@@ -893,7 +1008,7 @@ export const SignupForm: React.FC = () => {
                             </div>
                             
                             <button
-                                onClick={() => window.location.href = '/app'}
+                                onClick={() => window.location.href = '/'}
                                 className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 
                                     rounded-lg w-full text-lg transition-all">
                                 Enter TotemBound
@@ -908,7 +1023,7 @@ export const SignupForm: React.FC = () => {
     };
 
     return (
-        <div className="bg-gray-50 dark:bg-gray-900 p-6 md:p-8 rounded-lg max-w-[95%] md:max-w-2xl mx-auto 
+        <div className="p-2 sm:p-4 md:p-6 bg-gray-50 dark:bg-gray-900 rounded-lg max-w-[95%] md:max-w-2xl mx-auto 
             shadow-lg border border-gray-100 dark:border-gray-700 relative">
             {renderStepContent()}
         </div>

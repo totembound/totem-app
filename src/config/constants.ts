@@ -5,6 +5,12 @@ export const PRESTIGE_XP_REQUIREMENT = 2500;
 export const BASE_ELDER_XP = 7500;
 export const STAGE_THRESHOLDS = [0, 500, 1500, 3500, 7500];
 
+export const TIER_TYPES = {
+    free: 'Free',
+    premium: 'Premium',
+    advanced: 'Advanced'
+};
+
 export const STORAGE_KEYS = {
     theme: 'totem-theme',
     notifications: 'totem-notifications',
@@ -72,13 +78,13 @@ export const AVAILABLE_SPECIES = [
     available: false,
     image: '/totems/woodpeckerplacecard.png'
   }, {
-    id: 7, name: 'Salmon', species: Species.Salmon, 
+    id: 7, name: 'Turtle', species: Species.Turtle, 
     title: 'The Unyielding Navigator',
-    desc: 'The Salmon represents perseverance, instinct, and endurance. It always finds its way, pushing forward despite overwhelming currents.',
+    desc: 'The Turtle symbolizes resilience, grounded strength, and patient resolve. It carries its world while navigating waters with quiet, ancient wisdom.',
     affinity: 'Strength',
     domain: 'Water',
     available: false,
-    image: '/totems/salmonplacecard.png'
+    image: '/totems/turtleplacecard.png'
   }, {
     id: 8, name: 'Bear', species: Species.Bear, 
     title: 'The Unstoppable Force',

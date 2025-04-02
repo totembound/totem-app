@@ -66,16 +66,16 @@ export const SignupForm: React.FC = () => {
                 </h2>
                 <p className="mb-6 text-gray-700 dark:text-gray-300">
                     Totems are your unique, evolving companions, each representing a powerful animal spirit. 
-                    Each Totem grows stronger through your guidance and training.
+                    Each totem grows stronger through your guidance and training.
                 </p>
 
                 <div className="space-y-3 md:space-y-4">
                     <Feature icon="🦉" text="Collect unique companions with real power" />
                     <Feature icon="⚡" text="Train and evolve your mystical animal spirits" />
-                    <Feature icon="💎" text="Trade and grow your collection of rare Totems" />
+                    <Feature icon="💎" text="Trade and grow your collection of rare totems" />
                     <Feature icon="🌿" text="Unlock new abilities and rewards" />
                     <Feature icon="🏆" text="Compete in challenges and events" />
-                    <Feature icon="🪙" text="Stake Wise Elder Totems to earn rewards" />
+                    <Feature icon="🪙" text="Stake Wise Elder totems to earn rewards" />
                 </div>
 
                 <p className="mt-6 text-gray-700 dark:text-gray-300">
@@ -87,13 +87,13 @@ export const SignupForm: React.FC = () => {
                 </p>
                 
                 <div className="text-xl text-center mt-6">
-                    🐻🐺🦫🐟🦉<span className="raven-emoji">🦅</span>🦢🐍🦅🦌🦦🐦
+                    🐻🐺🦫🐢🦉<span className="raven-emoji">🦅</span>🦢🐍🦅🦌🦦🐦
                 </div>
             </div>
 
             <div className="bg-purple-100 dark:bg-purple-900/30 p-4 rounded-lg mb-8 text-center">
                 <p className="text-lg text-purple-800 dark:text-purple-200">
-                    ✨ Future updates include Totem combinations, rarity upgrades, and epic challenges! ✨
+                    ✨ Future updates include Totem combinations, rarity upgrades, new accessories, habitats and epic challenges! ✨
                 </p>
             </div>
             
@@ -164,7 +164,7 @@ export const SignupForm: React.FC = () => {
                         </div>
 
                         <div className="text-xl text-center mt-6">
-                            🐻🐺🦫🐟🦉<span className="raven-emoji">🦅</span>🦢🐍🦅🦌🦦🐦
+                            🐻🐺🦫🐢🦉<span className="raven-emoji">🦅</span>🦢🐍🦅🦌🦦🐦
                         </div>
                     </div>
 

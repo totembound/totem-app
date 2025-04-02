@@ -479,14 +479,26 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initializeProvider = useCallback(async () => {
         if (!window.ethereum) return;
         
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-        setState(prev => ({ ...prev, provider, signer }));
-        
-        // Check if already connected
-        const accounts = await provider.listAccounts();
-        if (accounts.length > 0) {
-            await handleAccountsChanged(accounts);
+        try {
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            setState(prev => ({ ...prev, provider }));
+            
+            // Check if already connected without prompting
+            const accounts = await provider.listAccounts();
+            if (accounts.length > 0) {
+                // User already has an account connected, get signer and set up state
+                const signer = await provider.getSigner();
+                setState(prev => ({ ...prev, signer }));
+                await handleAccountsChanged(accounts);
+                console.log("Auto-connected to previously connected wallet");
+            }
+            else {
+                console.log("No previously connected wallet found");
+                // Don't prompt - let user click connect button
+            }
+        }
+        catch (error) {
+            console.error('Error initializing provider:', error);
         }
     }, [handleAccountsChanged]);
 
@@ -543,7 +555,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Setup listeners only once on mount
     useEffect(() => {
         if (window.ethereum) {
-            //initializeProvider();
+            initializeProvider();
             
             window.ethereum.on('accountsChanged', handleAccountsChanged);
             window.ethereum.on('chainChanged', () => window.location.reload());
@@ -700,7 +712,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         let accountType: AccountType = 'Free';
         
         if (!isEnabled) {
-            accountType = 'Web3';
+            accountType = 'Advanced';
         }
         else if (apiKey && apiKey.trim() !== '') {
             // If gasless is enabled and they have an API key, check key type
@@ -712,7 +724,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         else {
             // Gasless enabled but no key should be Advanced
-            accountType = 'Web3';
+            accountType = 'Advanced';
         }
         
         setUserStorage<AccountType>(STORAGE_KEYS.accountType, state.address, accountType);
@@ -725,11 +737,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const isEnabled = getUserStorage<boolean>(STORAGE_KEYS.isGaslessEnabled, addr, false);
         const apiKey = getUserStorage<string>(STORAGE_KEYS.gaslessApiKey, addr, '');
         
-        if (!isEnabled) return 'Web3';
+        if (!isEnabled) return 'Advanced';
         if (apiKey && apiKey.trim() !== '') {
             return apiKey.startsWith('premium_') || apiKey.length >= 32 ? 'Premium' : 'Free';
         }
-        return 'Web3';
+        return 'Advanced';
     }
 
     const checkSignupStatus = useCallback(async () => {

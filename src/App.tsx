@@ -16,6 +16,7 @@ import Achievements from './components/pages/Achievements';
 import AccountSettings from './components/pages/AccountSettings';
 import ApiKeySignup from './components/ApiKeySignup';
 import PremiumSignup from './components/PremiumSignup';
+import PremiumSuccess from './components/PremiumSuccess';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -44,13 +45,7 @@ const AppRoutes: React.FC = () => {
           } />
           <Route path="success" element={
             <ProtectedRoute>
-              <div className="p-8 text-center">
-                <h1 className="text-2xl font-bold mb-4">Payment Successful!</h1>
-                <p>Your premium subscription has been activated. Your new API key has been sent to your email.</p>
-                <a href="/account/settings" className="mt-4 inline-block text-blue-600 hover:underline">
-                  Back to Account Settings
-                </a>
-              </div>
+              <PremiumSuccess/>
             </ProtectedRoute>
           } />
         </Route>

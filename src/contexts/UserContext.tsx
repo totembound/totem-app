@@ -1,4 +1,3 @@
-// contexts/UserContext.tsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
 import { UserContextType, UserContextState, ActionType, ActionTracking, NFTMetadata, TokenActionTrackings, Attribute, AccountType } from '../types/types';
@@ -551,7 +550,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.error("Error checking achievement status:", error);
         }
     };
-
+    
     // Setup listeners only once on mount
     useEffect(() => {
         if (window.ethereum) {
@@ -687,6 +686,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ...prev,
             address: '',
             signer: null,
+            isSignedUp: false,
             isConnected: false,
             isTokenApproved: false,
             isApprovalMessageDismissed: false
@@ -727,7 +727,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             accountType = 'Advanced';
         }
         
-        setUserStorage<AccountType>(STORAGE_KEYS.accountType, state.address, accountType);
+        if (state.address) {
+            setUserStorage<AccountType>(STORAGE_KEYS.accountType, state.address, accountType);
+        }        
         setState(prev => ({ ...prev, accountType }));
         
         return accountType;
@@ -739,7 +741,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (!isEnabled) return 'Advanced';
         if (apiKey && apiKey.trim() !== '') {
-            return apiKey.startsWith('premium_') || apiKey.length >= 32 ? 'Premium' : 'Free';
+            return apiKey.startsWith('premium_') ? 'Premium' : 'Free';
         }
         return 'Advanced';
     }

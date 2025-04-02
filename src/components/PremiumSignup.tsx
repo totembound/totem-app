@@ -127,7 +127,7 @@ const PremiumSignup: React.FC<PremiumSignupProps> = ({ onCheckout }) => {
         // Skip email validation for downgrade and Advanced mode
         if (tierType === TIER_TYPES.premium && accountType !== TIER_TYPES.premium) {
             if (!email || !email.includes('@')) {
-                showError('Field Error', 'Please enter a valid email address');
+                showError('Email Error', 'Please enter a valid email address');
                 return;
             }
         }

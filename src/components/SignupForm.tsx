@@ -502,7 +502,7 @@ export const SignupForm: React.FC = () => {
                                 {expandedFaq === 'technical' && (
                                     <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/10 text-sm text-gray-700 dark:text-gray-300 border-t border-blue-100 dark:border-blue-800">
                                     <p><strong>Not at all!</strong> We've designed the experience to be as simple as possible. You just play the game and enjoy the benefits, without needing to understand blockchain details.</p>
-                                    <p className="mt-2">You'll occasionally need to approve signature requests, which are simple confirmations that don't cost anything. With Standard and Premium plans, transaction fees are covered for you.</p>
+                                    <p className="mt-2">You'll need to approve signature requests, which are simple confirmations that don't cost anything. With Standard and Premium plans, transaction fees are covered for you.</p>
                                     <p className="mt-2">For certain store purchases or advanced features, you may see transaction requests that require confirmation. Advanced Tier users will see transaction requests for all actions, as they're managing their own fees.</p>
                                     </div>
                                 )}

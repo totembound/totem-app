@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
-import ScoreMessages, { ScoreMessage } from './ScoreMessage';
+import ScoreMessages, { ScoreMessage } from './ScoreMessageEffect';
 
 jest.useFakeTimers();
 

@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { ScoreMessage } from '../components/effects/ScoreMessage';
+import { ScoreMessage } from '../components/effects/ScoreMessageEffect';
 
 export const useScoreMessages = (duration = 1000) => {
   const [scoreMessages, setScoreMessages] = useState<ScoreMessage[]>([]);

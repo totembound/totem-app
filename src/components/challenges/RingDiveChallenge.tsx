@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameState } from '../../types/types';
-import { useScoreMessages } from '../../hooks/useScoreMessages';
-import ScoreMessages from '../../components/effects/ScoreMessage';
+import { useScoreMessages } from '../../hooks/useScoreMessagesEffect';
+import ScoreMessages from '../effects/ScoreMessageEffect';
 
 type Hoop = {
   id: number;

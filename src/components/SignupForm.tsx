@@ -180,7 +180,6 @@ export const SignupForm: React.FC = () => {
         try {
             // Advanced uses regular web3 transaction
             if (!txService) throw new Error('Transaction service not initialized');
-            txService.setGaslessEnabled(true, apiKey);
 
             const result = await txService.signup();
             console.log('Signup transaction complete:', result);

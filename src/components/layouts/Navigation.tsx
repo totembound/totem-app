@@ -3,7 +3,9 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Home, ShoppingBag, Trophy, Swords, Gift, PawPrint,
   MoreHorizontal, Settings, LogOut, Coins, Map,
-  LucideIcon
+  LucideIcon,
+  FileText,
+  ShieldCheck
 } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
@@ -179,7 +181,24 @@ const Navigation: React.FC = () => {
                   label="Settings"
                   icon={Settings}
                   onClick={() => {
-                    // TODO: Implement settings page/modal
+                    navigate('/account/settings');
+                    setIsMoreMenuOpen(false);
+                  }}
+                />
+                <div className="border-t border-gray-200 dark:border-gray-700" />
+                <MoreMenuItem
+                  label="Terms"
+                  icon={FileText}
+                  onClick={() => {
+                    navigate('/terms');
+                    setIsMoreMenuOpen(false);
+                  }}
+                />
+                <MoreMenuItem
+                  label="Privacy"
+                  icon={ShieldCheck}
+                  onClick={() => {
+                    navigate('/privacy');
                     setIsMoreMenuOpen(false);
                   }}
                 />

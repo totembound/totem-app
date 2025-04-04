@@ -1,5 +1,5 @@
-import React from 'react';
 import { Github } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer = ({ githubUrl = "https://github.com/totembound",  xUrl = "https://x.com/totemboundhq", companyName = "TotemBound" }) => {
   return (
@@ -12,6 +12,20 @@ const Footer = ({ githubUrl = "https://github.com/totembound",  xUrl = "https://
           className="h-5 w-5"
         />
         <p>{companyName}</p>
+        <span>•</span>
+        <Link 
+          to="/terms"
+          className="hover:text-gray-900 dark:hover:text-gray-300 transition-colors"
+        >
+          Terms
+        </Link>
+        <span>•</span>
+        <Link 
+          to="/privacy"
+          className="hover:text-gray-900 dark:hover:text-gray-300 transition-colors"
+        >
+          Privacy
+        </Link>
         <span>•</span>
         <a 
           href={githubUrl} 

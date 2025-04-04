@@ -40,7 +40,7 @@ const ShopInterface = () => {
   const [purchasingTotems, setPurchasingTotems] = useState<{[key: number]: boolean}>({});
   const [error, setError] = useState('');
   const { provider, updateBalances, addTotem, showError, isGaslessEnabled } = useUser();
-  const { buyTokens, purchaseTotem } = useTotemGame();
+  const { buyTokens } = useTotemGame();
   const [purchasedTotem, setPurchasedTotem] = useState<any>(null);
   const availableSpecies = AVAILABLE_SPECIES;
 

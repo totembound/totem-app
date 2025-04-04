@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { Species, Rarity, Color } from '../../types/types';
-import { createGameContract, createTotemNFTContract, TotemGameContract } from '../../config/contracts';
+import { createShopContract, createTotemNFTContract } from '../../config/contracts';
 import MessageDialog from '../MessageDialog';
 import { Pagination } from '../layouts/Pagination';
 import { getRarityBadgeColor } from '../../utils/totems';
@@ -153,17 +153,17 @@ const UnboundTotems: React.FC = () => {
         try {
             setLoading(true);
             setError(null);
-            const gameContract = createGameContract(provider);
+            const shopContract = createShopContract(provider);
             
             // Get total count first
-            const totalCount = await gameContract.getUnboundTotemCount();
+            const totalCount = await shopContract.getUnboundTotemCount();
             
             // Calculate offset and limit
             const offset = (currentPage - 1) * itemsPerPage;
             const limit = itemsPerPage;
             
             // Fetch totems for current page
-            const totems = await gameContract.getUnboundTotems(offset, limit);
+            const totems = await shopContract.getUnboundTotems(offset, limit);
             setTotalItems(Number(totalCount));
             setUnboundTotems(totems);
         }

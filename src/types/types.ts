@@ -374,7 +374,7 @@ export interface RewardsState {
     isClaimLoading: boolean;
 }
 
-export type ContractType = 'game' | 'nft' | 'token' | 'rewards' | 'challenges';
+export type ContractType = 'game' | 'nft' | 'token' | 'shop' | 'rewards' | 'challenges';
 
 export interface TransactionConfig {
   gaslessEnabled?: boolean;

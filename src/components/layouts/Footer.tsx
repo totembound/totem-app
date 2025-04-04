@@ -6,12 +6,17 @@ const Footer = ({ githubUrl = "https://github.com/totembound",  xUrl = "https://
     <footer className="h-10 flex items-center justify-center bg-white/90 dark:bg-gray-900/90 border-t border-gray-200/20 dark:border-gray-700/20">
       <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400 text-sm">
         <p>© {new Date().getFullYear()}</p>
-        <img 
-          src="/tb-logo-180.png" 
-          alt="Totembound Logo" 
-          className="h-5 w-5"
-        />
-        <p>{companyName}</p>
+        <Link 
+          to="/"
+          className="hover:text-gray-900 dark:hover:text-gray-300 transition-colors">
+          <div className="flex gap-1">
+            <img 
+              src="/tb-logo-180.png" 
+              alt="Totembound Logo" 
+              className="h-5 w-5"
+            />{companyName}
+          </div>
+        </Link>
         <span>•</span>
         <Link 
           to="/terms"

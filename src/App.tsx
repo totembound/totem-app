@@ -17,6 +17,7 @@ import AccountSettings from './components/pages/AccountSettings';
 import ApiKeySignup from './components/ApiKeySignup';
 import PremiumSignup from './components/PremiumSignup';
 import PremiumSuccess from './components/PremiumSuccess';
+import LegalDocument from './components/LegalDocument';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -24,7 +25,9 @@ const AppRoutes: React.FC = () => {
       <Route path="/" element={<MainLayout />}>
         {/* Public Routes */}
         <Route index element={<Home />} />
-
+        <Route path="/terms" element={<LegalDocument doc="terms" />} />
+        <Route path="/privacy" element={<LegalDocument doc="privacy" />} />
+        
         {/* Protected routes */}
         <Route path="account">
           <Route index element={<Navigate to="/account/settings" replace />} />

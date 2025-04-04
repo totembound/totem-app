@@ -12,9 +12,9 @@ export const MainLayout: React.FC = () => {
   const { isConnected, isSignedUp, messageDialog, hideError } = useUser();
 
   return (
-    <div className="min-h-screen flex flex-col relative">
+    <div className="min-h-screen flex flex-col relative overflow-x-hidde">
         <GameBackground />
-        <div className="min-h-screen w-auto flex flex-col relative z-1">
+        <div className="flex flex-col flex-grow relative z-1 w-full">
             <Header />
             {isConnected && isSignedUp && <Navigation />}
             <main className="flex-grow w-full flex flex-col pb-16 sm:pb-0">

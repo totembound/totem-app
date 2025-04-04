@@ -52,7 +52,7 @@ git clone https://github.com/totembound/totem-contracts.git
 cd totem-contracts
 ```
 
-3. Build and export ABIs for frontend:
+3. Build and export ABIs for frontend or api:
 ```bash
 npm install
 npx hardhat compile
@@ -77,6 +77,7 @@ REACT_APP_GAME_ADDRESS="game_proxy_address"
 REACT_APP_FORWARDER_ADDRESS="forwarder_address"
 REACT_APP_TOKEN_ADDRESS="token_proxy_address"
 REACT_APP_NFT_ADDRESS="nft_proxy_address"
+REACT_APP_SHOP_ADDRESS="shop_proxy_address"
 REACT_APP_REWARDS_ADDRESS="rewards_proxy_address"
 REACT_APP_ACHIEVEMENTS_ADDRESS="achievements_proxy_address"
 REACT_APP_CHALLENGES_ADDRESS="challenges_proxy_address"

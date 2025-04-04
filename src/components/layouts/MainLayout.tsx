@@ -12,7 +12,7 @@ export const MainLayout: React.FC = () => {
   const { isConnected, isSignedUp, messageDialog, hideError } = useUser();
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-x-hidde">
+    <div className="min-h-screen flex flex-col relative overflow-x-hidden">
         <GameBackground />
         <div className="flex flex-col flex-grow relative z-1 w-full">
             <Header />

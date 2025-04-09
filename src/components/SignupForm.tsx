@@ -4,6 +4,7 @@ import { ComingSoon } from './ComingSoon';
 import { Feature } from './Feature';
 import { useTransactionService } from '../hooks/useTransactionService';
 import { ArrowRight, ArrowLeft, CheckCircle, Shield, Check, Info, Wallet, Key, Award, Zap, ChevronDown } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 type OnboardingStep = 'welcome' | 'connect' | 'plans' | 'email' | 'key-requested' | 'enter-api-key' | 'advanced' | 'processing' | 'success';
 
@@ -44,6 +45,9 @@ export const SignupForm: React.FC = () => {
             try {
                 const state = JSON.parse(savedState);
                 if (state.step) {
+                    if (state.step === 'connect' && isConnected) {
+                        state.step = 'plans';
+                    }
                     setCurrentStep(state.step);
                     if (state.plan) setSelectedPlan(state.plan);
                     if (state.email) setEmail(state.email);
@@ -415,7 +419,7 @@ export const SignupForm: React.FC = () => {
 
                         <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg">
                             <h3 className="font-medium text-gray-900 dark:text-white mb-3">
-                                Common Questions
+                                Frequently Asked Questions
                             </h3>
 
                             <div className="space-y-3">
@@ -651,6 +655,23 @@ export const SignupForm: React.FC = () => {
                             </button>
                         }
 
+                        <p className="text-sm text-gray-700 dark:text-gray-300 pb-4 text-center">
+                            By continuing, you are acknowledging and accepting our &nbsp;
+                            <Link 
+                                to="/terms"
+                                className="underline hover:text-gray-900 dark:hover:text-gray-300 transition-colors"
+                            >
+                                Terms of Use
+                            </Link>
+                            &nbsp; and &nbsp;
+                            <Link 
+                                to="/privacy"
+                                className="underline hover:text-gray-900 dark:hover:text-gray-300 transition-colors"
+                            >
+                                Privacy Policy
+                            </Link>.
+                        </p>
+
                         <div className="flex space-x-3">
                             <button
                                 onClick={() => {
@@ -708,7 +729,8 @@ export const SignupForm: React.FC = () => {
                             
                             {selectedPlan === 'premium' && (
                                 <div className="p-3 bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-lg">
-                                    <p className="text-sm text-purple-700 dark:text-purple-300">
+                                    <p className="text-sm text-purple-700 dark:text-purple-300 flex items-center gap-2">
+                                        <Info className="h-4 w-4 flex-shrink-0" />
                                         You'll be redirected to our secure payment provider after requesting your API key.
                                     </p>
                                 </div>

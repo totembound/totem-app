@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant API
+    participant DB
+    participant Email
+
+    User->>Frontend: Connects Wallet
+    Frontend->>API: Request API Key (Email + Wallet)
+    API->>DB: Check if user exists
+    DB-->>API: User status
+    API->>DB: Create user record

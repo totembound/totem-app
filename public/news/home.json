@@ -1,0 +1,35 @@
+{
+    "items": [
+      {
+        "id": "1",
+        "title": "Welcome to TotemBound Beta!",
+        "emoji": "🎉",
+        "content": "Explore the world of spiritual companions and start your journey as a Totem Keeper.",
+        "date": "2025-04-01",
+        "cta": {
+          "text": "Learn More",
+          "link": "/about",
+          "external": false
+        }
+      },
+      {
+        "id": "2",
+        "title": "Join Our Discord Community",
+        "emoji": "💬",
+        "content": "Connect with other Totem Keepers, get tips, and participate in exclusive events!",
+        "date": "2025-04-03",
+        "cta": {
+          "text": "Join Discord",
+          "link": "https://discord.gg/totembound",
+          "external": true
+        }
+      },
+      {
+        "id": "3",
+        "title": "Coming Soon: Enhanced Training",
+        "emoji": "🔮",
+        "content": "New training mechanics and rewards system in development! Stay tuned for more powerful ways to strengthen your Totems.",
+        "date": "2025-04-05"
+      }
+    ]
+  }

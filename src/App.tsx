@@ -18,16 +18,22 @@ import ApiKeySignup from './components/ApiKeySignup';
 import PremiumSignup from './components/PremiumSignup';
 import PremiumSuccess from './components/PremiumSuccess';
 import LegalDocument from './components/LegalDocument';
+import About from './components/pages/About';
+import Plans from './components/pages/Plans';
+import { SignupForm } from './components/SignupForm';
 
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<MainLayout />}>
         {/* Public Routes */}
-        <Route index element={<Home />} />
+        <Route path="/about" element={<About/>} />
+        <Route path="/plans" element={<Plans/>} />
+        <Route path="/signup" element={<SignupForm/>} />
         <Route path="/terms" element={<LegalDocument doc="terms" />} />
         <Route path="/privacy" element={<LegalDocument doc="privacy" />} />
-        
+        <Route index element={<Home />} />
+
         {/* Protected routes */}
         <Route path="account">
           <Route index element={<Navigate to="/account/settings" replace />} />

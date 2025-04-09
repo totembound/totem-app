@@ -38,8 +38,8 @@ const About: React.FC = () => {
                 spirits. Train, nurture, and grow your companions through unique
                 evolution paths, unlocking powerful abilities along the way.
               </p>
-              <div className="text-xl text-center mt-4 mb-2 md:text-left">
-                🐻🐺🦫🦉<span className="raven-emoji">🦅</span>🦢🐍🦅🦌🦦🐦
+              <div className="text-lg md:text-xl text-center mt-4 mb-2 md:text-left">
+                🐻🐺🦫🐢🦉<span className="raven-emoji">🦅</span>🦢🐍🦅🦌🦦🐦
               </div>
             </div>
             <div className="md:w-1/2 flex flex-col md:flex-row justify-center gap-4 h-auto md:h-64">
@@ -258,10 +258,10 @@ const About: React.FC = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center md:text-left">
               <div className="md:flex md:items-center md:justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-white mb-2">
+                  <h2 className="text-2xl font-bold mb-2">
                     Ready to Begin Your Journey?
                   </h2>
-                  <p className="text-purple-200">
+                  <p className="text-purple-600 dark:text-purple-400">
                     Join thousands of players in the mystical world of
                     TotemBound today.
                   </p>

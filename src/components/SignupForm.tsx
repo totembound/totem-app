@@ -323,7 +323,7 @@ export const SignupForm: React.FC = () => {
                                 The path to mastery begins with a single connection. Start your spiritual journey in TotemBound today!
                             </p>
                             
-                            <div className="text-xl text-center mt-6">
+                            <div className="text-lg md:text-xl text-center mt-6">
                                 🐻🐺🦫🐢🦉<span className="raven-emoji">🦅</span>🦢🐍🦅🦌🦦🐦
                             </div>
                         </div>

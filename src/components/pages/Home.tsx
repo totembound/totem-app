@@ -67,8 +67,8 @@ const PublicHome: React.FC = () => {
               <UserPlus className="mr-2 h-5 w-5" />
               Begin Your Journey
             </Link>
-            <div className="text-xl text-center mt-4 mb-2 md:text-left">
-              🐻🐺🦫🦉<span className="raven-emoji">🦅</span>🦢🐍🦅🦌🦦🐦
+            <div className="text-lg md:text-xl text-center mt-4 mb-2 md:text-left">
+              🐻🐺🦫🐢🦉<span className="raven-emoji">🦅</span>🦢🐍🦅🦌🦦🐦
             </div>
           </div>
 

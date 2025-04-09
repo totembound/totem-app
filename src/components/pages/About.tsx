@@ -1,5 +1,14 @@
 import React from "react";
-import { Flame, Award, Swords, Map, Gift, PawPrint, Zap } from "lucide-react";
+import {
+  Flame,
+  Award,
+  Swords,
+  Map,
+  Gift,
+  PawPrint,
+  Zap,
+  Github,
+} from "lucide-react";
 import specialsData from "../data/specials.json";
 import { getCurrentMonth } from "../../utils/totems";
 import { Link } from "react-router-dom";
@@ -226,8 +235,33 @@ const About: React.FC = () => {
             </div>
           </div>
 
+          {/* Join Now CTA */}
+          <div className="bg-purple-100 dark:bg-purple-900/20 text-gray-800 dark:text-gray-200 rounded-xl">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center md:text-left">
+              <div className="md:flex md:items-center md:justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">
+                    Ready to Begin Your Journey?
+                  </h2>
+                  <p className="text-purple-600 dark:text-purple-400">
+                    Join thousands of players in the mystical world of
+                    TotemBound today.
+                  </p>
+                </div>
+                <div className="mt-6 md:mt-0">
+                  <Link
+                    to="/signup"
+                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-purple-700 bg-white hover:bg-purple-50"
+                  >
+                    Start Your Adventure
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* For Partners & Creators */}
-          <div>
+          <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
               <Zap className="mr-2 text-purple-600 dark:text-purple-400" />
               For Partners & Creators
@@ -253,26 +287,52 @@ const About: React.FC = () => {
             </div>
           </div>
 
-          {/* Join Now CTA */}
-          <div className="bg-purple-100 dark:bg-purple-900/20 text-gray-800 dark:text-gray-200 rounded-xl">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center md:text-left">
-              <div className="md:flex md:items-center md:justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold mb-2">
-                    Ready to Begin Your Journey?
-                  </h2>
-                  <p className="text-purple-600 dark:text-purple-400">
-                    Join thousands of players in the mystical world of
-                    TotemBound today.
-                  </p>
-                </div>
-                <div className="mt-6 md:mt-0">
-                  <Link
-                    to="/signup"
-                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-purple-700 bg-white hover:bg-purple-50"
+          {/* Open Source Section */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
+              <Github className="mr-2 text-purple-600 dark:text-purple-400" />{" "}
+              {/* Import Github icon from lucide-react */}
+              Open Source
+            </h2>
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                TotemBound is proudly open source! We believe in transparency,
+                community collaboration, and shared ownership of the platform.
+                Our codebase is available on GitHub where you can contribute,
+                report issues, or simply explore how we've built the game.
+              </p>
+              <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border border-purple-100 dark:border-purple-800/50 text-center">
+                <p className="text-purple-700 dark:text-purple-300 font-medium mb-2">
+                  Visit our GitHub repositories:
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <a
+                    href="https://github.com/totembound/totem-api"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-3 py-1 bg-gray-200 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-md text-gray-700 dark:text-gray-300 text-sm transition-colors"
                   >
-                    Start Your Adventure
-                  </Link>
+                    <Github className="h-4 w-4 mr-1" />
+                    API
+                  </a>
+                  <a
+                    href="https://github.com/totembound/totem-app"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-3 py-1 bg-gray-200 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-md text-gray-700 dark:text-gray-300 text-sm transition-colors"
+                  >
+                    <Github className="h-4 w-4 mr-1" />
+                    Frontend
+                  </a>
+                  <a
+                    href="https://github.com/totembound/totem-contracts"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-3 py-1 bg-gray-200 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-md text-gray-700 dark:text-gray-300 text-sm transition-colors"
+                  >
+                    <Github className="h-4 w-4 mr-1" />
+                    Smart Contracts
+                  </a>
                 </div>
               </div>
             </div>

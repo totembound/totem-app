@@ -1,0 +1,38 @@
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant API
+    participant Stripe
+    participant Webhook
+    participant DB
+    participant Email
+
+    User->>Frontend: Access account settings
+    Frontend->>API: Get subscription status
+    API->>DB: Fetch user subscription data
+    DB-->>API: Subscription details
+    API-->>Frontend: Display subscription info
+    
+    alt Manage Subscription
+        User->>Frontend: Click "Manage Billing"
+        Frontend->>API: Request billing portal
+        API->>Stripe: Create portal session
+        Stripe-->>API: Portal URL
+        API-->>Frontend: Redirect URL
+        Frontend->>User: Redirect to Stripe portal
+        User->>Stripe: Make changes (e.g., cancel)
+        Stripe->>Webhook: subscription.updated event
+        Webhook->>DB: Update subscription status
+        Webhook->>Email: Send status update email
+        Email-->>User: Confirmation email
+    end
+    
+    alt Cancel via API
+        User->>Frontend: Click "Cancel Subscription"
+        Frontend->>API: DELETE /subscription
+        API->>Stripe: Update subscription (cancel_at_period_end)
+        Stripe-->>API: Updated subscription
+        API->>DB: Update cancellation status
+        API-->>Frontend: Success message
+        Frontend-->>User: Display confirmation
+    end

@@ -3,6 +3,7 @@ import TotemAchievementsABI from '../contracts/TotemAchievements.abi.json';
 import TotemGameABI from '../contracts/TotemGame.abi.json';
 import TotemNFTABI from '../contracts/TotemNFT.abi.json';
 import TotemTokenABI from '../contracts/TotemToken.abi.json';
+import TotemShopABI from '../contracts/TotemShop.abi.json';
 import TotemRewardsABI from '../contracts/TotemRewards.abi.json';
 import TotemChallengesABI from '../contracts/TotemChallenges.abi.json';
 import { Achievement, AchievementProgress, AchievementView, CategoryProgress, TotemAttributes } from '../types/types';
@@ -12,6 +13,7 @@ export const CONTRACT_ADDRESSES = {
     forwarder: process.env.REACT_APP_FORWARDER_ADDRESS as string,
     token: process.env.REACT_APP_TOKEN_ADDRESS as string,
     nft: process.env.REACT_APP_NFT_ADDRESS as string,
+    shop: process.env.REACT_APP_SHOP_ADDRESS as string,
     rewards: process.env.REACT_APP_REWARDS_ADDRESS as string,
     achievements: process.env.REACT_APP_ACHIEVEMENTS_ADDRESS as string,
     challenges: process.env.REACT_APP_CHALLENGES_ADDRESS as string,
@@ -79,6 +81,12 @@ export type TotemNFTContract = Contract & {
         fromBlockOrBlockHash?: string | number | undefined,
         toBlock?: string | number | undefined
     ) => Promise<Array<Event>>;
+};
+
+export type TotemShopContract = Contract & {
+    buyTokens: (overrides?: { value: bigint }) => Promise<TransactionResponse>;
+    purchaseTotem: (speciesId: number) => Promise<TransactionResponse>;
+    sellTotem: (tokenId: bigint) => Promise<TransactionResponse>; 
 };
 
 export type TotemRewardsContract = Contract & {
@@ -174,6 +182,14 @@ export const createTotemNFTContract = (provider: BrowserProvider) => {
         TotemNFTABI,
         provider
     ) as TotemNFTContract;
+};
+
+export const createShopContract = (provider: BrowserProvider) => {
+    return new Contract(
+        CONTRACT_ADDRESSES.shop,
+        TotemShopABI,
+        provider
+    ) as TotemShopContract;
 };
 
 export const createRewardsContract = (provider: BrowserProvider) => {

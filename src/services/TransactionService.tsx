@@ -1,7 +1,7 @@
 // src/services/TransactionService.ts
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESSES, FORWARDER_ABI } from '../config/contracts';
-import { createGameContract, createTokenContract, createTotemNFTContract, createRewardsContract } from '../config/contracts';
+import { createGameContract, createTokenContract, createTotemNFTContract, createShopContract, createRewardsContract } from '../config/contracts';
 import { ContractEvent, ContractType, ForwardRequest, TransactionConfig, TransactionResult } from '../types/types';
 
 export class TransactionService {
@@ -40,6 +40,9 @@ export class TransactionService {
                 break;
             case 'token':
                 contract = createTokenContract(this.provider);
+                break;
+            case 'shop':
+                contract = createShopContract(this.provider);
                 break;
             case 'rewards':
                 contract = createRewardsContract(this.provider);
@@ -202,7 +205,6 @@ export class TransactionService {
         const data = contract.interface.encodeFunctionData(functionName, args);
 
         // Get the next nonce
-        console.log(this.userAddress);
         const nonce = await forwarderContract.getNonce(this.userAddress);
 
         // Create the forward request
@@ -365,7 +367,6 @@ export class TransactionService {
     }
 
     public async purchaseTotem(speciesId: number): Promise<TransactionResult> {
-        const gameContract = await this.getContract('game');
         const nftContract = await this.getContract('nft');
 
         // Listen for NFT Transfer event (mint)
@@ -375,7 +376,7 @@ export class TransactionService {
             filter: [ethers.ZeroAddress, this.userAddress]
         }];
 
-        const result = await this.executeTransaction('game', 'purchaseTotem', [speciesId], expectedEvents);
+        const result = await this.executeTransaction('shop', 'purchaseTotem', [speciesId], expectedEvents);
         
         // Extract tokenId from the Transfer event
         let tokenId: bigint | undefined;
@@ -492,25 +493,25 @@ export class TransactionService {
     }
 
     public async sellTotem(tokenId: bigint): Promise<TransactionResult> {
-        const gameContract = await this.getContract('game');
+        const shopContract = await this.getContract('shop');
         const expectedEvents = [{
-            contract: gameContract,
+            contract: shopContract,
             eventName: 'TotemSold',
             filter: [tokenId]
         }];
 
-        return this.executeTransaction('game', 'sellTotem', [tokenId], expectedEvents);
+        return this.executeTransaction('shop', 'sellTotem', [tokenId], expectedEvents);
     }
 
     public async purchaseUnboundTotem(tokenId: bigint): Promise<TransactionResult> {
-        const gameContract = await this.getContract('game');
+        const shopContract = await this.getContract('shop');
         const expectedEvents = [{
-            contract: gameContract,
+            contract: shopContract,
             eventName: 'TotemUnbound',
             filter: [tokenId]
         }];
 
-        return this.executeTransaction('game', 'purchaseUnboundTotem', [tokenId], expectedEvents);
+        return this.executeTransaction('shop', 'purchaseUnboundTotem', [tokenId], expectedEvents);
     }
 
     public async completeChallenge(challengeId: string, tokenId: bigint, score: number): Promise<TransactionResult> {

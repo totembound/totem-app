@@ -4,6 +4,7 @@ import { CONTRACT_ADDRESSES } from '../config/contracts';
 import { Notification } from "../types/types";
 import gameABI from "../contracts/TotemGame.abi.json";
 import nftABI from "../contracts/TotemNFT.abi.json";
+import shopABI from "../contracts/TotemShop.abi.json";
 import rewardsABI from "../contracts/TotemRewards.abi.json";
 import achievementsABI from "../contracts/TotemAchievements.abi.json";
 import { getUserStorage, setUserStorage } from "../utils/localStorage";
@@ -11,6 +12,7 @@ import { STORAGE_KEYS } from "../config/constants";
 
 const gameAddress = CONTRACT_ADDRESSES.game;
 const nftAddress = CONTRACT_ADDRESSES.nft;
+const shopAddress = CONTRACT_ADDRESSES.shop;
 const rewardsAddress = CONTRACT_ADDRESSES.rewards;
 const achievementsAddress = CONTRACT_ADDRESSES.achievements;
 
@@ -71,6 +73,7 @@ export function useContractEvents(userAddress: string | null) {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const gameContract = new ethers.Contract(gameAddress, gameABI, provider);
         const nftContract = new ethers.Contract(nftAddress, nftABI, provider);
+        const shopContract = new ethers.Contract(shopAddress, shopABI, provider);
         const rewardsContract = new ethers.Contract(rewardsAddress, rewardsABI, provider);
         const achievementsContract = new ethers.Contract(achievementsAddress, achievementsABI, provider);
 
@@ -98,7 +101,8 @@ export function useContractEvents(userAddress: string | null) {
         gameContract.on("UserSignedUp", (user) => {
             addNotification(`New player joined: ${truncateAddress(user)}`);
         });
-        gameContract.on("TotemPurchased", (user, tokenId, species) => {
+        
+        shopContract.on("TotemPurchased", (user, tokenId, species) => {
             addNotification(`🛒 ${truncateAddress(user)} purchased Totem ${tokenId.toString()} (Species: ${species})`);
         });
 

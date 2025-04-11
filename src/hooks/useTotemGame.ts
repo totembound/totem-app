@@ -1,41 +1,10 @@
 import { ethers } from 'ethers';
-import { CONTRACT_ADDRESSES, TotemGameContract, TotemNFTContract, TotemTokenContract, createGameContract, createTokenContract, createTotemNFTContract } from '../config/contracts';
+import { CONTRACT_ADDRESSES, TotemGameContract, TotemShopContract, TotemNFTContract, TotemTokenContract, createGameContract, createTokenContract, createTotemNFTContract, createShopContract } from '../config/contracts';
 import { useForwarder } from './useForwarder';
 import { useUser } from '../contexts/UserContext';
 
 export const useTotemGame = () => {
     const { provider, signer, address, isSignedUp, isTokenApproved } = useUser();
-    const forwarder = useForwarder(provider, signer);
-
-    const signup = async () => {
-        if (!provider || !address) throw new Error('Not connected');
-        if (isSignedUp) throw new Error("Already signed up");
-
-        console.log('Starting signup process');
-        console.log('Connected address:', address);
-        console.log('Game contract:', await CONTRACT_ADDRESSES.game);
-
-        console.log('Attempting signup for:', address);
-
-        try {
-            const gameContract = createGameContract(provider);
-            const connectedGame = gameContract.connect(signer) as TotemGameContract;
-            const tx = await connectedGame.signup();
-            console.log('Waiting for transaction:', tx.hash);
-            const receipt = await tx.wait();
-            console.log('Transaction confirmed:', receipt);
-
-            return receipt;
-        }
-        catch (error: any) {
-            console.error('Signup failed:', error);
-
-            if (error.message.includes('user rejected')) {
-                throw new Error('User rejected signature request');
-            }
-            throw new Error('Signup failed. Please try again.');
-        }
-    };
 
     const approveTokens = async () => {
         if (!provider || !signer) throw new Error('Not connected');
@@ -49,60 +18,12 @@ export const useTotemGame = () => {
         await tx.wait();
     };
 
-    // FUTURES: gasless transactions not supported yet
-    const signupGasless = async () => {
-        if (!provider || !address) throw new Error('Not connected');
-        if (isSignedUp) throw new Error("Already signed up");
-
-        console.log('Starting gasless signup process');
-        console.log('Connected address:', address);
-        console.log('Game contract:', await CONTRACT_ADDRESSES.game);
-
-        console.log('Attempting gasless signup for:', address);
-
-        try {
-            // Encode the signup function call
-            const gameContract = createGameContract(provider);
-            const signupData = gameContract.interface.encodeFunctionData('signup', []);
-            console.log('Encoded signup data:', signupData);
-
-            // Create the forward request
-            const request = await forwarder.createRequest(
-                address,
-                CONTRACT_ADDRESSES.game,
-                signupData
-            );
-            
-            // Sign the request
-            const signature = await forwarder.signRequest(request);
-            
-            // Execute through the forwarder
-            console.log('Relaying transaction through forwarder');
-            // Send transaction
-            const tx = await forwarder.relay(request, signature);
-            console.log('Waiting for transaction:', tx.hash);
-            
-            const receipt = await tx.wait();
-            console.log('Transaction confirmed:', receipt);
-
-            return receipt;
-        }
-        catch (error: any) {
-            console.error('Gasless signup failed:', error);
-
-            if (error.message.includes('user rejected')) {
-                throw new Error('User rejected signature request');
-            }
-            throw new Error('Gasless signup failed. Please try again.');
-        }
-    };
-
     const buyTokens = async (amount: bigint) => {
         if (!provider || !signer) throw new Error('Not connected');
         
-        const gameContract = createGameContract(provider);
-        const connectedGame = gameContract.connect(signer) as TotemGameContract;
-        const tx = await connectedGame.buyTokens({ value: amount }) ;
+        const shopContract = createShopContract(provider);
+        const connectedShop = shopContract.connect(signer) as TotemShopContract;
+        const tx = await connectedShop.buyTokens({ value: amount }) ;
         if (!tx) throw new Error('Transaction failed');
 
         console.log('Buy tokens transaction:', tx.hash);
@@ -223,11 +144,12 @@ export const useTotemGame = () => {
                 });
             });
 
-            const gameContract = createGameContract(provider);
-            const connectedGame = gameContract.connect(signer) as TotemGameContract;
+            const shopContract = createShopContract(provider);
+            const connectedShop = shopContract.connect(signer) as TotemShopContract;
+
             console.log('Purchasing bundle...', { bundleId });
 
-            const tx = await connectedGame.purchaseBundle(bundleId, { value: polAmount });
+            const tx = await connectedShop.purchaseBundle(bundleId, { value: polAmount });
             if (!tx) throw new Error('Transaction failed');
             console.log('Purchase tx sent:', tx.hash);
 
@@ -334,8 +256,6 @@ export const useTotemGame = () => {
     };
 
     return {
-        signup,
-        signupGasless,
         buyTokens,
         purchaseTotem,
         purchaseBundle,

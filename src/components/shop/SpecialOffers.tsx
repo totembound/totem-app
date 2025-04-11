@@ -5,43 +5,7 @@ import { useTotemGame } from '../../hooks/useTotemGame';
 import { ethers } from 'ethers';
 import { createTotemNFTContract } from '../../config/contracts';
 import { getCurrentMonth } from '../../utils/totems';
-
-// Monthly Special Totems data
-const monthlySpecials = [
-    {
-        id: 'february-2025',
-        bundleId: 1,
-        name: 'Lovewave Otter (Rosy Pink)',
-        description: 'A gentle-hearted otter, spreading warmth and joy.',
-        baseSpecies: 'Otter',
-        price: 250,
-        tokenAmount: 10000,
-        image: 'https://ipfs.io/ipfs/bafybeidsydwaidnhrygqk3iqrp6eiwt4jr6ipfpjsl7pgesoq7poks6yqy',
-        month: 1 // February
-    },
-    {
-        id: 'march-2025',
-        bundleId: 2,
-        name: 'Cloverfang Wolf (Verdant Gold)',
-        description: 'A wolf of fortune, blessed by the winds of luck.',
-        baseSpecies: 'Wolf',
-        price: 250,
-        tokenAmount: 10000,
-        image: 'https://ipfs.io/ipfs/bafybeifbciz4p5f37dc6hluakcrvodmytqpmwspbdr47sbqijxtfk2p654',
-        month: 2 // March
-    },
-    {
-        id: 'april-2025',
-        bundleId: 3,
-        name: 'Thunderstrike Falcon (Raindrop Teal)',
-        description: 'A stormbringer of the spring skies, calling the rain and lightning to its wings.',
-        baseSpecies: 'Falcon',
-        price: 250,
-        tokenAmount: 10000,
-        image: 'https://ipfs.io/ipfs/bafybeie4a3o2dz6zd7fdtefcj3cn75hmdt4p2abd5hezdogzbu2fapx26m',
-        month: 3 // April
-    }
-];
+import specialsData from '../data/specials.json';
 
 interface SpecialOffersViewProps {
     onPurchased: (purchased: any) => void;
@@ -52,7 +16,7 @@ const SpecialOffers: React.FC<SpecialOffersViewProps> = ({
     onPurchased
 }) => {
     const currentMonth = new Date().getMonth();
-    const currentMonthlySpecial = monthlySpecials.find(special => special.month === currentMonth);
+    const currentMonthlySpecial = specialsData.monthlySpecials.find(special => special.month === currentMonth);
     const [isExpanded, setIsExpanded] = useState(true);
     const [loading, setLoading] = useState<{[key: string]: boolean}>({});
     const { updateBalances, addTotem, showError, provider } = useUser();

@@ -10,6 +10,7 @@ import RockFallDefenseChallenge from './RockFallDefenseChallenge';
 import SpiritPathChallenge from './SpiritPathChallenge';
 import RuneDecodingChallenge from './RuneDecodingChallenge';
 import RingDiveChallenge from './RingDiveChallenge';
+import DrumDanceChallenge from './DrumDanceChallenge';
 
 interface ChallengeGameProps {
     challengeId: string;
@@ -163,6 +164,13 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
                 )}
                 {challengeType === 'agility' && challengeId === 'agility-challenge-2' && (
                     <RingDiveChallenge
+                        agility={attributes.agility}
+                        difficulty={difficulty}
+                        onComplete={handleScore}
+                    />
+                )}
+                {challengeType === 'agility' && challengeId === 'agility-challenge-3' && (
+                    <DrumDanceChallenge
                         agility={attributes.agility}
                         difficulty={difficulty}
                         onComplete={handleScore}

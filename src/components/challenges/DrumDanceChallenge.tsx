@@ -1,30 +1,28 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameState } from '../../types/types';
-import { useScoreMessages } from '../../hooks/useScoreMessagesEffect';
-import ScoreMessages from '../../components/effects/ScoreMessageEffect';
 
 type Ring = {
   id: number;
-  targetTime: number;  // When the ring should perfectly hit the bongo
-  spawnTime: number;   // When the ring was spawned
-  bongo: 'left' | 'right'; // Which bongo this ring is for
-  active: boolean;     // Whether the ring is still in play
-  scored: boolean;     // Whether the ring has been scored
-  hitType?: 'perfect' | 'good' | 'ok' | 'miss'; // Track hit quality for visual feedback
-  visibleSince?: number; // Track when the ring actually became visible on screen
-  despawnTime?: number; // Track when the ring should be removed from display
+  targetTime: number;
+  spawnTime: number;
+  bongo: 'left' | 'right';
+  active: boolean;
+  scored: boolean;
+  hitType?: 'perfect' | 'good' | 'ok' | 'miss';
+  visibleSince?: number;
+  despawnTime?: number;
 };
 
 interface DrumDanceChallengeProps {
   difficulty?: number;
-  agility?: number; // 10-14 scale, higher value means faster rings
+  agility?: number;
   onComplete?: (score: number) => void;
   onFail?: () => void;
 }
 
 const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
   difficulty = 2,
-  agility = 10, // Reduced from 12 to 10 to slow down base speed
+  agility = 10,
   onComplete = (score: number) => console.log('Challenge complete:', score),
   onFail = () => console.log('Challenge failed')
 }) => {
@@ -39,12 +37,9 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
   const [isCountingDown, setIsCountingDown] = useState<boolean>(false);
   const [lastHitType, setLastHitType] = useState<'perfect' | 'good' | 'ok' | 'miss' | null>(null);
   const [showHitFeedback, setShowHitFeedback] = useState<boolean>(false);
-  const [pendingRings, setPendingRings] = useState<Ring[]>([]); // Store rings that are waiting to be displayed
+  const [pendingRings, setPendingRings] = useState<Ring[]>([]);
   const [lastHitBongo, setLastHitBongo] = useState<'left' | 'right' | null>(null);
   const [isVerticalLayout, setIsVerticalLayout] = useState<boolean>(false);
-
-  // Use the score messages hook
-  const { scoreMessages, addScoreMessage } = useScoreMessages(1500); // Extended visibility of score messages
 
   // Refs to prevent re-renders and manage game loop
   const gameStateRef = useRef<GameState>('ready');
@@ -60,12 +55,13 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
   const countdownActiveRef = useRef<boolean>(false);
   const lastHitTypeRef = useRef<'perfect' | 'good' | 'ok' | 'miss' | null>(null);
   const lastHitBongoRef = useRef<'left' | 'right' | null>(null);
+  const lastPatternEndTimeRef = useRef<number>(0);
 
   // Game configuration based on difficulty and agility
   const gameConfig = useRef({
     bongoSize: 120,
     ringAnimationDuration: 4000 - (agility * 150),
-    maxRingSize: 300,  // Size of the ring image
+    maxRingSize: 300,
     minRingSize: 110,
     // Score ranges proportional to animation duration
     get perfectScoreRange() { return Math.round(this.ringAnimationDuration * 0.015) },
@@ -76,17 +72,17 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
     okScore: 75,
     missScore: 0,
     maxScore: 3000,
-    // Ring patterns with appropriate spacing (2-3 seconds between rings)
+    // Ring patterns with appropriate spacing
     ringPatterns: [
-      [0, 2.5, 5.0, 7.5, 10.0, 12.5, 15.0],
-      [0, 3.0, 6.0, 9.0, 12.0, 15.0],
-      [0, 2.0, 4.5, 7.0, 9.5, 12.0, 14.5],
+      [0, 2.25, 4.75, 7.25, 9.75, 12.25, 14.75],
+      [0, 2.75, 5.75, 8.75, 11.75, 14.75],
+      [0, 1.75, 4.25, 6.75, 9.25, 11.75, 14.25],
     ],
-    minimumTimeBetweenHits: 2.0,
-    // Interval between pattern groups
-    spawnInterval: 15000,
-    feedbackDuration: 300, // Duration of hit feedback effect in ms
-    ringDespawnDelay: 200, // How long to show a ring after it's been scored/missed (in ms)
+    minimumTimeBetweenHits: 1.75,
+    // Interval between pattern groups - reduced to eliminate awkward pauses
+    spawnInterval: 12000,
+    feedbackDuration: 300,
+    ringDespawnDelay: 200,
     scoreColors: {
       perfect: '#FFD700', // Gold
       good: '#4CAF50',    // Green
@@ -229,6 +225,7 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
           countdownActiveRef.current = false;
           lastHitTypeRef.current = null;
           lastHitBongoRef.current = null;
+          lastPatternEndTimeRef.current = 0;
           
           // Generate first pattern of rings immediately at game start
           generateRings(performance.now());
@@ -296,6 +293,12 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
       };
     });
     
+    // Update the last pattern end time reference
+    if (pattern.length > 0) {
+      const lastPatternTime = pattern[pattern.length - 1] * 1000;
+      lastPatternEndTimeRef.current = startTime + lastPatternTime;
+    }
+    
     // Push rings to the pending queue
     pendingRingsRef.current = [...pendingRingsRef.current, ...newRings];
     setPendingRings(prevRings => [...prevRings, ...newRings]);
@@ -320,6 +323,7 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
     countdownActiveRef.current = false;
     lastHitTypeRef.current = null;
     lastHitBongoRef.current = null;
+    lastPatternEndTimeRef.current = 0;
   }, []);
 
   // Game loop
@@ -332,16 +336,31 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
   
       if (timeLeftRef.current <= 0 || scoreRef.current >= gameConfig.current.maxScore) {
         clearInterval(timerInterval);
-        clearInterval(patternInterval);
+        clearInterval(checkPatternInterval);
         setGameState('success');
         gameStateRef.current = 'success';
         onComplete(scoreRef.current);
       }
     }, 100);
-  
-    const patternInterval = setInterval(() => {
-      generateRings(performance.now());
-    }, gameConfig.current.spawnInterval);
+    
+    // Instead of using a fixed interval for pattern generation,
+    // check more frequently if we need to spawn a new pattern
+    const checkPatternInterval = setInterval(() => {
+      const currentTime = performance.now();
+      
+      // If there are no active or pending rings, or if the last pattern has ended plus a small buffer
+      // and enough time has passed since the last pattern ended, generate a new pattern
+      const shouldGenerateNewPattern = (
+        (ringsRef.current.length === 0 && pendingRingsRef.current.length === 0) ||
+        (lastPatternEndTimeRef.current > 0 && 
+         currentTime > lastPatternEndTimeRef.current + 2000 && // Small buffer after last pattern ends
+         currentTime > lastPatternEndTimeRef.current + (gameConfig.current.spawnInterval / 4)) // At least 1/4 of spawn interval passed
+      );
+      
+      if (shouldGenerateNewPattern) {
+        generateRings(currentTime);
+      }
+    }, 1000); // Check every second if we need to generate a new pattern
   
     const updateGameState = (timestamp: number) => {
       if (gameStateRef.current !== 'playing') return;
@@ -406,12 +425,6 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
           // Set last hit bongo
           lastHitBongoRef.current = ring.bongo;
           setLastHitBongo(ring.bongo);
-          
-          const bongoElement = ring.bongo === 'left' ? leftBongoRef.current : rightBongoRef.current;
-          if (bongoElement) {
-            const rect = bongoElement.getBoundingClientRect();
-            addScoreMessage(rect.left + rect.width / 2, rect.top + rect.height / 2, 0);
-          }
         }
         
         return ring;
@@ -436,12 +449,12 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
   
     return () => {
       clearInterval(timerInterval);
-      clearInterval(patternInterval);
+      clearInterval(checkPatternInterval);
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [gameState, onComplete, addScoreMessage, generateRings]);
+  }, [gameState, onComplete, generateRings]);
 
   // Cleanup effect for countdown if component unmounts during countdown
   useEffect(() => {
@@ -471,11 +484,6 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
       lastHitBongoRef.current = bongo;
       setLastHitBongo(bongo);
       
-      const bongoElement = bongo === 'left' ? leftBongoRef.current : rightBongoRef.current;
-      if (bongoElement) {
-        const rect = bongoElement.getBoundingClientRect();
-        addScoreMessage(rect.left + rect.width / 2, rect.top + rect.height / 2, 0);
-      }
       return;
     }
     
@@ -523,24 +531,12 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
     lastHitBongoRef.current = bongo;
     setLastHitBongo(bongo);
     
-    const bongoElement = bongo === 'left' ? leftBongoRef.current : rightBongoRef.current;
-    if (bongoElement) {
-      const rect = bongoElement.getBoundingClientRect();
-      
-      // Score messages with hit type
-      addScoreMessage(
-        rect.left + rect.width / 2, 
-        rect.top + rect.height / 2, 
-        pointsEarned
-      );
-    }
-    
     if (newScore >= config.maxScore) {
       gameStateRef.current = 'success';
       setGameState('success');
       onComplete(Math.floor(config.maxScore));
     }
-  }, [gameState, evaluateHit, addScoreMessage]);
+  }, [gameState, evaluateHit]);
   
   // Render a ring using the image
   const renderRing = useCallback((ring: Ring) => {
@@ -598,14 +594,15 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
           transition: 'opacity 0.2s ease-in-out, filter 0.1s ease-in-out'
         }}
       >
-        <img 
-          src="/challenges/16bit-ring.png" 
-          alt="Ring" 
+        <img
+          src="/challenges/hoop1.png"
+          alt="Ring"
           style={{
             width: '100%',
             height: '100%',
-            objectFit: 'contain'
-          }} 
+            objectFit: 'contain',
+            filter: ring.bongo === 'right' ? 'sepia(100%) saturate(500%) hue-rotate(330deg) brightness(120%)' : 'none'
+          }}
         />
       </div>
     );
@@ -715,7 +712,7 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
             onClick={() => handleBongoClick('left')}
           >
             <img
-              src="/challenges/16bit-bongo.png"
+              src="/challenges/bongo.png"
               alt="Left Bongo"
               className="w-full h-full object-contain"
             />
@@ -733,7 +730,7 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
             onClick={() => handleBongoClick('right')}
           >
             <img
-              src="/challenges/16bit-bongo.png"
+              src="/challenges/bongo.png"
               alt="Right Bongo"
               className="w-full h-full object-contain"
             />
@@ -742,14 +739,6 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
         
         {/* Render active rings */}
         {rings.map(ring => renderRing(ring))}
-        
-        {/* Score Messages */}
-        <ScoreMessages 
-          messages={scoreMessages} 
-          duration={1500}
-          floatDistance={50}
-          textClass="font-bold text-xl shadow-sm"
-        />
         
         {/* Hit Feedback Display */}
         {showHitFeedback && hitFeedback.message && (
@@ -820,4 +809,4 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
   );
 };
 
-export default DrumDanceChallenge;
+export default DrumDanceChallenge

@@ -33,8 +33,6 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
   const [rings, setRings] = useState<Ring[]>([]);
   const [score, setScore] = useState<number>(0);
   const [timeLeft, setTimeLeft] = useState<number>(SONG_DURATION);
-  const [countdownMessage, setCountdownMessage] = useState<string>('');
-  const [isCountingDown, setIsCountingDown] = useState<boolean>(false);
   const [lastHitType, setLastHitType] = useState<'perfect' | 'good' | 'ok' | 'miss' | null>(null);
   const [showHitFeedback, setShowHitFeedback] = useState<boolean>(false);
   const [pendingRings, setPendingRings] = useState<Ring[]>([]);
@@ -52,7 +50,6 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
   const animationFrameRef = useRef<number | null>(null);
   const leftBongoRef = useRef<HTMLDivElement>(null);
   const rightBongoRef = useRef<HTMLDivElement>(null);
-  const countdownActiveRef = useRef<boolean>(false);
   const lastHitTypeRef = useRef<'perfect' | 'good' | 'ok' | 'miss' | null>(null);
   const lastHitBongoRef = useRef<'left' | 'right' | null>(null);
   const lastPatternEndTimeRef = useRef<number>(0);
@@ -134,6 +131,18 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
       ring.scored = true;
       ring.hitType = 'miss';
       ring.despawnTime = currentTime; // Despawn immediately when animation ends
+      
+      // Show MISS feedback when ring despawns without being clicked
+      lastHitTypeRef.current = 'miss';
+      lastHitBongoRef.current = ring.bongo;
+
+      // Use setTimeout to ensure state updates happen after the current execution
+      setTimeout(() => {
+        setLastHitType('miss');
+        setShowHitFeedback(true);
+        setLastHitBongo(ring.bongo);
+        setTimeout(() => setShowHitFeedback(false), gameConfig.current.feedbackDuration);
+      }, 0);
     }
     
     // Calculate size based on progress
@@ -187,51 +196,27 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
     }
   }, []);
   
-  // Start Countdown and then Game
-  const startCountdown = useCallback(() => {
-    // Keep gameState as 'ready' during countdown, but track countdown separately
-    setIsCountingDown(true);
-    countdownActiveRef.current = true;
-    setCountdownMessage('Ready');
+  // Start the game immediately without countdown
+  const startGame = useCallback(() => {
+    // Start actual game immediately
+    setGameState('playing');
+    gameStateRef.current = 'playing';
+    setTimeLeft(SONG_DURATION);
+    setScore(0);
+    setRings([]);
+    setPendingRings([]);
+    setLastHitBongo(null);
     
-    // Ready
-    setTimeout(() => {
-      if (!countdownActiveRef.current) return;
-      setCountdownMessage('Set');
-      
-      // Set
-      setTimeout(() => {
-        if (!countdownActiveRef.current) return;
-        setCountdownMessage('Go!');
-        
-        // Go!
-        setTimeout(() => {
-          if (!countdownActiveRef.current) return;
-          
-          // Start actual game after countdown
-          setGameState('playing');
-          gameStateRef.current = 'playing';
-          setTimeLeft(SONG_DURATION);
-          setScore(0);
-          setRings([]);
-          setPendingRings([]);
-          setIsCountingDown(false);
-          setLastHitBongo(null);
-          
-          timeLeftRef.current = SONG_DURATION;
-          scoreRef.current = 0;
-          ringsRef.current = [];
-          pendingRingsRef.current = [];
-          countdownActiveRef.current = false;
-          lastHitTypeRef.current = null;
-          lastHitBongoRef.current = null;
-          lastPatternEndTimeRef.current = 0;
-          
-          // Generate first pattern of rings immediately at game start
-          generateRings(performance.now());
-        }, 1000);
-      }, 1000);
-    }, 1000);
+    timeLeftRef.current = SONG_DURATION;
+    scoreRef.current = 0;
+    ringsRef.current = [];
+    pendingRingsRef.current = [];
+    lastHitTypeRef.current = null;
+    lastHitBongoRef.current = null;
+    lastPatternEndTimeRef.current = 0;
+    
+    // Generate first pattern of rings immediately at game start
+    generateRings(performance.now());
   }, []);
   
   // Validate timing pattern - ensure minimum gap between hits
@@ -311,7 +296,6 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
     setScore(0);
     setRings([]);
     setPendingRings([]);
-    setIsCountingDown(false);
     setLastHitType(null);
     setLastHitBongo(null);
     
@@ -320,7 +304,6 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
     scoreRef.current = 0;
     ringsRef.current = [];
     pendingRingsRef.current = [];
-    countdownActiveRef.current = false;
     lastHitTypeRef.current = null;
     lastHitBongoRef.current = null;
     lastPatternEndTimeRef.current = 0;
@@ -415,7 +398,7 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
           // Set despawn time to exactly when the animation ends
           const startTime = ring.visibleSince || ring.spawnTime;
           const animationEndTime = startTime + gameConfig.current.ringAnimationDuration;
-          ring.despawnTime = animationEndTime;
+          ring.despawnTime = timestamp + gameConfig.current.ringDespawnDelay;
           
           lastHitTypeRef.current = 'miss';
           setLastHitType('miss');
@@ -455,13 +438,6 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
       }
     };
   }, [gameState, onComplete, generateRings]);
-
-  // Cleanup effect for countdown if component unmounts during countdown
-  useEffect(() => {
-    return () => {
-      countdownActiveRef.current = false;
-    };
-  }, []);
 
   // Handle bongo clicks
   const handleBongoClick = useCallback((bongo: 'left' | 'right') => {
@@ -506,7 +482,7 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
           scored: true, 
           active: false, // Always set to inactive once scored
           hitType: hitResult.type as 'perfect' | 'good' | 'ok' | 'miss',
-          despawnTime: animationEndTime // Set despawn time to match animation end time
+          despawnTime: currentTime + config.ringDespawnDelay
         };
       }
       return ring;
@@ -746,32 +722,23 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
             {hitFeedback.message}
           </div>
         )}
-        
-        {/* Countdown Animation */}
-        {isCountingDown && (
-          <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-            <div className="text-6xl font-bold text-white animate-bounce">
-              {countdownMessage}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Game Controls */}
       <div className="mt-4">
-        {gameState === 'ready' && !isCountingDown && (
+        {gameState === 'ready' && (
           <button
             className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-            onClick={startCountdown}
+            onClick={startGame}
             type="button"
           >
             Start Rhythm Game
           </button>
         )}
 
-        {(gameState === 'playing' || isCountingDown) && (
+        {gameState === 'playing' && (
           <div className="w-full py-2 px-4 bg-gray-400 dark:bg-gray-600 text-white rounded-lg text-center">
-            Time: {isCountingDown ? SONG_DURATION.toFixed(1) : timeLeft.toFixed(1)}s | Score: {Math.floor(score)}
+            Time: {timeLeft.toFixed(1)}s | Score: {Math.floor(score)}
           </div>
         )}
 
@@ -782,7 +749,7 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
             </div>
             <button
               className="py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
-              onClick={startCountdown}
+              onClick={startGame}
               type="button"
             >
               Play Again

@@ -14,6 +14,8 @@ export const TIER_TYPES = {
 export const STORAGE_KEYS = {
     theme: 'totem-theme',
     notifications: 'totem-notifications',
+    notificationSound: "totem-notification-sound",
+    maxNotifications: "totem-max-notifications",
     tokenApprovalMessageDismissed: 'totem-approval-message-dismissed',
     isGaslessEnabled: 'totem-gasless-enabled',
     gaslessApiKey: 'totem-gasless-api-key',

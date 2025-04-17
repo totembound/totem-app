@@ -1,12 +1,12 @@
 import { ethers } from 'ethers';
 import { MessageDialogState } from '../components/MessageDialog';
-import TotemDetailView from '../components/TotemDetailView';
 
 export interface UserContextType extends UserContextState {
     checkSignupStatus: () => Promise<void>;
     updateBalances: () => Promise<void>;
     connect: () => Promise<void>;
     disconnect: () => void;
+    getTotem: (tokenId: bigint) => NFTMetadata | undefined;
     addTotem: (tokenId: bigint) => Promise<void>;
     removeTotem: (tokenId: bigint) => void;
     updateTotem: (tokenId: bigint, type: ActionType) => Promise<void>;

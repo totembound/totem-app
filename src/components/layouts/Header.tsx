@@ -176,7 +176,7 @@ const Header: React.FC = () => {
             <div className="flex items-center gap-2 sm:gap-4">
               <ThemeToggle />
               {isConnected && isSignedUp && (
-                <NotificationsPanel userAddress={address} />
+                <NotificationsPanel/>
               )}
               {isConnected ? <UserMenu /> : <WalletButton />}
             </div>

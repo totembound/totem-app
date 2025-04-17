@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { ethers } from "ethers";
 import {
   CONTRACT_ADDRESSES,
+  createAchievementsContract,
   createChallengesContract,
   createTotemNFTContract,
 } from "../config/contracts";
@@ -21,7 +22,6 @@ import challengesABI from "../contracts/TotemChallenges.abi.json";
 import { getUserStorage, setUserStorage } from "../utils/localStorage";
 import { STORAGE_KEYS } from "../config/constants";
 import { useUser } from "../contexts/UserContext";
-import { useAchievements } from "../contexts/AchievementsContext";
 import { Rarity, Species } from "../types/types";
 
 const gameAddress = CONTRACT_ADDRESSES.game;
@@ -70,7 +70,6 @@ const formatAddress = (address: string, length = 6) => {
 
 export function useNotifications() {
   const { address: userAddress, isConnected, getTotem } = useUser();
-  const { getAchievementById } = useAchievements();
   const [notifications, setNotifications] = useState<Notification[]>(() => {
     // Load saved notifications from localStorage on startup
     return getUserStorage<Notification[]>(
@@ -409,9 +408,9 @@ export function useNotifications() {
       tokenId: any,
       amount: any
     ) => {
-      const isOwn = user.toLowerCase() === userAddress.toLowerCase();
+      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
 
-      if (isOwn) {
+      if (isOwner) {
         const contract = createTotemNFTContract(provider);
         const attributes = await contract.attributes(tokenId);
         const rarity = getEnumKeyByValue(Rarity, Number(attributes.rarity));
@@ -442,9 +441,9 @@ export function useNotifications() {
       tokenId: any,
       amount: any
     ) => {
-      const isOwn = user.toLowerCase() === userAddress.toLowerCase();
+      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
 
-      if (isOwn) {
+      if (isOwner) {
         const contract = createTotemNFTContract(provider);
         const attributes = await contract.attributes(tokenId);
         const rarity = getEnumKeyByValue(Rarity, Number(attributes.rarity));
@@ -474,15 +473,17 @@ export function useNotifications() {
     };
 
     // Events from TotemNFT
-    const handleTotemEvolved = (
+    const handleTotemEvolved = async (
       tokenId: any,
       newStage: any,
       species: any,
       rarity: any
     ) => {
-      const totem = getTotem(tokenId);
-      // only show for my totems
-      if (totem) {
+      const contract = createTotemNFTContract(provider);
+      const tokenOwner = await contract.ownerOf(tokenId);
+      const isOwner = tokenOwner.toLowerCase() === userAddress.toLowerCase();
+
+      if (isOwner) {
         addNotification(
           NotificationType.TOTEM_EVOLVED,
           `Your Totem #${tokenId.toString()} evolved to stage ${
@@ -539,11 +540,12 @@ export function useNotifications() {
     };
 
     // Events from TotemAchievements
-    const handleAchievementUnlocked = (id: any, user: any, badgeUri: any) => {
-      const isOwn = user.toLowerCase() === userAddress.toLowerCase();
-      if (isOwn) {
-        const ach = getAchievementById(id);
-        const achievementName = ach?.name;
+    const handleAchievementUnlocked = async (id: any, user: any, badgeUri: any) => {
+      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
+      if (isOwner) {
+        const contract = createAchievementsContract(provider);
+        const achievement = await contract.getAchievement(id);
+        const achievementName = achievement?.name;
 
         addNotification(
           NotificationType.ACHIEVEMENT_UNLOCKED,
@@ -556,16 +558,17 @@ export function useNotifications() {
       }
     };
 
-    const handleMilestoneUnlocked = (
+    const handleMilestoneUnlocked = async (
       id: any,
       milestone: any,
       user: any,
       badgeUri: any
     ) => {
-      const isOwn = user.toLowerCase() === userAddress.toLowerCase();
-      if (isOwn) {
-        const ach = getAchievementById(id);
-        const name = ach?.name ? ` of "${ach?.name}"` : "";
+      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
+      if (isOwner) {
+        const contract = createAchievementsContract(provider);
+        const achievement = await contract.getAchievement(id);
+        const name = achievement?.name ? ` of "${achievement?.name}"` : "";
         const milestoneName = `Milestone ${Number(milestone) + 1}${name}`;
 
         addNotification(
@@ -581,8 +584,8 @@ export function useNotifications() {
 
     // Rewards Events
     const handleRewardClaimed = (rewardId: any, user: any, amount: any) => {
-      const isOwn = user.toLowerCase() === userAddress.toLowerCase();
-      if (isOwn) {
+      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
+      if (isOwner) {
         const formattedAmount = ethers.formatEther(amount);
         addNotification(
           NotificationType.REWARD_CLAIMED,
@@ -602,8 +605,8 @@ export function useNotifications() {
       tokenId: any,
       score: any
     ) => {
-      const isOwn = user.toLowerCase() === userAddress.toLowerCase();
-      if (isOwn) {
+      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
+      if (isOwner) {
         const contract = createChallengesContract(provider);
         const info = await contract.getChallengeInfo(challengeId);
 
@@ -625,12 +628,12 @@ export function useNotifications() {
       user: any,
       score: any
     ) => {
-      const isOwn = user.toLowerCase() === userAddress.toLowerCase();
+      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
 
       const contract = createChallengesContract(provider);
       const info = await contract.getChallengeInfo(challengeId);
 
-      const message = isOwn
+      const message = isOwner
         ? `You set a new high score of ${score.toString()} on ${
             info.name
           } challenge!`
@@ -641,10 +644,10 @@ export function useNotifications() {
       addNotification(
         NotificationType.HIGH_SCORE_SET,
         message,
-        isOwn ? NotificationScope.PERSONAL : NotificationScope.GLOBAL,
+        isOwner ? NotificationScope.PERSONAL : NotificationScope.GLOBAL,
         NotificationPriority.MEDIUM,
         { challengeId, score: Number(score) },
-        isOwn ? userAddress : undefined
+        isOwner ? userAddress : undefined
       );
     };
 

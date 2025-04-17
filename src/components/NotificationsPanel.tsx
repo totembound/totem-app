@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Bell,
   Trash2,
   X,
   Check,
   Filter,
-  Clock,
   Star,
   Shield,
   Award,
@@ -16,8 +15,7 @@ import {
 import { useNotifications } from "../hooks/useNotifications";
 import {
   NotificationType,
-  NotificationPriority,
-  NotificationScope,
+  NotificationPriority
 } from "../types/notifications";
 import FilterMenuPortal from "./FilterMenuPortal";
 

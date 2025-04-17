@@ -97,7 +97,7 @@ export type TotemRewardsContract = Contract & {
 
 export type TotemAchievementsContract = Contract & {
     hasAchievement(achievementId: string, user: string): Promise<boolean>;
-    getAchievement(id: string): Promise<[string, string, number, number, string, string, boolean, any[], string[]]>;
+    getAchievement(id: string): Promise<Achievement>;
     getAchievementsByCategory(category: number): Promise<Achievement[]>;
     getUserCategoriesProgress(user: string): Promise<CategoryProgress[]>;
     getDetailedProgress(id: string, user: string): Promise<AchievementProgress>;

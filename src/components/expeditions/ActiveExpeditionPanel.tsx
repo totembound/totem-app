@@ -45,7 +45,13 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
         const total = expeditionConfig.duration;
         const elapsed = total - timeRemaining;
         
-        return Math.min(100, Math.max(0, (elapsed / total) * 100));
+        const percent = Math.min(100, Math.max(0, (elapsed / total) * 100));
+
+        if (!isComplete && percent >= 99) {
+            return 99;
+        }
+
+        return percent;
     };
     
     // Handle claim with loading state

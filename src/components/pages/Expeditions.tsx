@@ -40,7 +40,8 @@ const Expeditions: React.FC = () => {
 
     // State for expedition dialog
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
     // Load data when component mounts
     useEffect(() => {
         if (isSignedUp) {
@@ -106,6 +107,19 @@ const Expeditions: React.FC = () => {
         }
     };
 
+    const handleRefresh = () => {
+        setIsRefreshing(true);
+        
+        // Perform the refresh actions
+        refreshExpeditions();
+        getUserRuneBalances();
+        
+        // Reset the animation after a short delay
+        setTimeout(() => {
+          setIsRefreshing(false);
+        }, 750); // Animation duration
+    };
+      
     // Find active expedition by ID (if it exists)
     const findActiveExpedition = (expeditionId: string) => {
         const id = ethers.id(expeditionId);
@@ -183,13 +197,10 @@ const Expeditions: React.FC = () => {
                         </div>
 
                         <button 
-                            onClick={() => {
-                                refreshExpeditions();
-                                getUserRuneBalances();
-                            }}
-                            className="flex items-center gap-2 p-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
+                            onClick={handleRefresh}
+                            className="flex items-center gap-2 p-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg transition-colors"
                         >
-                            <RefreshCw className="w-4 h-4" />
+                            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                             <span className="hidden sm:text-sm md:inline">Refresh</span>
                         </button>
                     </div>

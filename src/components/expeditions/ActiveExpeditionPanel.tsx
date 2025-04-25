@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Clock, CheckCircle, Gift, Droplets, Sparkles, Users, Loader2 } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
+import { getRarityBorderColor } from "../../utils/totems";
 import CountdownTimer from '../CountdownTimer';
 
 interface ActiveExpeditionPanelProps {
@@ -27,6 +28,10 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
     const captain = getTotem(BigInt(expedition.totemIds[0]));
     const memberOne = getTotem(BigInt(expedition.totemIds[1]));
     const memberTwo = getTotem(BigInt(expedition.totemIds[2]));
+
+    const captainRarityColors = getRarityBorderColor(captain?.attributes.rarity!);
+    const memberOneRarityColors = getRarityBorderColor(memberOne?.attributes.rarity!);
+    const memberTwoRarityColors = getRarityBorderColor(memberTwo?.attributes.rarity!);
 
     // Calculate time remaining
     const now = Math.floor(Date.now() / 1000);
@@ -135,6 +140,7 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
                     <div className="bg-gray-100 dark:bg-gray-700/30 rounded-lg p-2 text-center">
                         <Droplets className="w-5 h-5 text-blue-500 mx-auto mb-1" />
                         <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                            {expeditionConfig.durationHours >= 24 ? "3× " : expeditionConfig.durationHours >= 12 ? "2× " : ""}
                             Runes
                         </div>
                     </div>
@@ -157,7 +163,7 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
                     {/* Captain */}
                     <div className="bg-gray-100 dark:bg-gray-700/30 rounded-lg p-2">
                         <div className="flex flex-col items-center">
-                            <div className="relative w-10 h-10 overflow-hidden rounded-lg border border-purple-500">
+                            <div className={`relative w-10 h-10 overflow-hidden rounded-lg border ${captainRarityColors.border}`}>
                                 <img 
                                     src={captain.image?.replace("ipfs://", "https://ipfs.io/ipfs/") || '/images/placeholder.png'} 
                                     alt={captain.attributes.displayName || `Totem #${captain.id}`}
@@ -173,7 +179,7 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
                     {/* Member 1 */}
                     <div className="bg-gray-100 dark:bg-gray-700/30 rounded-lg p-2">
                         <div className="flex flex-col items-center">
-                            <div className="relative w-10 h-10 overflow-hidden rounded-lg border border-blue-500">
+                            <div className={`relative w-10 h-10 overflow-hidden rounded-lg border ${memberOneRarityColors.border}`}>
                                 <img 
                                     src={memberOne.image?.replace("ipfs://", "https://ipfs.io/ipfs/") || '/images/placeholder.png'} 
                                     alt={memberOne.attributes.displayName || `Totem #${memberOne.id}`}
@@ -189,7 +195,7 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
                     {/* Member 2 */}
                     <div className="bg-gray-100 dark:bg-gray-700/30 rounded-lg p-2">
                         <div className="flex flex-col items-center">
-                            <div className="relative w-10 h-10 overflow-hidden rounded-lg border border-blue-500">
+                            <div className={`relative w-10 h-10 overflow-hidden rounded-lg border ${memberTwoRarityColors.border}`}>
                                 <img 
                                     src={memberTwo.image?.replace("ipfs://", "https://ipfs.io/ipfs/") || '/images/placeholder.png'} 
                                     alt={memberTwo.attributes.displayName || `Totem #${memberTwo.id}`}

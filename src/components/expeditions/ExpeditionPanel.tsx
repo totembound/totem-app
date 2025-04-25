@@ -134,7 +134,7 @@ const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
                         <div className="text-xs space-x-1">
                             {runeDropChances[0] > 0 && (
                                 <span className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                                    L:{runeDropChances[0]}%
+                                    L:{runeDropChances[0]}%{durationHours >= 24 ? " (×3)" : durationHours >= 12 ? " (×2)" : ""}
                                 </span>
                             )}
                             {runeDropChances[1] > 0 && (

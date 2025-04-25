@@ -3,9 +3,10 @@ import { useUser } from "../../contexts/UserContext";
 import { useGame } from "../../contexts/GameContext";
 import { ethers } from "ethers";
 import { X, MapPin, Heart, AlertCircle, Zap, Sparkles } from "lucide-react";
-import expeditions from "../data/expeditions.json";
 import { Domain } from "../../types/types";
 import { formatTokenAmount } from "../../utils/formats";
+import { getRarityBorderColor } from "../../utils/totems";
+import expeditions from "../data/expeditions.json";
 
 interface ExpeditionSelectionDialogProps {
   isOpen: boolean;
@@ -404,6 +405,8 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                     const isEligible = isEligibleTotem(totem.id);
                     const totemHasMatchingDomain = hasMatchingDomain(totem.id);
                     const onExpedition = isTotemOnExpedition(totem.id);
+                    // Get rarity border colors
+                    const rarityColors = getRarityBorderColor(totem.attributes.rarity);
 
                     return (
                       <div
@@ -429,7 +432,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                         }
                       >
                         <div className="flex items-center gap-2">
-                          <div className="relative w-12 h-12 rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700">
+                          <div className={`relative w-12 h-12 rounded-lg overflow-hidden border ${rarityColors.border}`}>
                             <img
                               src={
                                 totem.image?.replace(

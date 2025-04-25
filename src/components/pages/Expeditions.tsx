@@ -8,6 +8,7 @@ import ExpeditionPanel from '../expeditions/ExpeditionPanel';
 import ActiveExpeditionPanel from '../expeditions/ActiveExpeditionPanel';
 import ExpeditionSelectionDialog from '../expeditions/ExpeditionSelectionDialog';
 import { Filter, Database, RefreshCw, Shapes } from 'lucide-react';
+import { Affinity } from '../../types/types';
 
 // Import expedition data
 import expeditionData from '../data/expeditions.json';
@@ -234,7 +235,7 @@ const Expeditions: React.FC = () => {
                             totemCost={expedition.totemCost}
                             happinessCost={expedition.happinessCost}
                             baseExperience={expedition.baseExperience}
-                            primaryAffinity={expedition.primaryAffinity}
+                            primaryAffinity={Affinity[expedition.primaryAffinity as keyof typeof Affinity]}
                             runeDropChances={expedition.runeDropChances as [number, number, number]}
                             enabled={expedition.enabled}
                             minStage={expedition.minStage}

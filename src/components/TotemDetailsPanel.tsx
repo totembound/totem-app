@@ -1,7 +1,8 @@
 import React from 'react';
-import { Cloud, Mountain, Waves, Dumbbell, Brain, Wind, Lock, Unlock } from 'lucide-react';
+import { Cloud, Mountain, Waves, Dumbbell, Brain, Wind, Lock, Unlock, MapPin } from 'lucide-react';
 import { Species, Color, Rarity } from '../types/types';
 import { AVAILABLE_SPECIES } from '../config/constants';
+import { formatTimeRemaining } from '../utils/formats';
 
 interface TotemDetailsPanelProps {
     stage: number;
@@ -11,6 +12,8 @@ interface TotemDetailsPanelProps {
     affinity: string;
     domain: string;
     isStaked: boolean;
+    isOnExpedition?: boolean;
+    expeditionEndTime?: number;
 }
 
 const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
@@ -20,7 +23,9 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
     color,
     affinity,
     domain,
-    isStaked
+    isStaked,
+    isOnExpedition = false,
+    expeditionEndTime = 0
 }) => {
     // Get icons based on affinity and domain
     const getAffinityIcon = () => {
@@ -123,6 +128,19 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
                             )}
                         </span>
                     </div>
+
+                    {/* Expedition Status Row */}
+                    {isOnExpedition && (
+                        <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-3 mt-2">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Expedition</span>
+                            <span className="text-sm font-medium flex items-center gap-1.5">
+                                <MapPin size={14} className="text-blue-500" />
+                                <span className="text-blue-600 dark:text-blue-400">
+                                    {formatTimeRemaining(expeditionEndTime)} remaining
+                                </span>
+                            </span>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

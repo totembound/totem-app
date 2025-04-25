@@ -9,3 +9,15 @@ export const formatTokenAmount = (value: string): string => {
     }
     return formatted;
 };
+
+export const formatTimeRemaining = (endTime: number): string => {
+    const now = Math.floor(Date.now() / 1000);
+    const timeLeft = endTime - now;
+    
+    if (timeLeft <= 0) return 'Completed';
+    
+    const hours = Math.floor(timeLeft / 3600);
+    const minutes = Math.floor((timeLeft % 3600) / 60);
+    
+    return `${hours}h ${minutes}m`;
+};

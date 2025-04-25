@@ -1,6 +1,8 @@
 import React from 'react';
 import { Clock, Droplets, Heart, ArrowRight, Coins, Sparkles } from 'lucide-react';
 import { formatTokenAmount } from '../../utils/formats';
+import { getAffinityColor, getDomainColor } from '../../utils/totems';
+import { Affinity } from '../../types/types';
 
 interface ExpeditionPanelProps {
     id: string;
@@ -14,7 +16,7 @@ interface ExpeditionPanelProps {
     totemCost: string;
     happinessCost: number;
     baseExperience: number;
-    primaryAffinity: string;
+    primaryAffinity: Affinity;
     runeDropChances: [number, number, number];
     minStage: number;
     enabled: boolean;
@@ -42,31 +44,7 @@ const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
     canStart
 }) => {
 
-    const getDomainColor = () => {
-        switch (domain) {
-            case 0: // Land
-                return "bg-stone-500/70 text-stone-200 border-stone-500";
-            case 1: // Air
-                return "bg-blue-500/70 text-blue-200 border-blue-500";
-            case 2: // Water
-                return "bg-cyan-500/70 text-cyan-200 border-cyan-500";
-            default:
-                return "bg-gray-500/70 text-gray-200 border-gray-500";
-        }
-    };
-
-    const getAffinityColor = () => {
-        switch (primaryAffinity) {
-            case 'Strength':
-                return "bg-red-500/80 text-red-200 border-red-500";
-            case 'Agility':
-                return "bg-emerald-500/80 text-emerald-200 border-emerald-500";
-            case 'Wisdom':
-                return "bg-indigo-500/80 text-indigo-200 border-indigo-500";
-            default:
-                return "bg-gray-500/80 text-gray-200 border-gray-500";
-        }
-    };
+    const affinityName = Affinity[primaryAffinity];
 
     return (
         <div className="flex flex-col bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg h-full border border-gray-300 dark:border-gray-700">
@@ -81,11 +59,12 @@ const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
                 )}
                 <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/60" />
                 <div className="absolute inset-0 p-4 flex flex-col justify-between">
+                    {/* Domain */}
                     <div className="flex justify-between items-start">
                         <h3 className="text-lg font-bold text-gray-200">{name}</h3>
                         <div className={`
                             px-2 py-1 rounded-lg text-sm font-semibold shadow-md
-                            ${getDomainColor()}
+                            ${getDomainColor(domain)}
                         `}>
                             {domainName}
                         </div>
@@ -113,9 +92,9 @@ const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
                         </div>
                         <span className={`
                             px-2 py-1 rounded-md text-xs font-semibold
-                            ${getAffinityColor()}
+                            ${getAffinityColor(primaryAffinity)}
                         `}>
-                            {primaryAffinity}
+                            {affinityName}
                         </span>
                     </div>
                 </div>

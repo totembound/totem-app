@@ -354,7 +354,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                     <div className="flex items-center gap-2 mb-2">
                         <Sparkles className="w-5 h-5 text-emerald-500" />
                         <span className="text-gray-700 dark:text-gray-300">
-                        Expected XP: {getRewardsText().exp} each
+                        Expected XP: {getRewardsText().exp}
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -459,7 +459,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                               {totem.attributes.displayName || `#${totem.id}`}
                             </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">
-                              {totem.affinity} • {totem.domain}
+                                {totem.affinity} • {totem.domain}
                             </div>
                             <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
                               

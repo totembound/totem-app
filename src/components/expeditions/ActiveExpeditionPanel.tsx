@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Clock, CheckCircle, Gift, Droplets, Sparkles, Users, Loader2 } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
-import { getRarityBorderColor } from "../../utils/totems";
+import { getDomainColor, getRarityBorderColor } from "../../utils/totems";
 import CountdownTimer from '../CountdownTimer';
 
 interface ActiveExpeditionPanelProps {
@@ -82,12 +82,18 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
                             {expeditionConfig.name}
                         </h3>
                         <div className={`
-                            px-2 py-1 rounded-lg text-sm font-semibold shadow-md
+                            px-2 py-1 rounded-lg text-sm font-semibold shadow-md ml-auto mr-2
                             ${isComplete 
                                 ? 'bg-green-500 text-white' 
                                 : 'bg-blue-500 text-white'}
                         `}>
                             {isComplete ? 'Complete' : 'In Progress'}
+                        </div>
+                        <div className={`
+                            px-2 py-1 rounded-lg text-sm font-semibold shadow-md
+                            ${getDomainColor(expeditionConfig.domain)}
+                        `}>
+                            {expeditionConfig.domainName}
                         </div>
                     </div>
                     {/* Description */}

@@ -462,8 +462,11 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                               {totem.affinity} • {totem.domain}
                             </div>
                             <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                              
                               <Heart className="w-3 h-3 mr-1 text-pink-500 fill-pink-500" />
                               {totem.attributes.happiness}
+                              <Sparkles className="w-3 h-3 mx-1 text-blue-500 dark:text-blue-400" />
+                              {totem.attributes.stage+1} 
                             </div>
                           </div>
                         </div>
@@ -479,16 +482,18 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        toggleCaptain(totem.id);
-                                        if (!isSelected) {
-                                            toggleTotemSelection(totem.id);
+                                        if (isEligible) {
+                                            toggleCaptain(totem.id);
+                                            if (!isSelected) {
+                                                toggleTotemSelection(totem.id);
+                                            }
                                         }
                                     }}
                                     className={`text-xs px-2 py-0.5 rounded
                                     ${
                                         isCaptain
                                         ? "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-                                        : totemHasMatchingDomain
+                                        : (totemHasMatchingDomain && isEligible)
                                         ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
                                         : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 opacity-50 cursor-not-allowed"
                                     }

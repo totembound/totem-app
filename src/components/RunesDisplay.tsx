@@ -2,7 +2,11 @@ import React from 'react';
 import { Diamond, Hexagon, Pentagon } from 'lucide-react';
 import { useGame } from '../contexts/GameContext';
 
-const RuneIcon: React.FC<{ type: 'lesser' | 'greater' | 'ancient' }> = ({ type }) => {
+interface RuneIconProps {
+  type: 'lesser' | 'greater' | 'ancient';
+}
+
+export const RuneIcon: React.FC<RuneIconProps> = ({ type }) => {
     switch (type) {
       case 'lesser':
         return <Diamond className="w-4 h-4 text-gray-500 fill-gray-500" />;

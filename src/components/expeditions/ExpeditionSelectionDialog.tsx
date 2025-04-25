@@ -71,14 +71,16 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
 
     let score = 60;
 
-    // Captain domain bonus (+10)
+    
     if (captain) {
       const captainTotem = totems.find((t) => t.id === captain);
-      if (
-        captainTotem?.domain?.toLowerCase() ===
-        Domain[expedition.domain].toLowerCase()
-      ) {
+      // Captain domain bonus (+10)
+      if (captainTotem?.domain?.toLowerCase() === Domain[expedition.domain].toLowerCase()) {
         score += 10;
+      }
+      // Captain Elder bonus (+5)
+      if (captainTotem?.attributes.stage! >= 4) {
+        score += 5;
       }
     }
 
@@ -454,7 +456,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                               </div>
                             )}
                           </div>
-                          <div>
+                          <div className="flex flex-col">
                             <div className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
                               {totem.attributes.displayName || `#${totem.id}`}
                             </div>

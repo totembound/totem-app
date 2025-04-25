@@ -5,7 +5,7 @@ import { ethers } from "ethers";
 import { X, MapPin, Heart, AlertCircle, Zap, Sparkles } from "lucide-react";
 import { Domain } from "../../types/types";
 import { formatTokenAmount } from "../../utils/formats";
-import { getRarityBorderColor } from "../../utils/totems";
+import { getRarityBorderColor, getTotemStage } from "../../utils/totems";
 import expeditions from "../data/expeditions.json";
 
 interface ExpeditionSelectionDialogProps {
@@ -47,7 +47,8 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
     (totem) =>
       expedition &&
       totem.attributes.happiness >= expedition.happinessCost &&
-      !totemsOnExpedition.has(BigInt(totem.id))
+      !totemsOnExpedition.has(BigInt(totem.id)) &&
+      getTotemStage(totem) >= expedition.minStage
   );
 
   // Reset selections when dialog opens
@@ -135,6 +136,10 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
 
     // Check if totem has enough happiness
     if (totem.attributes.happiness < expedition.happinessCost) return false;
+
+    // Check if totem is minimum stage
+    if (getTotemStage(totem) <= expedition.minStage) return false;
+
 
     // Check if totem is already on another expedition
     if (isTotemOnExpedition(totemId)) return false;

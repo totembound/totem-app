@@ -16,6 +16,7 @@ interface ExpeditionPanelProps {
     baseExperience: number;
     primaryAffinity: string;
     runeDropChances: [number, number, number];
+    minStage: number;
     enabled: boolean;
     onStart: () => void;
     canStart: boolean;
@@ -36,6 +37,7 @@ const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
     primaryAffinity,
     runeDropChances,
     enabled,
+    minStage,
     onStart,
     canStart
 }) => {
@@ -89,17 +91,25 @@ const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
                         </div>
                     </div>
                     {/* Description */}
-                    <p className="font-medium text-sm text-gray-200">
+                    <p className="font-medium text-sm text-gray-200 mb-auto mt-4">
                         {description}
                     </p>
                     <div className="flex items-center space-x-2">
                         <div className={`
                             flex items-center
                             px-2 py-1 rounded-md text-xs font-bold
-                            bg-white/90 text-gray-800
+                            bg-white/70 text-gray-800
                         `}>
                             <Clock className="inline w-3 h-3 mr-1" />
                             {durationHours} hours
+                        </div>
+                        <div className={`
+                            flex items-center
+                            px-2 py-1 rounded-md text-xs font-bold
+                            bg-white/70 text-gray-800
+                        `}>
+                            <Sparkles className="inline w-3 h-3 text-blue-500 dark:text-blue-400 mr-1" />
+                            Stage {minStage+1}+
                         </div>
                         <span className={`
                             px-2 py-1 rounded-md text-xs font-semibold

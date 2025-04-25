@@ -453,6 +453,7 @@ export interface ExpeditionConfig {
     baseExperience: number;
     affinityWeights: [number, number, number];
     runeDropChances: [number, number, number];
+    minStage: number;
     enabled: boolean;
   }
   

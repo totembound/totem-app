@@ -14,6 +14,7 @@
       "primaryAffinity": "Strength",
       "runeDropChances": [100, 0, 0],
       "image": "/expeditions/header-3h-land.jpg",
+      "minStage": 1,
       "enabled": true
     },
     {
@@ -31,6 +32,7 @@
       "primaryAffinity": "Agility",
       "runeDropChances": [100, 0, 0],
       "image": "/expeditions/header-3h-air.jpg",
+      "minStage": 1,
       "enabled": true
     },
     {
@@ -48,6 +50,7 @@
       "primaryAffinity": "Wisdom",
       "runeDropChances": [100, 0, 0],
       "image": "/expeditions/header-3h-water.jpg",
+      "minStage": 1,
       "enabled": true
     },
     {
@@ -65,6 +68,7 @@
       "primaryAffinity": "Strength",
       "runeDropChances": [100, 25, 0],
       "image": "/expeditions/header-6h-land.jpg",
+      "minStage": 1,
       "enabled": true
     },
     {
@@ -82,6 +86,7 @@
       "primaryAffinity": "Wisdom",
       "runeDropChances": [100, 25, 0],
       "image": "/expeditions/header-6h-air.jpg",
+      "minStage": 1,
       "enabled": true
     },
     {
@@ -99,6 +104,7 @@
       "primaryAffinity": "Agility",
       "runeDropChances": [100, 25, 0],
       "image": "/expeditions/header-6h-water.jpg",
+      "minStage": 1,
       "enabled": true
     },
     {
@@ -116,6 +122,7 @@
       "primaryAffinity": "Strength",
       "runeDropChances": [100, 50, 10],
       "image": "/expeditions/header-12h-land.jpg",
+      "minStage": 1,
       "enabled": true
     },
     {
@@ -133,6 +140,7 @@
       "primaryAffinity": "Agility",
       "runeDropChances": [100, 50, 10],
       "image": "/expeditions/header-12h-air.jpg",
+      "minStage": 1,
       "enabled": true
     },
     {
@@ -150,6 +158,7 @@
       "primaryAffinity": "Wisdom",
       "runeDropChances": [100, 50, 10],
       "image": "/expeditions/header-12h-water.jpg",
+      "minStage": 1,
       "enabled": true
     },
     {
@@ -167,6 +176,7 @@
       "primaryAffinity": "Agility",
       "runeDropChances": [100, 75, 25],
       "image": "/expeditions/header-24h-land.jpg",
+      "minStage": 2,
       "enabled": true
     },
     {
@@ -184,6 +194,7 @@
       "primaryAffinity": "Wisdom",
       "runeDropChances": [100, 75, 25],
       "image": "/expeditions/header-24h-air.jpg",
+      "minStage": 2,
       "enabled": true
     },
     {
@@ -201,6 +212,7 @@
       "primaryAffinity": "Strength",
       "runeDropChances": [100, 75, 25],
       "image": "/expeditions/header-24h-water.jpg",
+      "minStage": 2,
       "enabled": true
     }
 ]

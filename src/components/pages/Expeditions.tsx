@@ -237,6 +237,7 @@ const Expeditions: React.FC = () => {
                             primaryAffinity={expedition.primaryAffinity}
                             runeDropChances={expedition.runeDropChances as [number, number, number]}
                             enabled={expedition.enabled}
+                            minStage={expedition.minStage}
                             onStart={() => handleExpeditionSelect(expedition.id)}
                             canStart={canStartExpedition(expedition.id)}
                         />

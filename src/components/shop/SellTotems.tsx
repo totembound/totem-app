@@ -38,18 +38,22 @@ const SellTotemCard: React.FC<SellTotemCardProps> = ({
     const stageBonus = (totem.attributes.stage / 4) * maxBonus * stageWeight;
     const rarityBonus = (totem.attributes.rarity / 4) * maxBonus * rarityWeight;
     const sellValue = Math.floor(baseValue + stageBonus + rarityBonus);
-
+    const now = Math.floor(Date.now() / 1000);
+    const timeRemaining = expeditionEndTime - now;
+    const isComplete = timeRemaining <= 0;
+    const expeditionMessage = isComplete ? 'Expedition complete' : `${formatTimeRemaining(expeditionEndTime)}`;
+    
     return (
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-            {/* Expedition Status Badge */}
-            {isOnExpedition && (
-                <div className="absolute top-3 right-3 z-30 bg-blue-600 text-white text-xs font-medium px-2 py-1 rounded-full shadow-md flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />
-                    <span>On Expedition</span>
-                </div>
-            )}
             {/* Totem Image */}
             <div className="aspect-square bg-gray-100 dark:bg-gray-700 relative">
+                {/* Expedition Status Badge */}
+                {isOnExpedition && (
+                    <div className="absolute top-3 left-3 z-30 bg-blue-600 text-white text-xs font-medium px-2 py-1 rounded-full shadow-md flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        <span>On Expedition</span>
+                    </div>
+                )}
                 <div className="absolute inset-0 flex items-center justify-center">
                     {totem.image ? (
                         <img
@@ -69,7 +73,7 @@ const SellTotemCard: React.FC<SellTotemCardProps> = ({
                 {isOnExpedition && (
                     <div className="absolute top-2/3 left-0 right-0 transform -translate-y-1/2 text-center">
                         <div className="bg-blue-600/80 dark:bg-blue-800/90 text-white px-4 py-2 mx-auto w-max rounded-full backdrop-blur-sm shadow-lg">
-                            <p className="font-medium">Returns in {formatTimeRemaining(expeditionEndTime)}</p>
+                            <p className="font-medium">{expeditionMessage}</p>
                         </div>
                     </div>
                 )}
@@ -282,7 +286,7 @@ const SellTotems: React.FC = () => {
             <div className="bg-white dark:bg-gray-900 border-b dark:border-gray-700 shadow-sm rounded-t-lg z-10">
                 <div className="pb-4 sm:pb-4">
                     <div className="flex flex-wrap gap-3 items-center justify-between">
-                        
+
                         <div className="hidden lg:flex items-center gap-2">
                             {/* Species Filter */}
                             <select
@@ -387,17 +391,6 @@ const SellTotems: React.FC = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Warning for totems on expedition */}
-            {totemsOnExpeditionCount > 0 && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 flex gap-2 items-center mb-4">
-                    <MapPin className="text-blue-500 h-5 w-5 flex-shrink-0" />
-                    <p className="text-sm text-blue-700 dark:text-blue-300">
-                        {totemsOnExpeditionCount} {totemsOnExpeditionCount === 1 ? 'totem is' : 'totems are'} currently on expedition and cannot be sold until they return.
-                    </p>
-                </div>
-            )}
-
 
             {sortedAndFiltered.length === 0 ? (
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 text-center">

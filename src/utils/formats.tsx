@@ -19,5 +19,5 @@ export const formatTimeRemaining = (endTime: number): string => {
     const hours = Math.floor(timeLeft / 3600);
     const minutes = Math.floor((timeLeft % 3600) / 60);
     
-    return `${hours}h ${minutes}m`;
+    return `${hours}h ${minutes}m remaining`;
 };

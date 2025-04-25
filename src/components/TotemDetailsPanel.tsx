@@ -136,7 +136,7 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
                             <span className="text-sm font-medium flex items-center gap-1.5">
                                 <MapPin size={14} className="text-blue-500" />
                                 <span className="text-blue-600 dark:text-blue-400">
-                                    {formatTimeRemaining(expeditionEndTime)} remaining
+                                    {formatTimeRemaining(expeditionEndTime)}
                                 </span>
                             </span>
                         </div>

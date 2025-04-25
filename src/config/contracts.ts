@@ -6,6 +6,7 @@ import TotemTokenABI from '../contracts/TotemToken.abi.json';
 import TotemShopABI from '../contracts/TotemShop.abi.json';
 import TotemRewardsABI from '../contracts/TotemRewards.abi.json';
 import TotemChallengesABI from '../contracts/TotemChallenges.abi.json';
+import TotemExpeditionsABI from '../contracts/TotemExpeditions.abi.json';
 import { Achievement, AchievementProgress, AchievementView, CategoryProgress, TotemAttributes } from '../types/types';
 
 export const CONTRACT_ADDRESSES = {
@@ -17,6 +18,7 @@ export const CONTRACT_ADDRESSES = {
     rewards: process.env.REACT_APP_REWARDS_ADDRESS as string,
     achievements: process.env.REACT_APP_ACHIEVEMENTS_ADDRESS as string,
     challenges: process.env.REACT_APP_CHALLENGES_ADDRESS as string,
+    expeditions: process.env.REACT_APP_EXPEDITIONS_ADDRESS as string,
 };
 
 // ABI snippets for the functions we need
@@ -39,6 +41,7 @@ export type TotemGameContract = Contract & {
     train: (tokenId: bigint) => Promise<TransactionResponse>;
     treat: (tokenId: bigint) => Promise<TransactionResponse>;
     canUseAction: (tokenId: bigint, actionType: Number) => Promise<boolean>;
+    getUserRuneBalances: (user: string) => Promise<[bigint, bigint, bigint]>;
 };
 
 export type TotemTokenContract = Contract & {
@@ -152,6 +155,38 @@ export type TotemChallengesContract = Contract & {
     ) => Promise<any>;
 };
 
+export type TotemExpeditionsContract = Contract & {
+    getExpeditions: () => Promise<string[]>;
+    getExpeditionConfig: (expeditionId: string) => Promise<{
+      name: string;
+      domain: number;
+      duration: bigint;
+      totemCost: bigint;
+      happinessCost: bigint;
+      baseExperience: bigint;
+      affinityWeights: [number, number, number];
+      runeDropChances: [number, number, number];
+      enabled: boolean;
+    }>;
+    getUserExpeditions: (user: string) => Promise<{
+      ids: string[];
+      totemIds: bigint[][];
+      endTimes: bigint[];
+      completed: boolean[];
+      canClaim: boolean[];
+    }>;
+    getUserActiveExpeditions: (user: string) => Promise<{
+      ids: string[];
+      totemIds: bigint[][];
+      endTimes: bigint[];
+      completed: boolean[];
+      canClaim: boolean[];
+    }>;
+    startExpedition: (expeditionId: string, totemIds: [bigint, bigint, bigint]) => Promise<TransactionResponse>;
+    claimExpeditionRewards: (expeditionIndex: number) => Promise<TransactionResponse>;
+    isTotemOnExpedition: (tokenId: bigint) => Promise<[boolean, bigint]>;
+};
+
 export const createAchievementsContract = (provider: BrowserProvider) => {
     return new Contract(
         CONTRACT_ADDRESSES.achievements,
@@ -206,4 +241,12 @@ export const createChallengesContract = (provider: BrowserProvider) => {
         TotemChallengesABI,
         provider
     ) as TotemChallengesContract;
+};
+
+export const createExpeditionsContract = (provider: BrowserProvider) => {
+    return new Contract(
+      CONTRACT_ADDRESSES.expeditions,
+      TotemExpeditionsABI,
+      provider
+    ) as TotemExpeditionsContract;
 };

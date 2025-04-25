@@ -277,6 +277,7 @@ export class TransactionService {
         const functionGasLimits: Record<string, bigint> = {
             'purchaseTotem': 1000000n, // Increase substantially
             'sellTotem': 500000n,
+            'startExpedition': 1000000n,
             'claimExpeditionRewards': 1000000n,
             'signup': 500000n,
             'approve': 500000n,

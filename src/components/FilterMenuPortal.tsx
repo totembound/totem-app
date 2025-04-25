@@ -130,7 +130,7 @@ const FilterMenuPortal: React.FC<FilterMenuPortalProps> = ({
       <button
         onClick={(e) => handleFilterSelect(e, "challenges")}
         className={`w-full text-left px-3 py-1.5 text-sm ${
-          activeFilter === "evolution"
+          activeFilter === "challenges"
             ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
             : "hover:bg-gray-100 dark:hover:bg-gray-700/50"
         }`}
@@ -138,9 +138,19 @@ const FilterMenuPortal: React.FC<FilterMenuPortalProps> = ({
         Challenges
       </button>
       <button
+        onClick={(e) => handleFilterSelect(e, "expeditions")}
+        className={`w-full text-left px-3 py-1.5 text-sm ${
+          activeFilter === "expeditions"
+            ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+            : "hover:bg-gray-100 dark:hover:bg-gray-700/50"
+        }`}
+      >
+        Expeditions
+      </button>
+      <button
         onClick={(e) => handleFilterSelect(e, "evolution")}
         className={`w-full text-left px-3 py-1.5 text-sm ${
-          activeFilter === "challenges"
+          activeFilter === "evolution"
             ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
             : "hover:bg-gray-100 dark:hover:bg-gray-700/50"
         }`}

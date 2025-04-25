@@ -11,6 +11,7 @@ import {
   Volume2,
   VolumeX,
   Settings,
+  Map,
 } from "lucide-react";
 import { useNotifications } from "../hooks/useNotifications";
 import {
@@ -33,6 +34,8 @@ const NotificationIcon = ({ type }: { type: NotificationType }) => {
       return <Award size={16} className="text-blue-500" />;
     case NotificationType.REWARD_CLAIMED:
       return <Bell size={16} className="text-green-500" />;
+    case NotificationType.EXPEDITION_REWARDS:
+      return <Map size={16} className="text-purple-500" />;
     default:
       return <Bell size={16} className="text-gray-500 dark:text-gray-400" />;
   }
@@ -114,6 +117,13 @@ function NotificationsPanel() {
           types: [
             NotificationType.CHALLENGE_COMPLETED,
             NotificationType.HIGH_SCORE_SET,
+          ],
+        });
+        break;
+      case "expeditions":
+        filtered = getFilteredNotifications({
+          types: [
+            NotificationType.EXPEDITION_REWARDS
           ],
         });
         break;
@@ -351,6 +361,8 @@ function NotificationsPanel() {
                     "Showing achievement notifications"}
                   {activeFilter === "challenges" &&
                     "Showing challenge notifications"}
+                  {activeFilter === "expeditions" &&
+                    "Showing expedition notifications"}
                   {activeFilter === "evolution" &&
                     "Showing evolution notifications"}
                   {activeFilter === "rewards" && "Showing reward notifications"}

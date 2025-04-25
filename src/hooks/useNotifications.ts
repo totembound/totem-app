@@ -24,6 +24,7 @@ import { getUserStorage, setUserStorage } from "../utils/localStorage";
 import { STORAGE_KEYS } from "../config/constants";
 import { useUser } from "../contexts/UserContext";
 import { useGame } from '../contexts/GameContext';
+import { useAchievements } from "../contexts/AchievementsContext";
 import { Rarity, Species } from "../types/types";
 
 const gameAddress = CONTRACT_ADDRESSES.game;
@@ -74,6 +75,7 @@ const formatAddress = (address: string, length = 6) => {
 export function useNotifications() {
   const { address: userAddress, isConnected, getTotem } = useUser();
   const { showExpeditionEffect } = useGame();
+  const { refreshAchievements } = useAchievements();
   const [notifications, setNotifications] = useState<Notification[]>(() => {
     // Load saved notifications from localStorage on startup
     return getUserStorage<Notification[]>(
@@ -720,16 +722,21 @@ export function useNotifications() {
           score: Number(score)
         };
         
+        const isGreatSuccess = score >= 90;
+        const isSuccess = score >= 70;
+        const statusText = isGreatSuccess ? 'Great Success!' : isSuccess ? 'Success!' : 'Completed.';
+        
         addNotification(
           NotificationType.EXPEDITION_REWARDS,
-          `Your expedition team has returned! Score: ${Number(score)}%, Rewards: ${Number(experienceGain)} XP each, ${totalRunes} rune${totalRunes > 1 ? 's' : ''}`,
+          `Your expedition team has returned! ${statusText} Rewards: ${Number(experienceGain)} XP each, ${totalRunes} rune${totalRunes > 1 ? 's' : ''}`,
           NotificationScope.PERSONAL,
-          NotificationPriority.HIGH,
+          NotificationPriority.MEDIUM,
           rewardData,
           userAddress
         );
         
         showExpeditionEffect(rewardData);
+        refreshAchievements();
       }
     };
 

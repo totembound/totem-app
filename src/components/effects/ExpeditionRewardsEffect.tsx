@@ -83,7 +83,7 @@ const ExpeditionRewardsEffect: React.FC<ExpeditionRewardsEffectProps> = ({
               Your team has returned from {expeditionName}
             </p>
             <div className={`text-xl font-bold mt-2 ${statusColor}`}>
-              {statusText} ({score}%)
+              {statusText}
             </div>
           </div>
 

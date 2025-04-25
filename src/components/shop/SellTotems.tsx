@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AlertTriangle, ArrowUpDown, Clock, Heart, Loader2, Sparkles } from 'lucide-react';
+import { AlertTriangle, ArrowUpDown, Clock, Heart, Loader2, MapPin, Sparkles } from 'lucide-react';
 import { useTotemGame } from '../../hooks/useTotemGame';
 import { useUser } from '../../contexts/UserContext';
 import { Species, Rarity, NFTMetadata, Color } from '../../types/types';
@@ -7,10 +7,14 @@ import MessageDialog from '../MessageDialog';
 import { Pagination } from '../layouts/Pagination';
 import { getRarityBadgeColor } from '../../utils/totems';
 import { useTransactionService } from '../../hooks/useTransactionService';
+import { useGame } from '../../contexts/GameContext';
+import { formatTimeRemaining } from '../../utils/formats';
 
 interface SellTotemCardProps {
     totem: NFTMetadata;
     onSellClick: (totem: NFTMetadata, value: number) => void;
+    isOnExpedition?: boolean;
+    expeditionEndTime?: number;
 }
 
 type SortDirection = 'asc' | 'desc';
@@ -21,7 +25,12 @@ interface SortConfig {
     direction: SortDirection;
 }
 
-const SellTotemCard: React.FC<SellTotemCardProps> = ({ totem, onSellClick }) => {
+const SellTotemCard: React.FC<SellTotemCardProps> = ({ 
+    totem, 
+    onSellClick,
+    isOnExpedition = false,
+    expeditionEndTime = 0 
+ }) => {
     const baseValue = 200; // Minimum value
     const maxBonus = 200; // Maximum additional value possible
     const stageWeight = 0.6; // Stage contributes 60% of potential bonus
@@ -32,6 +41,13 @@ const SellTotemCard: React.FC<SellTotemCardProps> = ({ totem, onSellClick }) => 
 
     return (
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            {/* Expedition Status Badge */}
+            {isOnExpedition && (
+                <div className="absolute top-3 right-3 z-30 bg-blue-600 text-white text-xs font-medium px-2 py-1 rounded-full shadow-md flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    <span>On Expedition</span>
+                </div>
+            )}
             {/* Totem Image */}
             <div className="aspect-square bg-gray-100 dark:bg-gray-700 relative">
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -49,6 +65,14 @@ const SellTotemCard: React.FC<SellTotemCardProps> = ({ totem, onSellClick }) => 
                         </div>
                     )}
                 </div>
+                {/* Expedition Overlay */}
+                {isOnExpedition && (
+                    <div className="absolute top-2/3 left-0 right-0 transform -translate-y-1/2 text-center">
+                        <div className="bg-blue-600/80 dark:bg-blue-800/90 text-white px-4 py-2 mx-auto w-max rounded-full backdrop-blur-sm shadow-lg">
+                            <p className="font-medium">Returns in {formatTimeRemaining(expeditionEndTime)}</p>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Totem Info */}
@@ -94,10 +118,15 @@ const SellTotemCard: React.FC<SellTotemCardProps> = ({ totem, onSellClick }) => 
 
                 <button
                     onClick={() => onSellClick(totem, sellValue)}
-                    className="w-full bg-red-600 text-white py-2 px-4 rounded font-semibold 
-                        hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 transition-colors"
+                    disabled={isOnExpedition}
+                    className={`w-full py-2 px-4 rounded font-semibold transition-colors
+                        ${isOnExpedition 
+                            ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed' 
+                            : 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600'
+                        }
+                    `}
                 >
-                    Sell Totem
+                    {isOnExpedition ? 'On Expedition' : 'Sell Totem'}
                 </button>
             </div>
         </div>
@@ -106,7 +135,7 @@ const SellTotemCard: React.FC<SellTotemCardProps> = ({ totem, onSellClick }) => 
 
 const SellTotems: React.FC = () => {
     const { totems, removeTotem, updateBalances, isGaslessEnabled } = useUser();
-    const { sellTotem } = useTotemGame();
+    const { isTotemAvailable, expeditionState } = useGame();
     const [selectedTotem, setSelectedTotem] = useState<NFTMetadata | null>(null);
     const [sellValue, setSellValue] = useState(0);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -116,7 +145,8 @@ const SellTotems: React.FC = () => {
         rarity: '',
         stage: '',
         affinity: '',
-        domain: ''
+        domain: '',
+        showOnExpedition: true
     });
     const [currentPage, setCurrentPage] = useState(1);
     const [sortConfig, setSortConfig] = useState<SortConfig>({
@@ -129,6 +159,13 @@ const SellTotems: React.FC = () => {
         gaslessEnabled: isGaslessEnabled,
         waitForConfirmation: true
     });
+
+    const getExpeditionEndTime = (tokenId: string): number => {
+        const expedition = expeditionState.userExpeditions.find(exp => 
+            !exp.completed && exp.totemIds.some(id => id.toString() === tokenId)
+        );
+        return expedition ? expedition.endTime : 0;
+    };
 
     const sortTotems = (totems: NFTMetadata[]) => {
         return [...totems].sort((a, b) => {
@@ -156,6 +193,12 @@ const SellTotems: React.FC = () => {
     };
 
     const filteredTotems = totems.filter(nft => {
+         // Check expedition status
+         const tokenIsOnExpedition = !isTotemAvailable(nft.id);
+         if (tokenIsOnExpedition && !filters.showOnExpedition) {
+             return false;
+         }
+
         return (
             (!filters.species || Species[nft.attributes.species] === filters.species) &&
             (!filters.rarity || Rarity[nft.attributes.rarity] === filters.rarity) &&
@@ -193,6 +236,11 @@ const SellTotems: React.FC = () => {
     }, [filters]);
 
     const handleSellClick = (totem: NFTMetadata, value: number) => {
+        // Don't allow selling totems on expedition
+        if (!isTotemAvailable(totem.id)) {
+            return;
+        }
+
         setSelectedTotem(totem);
         setSellValue(value);
         setIsConfirmOpen(true);
@@ -201,6 +249,13 @@ const SellTotems: React.FC = () => {
     const handleConfirmSell = async () => {
         if (!selectedTotem) return;
         if (!txService) throw new Error('Transaction service not initialized');
+
+        // Double-check totem is not on expedition
+        if (!isTotemAvailable(selectedTotem.id)) {
+            setIsConfirmOpen(false);
+            setSelectedTotem(null);
+            return;
+        }
 
         setIsSelling(true);
         try {
@@ -218,6 +273,9 @@ const SellTotems: React.FC = () => {
             setSelectedTotem(null);
         }
     };
+    
+    // Count totems on expedition
+    const totemsOnExpeditionCount = totems.filter(totem => !isTotemAvailable(totem.id)).length;
 
     return (
         <div className="space-y-6">
@@ -273,6 +331,19 @@ const SellTotems: React.FC = () => {
                                     <option key={stage} value={stage}>Stage {stage + 1}</option>
                                 ))}
                             </select>
+
+                            {/* Expedition Filter */}
+                            <label className="h-10 flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 border rounded-lg dark:border-gray-600">
+                                <input
+                                    type="checkbox"
+                                    checked={filters.showOnExpedition}
+                                    onChange={(e) => setFilters({...filters, showOnExpedition: e.target.checked})}
+                                    className="form-checkbox h-4 w-4 text-blue-600 dark:text-blue-400"
+                                />
+                                <span className="text-sm text-gray-700 dark:text-gray-300">
+                                    Show Expedition Totems ({totemsOnExpeditionCount})
+                                </span>
+                            </label>
                         </div>
                     
 
@@ -317,6 +388,16 @@ const SellTotems: React.FC = () => {
                 </div>
             </div>
 
+            {/* Warning for totems on expedition */}
+            {totemsOnExpeditionCount > 0 && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 flex gap-2 items-center mb-4">
+                    <MapPin className="text-blue-500 h-5 w-5 flex-shrink-0" />
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                        {totemsOnExpeditionCount} {totemsOnExpeditionCount === 1 ? 'totem is' : 'totems are'} currently on expedition and cannot be sold until they return.
+                    </p>
+                </div>
+            )}
+
 
             {sortedAndFiltered.length === 0 ? (
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 text-center">
@@ -326,13 +407,20 @@ const SellTotems: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {sortedAndFiltered
                         .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                        .map((totem) => (
-                        <SellTotemCard
-                            key={totem.id}
-                            totem={totem}
-                            onSellClick={handleSellClick}
-                        />
-                    ))}
+                        .map((totem) => {
+                            const tokenIsOnExpedition = !isTotemAvailable(totem.id);
+                            const expeditionEndTime = tokenIsOnExpedition ? getExpeditionEndTime(totem.id) : 0;
+                            
+                            return (
+                                <SellTotemCard
+                                    key={totem.id}
+                                    totem={totem}
+                                    onSellClick={handleSellClick}
+                                    isOnExpedition={tokenIsOnExpedition}
+                                    expeditionEndTime={expeditionEndTime}
+                                />
+                            ); 
+                    })}
                 </div>
             )}
 

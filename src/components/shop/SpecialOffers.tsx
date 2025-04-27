@@ -97,7 +97,8 @@ const SpecialOffers: React.FC<SpecialOffersViewProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-10 gap-4">
 
             {/* Regular Bundles - 3 column grid */}
-            <div className="col-span-1 md:col-span-4 space-y-4">
+            <div className={`col-span-1 md:col-span-4 space-y-4
+                ${currentMonthlySpecial ? 'md:col-span-4' : 'md:col-span-10'}`}>
                 {/* New Player Bundle */}
                 <div className="bg-green-50/50 dark:bg-green-900/20 rounded-lg p-6 border border-green-200/50 dark:border-green-800/50">
                     <div className="flex justify-between items-start mb-4">

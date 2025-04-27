@@ -292,7 +292,7 @@ export const SignupForm: React.FC = () => {
                 return (
                     <>
                         <h1 className="text-2xl md:text-3xl font-bold mb-6 text-center text-gray-900 dark:text-white">
-                            Welcome to TotemBound! 🎮✨
+                            Welcome to TotemBound! ✨
                         </h1>
                         
                         {comingSoon ? <ComingSoon /> : null}
@@ -396,10 +396,11 @@ export const SignupForm: React.FC = () => {
 
                         <div className="space-y-3">
                             <button
-                                onClick={handleConnect}
-                                className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 
-                                    rounded-lg w-full text-lg transition-all">
-                                Connect Wallet
+                                disabled={comingSoon}
+                                className={`bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 
+                                    rounded-lg w-full text-lg transition-all
+                                    ${comingSoon ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                {comingSoon ? 'Coming Soon!' : 'Connect Wallet'}
                             </button>
                             <button
                                 onClick={() => window.open('https://metamask.io/download/', '_blank')}

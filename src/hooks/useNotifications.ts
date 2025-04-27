@@ -19,9 +19,12 @@ import shopABI from "../contracts/TotemShop.abi.json";
 import rewardsABI from "../contracts/TotemRewards.abi.json";
 import achievementsABI from "../contracts/TotemAchievements.abi.json";
 import challengesABI from "../contracts/TotemChallenges.abi.json";
+import expeditionsABI from "../contracts/TotemExpeditions.abi.json";
 import { getUserStorage, setUserStorage } from "../utils/localStorage";
 import { STORAGE_KEYS } from "../config/constants";
 import { useUser } from "../contexts/UserContext";
+import { useGame } from '../contexts/GameContext';
+import { useAchievements } from "../contexts/AchievementsContext";
 import { Rarity, Species } from "../types/types";
 
 const gameAddress = CONTRACT_ADDRESSES.game;
@@ -30,6 +33,7 @@ const shopAddress = CONTRACT_ADDRESSES.shop;
 const rewardsAddress = CONTRACT_ADDRESSES.rewards;
 const achievementsAddress = CONTRACT_ADDRESSES.achievements;
 const challengesAddress = CONTRACT_ADDRESSES.challenges;
+const expeditionsAddress = CONTRACT_ADDRESSES.expeditions;
 
 // Play notification sound
 const playSound = (soundEnabled: boolean, soundType = "default") => {
@@ -70,6 +74,8 @@ const formatAddress = (address: string, length = 6) => {
 
 export function useNotifications() {
   const { address: userAddress, isConnected, getTotem } = useUser();
+  const { showExpeditionEffect } = useGame();
+  const { refreshAchievements } = useAchievements();
   const [notifications, setNotifications] = useState<Notification[]>(() => {
     // Load saved notifications from localStorage on startup
     return getUserStorage<Notification[]>(
@@ -376,6 +382,11 @@ export function useNotifications() {
       challengesABI,
       provider
     );
+    const expeditionsContract = new ethers.Contract(
+      expeditionsAddress,
+      expeditionsABI,
+      provider
+    );
 
     // Events from TotemGame
     const handleUserSignedUp = (user: string) => {
@@ -651,6 +662,84 @@ export function useNotifications() {
       );
     };
 
+    // Expedition events
+    const handleExpeditionStarted = (user: any, expeditionId: any, totemIds: any[], endTime: any) => {
+      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
+      if (isOwner) {
+        addNotification(
+          NotificationType.EXPEDITION_STARTED,
+          `You started an expedition with ${totemIds.length} totems.`,
+          NotificationScope.PERSONAL,
+          NotificationPriority.MEDIUM,
+          { expeditionId, totemIds: totemIds.map(id => id.toString()), endTime: Number(endTime) },
+          userAddress
+        );
+      }
+    };
+
+    const handleExpeditionCompleted = async (user: any, expeditionId: any, totemIds: any[]) => {
+      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
+      if (isOwner) {
+        addNotification(
+          NotificationType.EXPEDITION_COMPLETED,
+          `Your expedition team has returned! Claim your rewards.`,
+          NotificationScope.PERSONAL,
+          NotificationPriority.MEDIUM,
+          { expeditionId, totemIds: totemIds.map(id => id.toString()) },
+          userAddress
+        );
+      }
+    };
+
+    const handleExpeditionRewardsClaimed = (
+      user: any, 
+      expeditionId: any, 
+      experienceGain: any, 
+      totemIds: any, 
+      runeRewards: any, 
+      score: any
+    ) => {
+      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
+      if (isOwner) {
+        const formattedTotemIds = Array.isArray(totemIds) ? 
+          totemIds.map((id: any) => id.toString()) : 
+          [totemIds.toString()];
+          
+        // Format rune rewards for display
+        const runesGained = {
+          lesser: Number(runeRewards[0]) || 0,
+          greater: Number(runeRewards[1]) || 0,
+          ancient: Number(runeRewards[2]) || 0
+        };
+        
+        const totalRunes = runesGained.lesser + runesGained.greater + runesGained.ancient;
+        // Create reward data object
+        const rewardData = { 
+          expeditionId, 
+          totemIds: formattedTotemIds,
+          experienceGained: Number(experienceGain),
+          runesGained,
+          score: Number(score)
+        };
+        
+        const isGreatSuccess = score >= 90;
+        const isSuccess = score >= 70;
+        const statusText = isGreatSuccess ? 'Great Success!' : isSuccess ? 'Success!' : 'Completed.';
+        
+        addNotification(
+          NotificationType.EXPEDITION_REWARDS,
+          `Your expedition team has returned! ${statusText} Rewards: ${Number(experienceGain)} XP each, ${totalRunes} rune${totalRunes > 1 ? 's' : ''}`,
+          NotificationScope.PERSONAL,
+          NotificationPriority.MEDIUM,
+          rewardData,
+          userAddress
+        );
+        
+        showExpeditionEffect(rewardData);
+        refreshAchievements();
+      }
+    };
+
     gameContract.on("UserSignedUp", handleUserSignedUp);
     //gameContract.on("ActionPerformed", handleActionPerformed); // Disable until filter
     shopContract.on("TotemPurchased", handleTotemPurchased);
@@ -663,6 +752,9 @@ export function useNotifications() {
     rewardsContract.on("RewardClaimed", handleRewardClaimed);
     challengesContract.on("ChallengeCompleted", handleChallengeCompleted);
     challengesContract.on("HighScoreSet", handleHighScoreSet);
+    //expeditionsContract.on("ExpeditionStarted", handleExpeditionStarted);
+    //expeditionsContract.on("ExpeditionCompleted", handleExpeditionCompleted);
+    gameContract.on("ExpeditionRewardsClaimed", handleExpeditionRewardsClaimed);
 
     // Cleanup: remove all listeners
     return () => {
@@ -680,6 +772,9 @@ export function useNotifications() {
       rewardsContract.off("RewardClaimed", handleRewardClaimed);
       challengesContract.off("ChallengeCompleted", handleChallengeCompleted);
       challengesContract.off("HighScoreSet", handleHighScoreSet);
+      //expeditionsContract.off("ExpeditionStarted", handleExpeditionStarted);
+      //expeditionsContract.off("ExpeditionCompleted", handleExpeditionCompleted);
+      gameContract.off("ExpeditionRewardsClaimed", handleExpeditionRewardsClaimed);
     };
   }, [userAddress, isConnected]);
 

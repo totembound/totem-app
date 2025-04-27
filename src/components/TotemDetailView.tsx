@@ -39,7 +39,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     canUseAction: externalCanUseAction,
 }) => {
     const { totems, updateTotem, updateTotemEvolved, totemBalance, isGaslessEnabled } = useUser();
-    const { actionConfigs, canUseAction: gameCanUseAction, getActionStatus, getNextAvailableWindow } = useGame();
+    const { actionConfigs, canUseAction: gameCanUseAction, getActionStatus, getNextAvailableWindow, isTotemAvailable, expeditionState } = useGame();
     const [isLoading, setIsLoading] = useState<ActionType | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [showEvolutionCelebration, setShowEvolutionCelebration] = useState(false);
@@ -60,6 +60,20 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
         totems.find(t => t.tokenId === totem.tokenId) ?? totem,
         [totems, totem.tokenId, totem]
     );
+
+     // Check if totem is on expedition
+     const tokenIsOnExpedition = !isTotemAvailable(currentTotem.id);
+     // Find expedition end time if totem is on expedition
+    const expeditionEndTime = useMemo(() => {
+        if (!tokenIsOnExpedition) return 0;
+        
+        // Find which expedition this totem is part of
+        const activeExpedition = expeditionState.userExpeditions.find(exp => 
+            !exp.completed && exp.totemIds.some(id => id.toString() === currentTotem.id)
+        );
+        
+        return activeExpedition ? activeExpedition.endTime : 0;
+    }, [tokenIsOnExpedition, expeditionState.userExpeditions, currentTotem.id]);
 
     // Action handlers
     const handleAction = async (action: ActionType, handler: () => Promise<any>) => {
@@ -200,6 +214,8 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                             imageUrl={currentTotem.image}
                             activeEffect={activeEffect}
                             onEffectComplete={() => setActiveEffect(null)}
+                            isOnExpedition={tokenIsOnExpedition}
+                            expeditionEndTime={expeditionEndTime}
                         />
 
                         {showExpEffect && (
@@ -236,6 +252,8 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                 onTrain={handleTrain}
                                 onEvolve={handleEvolve}
                                 canEvolve={canEvolve}
+                                isTotemOnExpedition={tokenIsOnExpedition}
+                                expeditionEndTime={expeditionEndTime}
                             />
                             
                             {/* Error Display */}
@@ -295,6 +313,8 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                     affinity={currentTotem.affinity}
                                     domain={currentTotem.domain}
                                     isStaked={currentAttributes.isStaked}
+                                    isOnExpedition={tokenIsOnExpedition}
+                                    expeditionEndTime={expeditionEndTime}
                                 />
                             )}
                         </div>

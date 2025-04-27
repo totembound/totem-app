@@ -1,8 +1,9 @@
 import React from 'react';
-import { Sparkles, Star } from 'lucide-react';
+import { MapPin, Sparkles, Star } from 'lucide-react';
 import { Rarity, Species } from '../types/types';
 import ActionEffect from './effects/ActionEffect';
 import { getRarityBadgeColor } from '../utils/totems';
+import { formatTimeRemaining } from '../utils/formats';
 
 // Map species to their habitat backgrounds
 const HABITAT_BACKGROUNDS: Record<Species, string> = {
@@ -78,6 +79,8 @@ interface TotemImageSectionProps {
     prestigeLevel: number;
     imageUrl: string;
     activeEffect: 'treat' | 'feed' | 'train' | null;
+    isOnExpedition?: boolean;
+    expeditionEndTime?: number;
     onEffectComplete: () => void;
 }
 
@@ -88,6 +91,8 @@ const TotemImageSection: React.FC<TotemImageSectionProps> = ({
     prestigeLevel,
     imageUrl,
     activeEffect,
+    isOnExpedition = false,
+    expeditionEndTime = 0,
     onEffectComplete
 }) => {
     //const habitatBackground = HABITAT_BACKGROUNDS[species] || HABITAT_BACKGROUNDS[Species.None];
@@ -123,6 +128,18 @@ const TotemImageSection: React.FC<TotemImageSectionProps> = ({
                 onComplete={onEffectComplete}
             />
             
+            {/* Expedition Status Overlay */}
+            {isOnExpedition && (
+                <div className="absolute top-2/3 left-0 right-0 z-20 flex flex-col items-center">
+                    <div className="bg-blue-600/80 dark:bg-blue-800/90 text-white px-4 py-2 rounded-full backdrop-blur-sm flex items-center gap-2 shadow-lg">
+                        <MapPin className="w-5 h-5 animate-pulse" />
+                        <span className="font-medium">On Expedition</span>
+                    </div>
+                    <div className="bg-white/80 dark:bg-gray-900/80 text-blue-700 dark:text-blue-300 px-4 py-1 rounded-full mt-2 backdrop-blur-sm text-sm">
+                        {formatTimeRemaining(expeditionEndTime)}
+                    </div>
+                </div>
+            )}
                     
             {/* Stage Badge */}
             <div className="absolute top-3 left-3 flex flex-col">

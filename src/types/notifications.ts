@@ -21,6 +21,11 @@ export enum NotificationType {
     CHALLENGE_COMPLETED = 'challenge_completed',
     HIGH_SCORE_SET = 'high_score_set',
     
+    // Expedition notifications
+    EXPEDITION_STARTED = 'expedition_started',
+    EXPEDITION_COMPLETED = 'expedition_completed',
+    EXPEDITION_REWARDS = 'expedition_rewards',
+
     // Reward notifications
     REWARD_CLAIMED = 'reward_claimed',
     PROTECTION_PURCHASED = 'protection_purchased',
@@ -149,6 +154,29 @@ export enum NotificationType {
       priority: NotificationPriority.MEDIUM
     },
     
+    // Expedition notifications
+    [NotificationType.EXPEDITION_STARTED]: {
+      type: NotificationType.EXPEDITION_STARTED,
+      scope: NotificationScope.PERSONAL,
+      priority: NotificationPriority.MEDIUM,
+      expiresInDays: 3,
+      autoOpen: false,
+    },
+    [NotificationType.EXPEDITION_COMPLETED]: {
+      type: NotificationType.EXPEDITION_COMPLETED,
+      scope: NotificationScope.PERSONAL,
+      priority: NotificationPriority.MEDIUM,
+      expiresInDays: 3,
+      autoOpen: true,
+    },
+    [NotificationType.EXPEDITION_REWARDS]: {
+      type: NotificationType.EXPEDITION_REWARDS,
+      scope: NotificationScope.PERSONAL,
+      priority: NotificationPriority.HIGH,
+      expiresInDays: 3, 
+      autoOpen: true,
+    },
+
     // Reward notifications
     [NotificationType.REWARD_CLAIMED]: {
       type: NotificationType.REWARD_CLAIMED,

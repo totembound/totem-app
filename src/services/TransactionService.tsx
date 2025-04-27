@@ -1,6 +1,6 @@
 // src/services/TransactionService.ts
 import { ethers } from 'ethers';
-import { CONTRACT_ADDRESSES, FORWARDER_ABI } from '../config/contracts';
+import { CONTRACT_ADDRESSES, createExpeditionsContract, FORWARDER_ABI } from '../config/contracts';
 import { createGameContract, createTokenContract, createTotemNFTContract, createShopContract, createRewardsContract } from '../config/contracts';
 import { ContractEvent, ContractType, ForwardRequest, TransactionConfig, TransactionResult } from '../types/types';
 
@@ -46,6 +46,9 @@ export class TransactionService {
                 break;
             case 'rewards':
                 contract = createRewardsContract(this.provider);
+                break;
+            case 'expeditions':
+                contract = createExpeditionsContract(this.provider);
                 break;
             default:
                 throw new Error(`Unsupported contract type: ${contractType}`);
@@ -274,6 +277,8 @@ export class TransactionService {
         const functionGasLimits: Record<string, bigint> = {
             'purchaseTotem': 1000000n, // Increase substantially
             'sellTotem': 500000n,
+            'startExpedition': 1000000n,
+            'claimExpeditionRewards': 1000000n,
             'signup': 500000n,
             'approve': 500000n,
             'feed': 500000n,
@@ -523,5 +528,37 @@ export class TransactionService {
         }];
 
         return this.executeTransaction('game', 'attemptChallenge', [challengeId, tokenId, score], expectedEvents);
+    }
+
+    public async startExpedition(expeditionId: string, totemIds: [bigint, bigint, bigint]): Promise<TransactionResult> {
+        const expeditionsContract = await this.getContract('expeditions');
+        const expectedEvents = [{
+            contract: expeditionsContract,
+            eventName: 'ExpeditionStarted',
+            filter: [this.userAddress, expeditionId]
+        }];
+
+        return this.executeTransaction('expeditions', 'startExpedition', [expeditionId, totemIds], expectedEvents);
+    }
+    
+    public async claimExpeditionRewards(expeditionId: string): Promise<TransactionResult> {
+        const expeditionsContract = await this.getContract('expeditions');
+        const gameContract = await this.getContract('game');
+        const expeditionIdHash = ethers.id(expeditionId);
+
+        const expectedEvents = [
+            {
+                contract: expeditionsContract,
+                eventName: 'ExpeditionCompleted',
+                filter: [this.userAddress]
+            },
+            {
+                contract: gameContract,
+                eventName: 'ExpeditionRewardsClaimed',
+                filter: [this.userAddress]
+            }
+        ];
+    
+        return this.executeTransaction('expeditions', 'claimExpeditionRewards', [expeditionIdHash], expectedEvents);
     }
 }

@@ -28,8 +28,8 @@ export const AVAILABLE_SPECIES = [
     title: 'The Watchful Guardian',
     desc: 'The Goose represents protection, vigilance, and leadership. Known for its strong instincts and devotion to its flock, it ensures the safety of all who travel under its watchful eye.',
     affinity: 'Wisdom',
-    domain: 'Air',
-    available: false,
+    domain: 'Water',
+    available: true,
     image: '/totems/gooseplacecard.png'
   }, {
     id: 1, name: 'Otter', species: Species.Otter, 

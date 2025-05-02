@@ -38,7 +38,7 @@ const About: React.FC = () => {
         <div className="bg-purple-100 dark:bg-purple-900/20 rounded-xl p-6 mb-8 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-transparent pointer-events-none"></div>
           <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
-            <div className="md:w-1/2 mb-auto">
+            <div className={currentMonthlySpecial ? 'md:w-1/2 mb-auto' : 'mb-auto'}> 
               <h2 className="text-2xl font-bold text-purple-900 dark:text-purple-200 mb-3">
                 Begin Your Spiritual Journey
               </h2>
@@ -51,6 +51,7 @@ const About: React.FC = () => {
                 🐻🐺🦫🐢🦉<span className="raven-emoji">🦅</span>🦢🐍🦅🦌🦦🐦
               </div>
             </div>
+            {currentMonthlySpecial && 
             <div className="md:w-1/2 flex flex-col md:flex-row justify-center gap-4 h-auto md:h-64">
               <div className="flex-grow">
                 <h2 className="font-bold text-xl text-purple-900 dark:text-purple-200">
@@ -74,6 +75,7 @@ const About: React.FC = () => {
                 />
               </div>
             </div>
+            }
           </div>
         </div>
 

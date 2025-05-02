@@ -34,6 +34,7 @@ The frontend interacts with several smart contracts:
 - ✅ NFT minting and management
 - ✅ Training and evolution system
 - ✅ Challenge system
+- ✅ Expedition system
 - ✅ Gasless transactions
 - 🔲 New Totem species
 - 🔲 Staking mechanism
@@ -81,6 +82,7 @@ REACT_APP_SHOP_ADDRESS="shop_proxy_address"
 REACT_APP_REWARDS_ADDRESS="rewards_proxy_address"
 REACT_APP_ACHIEVEMENTS_ADDRESS="achievements_proxy_address"
 REACT_APP_CHALLENGES_ADDRESS="challenges_proxy_address"
+REACT_APP_EXPEDITIONS_ADDRESS="expeditions_proxy_address"
 ```
 
 ## Development

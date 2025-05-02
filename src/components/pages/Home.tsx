@@ -51,7 +51,7 @@ const PublicHome: React.FC = () => {
       <div className="bg-purple-100 dark:bg-purple-900/20 rounded-xl p-6 mb-8 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-transparent pointer-events-none"></div>
         <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
-          <div className="md:w-2/3">
+          <div className={currentMonthlySpecial ? 'md:w-2/3' : ''}>
             <h1 className="text-2xl md:text-3xl font-bold text-purple-900 dark:text-purple-200 mb-3">
               TotemBound - Mystical Companions Await
             </h1>
@@ -73,6 +73,7 @@ const PublicHome: React.FC = () => {
           </div>
 
           {/* Monthly Totem Feature */}
+          {currentMonthlySpecial && 
           <div className="md:w-1/3 bg-white/50 dark:bg-gray-800/30 rounded-lg p-4">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
@@ -98,6 +99,7 @@ const PublicHome: React.FC = () => {
               </div>
             </div>
           </div>
+          }
         </div>
       </div>
 

@@ -1,8 +1,8 @@
 // contexts/GameContext.tsx
 import React, { createContext, useContext, useCallback, useEffect, useState } from 'react';
 import { useUser } from './UserContext';
-import { createAchievementsContract, createChallengesContract, createGameContract, createRewardsContract, TotemGameContract, TotemRewardsContract } from '../config/contracts';
-import { ActionType, ActionConfig, TimeWindows, GameParameters, TotemAttributes, ActionTracking, ChallengeState, ChallengeInfo, ChallengeStatus, NFTMetadata, StreakStatus, WeeklyStatus, RewardsState } from '../types/types';
+import { createAchievementsContract, createChallengesContract, createExpeditionsContract, createGameContract, createRewardsContract, TotemGameContract, TotemRewardsContract } from '../config/contracts';
+import { ActionType, ActionConfig, TimeWindows, GameParameters, TotemAttributes, ActionTracking, ChallengeState, ChallengeInfo, ChallengeStatus, NFTMetadata, StreakStatus, WeeklyStatus, RewardsState, RuneBalances, ExpeditionState, ExpeditionRewardsData } from '../types/types';
 import { ethers } from 'ethers';
 import { getTotemStage } from '../utils/totems';
 import { useTransactionService } from '../hooks/useTransactionService';
@@ -55,6 +55,19 @@ export interface GameContextType {
     purchaseProtection: (type: 'daily' | 'weekly', tier: number) => Promise<boolean>;
 
     setDisplayName: (tokenId: bigint, newName: string) => Promise<void>;
+
+    runeBalances: RuneBalances;
+    getUserRuneBalances: () => Promise<void>;
+    
+    // New expedition-related properties
+    expeditionState: ExpeditionState;
+    refreshExpeditions: () => Promise<void>;
+    startExpedition: (expeditionId: string, totemIds: string[]) => Promise<boolean>;
+    claimExpeditionRewards: (expeditionId: string) => Promise<boolean>;
+    isTotemAvailable: (totemId: string) => boolean;
+    activeExpeditionEffect: ExpeditionRewardsData | null;
+    showExpeditionEffect: (data: ExpeditionRewardsData) => void;
+    hideExpeditionEffect: () => void;
 }
 
 const defaultGetFormattedWindowTimes = () => {
@@ -112,11 +125,30 @@ const GameContext = createContext<GameContextType>({
     claimDailyReward: async () => false,
     claimWeeklyReward: async () => false,
     purchaseProtection: async () => false,
-    setDisplayName: async() => {}
+    setDisplayName: async() => {},
+    runeBalances: {
+        lesser: 0,
+        greater: 0,
+        ancient: 0
+      },
+      getUserRuneBalances: async () => {},
+      expeditionState: {
+        expeditions: {},
+        userExpeditions: [],
+        loading: false,
+        error: null
+      },
+      refreshExpeditions: async () => {},
+      startExpedition: async () => false,
+      claimExpeditionRewards: async () => false,
+      isTotemAvailable: () => false,
+      activeExpeditionEffect: null,
+      showExpeditionEffect: () => undefined,
+      hideExpeditionEffect: () => undefined
 });
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { provider, address, signer, totems, updateBalances, isGaslessEnabled } = useUser();
+    const { provider, address, signer, totems, updateBalances, updateTotem, isGaslessEnabled } = useUser();
     const [actionConfigs, setActionConfigs] = useState<Record<ActionType, ActionConfig>>({} as Record<ActionType, ActionConfig>);
     const [timeWindows, setTimeWindows] = useState<TimeWindows | null>(null);
     const [gameParams, setGameParams] = useState<GameParameters | null>(null);
@@ -140,6 +172,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         gaslessEnabled: isGaslessEnabled,
         waitForConfirmation: true
     });
+
+    const [runeBalances, setRuneBalances] = useState<RuneBalances>({
+        lesser: 0,
+        greater: 0,
+        ancient: 0
+    });
+      
+    const [expeditionState, setExpeditionState] = useState<ExpeditionState>({
+        expeditions: {},
+        userExpeditions: [],
+        loading: false,
+        error: null
+    });
+
+    const [activeExpeditionEffect, setActiveExpeditionEffect] = useState<ExpeditionRewardsData | null>(null);
 
     const loadGameConfigs = useCallback(async () => {
         if (!provider) return;
@@ -336,9 +383,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const connectedGame = gameContract.connect(signer) as TotemGameContract;
 
         const result = await txService.completeChallenge(id, BigInt(tokenId), score);
-
-        //const tx = await connectedGame.attemptChallenge(id, tokenId, score);
-        //await tx.wait();
 
         // Refresh challenge state
         await loadChallenges();
@@ -733,9 +777,185 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    const getUserRuneBalances = useCallback(async () => {
+        if (!provider || !address) return;
+        
+        try {
+          const gameContract = createGameContract(provider);
+          const balances = await gameContract.getUserRuneBalances(address);
+          
+          setRuneBalances({
+            lesser: Number(balances[0]),
+            greater: Number(balances[1]),
+            ancient: Number(balances[2])
+          });
+        }
+        catch (err) {
+          console.error('Error fetching rune balances:', err);
+        }
+    }, [provider, address]);
+      
+    const refreshExpeditions = useCallback(async () => {
+        if (!provider || !address) return;
+        
+        try {
+          console.log('loading expeditions');
+          setExpeditionState(prev => ({ ...prev, loading: true, error: null }));
+          const expeditionsContract = createExpeditionsContract(provider);
+          
+          // Get all expedition configurations
+          const expeditionIds = await expeditionsContract.getExpeditions();
+          
+          // Fetch expedition config for each ID
+          const configs = await Promise.all(expeditionIds.map(async (id) => {
+            const config = await expeditionsContract.getExpeditionConfig(id);
+            return {
+              id,
+              name: config.name,
+              domain: config.domain,
+              duration: Number(config.duration),
+              totemCost: config.totemCost.toString(),
+              happinessCost: Number(config.happinessCost),
+              baseExperience: Number(config.baseExperience),
+              affinityWeights: config.affinityWeights as [number, number, number],
+              runeDropChances: config.runeDropChances as [number, number, number],
+              enabled: config.enabled
+            };
+          }));
+          
+          // Get user's expeditions
+          const userExpData = await expeditionsContract.getUserActiveExpeditions(address);
+          
+          const userExpeditions = userExpData.ids.map((id, index) => ({
+            expeditionId: id,
+            captainId: userExpData.totemIds[index][0],
+            totemIds: userExpData.totemIds[index],
+            endTime: Number(userExpData.endTimes[index]),
+            completed: false,
+            canClaim: userExpData.canClaim[index]
+          }));
+          
+          // Build expeditions record
+          const expeditionsRecord = configs.reduce((acc, config) => {
+            acc[config.id] = config;
+            return acc;
+          }, {} as Record<string, any>);
+          
+          setExpeditionState({
+            expeditions: expeditionsRecord,
+            userExpeditions,
+            loading: false,
+            error: null
+          });
+        }
+        catch (err) {
+          console.error('Error loading expeditions:', err);
+          setExpeditionState(prev => ({
+            ...prev,
+            loading: false,
+            error: 'Failed to load expeditions'
+          }));
+        }
+    }, [provider, address]);
+      
+    const startExpedition = useCallback(async (
+        expeditionId: string, 
+        totemIds: string[]
+      ) => {
+        if (!provider || !signer || !address) return false;
+        if (!txService) throw new Error('Transaction service not initialized');
+        
+        try {
+          const bigIntIds = totemIds.map(id => BigInt(id));
+
+          // Ensure we have exactly 3 totems
+          if (bigIntIds.length !== 3) {
+            throw new Error('Expedition requires exactly 3 totems');
+          }
+            
+          // Verify totem availability
+          const expeditionsContract = createExpeditionsContract(provider);
+          for (const tokenId of bigIntIds) {
+            const [isOnExpedition, endTime] = await expeditionsContract.isTotemOnExpedition(tokenId);
+            if (isOnExpedition) {
+                const now = Math.floor(Date.now() / 1000);
+                if (endTime > now) {
+                    throw new Error(`Totem ${tokenId.toString()} is already on an expedition`);
+                }
+            }
+          }
+          
+          // Start expedition via transaction service
+          const result = await txService.startExpedition(
+            expeditionId, 
+            [bigIntIds[0], bigIntIds[1], bigIntIds[2]] as [bigint, bigint, bigint]
+          );
+          
+          // Refresh data
+          await Promise.all([
+            refreshExpeditions(),
+            updateBalances(),
+            Promise.all(bigIntIds.map(id => updateTotem(id, ActionType.None)))
+          ]);
+          
+          return true;
+        }
+        catch (error) {
+          console.error('Error starting expedition:', error);
+          return false;
+        }
+      }, [provider, signer, address, txService, updateBalances, updateTotem, refreshExpeditions]);
+      
+    const claimExpeditionRewards = useCallback(async (expeditionId: string) => {
+        if (!provider || !signer || !address) return false;
+        if (!txService) throw new Error('Transaction service not initialized');
+        
+        try {
+          // Find the expedition to get totem IDs
+          const expedition = expeditionState.userExpeditions.find(
+            exp => exp.expeditionId === expeditionId
+          );
+
+          // Claim rewards via transaction service
+          const result = await txService.claimExpeditionRewards(expeditionId);
+
+          // Refresh data
+          await Promise.all([
+            refreshExpeditions(),
+            getUserRuneBalances(),
+            updateBalances(),
+            expedition && Promise.all(expedition.totemIds.map(id => updateTotem(id, ActionType.None)))
+          ]);
+          
+          return true;
+        }
+        catch (error) {
+          console.error('Error claiming expedition rewards:', error);
+          return false;
+        }
+    }, [provider, signer, address, txService, refreshExpeditions, getUserRuneBalances, updateBalances]);
+
+    const isTotemAvailable = useCallback((totemId: string): boolean => {
+        if (!expeditionState.userExpeditions) return true;
+        
+        // Check if totem is on an active expedition
+        return !expeditionState.userExpeditions.some(exp => 
+          !exp.completed && exp.totemIds.some(id => id === BigInt(totemId))
+        );
+      }, [expeditionState.userExpeditions]);
+
+    const showExpeditionEffect = useCallback((data: ExpeditionRewardsData) => {
+        setActiveExpeditionEffect(data);
+    }, []);
+    
+    const hideExpeditionEffect = useCallback(() => {
+        setActiveExpeditionEffect(null);
+    }, []);
+
     useEffect(() => {
         updateStreakStatus();
         updateWeeklyStatus();
+        refreshExpeditions();
     }, [provider, address]);
     
     return (
@@ -762,7 +982,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             claimDailyReward,
             claimWeeklyReward,
             purchaseProtection,
-            setDisplayName
+            setDisplayName,
+            runeBalances,
+            getUserRuneBalances,
+            expeditionState,
+            refreshExpeditions,
+            startExpedition,
+            claimExpeditionRewards,
+            isTotemAvailable,
+            activeExpeditionEffect,
+            showExpeditionEffect,
+            hideExpeditionEffect
         }}>
             {children}
         </GameContext.Provider>

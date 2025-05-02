@@ -14,6 +14,8 @@ export const TIER_TYPES = {
 export const STORAGE_KEYS = {
     theme: 'totem-theme',
     notifications: 'totem-notifications',
+    notificationSound: "totem-notification-sound",
+    maxNotifications: "totem-max-notifications",
     tokenApprovalMessageDismissed: 'totem-approval-message-dismissed',
     isGaslessEnabled: 'totem-gasless-enabled',
     gaslessApiKey: 'totem-gasless-api-key',
@@ -26,8 +28,8 @@ export const AVAILABLE_SPECIES = [
     title: 'The Watchful Guardian',
     desc: 'The Goose represents protection, vigilance, and leadership. Known for its strong instincts and devotion to its flock, it ensures the safety of all who travel under its watchful eye.',
     affinity: 'Wisdom',
-    domain: 'Air',
-    available: false,
+    domain: 'Water',
+    available: true,
     image: '/totems/gooseplacecard.png'
   }, {
     id: 1, name: 'Otter', species: Species.Otter, 

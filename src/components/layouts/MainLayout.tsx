@@ -6,6 +6,7 @@ import Footer from './Footer';
 import { Outlet } from 'react-router-dom';
 import GameBackground from './GameBackground';
 import AchievementEffectManager from '../effects/AchievementEffectManager';
+import ExpeditionEffectManager from '../effects/ExpeditionEffectManager';
 import MessageDialog from '../MessageDialog';
 
 export const MainLayout: React.FC = () => {
@@ -31,6 +32,7 @@ export const MainLayout: React.FC = () => {
                 {messageDialog.message}
             </MessageDialog>
             <AchievementEffectManager />
+            <ExpeditionEffectManager />
             <Footer />
         </div>
     </div>

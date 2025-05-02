@@ -314,7 +314,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             throw error;
         }
     };
-    
+
+    const getTotem = (tokenId: bigint) => {
+        return totems?.find(t => t.tokenId === tokenId);
+    }
+
     const addTotem = async (tokenId: bigint) => {
         if (!state.provider || !state.address) return;
 
@@ -780,6 +784,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 totems,
                 totemLoading,
                 totemError,
+                getTotem,
                 addTotem,
                 removeTotem,
                 updateTotem,

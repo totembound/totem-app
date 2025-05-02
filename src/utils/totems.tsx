@@ -1,4 +1,4 @@
-import { NFTMetadata, Rarity, Species } from '../types/types';
+import { Affinity, Domain, NFTMetadata, Rarity, Species } from '../types/types';
 
 interface TotemStats {
     strength: number;
@@ -6,6 +6,32 @@ interface TotemStats {
     wisdom: number;
     primaryStat: 'strength' | 'agility' | 'wisdom';
 }
+
+export const getDomainColor = (domain: Domain) => {
+    switch (domain) {
+        case Domain.Land:
+            return "bg-stone-500/70 text-stone-200 border-stone-500";
+        case Domain.Air:
+            return "bg-blue-500/70 text-blue-200 border-blue-500";
+        case Domain.Water:
+            return "bg-cyan-500/70 text-cyan-200 border-cyan-500";
+        default:
+            return "bg-gray-500/70 text-gray-200 border-gray-500";
+    }
+};
+
+export const getAffinityColor = (affinity: Affinity) => {
+    switch (affinity) {
+        case Affinity.Strength:
+            return "bg-red-500/80 text-red-200 border-red-500";
+        case Affinity.Agility:
+            return "bg-emerald-500/80 text-emerald-200 border-emerald-500";
+        case Affinity.Wisdom:
+            return "bg-indigo-500/80 text-indigo-200 border-indigo-500";
+        default:
+            return "bg-gray-500/80 text-gray-200 border-gray-500";
+    }
+};
 
 export const getRarityBadgeColor = (rarity: Rarity) => {
     switch(rarity) {

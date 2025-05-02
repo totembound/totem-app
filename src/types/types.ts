@@ -1,12 +1,12 @@
 import { ethers } from 'ethers';
 import { MessageDialogState } from '../components/MessageDialog';
-import TotemDetailView from '../components/TotemDetailView';
 
 export interface UserContextType extends UserContextState {
     checkSignupStatus: () => Promise<void>;
     updateBalances: () => Promise<void>;
     connect: () => Promise<void>;
     disconnect: () => void;
+    getTotem: (tokenId: bigint) => NFTMetadata | undefined;
     addTotem: (tokenId: bigint) => Promise<void>;
     removeTotem: (tokenId: bigint) => void;
     updateTotem: (tokenId: bigint, type: ActionType) => Promise<void>;
@@ -111,6 +111,18 @@ export enum Rarity {
     Epic,
     Legendary,
     Limited
+}
+
+export enum Domain {
+    Land = 0,
+    Air = 1,
+    Water = 2
+}
+
+export enum Affinity {
+    Strength = 0,
+    Agility = 1,
+    Wisdom = 2
 }
 
 export interface TotemAttributes {
@@ -374,7 +386,7 @@ export interface RewardsState {
     isClaimLoading: boolean;
 }
 
-export type ContractType = 'game' | 'nft' | 'token' | 'shop' | 'rewards' | 'challenges';
+export type ContractType = 'game' | 'nft' | 'token' | 'shop' | 'rewards' | 'challenges' | 'expeditions';
 
 export interface TransactionConfig {
   gaslessEnabled?: boolean;
@@ -417,6 +429,59 @@ export interface Notification {
     message: string;
     isRead?: boolean;
     timestamp?: number;
+}
+
+export enum RuneType {
+    Lesser = 0,
+    Greater = 1,
+    Ancient = 2
+}
+
+export interface RuneBalances {
+    lesser: number;
+    greater: number;
+    ancient: number;
+}
+
+export interface ExpeditionConfig {
+    id: string;
+    name: string;
+    domain: Domain;
+    duration: number;
+    totemCost: string; // BigNumber represented as string
+    happinessCost: number;
+    baseExperience: number;
+    affinityWeights: [number, number, number];
+    runeDropChances: [number, number, number];
+    minStage: number;
+    enabled: boolean;
+  }
+  
+export interface UserExpedition {
+    expeditionId: string;
+    captainId: bigint;
+    totemIds: bigint[];
+    endTime: number;
+    completed: boolean;
+    canClaim: boolean;
+}
+
+export interface ExpeditionState {
+    expeditions: Record<string, ExpeditionConfig>;
+    userExpeditions: UserExpedition[];
+    loading: boolean;
+    error: string | null;
+}
+
+export interface ExpeditionRewardsData {
+    expeditionId: string;
+    experienceGained: number;
+    runesGained: {
+      lesser: number;
+      greater: number;
+      ancient: number;
+    };
+    score: number;
 }
 
 export {}

@@ -7,6 +7,8 @@ interface TotemActionBarProps {
     actionConfigs: Record<ActionType, ActionConfig>;
     actionTracking: Partial<Record<ActionType, ActionTracking>>;
     totemBalance: string;
+    isTotemOnExpedition?: boolean;
+    expeditionEndTime?: number;
     canUseAction: (
         attributes: TotemAttributes,
         actionType: ActionType,
@@ -32,6 +34,8 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
     actionConfigs,
     actionTracking,
     totemBalance,
+    isTotemOnExpedition = false,
+    expeditionEndTime = 0,
     canUseAction,
     getActionStatus,
     getNextAvailableWindow,
@@ -48,6 +52,11 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
         // Divide by 10^18 and convert back to number
         return Number(bigIntAmount / BigInt(10 ** 18));
     };
+
+    // Get expedition status message
+    const expeditionStatusMessage = isTotemOnExpedition
+        ? `On Expedition`
+        : '';
 
     // Render a single action button
     const renderActionButton = (
@@ -72,7 +81,7 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
             actionConfigs[type]
         ) : 'No tracking data';
     
-        const isDisabled = !canUse || isLoading !== null || !hasEnoughBalance || !hasMinHappiness;
+        const isDisabled = isTotemOnExpedition || !canUse || isLoading !== null || !hasEnoughBalance || !hasMinHappiness;
     
         const getButtonVariant = () => {
             if (isLoading === type) return 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500';
@@ -88,6 +97,9 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
     
         // Get the status message to display
         const getStatusMessage = () => {
+            if (isTotemOnExpedition) {
+                return expeditionStatusMessage;
+            }
             if (!hasEnoughBalance) {
                 return `Requires ${actionCost} TOTEM`;
             }
@@ -144,7 +156,7 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
                                         {statusMessage}
                                     </>
                                 )}
-                                {!canUse && type === ActionType.Feed && tracking && 
+                                {!isTotemOnExpedition && !canUse && type === ActionType.Feed && tracking && 
                                     <div>{getNextAvailableWindow(tracking)}</div>
                                 }
                             </div>
@@ -192,12 +204,12 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
                 <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
                     <button
                         onClick={onEvolve}
-                        disabled={isLoading !== null}
+                        disabled={isTotemOnExpedition || isLoading !== null }
                         className={`
                             w-full py-3 px-4 rounded-xl font-semibold 
                             flex items-center justify-center gap-2
                             transition-all duration-300
-                            ${isLoading === ActionType.Evolve
+                            ${isTotemOnExpedition || isLoading === ActionType.Evolve
                                 ? 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                                 : 'bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 transform hover:scale-[1.02] active:scale-100'
                             }

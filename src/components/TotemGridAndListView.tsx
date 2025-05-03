@@ -1,17 +1,7 @@
 import React from 'react';
-import { NFTMetadata, Rarity, Species } from '../types/types';
-import { Heart, Sparkles, Circle } from 'lucide-react';
-import { 
-    Dumbbell, // Strength
-    Brain, // Wisdom
-    Wind, // Agility
-    Cloud, // Air
-    Mountain, // Earth
-    Waves, // Water
-    Flame, // Fire
-    Infinity // Spirit
-} from 'lucide-react';
-import { getRarityBadgeColor, getRarityBorderColor } from '../utils/totems';
+import { NFTMetadata, Rarity } from '../types/types';
+import { Heart, Sparkles } from 'lucide-react';
+import { AFFINITY_ICONS, DOMAIN_ICONS, getRarityBadgeColor, getRarityBorderColor } from '../utils/totems';
 import { STAGE_THRESHOLDS } from '../config/constants';
 
 interface TotemViewProps {
@@ -20,21 +10,6 @@ interface TotemViewProps {
     isSelected: boolean;
     isLoading?: boolean;
 }
-
-// Add these mappings at component level
-const AFFINITY_ICONS = {
-    'Strength': Dumbbell,
-    'Wisdom': Brain,
-    'Agility': Wind
-} as const;
-
-const DOMAIN_ICONS = {
-    'Air': Cloud,
-    'Earth': Mountain,
-    'Water': Waves,
-    'Fire': Flame,
-    'Spirit': Infinity
-} as const;
 
 export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelected, isLoading }) => {
     const nextThreshold = STAGE_THRESHOLDS[nft.attributes.stage + 1] || STAGE_THRESHOLDS[nft.attributes.stage];

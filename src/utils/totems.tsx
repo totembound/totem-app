@@ -9,10 +9,10 @@ interface TotemStats {
 
 export const getDomainColor = (domain: Domain) => {
     switch (domain) {
-        case Domain.Land:
-            return "bg-stone-500/70 text-stone-200 border-stone-500";
         case Domain.Air:
             return "bg-blue-500/70 text-blue-200 border-blue-500";
+        case Domain.Earth:
+            return "bg-stone-500/70 text-stone-200 border-stone-500";
         case Domain.Water:
             return "bg-cyan-500/70 text-cyan-200 border-cyan-500";
         default:

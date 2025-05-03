@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Lock, Coins, Brain, Cloud, Dumbbell, Mountain, Waves, Wind } from 'lucide-react';
+import { Lock, Coins, Brain, Cloud, Dumbbell, Mountain, Waves, Wind, Flame, Infinity } from 'lucide-react';
 import { ethers } from 'ethers';
 import { useUser } from '../../contexts/UserContext';
 import { useTotemGame } from '../../hooks/useTotemGame';
@@ -23,8 +23,10 @@ const AFFINITY_ICONS = {
 
 const DOMAIN_ICONS = {
   'Air': Cloud,
-  'Land': Mountain,
-  'Water': Waves
+  'Earth': Mountain,
+  'Water': Waves,
+  'Fire': Flame,
+  'Spirit': Infinity
 } as const;
 
 const tokenPackages = [

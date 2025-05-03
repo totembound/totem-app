@@ -44,7 +44,7 @@ export const AVAILABLE_SPECIES = [
     title: 'The Pack Leader',
     desc: 'The Wolf represents strategy, loyalty, and teamwork. As a natural pack hunter, it excels in coordination and thrives when working together with others.',
     affinity: 'Strength',
-    domain: 'Land',
+    domain: 'Earth',
     available: true,
     image: '/totems/wolfplacecard.png'
   }, {
@@ -68,7 +68,7 @@ export const AVAILABLE_SPECIES = [
     title: 'The Gentle Pathfinder',
     desc: 'The Deer represents grace, awareness, and intuition. It moves with ease through difficult terrain, staying alert to potential dangers.',
     affinity: 'Agility',
-    domain: 'Land',
+    domain: 'Earth',
     available: false,
     image: '/totems/deerplacecard.png'
   }, {
@@ -92,7 +92,7 @@ export const AVAILABLE_SPECIES = [
     title: 'The Unstoppable Force',
     desc: 'The Bear represents strength, resilience, and dominance. It relies on brute force to overcome adversity, clearing obstacles through sheer power.',
     affinity: 'Strength',
-    domain: 'Land',
+    domain: 'Earth',
     available: false,
     image: '/totems/bearplacecard.png'
   }, {
@@ -108,7 +108,7 @@ export const AVAILABLE_SPECIES = [
     title: 'The Silent Observer',
     desc: 'The Snake represents stealth, transformation, and wisdom. It moves unnoticed, striking only when the time is right.',
     affinity: 'Wisdom',
-    domain: 'Land',
+    domain: 'Earth',
     available: false,
     image: '/totems/snakeplacecard.png'
   }, {

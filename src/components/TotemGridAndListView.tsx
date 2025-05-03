@@ -6,8 +6,10 @@ import {
     Brain, // Wisdom
     Wind, // Agility
     Cloud, // Air
-    Mountain, // Land
-    Waves // Water
+    Mountain, // Earth
+    Waves, // Water
+    Flame, // Fire
+    Infinity // Spirit
 } from 'lucide-react';
 import { getRarityBadgeColor, getRarityBorderColor } from '../utils/totems';
 import { STAGE_THRESHOLDS } from '../config/constants';
@@ -28,8 +30,10 @@ const AFFINITY_ICONS = {
 
 const DOMAIN_ICONS = {
     'Air': Cloud,
-    'Land': Mountain,
-    'Water': Waves
+    'Earth': Mountain,
+    'Water': Waves,
+    'Fire': Flame,
+    'Spirit': Infinity
 } as const;
 
 export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelected, isLoading }) => {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Lock, Coins, Brain, Cloud, Dumbbell, Mountain, Waves, Wind, Flame, Infinity } from 'lucide-react';
+import { Lock, Coins } from 'lucide-react';
 import { ethers } from 'ethers';
 import { useUser } from '../../contexts/UserContext';
 import { useTotemGame } from '../../hooks/useTotemGame';

@@ -21,8 +21,11 @@ import LegalDocument from './components/LegalDocument';
 import About from './components/pages/About';
 import Plans from './components/pages/Plans';
 import { SignupForm } from './components/SignupForm';
+import { usePageViews } from './hooks/usePageViews';
 
 const AppRoutes: React.FC = () => {
+  usePageViews();
+
   return (
     <Routes>
       <Route path="/" element={<MainLayout />}>

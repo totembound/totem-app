@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Lock, Coins, Brain, Cloud, Dumbbell, Mountain, Waves, Wind } from 'lucide-react';
+import { Lock, Coins } from 'lucide-react';
 import { ethers } from 'ethers';
 import { useUser } from '../../contexts/UserContext';
 import { useTotemGame } from '../../hooks/useTotemGame';
@@ -9,23 +9,11 @@ import ApprovalStatus from '../ApprovalStatus';
 import TokensDisplay from '../TokensDisplay';
 import SellTotems from '../shop/SellTotems';
 import UnboundTotems from '../shop/UnboundTotems';
-import { getSpeciesEmoji } from '../../utils/totems';
+import { AFFINITY_ICONS, DOMAIN_ICONS, getSpeciesEmoji } from '../../utils/totems';
 import React from 'react';
 import SpecialOffers from '../shop/SpecialOffers';
 import { useTransactionService } from '../../hooks/useTransactionService';
 import { AVAILABLE_SPECIES } from '../../config/constants';
-
-const AFFINITY_ICONS = {
-  'Strength': Dumbbell,
-  'Wisdom': Brain,
-  'Agility': Wind
-} as const;
-
-const DOMAIN_ICONS = {
-  'Air': Cloud,
-  'Land': Mountain,
-  'Water': Waves
-} as const;
 
 const tokenPackages = [
   { amount: '100', cost: '1', popular: false },

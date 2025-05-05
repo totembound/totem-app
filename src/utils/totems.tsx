@@ -1,4 +1,14 @@
 import { Affinity, Domain, NFTMetadata, Rarity, Species } from '../types/types';
+import { 
+    Dumbbell, // Strength
+    Brain, // Wisdom
+    Wind, // Agility
+    Cloud, // Air
+    Mountain, // Earth
+    Waves, // Water
+    Flame, // Fire
+    Infinity // Spirit
+} from 'lucide-react';
 
 interface TotemStats {
     strength: number;
@@ -7,12 +17,26 @@ interface TotemStats {
     primaryStat: 'strength' | 'agility' | 'wisdom';
 }
 
+export const AFFINITY_ICONS = {
+    'Strength': Dumbbell,
+    'Wisdom': Brain,
+    'Agility': Wind
+} as const;
+ 
+export const DOMAIN_ICONS = {
+    'Air': Cloud,
+    'Earth': Mountain,
+    'Water': Waves,
+    'Fire': Flame,
+    'Spirit': Infinity
+} as const;
+
 export const getDomainColor = (domain: Domain) => {
     switch (domain) {
-        case Domain.Land:
-            return "bg-stone-500/70 text-stone-200 border-stone-500";
         case Domain.Air:
             return "bg-blue-500/70 text-blue-200 border-blue-500";
+        case Domain.Earth:
+            return "bg-stone-500/70 text-stone-200 border-stone-500";
         case Domain.Water:
             return "bg-cyan-500/70 text-cyan-200 border-cyan-500";
         default:

@@ -16,8 +16,8 @@ import expeditionData from '../data/expeditions.json';
 // Domains for filtering
 const domains = [
   { id: -1, name: 'All' },
-  { id: 0, name: 'Land' },
-  { id: 1, name: 'Air' },
+  { id: 0, name: 'Air' },
+  { id: 1, name: 'Earth' },
   { id: 2, name: 'Water' }
 ];
 

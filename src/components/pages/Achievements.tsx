@@ -4,6 +4,7 @@ import { useAchievements } from '../../contexts/AchievementsContext';
 import { Shield, Trophy, Swords, Sparkles, Crown, CheckCircle2, Lock, Flame, Map, LucideIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import Tooltip from '../Tooltip';
 import { AchievementCategory, AchievementProgress, AchievementType, AchievementView, Milestone } from '../../types/types';
+import { IPFS_GATEWAY_URL } from '../../config/constants';
 
 // Define sort order configurations
 const categoryOrder = {
@@ -312,7 +313,7 @@ const AchievementStatsRow: React.FC<AchievementStatsRowProps> = ({
 const getBadgeUri = (uri: string | undefined) => {
     if (!uri) return "";
     if (uri?.startsWith('ipfs://badge')) return "";
-    return uri.replace('ipfs://', 'https://ipfs.io/ipfs/');
+    return uri.replace('ipfs://', IPFS_GATEWAY_URL);
 };
 
 const AchievementBadge: React.FC<{

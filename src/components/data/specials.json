@@ -8,7 +8,7 @@
         "baseSpecies": "Otter",
         "price": 250,
         "tokenAmount": 10000,
-        "image": "https://ipfs.io/ipfs/bafybeidsydwaidnhrygqk3iqrp6eiwt4jr6ipfpjsl7pgesoq7poks6yqy",
+        "image": "https://ipfs.totembound.com/ipfs/bafybeidsydwaidnhrygqk3iqrp6eiwt4jr6ipfpjsl7pgesoq7poks6yqy",
         "month": 1
       },
       {
@@ -19,7 +19,7 @@
         "baseSpecies": "Wolf",
         "price": 250,
         "tokenAmount": 10000,
-        "image": "https://ipfs.io/ipfs/bafybeifbciz4p5f37dc6hluakcrvodmytqpmwspbdr47sbqijxtfk2p654",
+        "image": "https://ipfs.totembound.com/ipfs/bafybeifbciz4p5f37dc6hluakcrvodmytqpmwspbdr47sbqijxtfk2p654",
         "month": 2
       },
       {
@@ -30,7 +30,7 @@
         "baseSpecies": "Falcon",
         "price": 250,
         "tokenAmount": 10000,
-        "image": "https://ipfs.io/ipfs/bafybeie4a3o2dz6zd7fdtefcj3cn75hmdt4p2abd5hezdogzbu2fapx26m",
+        "image": "https://ipfs.totembound.com/ipfs/bafybeie4a3o2dz6zd7fdtefcj3cn75hmdt4p2abd5hezdogzbu2fapx26m",
         "month": 3
       }
     ]

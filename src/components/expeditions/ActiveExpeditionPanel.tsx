@@ -3,6 +3,7 @@ import { Clock, CheckCircle, Gift, Droplets, Sparkles, Users, Loader2 } from 'lu
 import { useUser } from '../../contexts/UserContext';
 import { getDomainColor, getRarityBorderColor } from "../../utils/totems";
 import CountdownTimer from '../CountdownTimer';
+import { IPFS_GATEWAY_URL } from '../../config/constants';
 
 interface ActiveExpeditionPanelProps {
     expedition: {
@@ -177,7 +178,7 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
                         <div className="flex flex-col items-center">
                             <div className={`relative w-10 h-10 overflow-hidden rounded-lg border ${captainRarityColors.border}`}>
                                 <img 
-                                    src={captain.image?.replace("ipfs://", "https://ipfs.io/ipfs/") || '/images/placeholder.png'} 
+                                    src={captain.image?.replace("ipfs://", IPFS_GATEWAY_URL) || '/images/placeholder.png'} 
                                     alt={captain.attributes.displayName || `Totem #${captain.id}`}
                                     className="w-full h-full object-cover"
                                 />
@@ -193,7 +194,7 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
                         <div className="flex flex-col items-center">
                             <div className={`relative w-10 h-10 overflow-hidden rounded-lg border ${memberOneRarityColors.border}`}>
                                 <img 
-                                    src={memberOne.image?.replace("ipfs://", "https://ipfs.io/ipfs/") || '/images/placeholder.png'} 
+                                    src={memberOne.image?.replace("ipfs://", IPFS_GATEWAY_URL) || '/images/placeholder.png'} 
                                     alt={memberOne.attributes.displayName || `Totem #${memberOne.id}`}
                                     className="w-full h-full object-cover"
                                 />
@@ -209,7 +210,7 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
                         <div className="flex flex-col items-center">
                             <div className={`relative w-10 h-10 overflow-hidden rounded-lg border ${memberTwoRarityColors.border}`}>
                                 <img 
-                                    src={memberTwo.image?.replace("ipfs://", "https://ipfs.io/ipfs/") || '/images/placeholder.png'} 
+                                    src={memberTwo.image?.replace("ipfs://", IPFS_GATEWAY_URL) || '/images/placeholder.png'} 
                                     alt={memberTwo.attributes.displayName || `Totem #${memberTwo.id}`}
                                     className="w-full h-full object-cover"
                                 />

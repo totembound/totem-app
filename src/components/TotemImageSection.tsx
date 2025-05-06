@@ -4,6 +4,7 @@ import { Rarity, Species } from '../types/types';
 import ActionEffect from './effects/ActionEffect';
 import { getRarityBadgeColor } from '../utils/totems';
 import { formatTimeRemaining } from '../utils/formats';
+import { IPFS_GATEWAY_URL } from '../config/constants';
 
 // Map species to their habitat backgrounds
 const HABITAT_BACKGROUNDS: Record<Species, string> = {
@@ -99,7 +100,7 @@ const TotemImageSection: React.FC<TotemImageSectionProps> = ({
     //const habitatElement = HABITAT_ELEMENTS[species] || null;
     const habitatBackground = HABITAT_BACKGROUNDS[Species.None];
     // Clean up IPFS URL if needed
-    const cleanImageUrl = imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/');
+    const cleanImageUrl = imageUrl.replace('ipfs://', IPFS_GATEWAY_URL);
     
     return (
         <div className={`

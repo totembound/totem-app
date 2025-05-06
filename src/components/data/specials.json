@@ -32,6 +32,17 @@
         "tokenAmount": 10000,
         "image": "https://ipfs.totembound.com/ipfs/bafybeie4a3o2dz6zd7fdtefcj3cn75hmdt4p2abd5hezdogzbu2fapx26m",
         "month": 3
+      },
+      {
+        "id": "may-2025",
+        "bundleId": 4,
+        "name": "Blossomroot Beaver (Floral Violet)",
+        "description": "A divine architect of spring, shaping nature’s rebirth.",
+        "baseSpecies": "Beaver",
+        "price": 250,
+        "tokenAmount": 10000,
+        "image": "https://ipfs.totembound.com/ipfs/bafybeiakuzq54z5igdfhnyhdkudl27ye5nzar7coz3cs75qtndbyaiafuy",
+        "month": 4
       }
     ]
 }

@@ -13,7 +13,7 @@ import { AFFINITY_ICONS, DOMAIN_ICONS, getSpeciesEmoji } from '../../utils/totem
 import React from 'react';
 import SpecialOffers from '../shop/SpecialOffers';
 import { useTransactionService } from '../../hooks/useTransactionService';
-import { AVAILABLE_SPECIES } from '../../config/constants';
+import { AVAILABLE_SPECIES, IPFS_GATEWAY_URL } from '../../config/constants';
 
 const tokenPackages = [
   { amount: '100', cost: '1', popular: false },
@@ -79,7 +79,7 @@ const ShopInterface = () => {
               console.log('Attributes:', attributes);
               
               // Fetch IPFS metadata
-              const response = await fetch(tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/'));
+              const response = await fetch(tokenURI.replace('ipfs://', IPFS_GATEWAY_URL));
               const metadata = await response.json();
               
               // Set the purchased NFT data for the celebration modal
@@ -184,7 +184,7 @@ const ShopInterface = () => {
                       <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500">
                         {species.image ? (
                             <img
-                                src={species.image.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                                src={species.image.replace('ipfs://', IPFS_GATEWAY_URL)}
                                 alt={species.name}
                                 className="w-full h-full object-contain"
                             />

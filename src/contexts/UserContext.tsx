@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { ethers } from 'ethers';
 import { UserContextType, UserContextState, ActionType, ActionTracking, NFTMetadata, TokenActionTrackings, Attribute, AccountType } from '../types/types';
 import { CONTRACT_ADDRESSES, createGameContract, createTokenContract, createTotemNFTContract, TotemTokenContract, createAchievementsContract } from '../config/contracts';
-import { STORAGE_KEYS } from '../config/constants';
+import { IPFS_GATEWAY_URL, STORAGE_KEYS } from '../config/constants';
 import { getSpeciesBaseStats } from '../utils/totems';
 import { getUserStorage, setUserStorage } from '../utils/localStorage';
 
@@ -134,7 +134,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 // Fetch full metadata if needed
                 const uri = await contract.tokenURI(tokenId);
-                const ipfsMetadata = await fetch(uri.replace('ipfs://', 'https://ipfs.io/ipfs/')).then(res => res.json());
+                const ipfsMetadata = await fetch(uri.replace('ipfs://', IPFS_GATEWAY_URL)).then(res => res.json());
                 const attrs = await contract.attributes(tokenId);
                 const affinity = ipfsMetadata.attributes.find((a: Attribute) => a.trait_type === 'Affinity')?.value;
                 const domain = ipfsMetadata.attributes.find((a: Attribute) => a.trait_type === 'Domain')?.value;
@@ -194,7 +194,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (currentTotem && Number(attrs.stage) !== currentTotem.attributes.stage) {
                 // Fetch new metadata after evolution
                 const uri = await contract.tokenURI(tokenId);
-                const ipfsMetadata = await fetch(uri.replace('ipfs://', 'https://ipfs.io/ipfs/')).then(res => res.json());
+                const ipfsMetadata = await fetch(uri.replace('ipfs://', IPFS_GATEWAY_URL)).then(res => res.json());
 
                 setTotems(prev => prev.map(totem =>
                     totem.tokenId === tokenId ? {
@@ -287,7 +287,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (currentTotem && Number(attrs.stage) !== currentTotem.attributes.stage) {
                 // Fetch new metadata after evolution
                 const uri = await contract.tokenURI(tokenId);
-                const ipfsMetadata = await fetch(uri.replace('ipfs://', 'https://ipfs.io/ipfs/')).then(res => res.json());
+                const ipfsMetadata = await fetch(uri.replace('ipfs://', IPFS_GATEWAY_URL)).then(res => res.json());
 
                 setTotems(prev => prev.map(totem =>
                     totem.tokenId === tokenId ? {
@@ -348,7 +348,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 contract.attributes(tokenId)
             ]);
 
-            const ipfsMetadata = await fetch(uri.replace('ipfs://', 'https://ipfs.io/ipfs/')).then(res => res.json());
+            const ipfsMetadata = await fetch(uri.replace('ipfs://', IPFS_GATEWAY_URL)).then(res => res.json());
             const affinity = ipfsMetadata.attributes.find((a: Attribute) => a.trait_type === 'Affinity')?.value;
             const domain = ipfsMetadata.attributes.find((a: Attribute) => a.trait_type === 'Domain')?.value;
             const stats = getSpeciesBaseStats(Number(attrs.species), Number(attrs.rarity));

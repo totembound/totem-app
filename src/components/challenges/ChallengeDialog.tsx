@@ -4,6 +4,7 @@ import { NFTMetadata } from '../../types/types';
 import { useGame } from '../../contexts/GameContext';
 import { getGameDifficulty, getTotemStage } from '../../utils/totems';
 import ChallengeGame from './ChallengeGame';
+import { IPFS_GATEWAY_URL } from '../../config/constants';
 
 interface ChallengeDialogProps {
     isOpen: boolean;
@@ -33,7 +34,7 @@ const TotemSelectionCard: React.FC<{
     >
         <div className="aspect-square relative">
             <img
-                src={totem.image.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                src={totem.image.replace('ipfs://', IPFS_GATEWAY_URL)}
                 alt={totem.attributes.displayName || totem.name}
                 className="w-full h-full object-cover"
             />
@@ -144,7 +145,7 @@ export const ChallengeDialog: React.FC<ChallengeDialogProps> = ({
                                     <ChevronLeft className="w-5 h-5" />
                                 </button>
                                 <img
-                                    src={selectedTotem?.image.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                                    src={selectedTotem?.image.replace('ipfs://', IPFS_GATEWAY_URL)}
                                     alt={name}
                                     className="w-12 h-12 rounded object-cover"
                                 />

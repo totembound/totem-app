@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AlertTriangle, ArrowUpDown, Clock, Heart, Loader2, MapPin, Sparkles } from 'lucide-react';
-import { useTotemGame } from '../../hooks/useTotemGame';
+import { ArrowUpDown, Clock, Heart, Loader2, MapPin, Sparkles } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { Species, Rarity, NFTMetadata, Color } from '../../types/types';
 import MessageDialog from '../MessageDialog';
@@ -9,6 +8,7 @@ import { getRarityBadgeColor } from '../../utils/totems';
 import { useTransactionService } from '../../hooks/useTransactionService';
 import { useGame } from '../../contexts/GameContext';
 import { formatTimeRemaining } from '../../utils/formats';
+import { IPFS_GATEWAY_URL } from '../../config/constants';
 
 interface SellTotemCardProps {
     totem: NFTMetadata;
@@ -57,7 +57,7 @@ const SellTotemCard: React.FC<SellTotemCardProps> = ({
                 <div className="absolute inset-0 flex items-center justify-center">
                     {totem.image ? (
                         <img
-                            src={totem.image.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                            src={totem.image.replace('ipfs://', IPFS_GATEWAY_URL)}
                             alt={totem.name}
                             className="w-full h-full object-contain"
                         />

@@ -6,6 +6,7 @@ import { ethers } from 'ethers';
 import { createTotemNFTContract } from '../../config/contracts';
 import { getCurrentMonth } from '../../utils/totems';
 import specialsData from '../data/specials.json';
+import { IPFS_GATEWAY_URL } from '../../config/constants';
 
 interface SpecialOffersViewProps {
     onPurchased: (purchased: any) => void;
@@ -41,7 +42,7 @@ const SpecialOffers: React.FC<SpecialOffersViewProps> = ({
                 console.log('Attributes:', attributes);
 
                 // Fetch IPFS metadata
-                const response = await fetch(tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/'));
+                const response = await fetch(tokenURI.replace('ipfs://', IPFS_GATEWAY_URL));
                 const metadata = await response.json();
   
                 // Set the purchased NFT data for the celebration modal

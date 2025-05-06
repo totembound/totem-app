@@ -40,7 +40,7 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
     const getDomainIcon = () => {
         switch (domain) {
             case 'Air': return <Cloud size={16} className="text-cyan-600 dark:text-cyan-400" />;
-            case 'Land': return <Mountain size={16} className="text-cyan-600 dark:text-cyan-400" />;
+            case 'Earth': return <Mountain size={16} className="text-cyan-600 dark:text-cyan-400" />;
             case 'Water': return <Waves size={16} className="text-cyan-600 dark:text-cyan-400" />;
             default: return <Cloud size={16} className="text-cyan-600 dark:text-cyan-400" />;
         }

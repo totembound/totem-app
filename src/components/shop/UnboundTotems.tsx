@@ -7,6 +7,7 @@ import MessageDialog from '../MessageDialog';
 import { Pagination } from '../layouts/Pagination';
 import { getRarityBadgeColor } from '../../utils/totems';
 import { useTransactionService } from '../../hooks/useTransactionService';
+import { IPFS_GATEWAY_URL } from '../../config/constants';
 
 interface UnboundTotem {
     tokenId: bigint;
@@ -44,8 +45,8 @@ const UnboundTotemCard: React.FC<{
             const nftContract = createTotemNFTContract(provider);
             
             const uri = await nftContract.tokenURI(totem.tokenId);
-            const ipfsMetadata = await fetch(uri.replace('ipfs://', 'https://ipfs.io/ipfs/')).then(res => res.json());
-            const image = ipfsMetadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/');
+            const ipfsMetadata = await fetch(uri.replace('ipfs://', IPFS_GATEWAY_URL)).then(res => res.json());
+            const image = ipfsMetadata.image.replace('ipfs://', IPFS_GATEWAY_URL);
             setImageUri(image);
         }
         getImageUri();

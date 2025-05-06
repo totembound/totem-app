@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Sparkles, X } from 'lucide-react';
 import { Rarity } from '../types/types';
 import { getRarityColor } from '../utils/totems';
+import { IPFS_GATEWAY_URL } from '../config/constants';
 
 interface CelebrationModalProps {
   totem: { 
@@ -99,7 +100,7 @@ const CelebrationModal = ({
           {/* NFT Display */}
           <div className="relative aspect-square rounded-lg overflow-hidden mb-6">
             <img 
-              src={totem.image.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+              src={totem.image.replace('ipfs://', IPFS_GATEWAY_URL)}
               alt={totem.name}
               className="w-full h-full object-cover"
             />

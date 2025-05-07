@@ -876,10 +876,8 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
   return (
     <div ref={containerRef} className="w-full max-w-2xl mx-auto">
       <>
-        {/* Game area with background - using aspect ratio box */}
         <div
-          className="relative bg-slate-800 rounded-lg mb-4 max-w-2xl mx-auto p-0 overflow-hidden"
-          style={{ aspectRatio: '16/9' }} // Fixed aspect ratio container
+          className="relative bg-slate-800 rounded-lg mb-4 w-full h-96 mx-auto p-0 overflow-hidden"
         >
           <div
             ref={gameAreaRef}
@@ -893,7 +891,7 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
                 className="w-full h-full object-cover opacity-80"
               />
             </div>
-
+  
             {/* Turn Message Overlay */}
             {showTurnMessage && (
               <div className="absolute inset-0 z-20 flex items-center justify-center">
@@ -902,7 +900,7 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
                 </div>
               </div>
             )}
-
+  
             {/* Alert for low time */}
             {showAlert && (
               <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
@@ -911,20 +909,20 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
                 </div>
               </div>
             )}
-
+  
             {/* Canvas for drawing connections */}
             <canvas
               ref={canvasRef}
               className="absolute inset-0 w-full h-full z-10"
             />
-
+  
             {/* Stars */}
             <div className="relative z-10 h-full">
               {allStars.map(star => renderStar(star))}
             </div>
           </div>
         </div>
-
+  
         {/* Controls and buttons section */}
         <div>
           {gameState === 'ready' && (
@@ -937,13 +935,13 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
               Start Challenge
             </button>
           )}
-
+  
           {gameState === 'playing' && (
             <div className="w-full py-2 px-4 bg-gray-600 text-white rounded-lg">
               {scoreTicker}
             </div>
           )}
-
+  
           {(gameState === 'success' || gameState === 'failed') && (
             <div className="flex justify-between items-center">
               {scoreTicker}

@@ -31,6 +31,45 @@ interface ConstellationChallengeProps {
   onFail?: () => void;
 }
 
+// Calculate direction between two points (for glow direction)
+const calculateDirection = (fromX: number, fromY: number, toX: number, toY: number): number => {
+  const dx = toX - fromX;
+  const dy = toY - fromY;
+  const angle = Math.atan2(dy, dx);
+  return angle * (180 / Math.PI); // Convert to degrees
+};
+
+// Generate distractor stars
+const generateDistractorStars = (count: number, existingStars: Star[]) => {
+  const distractors: Star[] = [];
+
+  for (let i = 0; i < count; i++) {
+    // Generate random position (0-100)
+    const x = Math.floor(Math.random() * 100);
+    const y = Math.floor(Math.random() * 100);
+
+    // Keep distractor stars away from real stars (minimum distance)
+    const tooClose = existingStars.some(star => {
+      const distance = Math.sqrt(Math.pow(star.x - x, 2) + Math.pow(star.y - y, 2));
+      return distance < 10; // Minimum distance units
+    });
+
+    if (!tooClose) {
+      distractors.push({
+        id: `distractor-${i}`,
+        x,
+        y,
+        isDistractor: true
+      });
+    } else {
+      // Try again if the star was too close
+      i--;
+    }
+  }
+
+  return distractors;
+};
+
 // Sample constellation data
 const CONSTELLATIONS = [
   // Difficulty 1 - Easy
@@ -262,37 +301,6 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     timeLimit: 30 + (wisdom - 10) * 5, // More wisdom gives more time
   };
 
-  // Generate distractor stars
-  const generateDistractorStars = useCallback((count: number, existingStars: Star[]) => {
-    const distractors: Star[] = [];
-
-    for (let i = 0; i < count; i++) {
-      // Generate random position (0-100)
-      const x = Math.floor(Math.random() * 100);
-      const y = Math.floor(Math.random() * 100);
-
-      // Keep distractor stars away from real stars (minimum distance)
-      const tooClose = existingStars.some(star => {
-        const distance = Math.sqrt(Math.pow(star.x - x, 2) + Math.pow(star.y - y, 2));
-        return distance < 10; // Minimum distance units
-      });
-
-      if (!tooClose) {
-        distractors.push({
-          id: `distractor-${i}`,
-          x,
-          y,
-          isDistractor: true
-        });
-      } else {
-        // Try again if the star was too close
-        i--;
-      }
-    }
-
-    return distractors;
-  }, []);
-
   // Calculate final game score
   const calculateGameScore = useCallback((
     timeElapsed: number,
@@ -331,14 +339,6 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
       y: squareTop + offsetY
     };
   }, [squareSize]);
-
-  // Calculate direction between two points (for glow direction)
-  const calculateDirection = (fromX: number, fromY: number, toX: number, toY: number): number => {
-    const dx = toX - fromX;
-    const dy = toY - fromY;
-    const angle = Math.atan2(dy, dx);
-    return angle * (180 / Math.PI); // Convert to degrees
-  };
 
   // Find valid next stars based on the current constellation's connections
   const findValidNextStars = useCallback(() => {

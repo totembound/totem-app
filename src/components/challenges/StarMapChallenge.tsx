@@ -47,9 +47,9 @@ const CONSTELLATIONS = [
       { id: 'f', x: 75, y: 15 },  // Merak - bottom of bowl
       { id: 'g', x: 80, y: 30 },  // Dubhe - top of bowl
     ],
-    connections: [['a', 'b'] as [string, string], ['b', 'c'] as [string, string], 
-                 ['c', 'd'] as [string, string], ['d', 'e'] as [string, string], 
-                 ['e', 'f'] as [string, string], ['f', 'g'] as [string, string]]
+    connections: [['a', 'b'] as [string, string], ['b', 'c'] as [string, string],
+    ['c', 'd'] as [string, string], ['d', 'e'] as [string, string],
+    ['e', 'f'] as [string, string], ['f', 'g'] as [string, string]]
   },
   {
     id: 'cassiopeia',
@@ -62,8 +62,8 @@ const CONSTELLATIONS = [
       { id: 'd', x: 70, y: 25 },  // Ruchbah
       { id: 'e', x: 85, y: 40 },  // Segin
     ],
-    connections: [['a', 'b'] as [string, string], ['b', 'c'] as [string, string], 
-                  ['c', 'd'] as [string, string], ['d', 'e'] as [string, string]]
+    connections: [['a', 'b'] as [string, string], ['b', 'c'] as [string, string],
+    ['c', 'd'] as [string, string], ['d', 'e'] as [string, string]]
   },
   {
     id: 'pleiades',
@@ -78,9 +78,9 @@ const CONSTELLATIONS = [
       { id: 'f', x: 35, y: 35 },  // Taygeta
       { id: 'g', x: 50, y: 18 },  // Celaeno
     ],
-    connections: [['a', 'b'] as [string, string], ['a', 'c'] as [string, string], 
-                  ['a', 'd'] as [string, string], ['a', 'e'] as [string, string], 
-                  ['a', 'f'] as [string, string], ['a', 'g'] as [string, string]]
+    connections: [['a', 'b'] as [string, string], ['a', 'c'] as [string, string],
+    ['a', 'd'] as [string, string], ['a', 'e'] as [string, string],
+    ['a', 'f'] as [string, string], ['a', 'g'] as [string, string]]
   },
 
   // Difficulty 2 - Medium
@@ -100,9 +100,9 @@ const CONSTELLATIONS = [
       { id: 'i', x: 55, y: 60 },  // Sword nebula
     ],
     connections: [
-      ['a', 'h'] as [string, string], ['h', 'b'] as [string, string], 
-      ['b', 'c'] as [string, string], ['a', 'e'] as [string, string], 
-      ['c', 'd'] as [string, string], ['d', 'e'] as [string, string], 
+      ['a', 'h'] as [string, string], ['h', 'b'] as [string, string],
+      ['b', 'c'] as [string, string], ['a', 'e'] as [string, string],
+      ['c', 'd'] as [string, string], ['d', 'e'] as [string, string],
       ['c', 'g'] as [string, string], ['e', 'f'] as [string, string],
       ['d', 'i'] as [string, string]
     ]
@@ -120,7 +120,7 @@ const CONSTELLATIONS = [
       { id: 'f', x: 65, y: 45 },  // Beta Lyrae
     ],
     connections: [
-      ['a', 'b'] as [string, string], ['a', 'c'] as [string, string], 
+      ['a', 'b'] as [string, string], ['a', 'c'] as [string, string],
       ['b', 'd'] as [string, string], ['c', 'f'] as [string, string],
       ['d', 'e'] as [string, string], ['e', 'f'] as [string, string]
     ]
@@ -138,8 +138,8 @@ const CONSTELLATIONS = [
       { id: 'f', x: 75, y: 35 },  // Right wing tip
     ],
     connections: [
-      ['a', 'b'] as [string, string], ['b', 'c'] as [string, string], 
-      ['c', 'd'] as [string, string], ['c', 'e'] as [string, string], 
+      ['a', 'b'] as [string, string], ['b', 'c'] as [string, string],
+      ['c', 'd'] as [string, string], ['c', 'e'] as [string, string],
       ['c', 'f'] as [string, string]
     ]
   },
@@ -163,11 +163,11 @@ const CONSTELLATIONS = [
       { id: 'k', x: 55, y: 75 },  // Sigma Herculis
     ],
     connections: [
-      ['a', 'b'] as [string, string], ['b', 'c'] as [string, string], 
+      ['a', 'b'] as [string, string], ['b', 'c'] as [string, string],
       ['c', 'd'] as [string, string], ['d', 'e'] as [string, string],
-      ['e', 'f'] as [string, string], ['f', 'g'] as [string, string], 
+      ['e', 'f'] as [string, string], ['f', 'g'] as [string, string],
       ['g', 'h'] as [string, string], ['h', 'a'] as [string, string],
-      ['g', 'i'] as [string, string], ['i', 'j'] as [string, string], 
+      ['g', 'i'] as [string, string], ['i', 'j'] as [string, string],
       ['j', 'k'] as [string, string], ['k', 'f'] as [string, string]
     ]
   },
@@ -189,9 +189,9 @@ const CONSTELLATIONS = [
       { id: 'k', x: 88, y: 90 },  // Iota (second stinger)
     ],
     connections: [
-      ['d', 'c'] as [string, string], ['c', 'b'] as [string, string], 
+      ['d', 'c'] as [string, string], ['c', 'b'] as [string, string],
       ['b', 'a'] as [string, string], ['a', 'e'] as [string, string],
-      ['e', 'f'] as [string, string], ['f', 'g'] as [string, string], 
+      ['e', 'f'] as [string, string], ['f', 'g'] as [string, string],
       ['g', 'h'] as [string, string], ['h', 'i'] as [string, string],
       ['i', 'j'] as [string, string], ['j', 'k'] as [string, string]
     ]
@@ -212,9 +212,9 @@ const CONSTELLATIONS = [
       { id: 'i', x: 50, y: 85 },  // Biham
     ],
     connections: [
-      ['a', 'b'] as [string, string], ['b', 'c'] as [string, string], 
+      ['a', 'b'] as [string, string], ['b', 'c'] as [string, string],
       ['c', 'd'] as [string, string], ['d', 'a'] as [string, string],
-      ['a', 'e'] as [string, string], ['a', 'f'] as [string, string], 
+      ['a', 'e'] as [string, string], ['a', 'f'] as [string, string],
       ['b', 'g'] as [string, string], ['b', 'h'] as [string, string],
       ['d', 'i'] as [string, string], ['c', 'i'] as [string, string]
     ]
@@ -231,7 +231,9 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
   // Game state management
   const [gameState, setGameState] = useState<GameState>('ready');
   const [currentConstellation, setCurrentConstellation] = useState<Constellation | null>(null);
-  const [availableConstellations, setAvailableConstellations] = useState<Constellation[]>([]);
+  const [availableConstellations, setAvailableConstellations] = useState<Constellation[]>(
+    CONSTELLATIONS.filter(c => c.difficulty === difficulty)
+  );
   const [selectedStars, setSelectedStars] = useState<string[]>([]);
   const [distractorStars, setDistractorStars] = useState<Star[]>([]);
   const [allStars, setAllStars] = useState<Star[]>([]);
@@ -259,12 +261,6 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     numDistractorStars: Math.max(0, (difficulty * 5) - (wisdom - 9)),
     timeLimit: 30 + (wisdom - 10) * 5, // More wisdom gives more time
   };
-
-  // Filter constellations based on difficulty
-  useEffect(() => {
-    const filteredConstellations = CONSTELLATIONS.filter(c => c.difficulty === difficulty);
-    setAvailableConstellations(filteredConstellations);
-  }, [difficulty]);
 
   // Generate distractor stars
   const generateDistractorStars = useCallback((count: number, existingStars: Star[]) => {
@@ -337,12 +333,12 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
   }, [squareSize]);
 
   // Calculate direction between two points (for glow direction)
-  const calculateDirection = useCallback((fromX: number, fromY: number, toX: number, toY: number) => {
+  const calculateDirection = (fromX: number, fromY: number, toX: number, toY: number): number => {
     const dx = toX - fromX;
     const dy = toY - fromY;
     const angle = Math.atan2(dy, dx);
     return angle * (180 / Math.PI); // Convert to degrees
-  }, []);
+  };
 
   // Find valid next stars based on the current constellation's connections
   const findValidNextStars = useCallback(() => {
@@ -474,7 +470,7 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
   const handleGameEnd = useCallback((timeExpired: boolean) => {
     // Update game state to prevent further interaction
     setGameState(timeExpired ? 'failed' : 'success');
-    
+
     // Clear any active timers
     if (timerRef.current) {
       window.clearInterval(timerRef.current);
@@ -642,13 +638,13 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     setTimeLeft(null);
     setShowAlert(false);
     setShowTurnMessage(false);
-    
+
     // Clear any existing timers
     if (timerRef.current) {
       window.clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    
+
     endTimeRef.current = null;
   }, []);
 
@@ -875,88 +871,86 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
 
   return (
     <div ref={containerRef} className="w-full max-w-2xl mx-auto">
-      <>
+      <div
+        className="relative bg-slate-800 rounded-lg mb-4 w-full h-96 mx-auto p-0 overflow-hidden"
+      >
         <div
-          className="relative bg-slate-800 rounded-lg mb-4 w-full h-96 mx-auto p-0 overflow-hidden"
+          ref={gameAreaRef}
+          className="absolute inset-0 flex flex-col"
         >
-          <div
-            ref={gameAreaRef}
-            className="absolute inset-0 flex flex-col"
-          >
-            {/* Background image */}
-            <div className="absolute inset-0 rounded-lg overflow-hidden">
-              <img
-                src="/challenges/starmap-nightsky.jpg"
-                alt="Night sky background"
-                className="w-full h-full object-cover opacity-80"
-              />
-            </div>
-  
-            {/* Turn Message Overlay */}
-            {showTurnMessage && (
-              <div className="absolute inset-0 z-20 flex items-center justify-center">
-                <div className="bg-black/70 text-white text-2xl font-bold px-6 py-4 rounded-lg animate-pulse">
-                  Connect the Stars!
-                </div>
-              </div>
-            )}
-  
-            {/* Alert for low time */}
-            {showAlert && (
-              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
-                <div className="bg-red-500/80 text-white px-4 py-2 rounded-lg animate-pulse">
-                  Time running out!
-                </div>
-              </div>
-            )}
-  
-            {/* Canvas for drawing connections */}
-            <canvas
-              ref={canvasRef}
-              className="absolute inset-0 w-full h-full z-10"
+          {/* Background image */}
+          <div className="absolute inset-0 rounded-lg overflow-hidden">
+            <img
+              src="/challenges/starmap-nightsky.jpg"
+              alt="Night sky background"
+              className="w-full h-full object-cover opacity-80"
             />
-  
-            {/* Stars */}
-            <div className="relative z-10 h-full">
-              {allStars.map(star => renderStar(star))}
+          </div>
+
+          {/* Turn Message Overlay */}
+          {showTurnMessage && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center">
+              <div className="bg-black/70 text-white text-2xl font-bold px-6 py-4 rounded-lg animate-pulse">
+                Connect the Stars!
+              </div>
             </div>
+          )}
+
+          {/* Alert for low time */}
+          {showAlert && (
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
+              <div className="bg-red-500/80 text-white px-4 py-2 rounded-lg animate-pulse">
+                Time running out!
+              </div>
+            </div>
+          )}
+
+          {/* Canvas for drawing connections */}
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 w-full h-full z-10"
+          />
+
+          {/* Stars */}
+          <div className="relative z-10 h-full">
+            {allStars.map(star => renderStar(star))}
           </div>
         </div>
-  
-        {/* Controls and buttons section */}
-        <div>
-          {gameState === 'ready' && (
-            <button
-              className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
+      </div>
+
+      {/* Controls and buttons section */}
+      <div>
+        {gameState === 'ready' && (
+          <button
+            className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
                 transition-colors duration-200"
+            onClick={startGame}
+            type="button"
+          >
+            Start Challenge
+          </button>
+        )}
+
+        {gameState === 'playing' && (
+          <div className="w-full py-2 px-4 bg-gray-600 text-white rounded-lg">
+            {scoreTicker}
+          </div>
+        )}
+
+        {(gameState === 'success' || gameState === 'failed') && (
+          <div className="flex justify-between items-center">
+            {scoreTicker}
+            <button
+              className={`py-2 px-4 ${gameState === 'success' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} 
+                  text-white rounded-lg transition-colors duration-200`}
               onClick={startGame}
               type="button"
             >
-              Start Challenge
+              Try Again
             </button>
-          )}
-  
-          {gameState === 'playing' && (
-            <div className="w-full py-2 px-4 bg-gray-600 text-white rounded-lg">
-              {scoreTicker}
-            </div>
-          )}
-  
-          {(gameState === 'success' || gameState === 'failed') && (
-            <div className="flex justify-between items-center">
-              {scoreTicker}
-              <button
-                className={`py-2 px-4 ${gameState === 'success' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} 
-                  text-white rounded-lg transition-colors duration-200`}
-                onClick={startGame}
-                type="button"
-              >
-                Try Again
-              </button>
-            </div>
-          )}
-        </div>
-      </>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

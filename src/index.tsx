@@ -4,10 +4,7 @@ import './index.css';
 import App from './App';
 import { posthog, isPostHogEnabled } from './clients/posthogClient';
 import { PostHogProvider} from 'posthog-js/react'
-
-// stamp version to create a file diff when version changes
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const version = `${process.env.REACT_APP_VERSION}`;
+import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -29,6 +26,17 @@ else {
     </React.StrictMode>
   );
 }
+
+// Register the service worker for PWA functionality
+serviceWorkerRegistration.register({
+  onUpdate: (registration) => {
+    // Show notification when a new version is available
+    console.log('TotemBound is ready to be updated.');
+  },
+  onSuccess: () => {
+    console.log('TotemBound is now available for offline use!');
+  }
+});
 
 // Add this check on app initialization
 console.log('Contract addresses:', {

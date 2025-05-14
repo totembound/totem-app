@@ -22,6 +22,7 @@ import About from './components/pages/About';
 import Plans from './components/pages/Plans';
 import { SignupForm } from './components/SignupForm';
 import { usePageViews } from './hooks/usePageViews';
+import ServiceWorkerDialog from './components/ServiceWorkerDialog';
 
 const AppRoutes: React.FC = () => {
   usePageViews();
@@ -107,6 +108,7 @@ const App: React.FC = () => {
           <GameProvider>
             <AchievementsProvider>
               <AppRoutes />
+              <ServiceWorkerDialog/>
             </AchievementsProvider>
           </GameProvider>
         </UserProvider>

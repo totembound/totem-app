@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Info, AlertCircle, Zap, Award, Key, ChevronUp, ChevronDown } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { Link } from 'react-router-dom';
 import SubscriptionStatus from '../SubscriptionStatus';
 import { TIER_TYPES } from '../../config/constants';
-import TokensDisplay from '../TokensDisplay';
+import * as serviceWorkerRegistration from '../../serviceWorkerRegistration';
 
 const AccountSettings = () => {
     const {
@@ -21,6 +21,7 @@ const AccountSettings = () => {
     const [error, setError] = useState('');
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [showApiKey, setShowApiKey] = useState(gaslessApiKey === '');
+    const version = serviceWorkerRegistration.getVersion();
 
     useEffect(() => {
         setApiKey(gaslessApiKey || '');
@@ -295,6 +296,10 @@ const AccountSettings = () => {
                     {accountType === TIER_TYPES.premium && 
                         <SubscriptionStatus/>
                     }
+                </div>
+
+                <div className="text-sm text-gray-700 dark:text-gray-300">
+                    Version: {version}
                 </div>
             </div>
         </div>

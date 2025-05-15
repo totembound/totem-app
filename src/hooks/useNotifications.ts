@@ -35,17 +35,6 @@ const achievementsAddress = CONTRACT_ADDRESSES.achievements;
 const challengesAddress = CONTRACT_ADDRESSES.challenges;
 const expeditionsAddress = CONTRACT_ADDRESSES.expeditions;
 
-// Play notification sound
-const playSound = (soundEnabled: boolean, soundType = "default") => {
-  if (!soundEnabled) return;
-
-  const audio = new Audio(`/sounds/${soundType}.mp3`);
-  audio.volume = 0.3;
-  audio
-    .play()
-    .catch((err) => console.error("Error playing notification sound:", err));
-};
-
 const getEnumKeyByValue = (enumObj: any, value: number): string => {
   return Object.keys(enumObj).find((key) => enumObj[key] === value) || "";
 };
@@ -97,6 +86,10 @@ export function useNotifications() {
     new Set<string>(notifications.map((n) => n.id))
   );
   const eventHashes = eventHashesRef.current;
+  const soundEnabledRef = useRef(soundEnabled);
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
 
   // Maximum number of notifications to keep in storage
   const [maxNotifications, setMaxNotifications] = useState<number>(() => {
@@ -132,6 +125,19 @@ export function useNotifications() {
       return newValue;
     });
   }, [userAddress]);
+
+  // Play notification sound
+  const playSound = useCallback((soundType = "default") => {
+    if (!soundEnabledRef.current) {
+      return;
+    }
+
+    const audio = new Audio(`/sounds/${soundType}.mp3`);
+    audio.volume = 0.3;
+    audio
+      .play()
+      .catch((err) => console.error("Error playing notification sound:", err));
+  }, []);
 
   // Update notifications
   const updateNotifications = useCallback(
@@ -209,7 +215,7 @@ export function useNotifications() {
           if (config.autoOpen) {
             setOpenPanel(true);
           }
-          playSound(soundEnabled);
+          playSound();
 
           return updatedNotifications;
         } else {
@@ -238,13 +244,13 @@ export function useNotifications() {
           if (config.autoOpen) {
             setOpenPanel(true);
           }
-          playSound(soundEnabled);
+          playSound();
 
           return newNotifications;
         }
       });
     },
-    [saveNotifications, setOpenPanel]
+    [saveNotifications, setOpenPanel, playSound]
   );
 
   // Mark a notification as read

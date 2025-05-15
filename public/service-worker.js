@@ -21,6 +21,10 @@ const CDN_CACHE_PATTERNS = [
   /\.(woff|woff2|ttf|otf)$/  // Fonts if needed
 ];
 
+const EXCLUDE_PATTERNS = [
+  /\.mp3$/,  // MP3 files
+];
+
 // Install event: cache precache assets
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -50,8 +54,9 @@ self.addEventListener('activate', event => {
 // Helper to check if URL should be cached based on patterns
 function shouldCacheUrl(url) {
   const urlObj = new URL(url);
+  const excludesPattern = EXCLUDE_PATTERNS.some(pattern => pattern.test(urlObj.pathname));
 
-  if (url?.includes('news/')) {
+  if (url?.includes('news/') || excludesPattern) {
     return false;
   }
 

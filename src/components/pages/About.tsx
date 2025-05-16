@@ -14,7 +14,7 @@ import { getCurrentMonth } from "../../utils/totems";
 import { Link } from "react-router-dom";
 
 const About: React.FC = () => {
-  const currentMonth = new Date().getMonth();
+  const currentMonth = new Date().getMonth() + 1;
   const currentMonthlySpecial = specialsData.monthlySpecials.find(
     (special) => special.month === currentMonth
   )!;

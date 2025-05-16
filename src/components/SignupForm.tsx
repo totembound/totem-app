@@ -397,6 +397,7 @@ export const SignupForm: React.FC = () => {
                         <div className="space-y-3">
                             <button
                                 disabled={comingSoon}
+                                onClick={handleConnect}
                                 className={`bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 
                                     rounded-lg w-full text-lg transition-all
                                     ${comingSoon ? 'opacity-50 cursor-not-allowed' : ''}`}>

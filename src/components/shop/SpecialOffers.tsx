@@ -16,12 +16,16 @@ interface SpecialOffersViewProps {
 const SpecialOffers: React.FC<SpecialOffersViewProps> = ({
     onPurchased
 }) => {
-    const currentMonth = new Date().getMonth();
+    const currentMonth = new Date().getMonth() + 1;
     const currentMonthlySpecial = specialsData.monthlySpecials.find(special => special.month === currentMonth);
     const [isExpanded, setIsExpanded] = useState(true);
     const [loading, setLoading] = useState<{[key: string]: boolean}>({});
     const { updateBalances, addTotem, showError, provider } = useUser();
     const { purchaseBundle } = useTotemGame();
+
+    const commonBundle = specialsData.bundles.common;
+    const rareBundle = specialsData.bundles.rare;
+    const epicBundle = specialsData.bundles.epic;
 
     const handlePurchaseBundle = async (bundleId: number, polAmount: number) => {
         setLoading(prev => ({ ...prev, [bundleId]: true }));
@@ -104,22 +108,22 @@ const SpecialOffers: React.FC<SpecialOffersViewProps> = ({
                 <div className="bg-green-50/50 dark:bg-green-900/20 rounded-lg p-6 border border-green-200/50 dark:border-green-800/50">
                     <div className="flex justify-between items-start mb-4">
                         <div>
-                            <h3 className="font-bold text-lg text-green-900 dark:text-green-200">New Player Bundle</h3>
+                            <h3 className="font-bold text-lg text-green-900 dark:text-green-200">{commonBundle.name}</h3>
                             <p className="text-green-800 dark:text-green-300 text-base mt-2">
-                                {Number(1000).toLocaleString()} TOTEM tokens and a mysterious spirit totem!
+                                {commonBundle.description}
                             </p>
                         </div>
                         <span className="bg-green-100 text-green-600 dark:bg-green-800 dark:text-green-300 px-2 py-1 rounded text-sm">
-                            Starter
+                            {commonBundle.cta}
                         </span>
                     </div>
                     <button 
-                        onClick={() => handlePurchaseBundle(0, 10)}
+                        onClick={() => handlePurchaseBundle(commonBundle.bundleId, commonBundle.price)}
                         disabled={loading[0]}
                         className="w-full bg-green-500 text-white py-2 px-4 rounded font-semibold 
                             hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-600 mt-4
                             disabled:opacity-50 disabled:cursor-not-allowed">
-                        {loading[0] ? 'Processing...' : `Claim for 10 POL`}
+                        {loading[0] ? 'Processing...' : `Claim for ${commonBundle.price} POL`}
                     </button>
                 </div>
 
@@ -127,22 +131,22 @@ const SpecialOffers: React.FC<SpecialOffersViewProps> = ({
                 <div className="bg-blue-50/50 dark:bg-blue-900/20 rounded-lg p-6 border border-blue-200/50 dark:border-blue-800/50">
                     <div className="flex justify-between items-start mb-4">
                         <div>
-                            <h3 className="font-bold text-lg text-blue-900 dark:text-blue-200">Weekly Rare Special</h3>
+                            <h3 className="font-bold text-lg text-blue-900 dark:text-blue-200">{rareBundle.name}</h3>
                             <p className="text-blue-800 dark:text-blue-300 text-base mt-2">
-                                {Number(2000).toLocaleString()} TOTEM tokens and random rare totem!
+                                {rareBundle.description}
                             </p>
                         </div>
                         <span className="bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-300 px-2 py-1 rounded text-sm">
-                            Popular
+                            {rareBundle.cta}
                         </span>
                     </div>
                     <button 
-                        onClick={() => handlePurchaseBundle(1, 20)}
+                        onClick={() => handlePurchaseBundle(rareBundle.bundleId, rareBundle.price)}
                         disabled={loading[1]}
                         className="w-full bg-blue-500 text-white py-2 px-4 rounded font-semibold 
                             hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 mt-4
                             disabled:opacity-50 disabled:cursor-not-allowed">
-                        {loading[1] ? 'Processing...' : `Claim for 20 POL`}
+                        {loading[1] ? 'Processing...' : `Claim for ${rareBundle.price} POL`}
                     </button>
                 </div>
 
@@ -150,23 +154,23 @@ const SpecialOffers: React.FC<SpecialOffersViewProps> = ({
                 <div className="bg-purple-50/50 dark:bg-purple-900/20 rounded-lg p-6 border border-purple-200/50 dark:border-purple-800/50">
                     <div className="flex justify-between items-start mb-4">
                         <div>
-                            <h3 className="font-bold text-lg text-purple-900 dark:text-purple-200">Weekly Epic Special</h3>
+                            <h3 className="font-bold text-lg text-purple-900 dark:text-purple-200">{epicBundle.name}</h3>
                             <p className="text-purple-800 dark:text-purple-300 text-base mt-2">
-                                {Number(5000).toLocaleString()} TOTEM tokens and random epic totem!
+                                {epicBundle.description}
                             </p>
                         </div>
                         <span className="bg-purple-100 text-purple-600 dark:bg-purple-800 dark:text-purple-300 px-2 py-1 rounded text-sm">
-                            Exclusive
+                            {epicBundle.cta}
                         </span>
                     </div>
                     <button 
-                        onClick={() => handlePurchaseBundle(2, 50)}
+                        onClick={() => handlePurchaseBundle(epicBundle.bundleId, epicBundle.price)}
                         disabled={loading[2]}
                         className="w-full bg-purple-500 text-white py-2 px-4 rounded font-semibold 
                             hover:bg-purple-600 dark:bg-purple-700 dark:hover:bg-purple-600 mt-4
                             disabled:opacity-50 disabled:cursor-not-allowed">
                         
-                        {loading[2] ? 'Processing...' : `Claim for 50 POL`}
+                        {loading[2] ? 'Processing...' : `Claim for ${epicBundle.price} POL`}
                     </button>
                 </div>
             </div>
@@ -221,7 +225,7 @@ const SpecialOffers: React.FC<SpecialOffersViewProps> = ({
                     </div>
                     <div className="mt-4">
                         <button 
-                            onClick={() => handlePurchaseBundle(3, currentMonthlySpecial.price)}
+                            onClick={() => handlePurchaseBundle(currentMonthlySpecial.bundleId, currentMonthlySpecial.price)}
                             disabled={loading[3]}
                             className="w-full bg-amber-500 text-white py-3 px-4 rounded font-semibold 
                                 hover:bg-amber-600 dark:bg-amber-700 dark:hover:bg-amber-600 text-lg 

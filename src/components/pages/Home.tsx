@@ -40,7 +40,7 @@ const Home: React.FC = () => {
 
 // Component for visitors who aren't logged in
 const PublicHome: React.FC = () => {
-  const currentMonth = new Date().getMonth();
+  const currentMonth = new Date().getMonth() + 1;
   const currentMonthlySpecial = specialsData.monthlySpecials.find(
     (special) => special.month === currentMonth
   )!;

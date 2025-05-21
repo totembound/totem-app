@@ -11,6 +11,7 @@ import SpiritPathChallenge from './SpiritPathChallenge';
 import RuneDecodingChallenge from './RuneDecodingChallenge';
 import RingDiveChallenge from './RingDiveChallenge';
 import DrumDanceChallenge from './DrumDanceChallenge';
+import RuneCraftingChallenge from './RuneCraftingChallenge';
 
 interface ChallengeGameProps {
     challengeId: string;
@@ -178,6 +179,13 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
                 )}
                 {challengeType === 'wisdom' && challengeId === 'wisdom-challenge-1' && (
                     <RuneDecodingChallenge
+                        wisdom={attributes.wisdom}
+                        difficulty={difficulty}
+                        onComplete={handleScore}
+                    />
+                )}
+                {challengeType === 'wisdom' && challengeId === 'wisdom-challenge-3' && (
+                    <RuneCraftingChallenge
                         wisdom={attributes.wisdom}
                         difficulty={difficulty}
                         onComplete={handleScore}

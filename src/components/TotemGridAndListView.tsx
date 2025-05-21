@@ -1,16 +1,8 @@
 import React from 'react';
-import { NFTMetadata, Rarity, Species } from '../types/types';
-import { Heart, Sparkles, Circle } from 'lucide-react';
-import { 
-    Dumbbell, // Strength
-    Brain, // Wisdom
-    Wind, // Agility
-    Cloud, // Air
-    Mountain, // Land
-    Waves // Water
-} from 'lucide-react';
-import { getRarityBadgeColor, getRarityBorderColor } from '../utils/totems';
-import { STAGE_THRESHOLDS } from '../config/constants';
+import { NFTMetadata, Rarity } from '../types/types';
+import { Heart, Sparkles } from 'lucide-react';
+import { AFFINITY_ICONS, DOMAIN_ICONS, getRarityBadgeColor, getRarityBorderColor } from '../utils/totems';
+import { IPFS_GATEWAY_URL, STAGE_THRESHOLDS } from '../config/constants';
 
 interface TotemViewProps {
     nft: NFTMetadata;
@@ -18,19 +10,6 @@ interface TotemViewProps {
     isSelected: boolean;
     isLoading?: boolean;
 }
-
-// Add these mappings at component level
-const AFFINITY_ICONS = {
-    'Strength': Dumbbell,
-    'Wisdom': Brain,
-    'Agility': Wind
-} as const;
-
-const DOMAIN_ICONS = {
-    'Air': Cloud,
-    'Land': Mountain,
-    'Water': Waves
-} as const;
 
 export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelected, isLoading }) => {
     const nextThreshold = STAGE_THRESHOLDS[nft.attributes.stage + 1] || STAGE_THRESHOLDS[nft.attributes.stage];
@@ -71,7 +50,7 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
             {/* Image Section */}
             <div className="aspect-square relative overflow-hidden rounded-t-lg flex-shrink-0 mt-2">
                 <img 
-                    src={nft.image.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                    src={nft.image.replace('ipfs://', IPFS_GATEWAY_URL)}
                     alt={nft.name}
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -171,7 +150,7 @@ export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelecte
                 {/* Thumbnail */}
                 <div className="w-10 h-10 sm:w-16 sm:h-16 md:w-24 md:h-24 rounded-lg overflow-hidden flex-shrink-0 mr-2">
                     <img 
-                        src={nft.image.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                        src={nft.image.replace('ipfs://', IPFS_GATEWAY_URL)}
                         alt={nft.name}
                         className="w-full h-full object-cover"
                     />

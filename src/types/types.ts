@@ -114,9 +114,11 @@ export enum Rarity {
 }
 
 export enum Domain {
-    Land = 0,
-    Air = 1,
-    Water = 2
+    Air = 0,
+    Earth = 1,
+    Water = 2,
+    Fire = 3,
+    Spirit = 4
 }
 
 export enum Affinity {

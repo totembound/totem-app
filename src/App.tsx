@@ -21,8 +21,17 @@ import LegalDocument from './components/LegalDocument';
 import About from './components/pages/About';
 import Plans from './components/pages/Plans';
 import { SignupForm } from './components/SignupForm';
+import { usePageViews } from './hooks/usePageViews';
+import ServiceWorkerDialog from './components/ServiceWorkerDialog';
+import Guides from './components/pages/Guides';
+import Tutorial from './components/guides/Tutorial';
+import HowToGuides from './components/guides/HowToGuides';
+import TotemCodex from './components/guides/TotemCodex';
+import LoreArchives from './components/guides/LoreArchives';
 
 const AppRoutes: React.FC = () => {
+  usePageViews();
+
   return (
     <Routes>
       <Route path="/" element={<MainLayout />}>
@@ -73,6 +82,33 @@ const AppRoutes: React.FC = () => {
             <Expeditions />
           </ProtectedRoute>
         } />
+        <Route path="guides">
+            <Route index element={
+              <ProtectedRoute>
+                <Guides />
+              </ProtectedRoute>
+            } />
+            <Route path="tutorial" element={
+              <ProtectedRoute>
+                <Tutorial />
+              </ProtectedRoute>
+            } />
+            <Route path="how-to" element={
+              <ProtectedRoute>
+                <HowToGuides />
+              </ProtectedRoute>
+            } />
+            <Route path="codex" element={
+              <ProtectedRoute>
+                <TotemCodex />
+              </ProtectedRoute>
+            } />
+            <Route path="lore" element={
+              <ProtectedRoute>
+                <LoreArchives />
+              </ProtectedRoute>
+            } />
+        </Route>
         <Route path="achievements" element={
           <ProtectedRoute>
             <Achievements />
@@ -104,6 +140,7 @@ const App: React.FC = () => {
           <GameProvider>
             <AchievementsProvider>
               <AppRoutes />
+              <ServiceWorkerDialog/>
             </AchievementsProvider>
           </GameProvider>
         </UserProvider>

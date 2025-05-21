@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Home, ShoppingBag, Trophy, Swords, Gift, PawPrint,
-  MoreHorizontal, Settings, LogOut, Coins, Map,
+  MoreHorizontal, Settings, LogOut, Coins, Map, BookOpenText,
   LucideIcon,
   FileText,
   ShieldCheck
@@ -29,9 +29,10 @@ const Navigation: React.FC = () => {
   ];
 
   const moreNavItems = [
-    { to: '/achievements', label: 'Achievements', icon: Trophy },
     { to: '/challenges', label: 'Challenges', icon: Swords },
-    { to: '/expeditions', label: 'Expeditions', icon: Map }
+    { to: '/expeditions', label: 'Expeditions', icon: Map },
+    { to: '/achievements', label: 'Achievements', icon: Trophy },
+    { to: '/guides', label: 'Guides', icon: BookOpenText },
   ];
 
   // Close menu when clicking outside
@@ -72,7 +73,7 @@ const Navigation: React.FC = () => {
       {/* Desktop Navigation */}
       <nav className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 hidden sm:block">
         <div className="max-w-screen-xl w-full mx-auto px-2 sm:px-4">
-          <div className="flex items-center gap-1 md:gap-2 h-12">
+          <div className="flex items-center gap-1 h-12">
             {[...mainNavItems, ...moreNavItems
             ].map(({ to, label, icon: Icon }) => (
               <NavLink

@@ -165,7 +165,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                         >
                             <option value="">All Domains</option>
                             <option value="Air">Air</option>
-                            <option value="Land">Land</option>
+                            <option value="Earth">Earth</option>
                             <option value="Water">Water</option>
                         </select>
                     </div>
@@ -351,7 +351,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                                 >
                                     <option value="">All Domains</option>
                                     <option value="Air">Air</option>
-                                    <option value="Land">Land</option>
+                                    <option value="Earth">Earth</option>
                                     <option value="Water">Water</option>
                                 </select>
                             </div>

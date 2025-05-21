@@ -7,6 +7,7 @@ import { Domain } from "../../types/types";
 import { formatTokenAmount } from "../../utils/formats";
 import { getRarityBorderColor, getTotemStage } from "../../utils/totems";
 import expeditions from "../data/expeditions.json";
+import { IPFS_GATEWAY_URL } from "../../config/constants";
 
 interface ExpeditionSelectionDialogProps {
   isOpen: boolean;
@@ -444,7 +445,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                               src={
                                 totem.image?.replace(
                                   "ipfs://",
-                                  "https://ipfs.io/ipfs/"
+                                  IPFS_GATEWAY_URL
                                 ) || "/images/placeholder.png"
                               }
                               alt={`Totem #${totem.id}`}

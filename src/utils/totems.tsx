@@ -57,6 +57,18 @@ export const getAffinityColor = (affinity: Affinity) => {
     }
 };
 
+export const getRarityFontColor = (rarity: Rarity) => {
+    switch(rarity) {
+        case Rarity.Common: return 'text-gray-600 dark:text-gray-300';
+        case Rarity.Uncommon: return 'text-green-600 dark:text-green-400';
+        case Rarity.Rare: return 'text-blue-600 dark:text-blue-400';
+        case Rarity.Epic: return 'text-purple-600 dark:text-purple-400';
+        case Rarity.Legendary: return 'text-orange-600 dark:text-orange-400';
+        case Rarity.Limited: return 'text-yellow-600 dark:text-yellow-400';
+        default: return 'text-gray-600 dark:text-gray-300';
+    }
+};
+
 export const getRarityBadgeColor = (rarity: Rarity) => {
     switch(rarity) {
         case Rarity.Common: return 'text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800';

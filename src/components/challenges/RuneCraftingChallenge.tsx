@@ -60,7 +60,7 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
   const maxSlotsAlertTimeoutRef = useRef<number | null>(null);
 
   // Game settings based on difficulty and wisdom
-  const timeLimit = 30 + (wisdom * 2);
+  const timeLimit = (10 * difficulty) + (wisdom * 1.5);
 
   // Import elements database from JSON with safety check
   const elementsDB: ElementsDatabase = RuneCraftingElements || {
@@ -71,16 +71,6 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
       air: { image: "/images/runes/air.png", tier: 1, combinations: {} },
     }
   };
-
-  // Create element runes from tier 1 (primary) elements in the database
-  const elementRunes: RuneType[] = Object.entries(elementsDB.elements)
-    .filter(([_, data]) => data && data.tier === 1)
-    .map(([element, data], index) => ({
-      id: index,
-      element,
-      image: data.image || `/images/runes/${element}.png`,
-      tier: data.tier
-    }));
 
   // Get target elements by tier for different difficulty levels
   const getTargetElementsByTier = (tier: number): string[] => {
@@ -512,10 +502,18 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
           </div>
         )}
 
-        {/* Game Content - New Layout */}
-        <div className="relative z-10 flex flex-col h-full">
+        {/* Max Slots Alert */}
+        {showMaxSlotsAlert && (
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 bg-red-500/90 text-white px-4 py-2 rounded-lg animate-pulse">
+            Maximum slots reached!
+          </div>
+        )}
+
+        {/* Game Content - Enhanced Grid Layout */}
+        <div className="relative z-10 grid grid-rows-[auto_1fr_auto] h-full gap-2">
+          
           {/* TOP: Selected Runes Sequence with Empty Slots */}
-          <div className="flex justify-center items-center gap-2 py-2">
+          <div className="flex justify-center items-center gap-2 py-1">
             {selectedRunes.map((rune, index) => (
               <div
                 key={`selected-${index}`}
@@ -525,35 +523,36 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
                 <img
                   src={rune.image}
                   alt={rune.element}
-                  className="h-12 w-12 object-contain"
+                  className="h-12 w-12 md:h-14 md:w-14 object-contain"
                   onError={(e) => {
                     e.currentTarget.style.backgroundColor = '#4a5568';
                     e.currentTarget.src = '/images/placeholder.png';
                   }}
                 />
                 {index < selectedRunes.length - 1 && (
-                  <div className="absolute right-[-8px] top-1/2 transform -translate-y-1/2 text-white">→</div>
+                  <div className="absolute right-[-8px] top-1/2 transform -translate-y-1/2 text-white text-sm">→</div>
                 )}
               </div>
             ))}
             {renderEmptySlots()}
           </div>
 
-          {/* MIDDLE: Target and Current Outcome side by side */}
-          <div className="flex-grow flex justify-center items-center gap-8 py-2">
+          {/* MIDDLE: Target and Current Outcome - Responsive Grid */}
+          <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 items-center justify-items-center px-2">
+            
             {/* Target Pattern */}
-            <div className="flex flex-col items-center">
-              <div className="text-amber-400 text-xs mb-1">TARGET</div>
-              <div className="h-24 w-24 flex flex-col items-center justify-center bg-black/70 rounded-lg p-1"> {/* Added bg-black/70 rounded-lg p-1 */}
+            <div className="flex flex-col items-center w-full">
+              <div className="text-amber-400 text-xs md:text-sm font-semibold mb-1" style={{textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'}}>TARGET</div>
+              <div className="h-32 w-32 md:h-40 md:w-40 flex flex-col items-center justify-center bg-black/80 rounded-xl p-2 border-2 border-amber-400/30">
                 {targetPattern && (
                   <>
-                    <span className="text-white text-xl">{targetPattern}</span>
+                    <span className="text-white text-sm md:text-base font-bold mb-1">{targetPattern}</span>
                     {elementsDB.elements[targetPattern] && (
-                      <div className="flex justify-center items-center">
+                      <div className="flex justify-center items-center flex-grow">
                         <img
                           src={elementsDB.elements[targetPattern].image}
                           alt={targetPattern}
-                          className="h-20 w-20 object-contain"
+                          className="h-20 w-20 md:h-24 md:w-24 object-contain"
                           onError={(e) => {
                             e.currentTarget.style.backgroundColor = '#4a5568';
                             e.currentTarget.src = '/images/placeholder.png';
@@ -567,26 +566,30 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
             </div>
 
             {/* Current Outcome */}
-            <div className="flex flex-col items-center">
-              <div className="text-green-400 text-xs mb-1">OUTCOME</div>
-              <div className="h-24 w-24 flex flex-col items-center justify-center bg-black/70 rounded-lg p-1"> {/* Added bg-black/70 rounded-lg p-1 */}
+            <div className="flex flex-col items-center w-full">
+              <div className="text-green-400 text-xs md:text-sm font-semibold mb-1" style={{textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'}}>OUTCOME</div>
+              <div className="h-32 w-32 md:h-40 md:w-40 flex flex-col items-center justify-center bg-black/80 rounded-xl p-2 border-2 border-green-400/30">
                 {currentOutcome ? (
                   <>
-                    <span className="text-white text-xl">{currentOutcome}</span>
+                    <span className="text-white text-sm md:text-base font-bold mb-1">{currentOutcome}</span>
                     {currentOutcomeImage && (
-                      <img
-                        src={currentOutcomeImage}
-                        alt={currentOutcome}
-                        className="h-20 w-20 object-contain"
-                        onError={(e) => {
-                          e.currentTarget.style.backgroundColor = '#4a5568';
-                          e.currentTarget.src = '/images/placeholder.png';
-                        }}
-                      />
+                      <div className="flex justify-center items-center flex-grow">
+                        <img
+                          src={currentOutcomeImage}
+                          alt={currentOutcome}
+                          className="h-20 w-20 md:h-24 md:w-24 object-contain"
+                          onError={(e) => {
+                            e.currentTarget.style.backgroundColor = '#4a5568';
+                            e.currentTarget.src = '/images/placeholder.png';
+                          }}
+                        />
+                      </div>
                     )}
                   </>
                 ) : (
-                  <span className="text-gray-400 italic text-sm"></span>
+                  <div className="flex items-center justify-center h-full">
+                    <span className="text-gray-400 italic text-xs">Select runes...</span>
+                  </div>
                 )}
               </div>
             </div>
@@ -616,7 +619,7 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
         </div>
       </div>
 
-      {/* Status Bar - Now below the game area with Timer and Score */}
+      {/* Status Bar */}
       <div>
         {gameState === 'ready' && (
           <button
@@ -683,5 +686,6 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
     </div>
   );
 };
+
 
 export default SpiritWeavingRunes;

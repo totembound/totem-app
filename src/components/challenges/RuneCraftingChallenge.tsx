@@ -120,23 +120,26 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
     }
   }, [difficulty]);
 
-  // Calculate game score based on win condition, time elapsed, and incorrect attempts
-  const calculateGameScore = useCallback((
+  // Calculate game score based on time efficiency and incorrect attempts
+  const calculateGameScore = (
     timeElapsed: number,
     timeLimit: number,
     incorrectAttemptsCount: number
   ): number => {
-    const baseScore = 2000;
+    const maxScore = 3000;
 
-    // Time bonus: Up to 50% bonus for quick completion
-    const timePercentage = 1 - (timeElapsed / timeLimit);
-    const timeBonus = baseScore * 0.5 * timePercentage;
-
-    // Penalty for incorrect attempts: 10% reduction per incorrect attempt
-    const incorrectAttemptsPenalty = baseScore * 0.1 * incorrectAttemptsCount;
-
-    return Math.round(Math.max(0, baseScore + timeBonus - incorrectAttemptsPenalty));
-  }, [difficulty]);
+    // Time efficiency: ratio of time remaining to total time (0 to 1)
+    const timeEfficiency = Math.max(0, (timeLimit - timeElapsed) / timeLimit);
+    
+    // Base score from time efficiency (0 to 3000 points)
+    const timeScore = maxScore * timeEfficiency;
+    
+    // Penalty for incorrect attempts: 200 points per mistake
+    const incorrectAttemptsPenalty = incorrectAttemptsCount * 200;
+    
+    // Final score cannot be negative
+    return Math.round(Math.max(0, timeScore - incorrectAttemptsPenalty));
+  };
 
   const processChainReaction = useCallback((runeSequence: RuneType[]): void => {
     if (runeSequence.length === 0) {
@@ -246,8 +249,7 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
     }
   }, [currentOutcome, targetPattern, gameState, handleGameEnd, timeLimit]);
 
-  // SIMPLIFIED: Generate available runes - now just uses all 5 primary runes
-  const generateAvailableRunes = useCallback(() => {
+  const generateAvailableRunes = () => {
     // Simply use all primary (tier 1) runes
     const primaryRunes = Object.entries(elementsDB.elements)
       .filter(([_, data]) => data.tier === 1)
@@ -259,7 +261,7 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
       }));
 
     setAvailableRunes(primaryRunes);
-  }, [elementsDB]);
+  };
 
   const startTimer = () => {
     try {

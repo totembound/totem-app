@@ -55,8 +55,7 @@ const About: React.FC = () => {
                         backgroundImage: `url(${card.image})`,
                     }}
                     >
-                    <div className="absolute inset-0 bg-black/50 dark:bg-black/50 bg-white/20"></div>
-                    <h2 className="absolute bottom-2 left-4 text-xl font-semibold text-white drop-shadow-lg">
+                    <h2 className="absolute bottom-2 left-4 text-2xl font-semibold text-white text-shadow-lg">
                         {card.title}
                     </h2>
                     </div>

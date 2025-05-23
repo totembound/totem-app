@@ -290,7 +290,7 @@
       "tier": 3,
       "description": "Fire and ice reach perfect equilibrium, creating a harmonious state of elemental balance",
       "combinations": {
-        "air": "core",
+        "earth": "core",
         "spirit": "harmonics"
       }
     },
@@ -427,7 +427,7 @@
       "combinations": {}
     },
     "embers": {
-      "image": "/challenges/Runes/embers-effect.png",
+      "image": "/challenges/Runes/ember-effect.png",
       "tier": 4,
       "description": "Spirit influences wildfire, creating magical embers that never fully extinguish",
       "combinations": {}
@@ -463,7 +463,7 @@
       "combinations": {}
     },
     "looking glass": {
-      "image": "/challenges/Runes/looking-glass-effect.png",
+      "image": "/challenges/Runes/lookingglass-effect.png",
       "tier": 4,
       "description": "Spirit enchants glass, creating a magical looking glass that reveals hidden truths",
       "combinations": {}

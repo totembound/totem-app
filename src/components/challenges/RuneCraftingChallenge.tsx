@@ -1,27 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameState } from '../../types/types';
-import RuneCraftingElements from './RuneCraftingElements.json';
-
-// Simplified types
-type RuneType = {
-  id: number;
-  element: string;
-  image: string;
-  tier?: number;
-};
-
-// Using direct type instead of interface for ElementData
-type ElementData = {
-  image: string;
-  tier: number;
-  description?: string;
-  combinations: Record<string, string>;
-};
-
-// Using direct type instead of interface for the database
-type ElementsDatabase = {
-  elements: Record<string, ElementData>;
-};
+import Tooltip from '../Tooltip';
+import { elementsDB, RuneType, validateChainReaction } from './RuneValidator';
 
 interface SpiritWeavingRunesProps {
   difficulty?: number;
@@ -61,16 +41,6 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
 
   // Game settings based on difficulty and wisdom
   const timeLimit = (10 * difficulty) + (wisdom * 1.5);
-
-  // Import elements database from JSON with safety check
-  const elementsDB: ElementsDatabase = RuneCraftingElements || {
-    elements: {
-      fire: { image: "/images/runes/fire.png", tier: 1, combinations: {} },
-      water: { image: "/images/runes/water.png", tier: 1, combinations: {} },
-      earth: { image: "/images/runes/earth.png", tier: 1, combinations: {} },
-      air: { image: "/images/runes/air.png", tier: 1, combinations: {} },
-    }
-  };
 
   // Get target elements by tier for different difficulty levels
   const getTargetElementsByTier = (tier: number): string[] => {
@@ -120,6 +90,32 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
     }
   }, [difficulty]);
 
+  const processChainReaction = useCallback((runeSequence: RuneType[]): void => {
+    if (runeSequence.length === 0) {
+      setCurrentOutcome(null);
+      setCurrentOutcomeImage(null);
+      setOutcomeDescription('');
+      return;
+    }
+
+    const result = validateChainReaction(runeSequence);
+
+    // Set the outcome based on the final result
+    if (result) {
+      setCurrentOutcome(result);
+      
+      if (elementsDB.elements[result]) {
+        setCurrentOutcomeImage(elementsDB.elements[result].image);
+        setOutcomeDescription(elementsDB.elements[result].description || '');
+      }
+    } else {
+      // If a combination failed, set no outcome
+      setCurrentOutcome(null);
+      setCurrentOutcomeImage(null);
+      setOutcomeDescription('');
+    }
+  }, []);
+
   // Calculate game score based on time efficiency and incorrect attempts
   const calculateGameScore = (
     timeElapsed: number,
@@ -140,60 +136,6 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
     // Final score cannot be negative
     return Math.round(Math.max(0, timeScore - incorrectAttemptsPenalty));
   };
-
-  const processChainReaction = useCallback((runeSequence: RuneType[]): void => {
-    if (runeSequence.length === 0) {
-      setCurrentOutcome(null);
-      setCurrentOutcomeImage(null);
-      setOutcomeDescription('');
-      return;
-    }
-  
-    // Get the elements from the runes
-    const elements = runeSequence.map(rune => rune.element);
-    
-    // Start with the first element
-    let result = elements[0];
-    let combinationFailed = false;
-    
-    // Sequentially combine with each subsequent element
-    for (let i = 1; i < elements.length; i++) {
-      const nextElement = elements[i];
-      
-      // Check if current result can combine with the next element
-      const combinations = elementsDB.elements[result]?.combinations || {};
-      if (combinations[nextElement]) {
-        result = combinations[nextElement];
-      } 
-      // Also check if the next element can combine with the current result
-      else {
-        const reverseCombinations = elementsDB.elements[nextElement]?.combinations || {};
-        if (reverseCombinations[result]) {
-          result = reverseCombinations[result];
-        } 
-        // If no combination is possible, mark as failed
-        else {
-          combinationFailed = true;
-          break;
-        }
-      }
-    }
-    
-    // Set the outcome based on the final result
-    if (!combinationFailed) {
-      setCurrentOutcome(result);
-      
-      if (elementsDB.elements[result]) {
-        setCurrentOutcomeImage(elementsDB.elements[result].image);
-        setOutcomeDescription(elementsDB.elements[result].description || '');
-      }
-    } else {
-      // If a combination failed, set no outcome
-      setCurrentOutcome(null);
-      setCurrentOutcomeImage(null);
-      setOutcomeDescription('');
-    }
-  }, [elementsDB]);
 
   const handleGameEnd = useCallback((success: boolean, elapsedTime: number | null = null) => {
     // Clear any active timers
@@ -413,14 +355,6 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
     setOutcomeDescription('');
   };
 
-  // Try a different combination (increment incorrect attempts)
-  const tryAgain = () => {
-    // Clear selection
-    clearSelection();
-
-    // Increment incorrect attempts counter
-    setIncorrectAttempts(prev => prev + 1);
-  };
 
   // Cleanup on unmount
   useEffect(() => {
@@ -486,23 +420,6 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
             }}
           />
         </div>
-
-        {/* Success/Failure Messages */}
-        {showSuccess && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-green-500/30 rounded-lg">
-            <div className="bg-black/70 text-green-400 text-2xl font-bold px-6 py-4 rounded-lg animate-pulse">
-              Sigil Completed!
-            </div>
-          </div>
-        )}
-
-        {showFailure && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-red-500/30 rounded-lg">
-            <div className="bg-black/70 text-red-400 text-2xl font-bold px-6 py-4 rounded-lg animate-pulse">
-              Sigil Failed!
-            </div>
-          </div>
-        )}
 
         {/* Game Content - Enhanced Grid Layout */}
         <div className="relative z-10 grid grid-rows-[auto_1fr_auto] h-full gap-1 md:gap-2">
@@ -645,24 +562,25 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
           </div>
 
           {/* BOTTOM: Available Runes */}
-          <div className="flex flex-wrap justify-center gap-2 py-2">
+          <div className="flex flex-wrap justify-center gap-2 py-2 min-h-16">
             {availableRunes.map((rune) => (
-              <div
-                key={`available-${rune.id}`}
-                className="cursor-pointer hover:scale-110 transition-transform relative"
-                onClick={() => handleRuneSelect(rune)}
-              >
-                <img
-                  src={rune.image}
-                  alt={rune.element}
-                  className="h-12 w-12 object-contain"
-                  onError={(e) => {
-                    // Fallback if image doesn't load
-                    e.currentTarget.style.backgroundColor = '#4a5568';
-                    e.currentTarget.src = '/images/placeholder.png';
-                  }}
-                />
-              </div>
+              <Tooltip key={`available-${rune.id}`} content={rune.element}>
+                <div
+                  className="cursor-pointer hover:scale-110 transition-transform relative"
+                  onClick={() => handleRuneSelect(rune)}
+                >
+                  <img
+                    src={rune.image}
+                    alt={rune.element}
+                    className="h-12 w-12 object-contain"
+                    onError={(e) => {
+                      // Fallback if image doesn't load
+                      e.currentTarget.style.backgroundColor = '#4a5568';
+                      e.currentTarget.src = '/images/placeholder.png';
+                    }}
+                  />
+                </div>
+              </Tooltip>
             ))}
           </div>
         </div>

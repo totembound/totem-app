@@ -11,6 +11,7 @@ export interface SidebarConfig {
     path: string;
     text: string;
   };
+  expanded: boolean;
   navItems: NavItemType[];
 }
 
@@ -72,7 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config }) => {
             </button>
           </div>
 
-          <SidebarContent navItems={config.navItems} closeMobileMenu={closeMobileMenu} />
+          <SidebarContent navItems={config.navItems} expanded={config.expanded} closeMobileMenu={closeMobileMenu} />
         </aside>
 
     </div>

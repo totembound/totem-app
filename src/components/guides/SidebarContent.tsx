@@ -1,18 +1,17 @@
-import {
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { NavItemType } from "./codex/NavItems";
 
 export interface CodexNavigationProps {
   items: NavItemType[];
+  expanded: boolean;
   closeMobileMenu: () => void;
 }
 
-export const SidebarContent: React.FC<{ navItems: NavItemType[], closeMobileMenu?: () => void }> = ({
+export const SidebarContent: React.FC<{ navItems: NavItemType[], expanded: boolean, closeMobileMenu?: () => void }> = ({
   navItems = [],
+  expanded = false,
   closeMobileMenu = () => {},
 }) => {
   return (
@@ -23,6 +22,7 @@ export const SidebarContent: React.FC<{ navItems: NavItemType[], closeMobileMenu
           title={item.title}
           icon={item.icon}
           path={item.path}
+          expanded={expanded}
           closeMobileMenu={closeMobileMenu}
         >
           {item.children?.map((subItem, subIndex) => (
@@ -44,6 +44,7 @@ interface NavItemProps {
   title: string;
   icon: React.ReactNode;
   path: string;
+  expanded: boolean;
   closeMobileMenu: () => void;
   children?: React.ReactNode;
 }
@@ -52,10 +53,11 @@ const NavItem: React.FC<NavItemProps> = ({
   title,
   icon,
   path,
+  expanded,
   children,
   closeMobileMenu,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(!!expanded);
   const location = useLocation();
   const hasChildren = React.Children.count(children) > 0;
 

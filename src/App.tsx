@@ -44,7 +44,7 @@ import WoodpeckerTotem from './components/guides/codex/WoodpeckerTotem';
 import Domains from './components/guides/codex/Domains';
 import Habitats from './components/guides/codex/Habitats';
 import Runes from './components/guides/codex/Runes';
-import TotemGears from './components/guides/codex/TotemGears';
+import TotemGear from './components/guides/codex/TotemGear';
 import AirDomain from './components/guides/codex/AirDomain';
 import EarthDomain from './components/guides/codex/EarthDomain';
 import WaterDomain from './components/guides/codex/WaterDomain';
@@ -190,8 +190,8 @@ const AppRoutes: React.FC = () => {
               <Route path="habitats" element={
                 <Habitats />
               } />
-              <Route path="gears" element={
-                <TotemGears />
+              <Route path="gear" element={
+                <TotemGear />
               } />
               <Route path="runes" element={
                 <Runes />

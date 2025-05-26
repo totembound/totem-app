@@ -114,9 +114,9 @@ export const codexNavItems: NavItemType[] = [
     path: "/guides/codex/habitats",
   },
   {
-    title: "Gears",
+    title: "Gear",
     icon: <Backpack size={18} />,
-    path: "/guides/codex/gears",
+    path: "/guides/codex/gear",
   },
   {
     title: "Runes",

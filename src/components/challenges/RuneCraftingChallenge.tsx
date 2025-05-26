@@ -453,7 +453,7 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
 
   // Empty slot component for selected runes
   const EmptySlot = () => (
-    <div className="h-12 w-12 border-2 border-dashed border-gray-600 rounded-md bg-gray-800/30"></div>
+    <div className="h-10 w-10 md:h-14 md:w-14 border-2 border-dashed border-gray-600 rounded-md bg-gray-800/30"></div>
   );
 
   // Render empty slots for the selected runes section
@@ -472,7 +472,7 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
 
   return (
     <div ref={containerRef} className="w-full max-w-2xl mx-auto">
-      <div className="relative bg-slate-800 rounded-lg mb-4 p-2 h-96 flex flex-col overflow-hidden">
+      <div className="relative bg-slate-800 rounded-lg mb-4 p-1 md:p-2 h-96 flex flex-col overflow-hidden">
         {/* Background image */}
         <div className="absolute inset-0 rounded-lg overflow-hidden">
           <img
@@ -504,15 +504,8 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
           </div>
         )}
 
-        {/* Max Slots Alert */}
-        {showMaxSlotsAlert && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 bg-red-500/90 text-white px-4 py-2 rounded-lg animate-pulse">
-            Maximum slots reached!
-          </div>
-        )}
-
         {/* Game Content - Enhanced Grid Layout */}
-        <div className="relative z-10 grid grid-rows-[auto_1fr_auto] h-full gap-2">
+        <div className="relative z-10 grid grid-rows-[auto_1fr_auto] h-full gap-1 md:gap-2">
           
           {/* TOP: Selected Runes Sequence with Empty Slots */}
           <div className="flex justify-center items-center gap-2 py-1">
@@ -525,7 +518,7 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
                 <img
                   src={rune.image}
                   alt={rune.element}
-                  className="h-12 w-12 md:h-14 md:w-14 object-contain"
+                  className="h-10 w-10 md:h-14 md:w-14 object-contain"
                   onError={(e) => {
                     e.currentTarget.style.backgroundColor = '#4a5568';
                     e.currentTarget.src = '/images/placeholder.png';
@@ -540,11 +533,24 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
           </div>
 
           {/* MIDDLE: Target and Current Outcome - Responsive Grid */}
-          <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 items-center justify-items-center px-2">
+          <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 items-center justify-items-center px-2">
             
             {/* Target Pattern */}
-            <div className="flex flex-col items-center w-full">
-              <div className="text-amber-400 text-xs md:text-sm font-semibold mb-1" style={{textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'}}>TARGET</div>
+            <div className="flex items-center justify-center w-full">
+              {/* Left TARGET label */}
+              <div className="flex items-center justify-center mr-2">
+                <div 
+                  className="text-amber-400 text-xs md:text-sm font-semibold whitespace-nowrap"
+                  style={{
+                    writingMode: 'vertical-rl',
+                    textOrientation: 'upright',
+                    textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'
+                  }}
+                >
+                  TARGET
+                </div>
+              </div>
+              
               <div className="h-32 w-32 md:h-40 md:w-40 flex flex-col items-center justify-center bg-black/80 rounded-xl p-2 border-2 border-amber-400/30">
                 {targetPattern && (
                   <>
@@ -565,11 +571,38 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
                   </>
                 )}
               </div>
+              
+              {/* Right TARGET label */}
+              <div className="flex items-center justify-center ml-2">
+                <div 
+                  className="text-amber-400 text-xs md:text-sm font-semibold whitespace-nowrap"
+                  style={{
+                    writingMode: 'vertical-lr',
+                    textOrientation: 'upright',
+                    textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'
+                  }}
+                >
+                  TARGET
+                </div>
+              </div>
             </div>
 
             {/* Current Outcome */}
-            <div className="flex flex-col items-center w-full">
-              <div className="text-green-400 text-xs md:text-sm font-semibold mb-1" style={{textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'}}>OUTCOME</div>
+            <div className="flex items-center justify-center w-full">
+              {/* Left OUTCOME label */}
+              <div className="flex items-center justify-center mr-2">
+                <div 
+                  className="text-green-400 text-xs md:text-sm font-semibold whitespace-nowrap"
+                  style={{
+                    writingMode: 'vertical-rl',
+                    textOrientation: 'upright',
+                    textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'
+                  }}
+                >
+                  OUTCOME
+                </div>
+              </div>
+              
               <div className="h-32 w-32 md:h-40 md:w-40 flex flex-col items-center justify-center bg-black/80 rounded-xl p-2 border-2 border-green-400/30">
                 {currentOutcome ? (
                   <>
@@ -593,6 +626,20 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
                     <span className="text-gray-400 italic text-xs">Select runes...</span>
                   </div>
                 )}
+              </div>
+              
+              {/* Right OUTCOME label */}
+              <div className="flex items-center justify-center ml-2">
+                <div 
+                  className="text-green-400 text-xs md:text-sm font-semibold whitespace-nowrap"
+                  style={{
+                    writingMode: 'vertical-lr',
+                    textOrientation: 'upright',
+                    textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'
+                  }}
+                >
+                  OUTCOME
+                </div>
               </div>
             </div>
           </div>

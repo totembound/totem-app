@@ -129,7 +129,7 @@ const Tooltip: React.FC<TooltipProps> = ({
                         text-white px-3 py-1.5 
                         rounded text-sm 
                         whitespace-normal
-                        min-w-[200px] max-w-[320px]
+                        max-w-[320px]
                         text-center
                     ">
                         {content}

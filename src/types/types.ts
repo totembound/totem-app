@@ -118,7 +118,8 @@ export enum Domain {
     Earth = 1,
     Water = 2,
     Fire = 3,
-    Spirit = 4
+    Spirit = 4,
+    Shadow = 5
 }
 
 export enum Affinity {
@@ -484,6 +485,15 @@ export interface ExpeditionRewardsData {
       ancient: number;
     };
     score: number;
+}
+
+export interface Location {
+  id: number;
+  name: string;
+  desc: string;
+  type: "Forest" | "Lake" | "Volcano" | "Desert" | "Ruins" | "Mountains" | "Mist" | "Marsh";
+  coordinates: { x: number; y: number };
+  details: string;
 }
 
 export {}

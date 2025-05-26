@@ -87,9 +87,7 @@ export const TotemView: React.FC<TotemViewProps> = ({ config }) => {
               </h3>
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-2 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center gap-2">
-                  <div
-                    className={`p-1.5 rounded-md ${getDomainColor(domain)}`}
-                  >
+                  <div className={`p-1.5 rounded-md ${getDomainColor(domain)}`} >
                     {getTotemDomainIcon(Domain[domain])}
                   </div>
                   <div>
@@ -99,9 +97,7 @@ export const TotemView: React.FC<TotemViewProps> = ({ config }) => {
                   </div>
                 </div>
                 <div className="p-2 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center gap-2">
-                  <div
-                    className={`p-1.5 rounded-md ${getAffinityColor(affinity)}`}
-                  >
+                  <div className={`p-1.5 rounded-md ${getAffinityColor(affinity)}`}>
                     {getTotemAffinityIcon(Affinity[affinity])}
                   </div>
                   <div>

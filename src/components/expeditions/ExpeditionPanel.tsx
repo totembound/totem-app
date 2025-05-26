@@ -1,7 +1,7 @@
 import React from 'react';
 import { Clock, Droplets, Heart, ArrowRight, Coins, Sparkles } from 'lucide-react';
 import { formatTokenAmount } from '../../utils/formats';
-import { getAffinityColor, getDomainColor } from '../../utils/totems';
+import { getDomainColor, getTotemAffinityIcon } from '../../utils/totems';
 import { Affinity } from '../../types/types';
 
 interface ExpeditionPanelProps {
@@ -90,12 +90,9 @@ const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
                             <Sparkles className="inline w-3 h-3 text-blue-500 dark:text-blue-400 mr-1" />
                             Stage {minStage+1}+
                         </div>
-                        <span className={`
-                            px-2 py-1 rounded-md text-xs font-semibold
-                            ${getAffinityColor(primaryAffinity)}
-                        `}>
-                            {affinityName}
-                        </span>
+                        <div className={`py-1 px-2 rounded-md bg-white/70 text-xs font-bold text-gray-800 flex flex-row items-center gap-1`}>
+                            {getTotemAffinityIcon(Affinity[primaryAffinity])} {affinityName}
+                        </div>
                     </div>
                 </div>
             </div>

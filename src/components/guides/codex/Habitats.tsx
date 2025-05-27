@@ -99,7 +99,7 @@ const Habitats: React.FC = () => {
               return (
                 <div
                   key={habitat.id}
-                  className={`group relative bg-white dark:bg-gray-800 rounded-xl border-2 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer ${
+                  className={`group relative bg-white dark:bg-gray-800 rounded-xl border-2 overflow-hidden transition-all duration-300 hover:shadow-xl cursor-pointer ${
                     habitat.available 
                       ? 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600' 
                       : 'border-gray-300 dark:border-gray-600 opacity-60 hover:opacity-80'

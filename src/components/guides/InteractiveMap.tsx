@@ -3,7 +3,6 @@ import { MapPinIcon, X, Info } from "lucide-react";
 import Tooltip from "../Tooltip";
 import { LOCATIONS } from "../../config/constants";
 import { Location } from "../../types/types";
-import { useFeatureFlagEnabled } from "posthog-js/react";
 
 interface MapPinProps {
   location: Location;
@@ -136,6 +135,13 @@ const LocationDetails: React.FC<LocationDetailsProps> = ({
           <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
             {location.details}
           </p>
+          {location.image && <div>
+            <img
+                src={location.image}
+                alt={location.name}
+                className={`w-full h-full object-cover rounded`}
+            />
+          </div>}
         </div>
 
         <div className="pt-2 border-t border-gray-200 dark:border-gray-700">

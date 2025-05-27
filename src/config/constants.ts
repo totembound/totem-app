@@ -143,6 +143,7 @@ export const LOCATIONS: Location[] = [
     type: "Forest",
     coordinates: { x: 19, y: 47 },
     details: "This forest camp serves as a base for exploring the dense woodland areas.",
+    image: ""
   },
   {
     id: 2,
@@ -151,6 +152,7 @@ export const LOCATIONS: Location[] = [
     type: "Lake",
     coordinates: { x: 52, y: 65 },
     details: "Perfect fishing spot with pristine waters fed by mountain streams.",
+    image: ""
   },
   {
     id: 3,
@@ -159,6 +161,7 @@ export const LOCATIONS: Location[] = [
     type: "Volcano",
     coordinates: { x: 66, y: 22 },
     details: "Known for recent lava flows and violent tremors, few have ventured far beyond its outer rim and fewer still have returned with stories.",
+    image: ""
   },
   {
     id: 4,
@@ -167,6 +170,7 @@ export const LOCATIONS: Location[] = [
     type: "Desert",
     coordinates: { x: 66, y: 54 },
     details: "Essential stop for desert travelers and traders crossing the dunes.",
+    image: ""
   },
   {
     id: 5,
@@ -175,6 +179,7 @@ export const LOCATIONS: Location[] = [
     type: "Ruins",
     coordinates: { x: 52, y: 41 },
     details: "These stone circles predate known civilizations in the region.",
+    image: ""
   },
   {
     id: 6,
@@ -183,6 +188,7 @@ export const LOCATIONS: Location[] = [
     type: "Mountains",
     coordinates: { x: 26, y: 24 },
     details: "Starting point for climbs to the highest peaks in the range.",
+    image: ""
   },
   {
     id: 7,
@@ -191,6 +197,7 @@ export const LOCATIONS: Location[] = [
     type: "Forest",
     coordinates: { x: 37, y: 53 },
     details: "Sacred grove protected by ancient forest guardians.",
+    image: ""
   },
   {
     id: 8,
@@ -199,6 +206,7 @@ export const LOCATIONS: Location[] = [
     type: "Desert",
     coordinates: { x: 69, y: 59 },
     details: "Rare water source that sustains life in the harsh desert.",
+    image: ""
   },
   {
     id: 9,
@@ -206,7 +214,8 @@ export const LOCATIONS: Location[] = [
     desc: "A wide marshland of whispering reeds and watchful skies. Geese nest here beneath spirit-drawn constellations.",
     type: "Lake",
     coordinates: { x: 25, y: 66 },
-    details: "Goose Habitat"
+    details: "Goose Habitat",
+    image: "/habitats/goose-habitat.jpg"
   },
   {
     id: 10,
@@ -214,7 +223,8 @@ export const LOCATIONS: Location[] = [
     desc: "Playful and ever-changing, the delta is full of spirit streams, smooth stones, and trickling laughter from beyond the veil.",
     type: "Lake",
     coordinates: { x: 52, y: 56 },
-    details: "Otter Habitat"
+    details: "Otter Habitat",
+    image: "/habitats/otter-habitat.jpg"
   },
   {
     id: 11,
@@ -222,7 +232,8 @@ export const LOCATIONS: Location[] = [
     desc: "A highland terrain of jagged rocks and echoing canyons, where the pack’s call resonates across generations.",
     type: "Forest",
     coordinates: { x: 18, y: 32 },
-    details: "Wolf Habitat"
+    details: "Wolf Habitat",
+    image: "/habitats/wolf-habitat.jpg"
   },
   {
     id: 12,
@@ -230,7 +241,8 @@ export const LOCATIONS: Location[] = [
     desc: "A jagged cliff jutting into the clouds, where the air is sharp and unyielding. It is a place of speed, clarity, and vision beyond reach.",
     type: "Mountains",
     coordinates: { x: 36, y: 10 }, 
-    details: "Falcon Habitat"
+    details: "Falcon Habitat",
+    image: "/habitats/falcon-habitat.jpg"
   },
   {
     id: 13,
@@ -238,7 +250,8 @@ export const LOCATIONS: Location[] = [
     desc: "A sacred woodland delta where earth and water weave together. The air hums with steady purpose, and every ripple tells a story of patience, protection, and craft.",
     type: "Lake",
     coordinates: { x: 46, y: 60 }, 
-    details: "Beaver Habitat"
+    details: "Beaver Habitat",
+    image: "/habitats/beaver-habitat.jpg"
   },
   {
     id: 14,
@@ -246,7 +259,8 @@ export const LOCATIONS: Location[] = [
     desc: "A serene glade protected by ancient trees, where sunlight filters through golden leaves and the air hums with calm energy.",
     type: "Forest",
     coordinates: { x: 42, y: 36 }, 
-    details: "Deer Habitat"
+    details: "Deer Habitat",
+    image: "/habitats/deer-habitat.jpg"
   },
   {
     id: 15,
@@ -254,7 +268,8 @@ export const LOCATIONS: Location[] = [
     desc: "A towering treetop realm where wind tunnels through ancient wooden cathedrals. The canopy bends but never breaks, shaped by generations of flight and ritual.",
     type: "Mountains",
     coordinates: { x: 36, y: 26 }, 
-    details: "Woodpecker Habitat"
+    details: "Woodpecker Habitat",
+    image: "/habitats/woodpecker-habitat.jpg"
   },
   {
     id: 16,
@@ -262,7 +277,8 @@ export const LOCATIONS: Location[] = [
     desc: "A tranquil, shaded pool hidden deep in the wetlands. Time slows here, and spirit ripples drift endlessly across the water.",
     type: "Lake",
     coordinates: { x: 38, y: 62 }, 
-    details: "Turtle Habitat"
+    details: "Turtle Habitat",
+    image: "/habitats/turtle-habitat.jpg"
   },
   {
     id: 17,
@@ -270,7 +286,8 @@ export const LOCATIONS: Location[] = [
     desc: "A deep, echoing cave complex nestled beneath the roots of the oldest trees. Here the earth breathes slowly, and ancient spirit glyphs pulse faintly in the stone.",
     type: "Forest",
     coordinates: { x: 28, y: 34 }, 
-    details: "Bear Habitat"
+    details: "Bear Habitat",
+    image: "/habitats/bear-habitat.jpg"
   },
   {
     id: 18,
@@ -278,7 +295,8 @@ export const LOCATIONS: Location[] = [
     desc: "A cliff-top graveyard of old stone and cracked branches, where the veil between realms is thin and riddles are whispered.",
     type: "Mountains",
     coordinates: { x: 16, y: 16 }, 
-    details: "Raven Habitat"
+    details: "Raven Habitat",
+    image: "/habitats/raven-habitat.jpg"
   },
   {
     id: 19,
@@ -286,7 +304,8 @@ export const LOCATIONS: Location[] = [
     desc: "A dark and tangled jungle choked with vines and secrets. Movement here is silent, and the watchers never sleep.",
     type: "Forest",
     coordinates: { x: 16, y: 56 }, 
-    details: "Snake Habitat"
+    details: "Snake Habitat",
+    image: "/habitats/snake-habitat.jpg"
   },
   {
     id: 20,
@@ -294,7 +313,8 @@ export const LOCATIONS: Location[] = [
     desc: "A sacred ledge high atop misty peaks, where silent winds carry wisdom and starlight touches the feathers of the old spirits.",
     type: "Mountains",
     coordinates: { x: 26, y: 16 }, 
-    details: "Owl Habitat"
+    details: "Owl Habitat",
+    image: "/habitats/owl-habitat.jpg"
   },
   {
     id: 21,
@@ -303,6 +323,7 @@ export const LOCATIONS: Location[] = [
     type: "Mist",
     coordinates: { x: 81, y: 45 },
     details: "Visitors often speak of dreams they never lived, whispered by the roots beneath their feet.",
+    image: ""
   },
   {
     id: 22,
@@ -311,6 +332,7 @@ export const LOCATIONS: Location[] = [
     type: "Ruins",
     coordinates: { x: 28, y: 80 },
     details: "Said to hold the memories of the first Totems, its rings are etched with forgotten names and stories lost to time.",
+    image: ""
   },
   {
     id: 23,
@@ -319,6 +341,7 @@ export const LOCATIONS: Location[] = [
     type: "Ruins",
     coordinates: { x: 38, y: 82 },
     details: "Its doors bear the markings of every domain, though none remember who carved them or why.",
+    image: ""
   },
   {
     id: 24,
@@ -327,6 +350,7 @@ export const LOCATIONS: Location[] = [
     type: "Marsh",
     coordinates: { x: 56, y: 84 },
     details: "Legends claim it was raised by a Totem who walked between worlds and returned changed.",
+    image: ""
   },
 ];
 

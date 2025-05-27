@@ -494,6 +494,7 @@ export interface Location {
   type: "Forest" | "Lake" | "Volcano" | "Desert" | "Ruins" | "Mountains" | "Mist" | "Marsh";
   coordinates: { x: number; y: number };
   details: string;
+  image: string;
 }
 
 export {}

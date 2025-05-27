@@ -9,9 +9,9 @@ interface RuneIconProps {
 export const RuneIcon: React.FC<RuneIconProps> = ({ type }) => {
     switch (type) {
       case 'lesser':
-        return <Diamond className="w-4 h-4 text-gray-500 fill-gray-500" />;
+        return <Diamond className="w-4 h-4 text-blue-500 fill-blue-500" />;
       case 'greater':
-        return <Pentagon className="w-4 h-4 text-blue-500 fill-blue-500" />;
+        return <Pentagon className="w-4 h-4 text-orange-500 fill-orange-500" />;
       case 'ancient':
         return <Hexagon className="w-4 h-4 text-purple-500 fill-purple-500" />;
       default:

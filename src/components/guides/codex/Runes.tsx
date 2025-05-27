@@ -24,7 +24,7 @@ const Runes: React.FC = () => {
             {/* Lesser Rune */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-t-4 border-blue-500">
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
                   <img
                     src="/runes/lesser-rune.png"
                     alt="Lesser Rune"
@@ -40,7 +40,7 @@ const Runes: React.FC = () => {
             {/* Greater Rune */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-t-4 border-orange-500">
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 p-0.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
                   <img
                     src="/runes/greater-rune.png"
                     alt="Greater Rune"
@@ -56,7 +56,7 @@ const Runes: React.FC = () => {
             {/* Ancient Rune */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-t-4 border-purple-500">
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 p-0.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
                   <img
                     src="/runes/ancient-rune.png"
                     alt="Ancient Rune"

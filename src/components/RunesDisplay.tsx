@@ -9,21 +9,21 @@ interface RuneIconProps {
 export const RuneIcon: React.FC<RuneIconProps> = ({ type }) => {
     switch (type) {
       case 'lesser':
-        return <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+        return <div className="w-6 h-6 bg-blue-200 dark:bg-blue-700/30 rounded-lg flex items-center justify-center">
                   <img
                     src="/runes/lesser-rune.png"
                     alt="Lesser Rune"
                     className={`w-full h-full object-contain`}/>
                 </div>;
       case 'greater':
-        return <div className="w-6 h-6 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
+        return <div className="w-6 h-6 p-0.5 bg-orange-200 dark:bg-orange-700/30 rounded-lg flex items-center justify-center">
                   <img
                     src="/runes/greater-rune.png"
                     alt="Greater Rune"
                     className={`w-full h-full object-contain`}/>
                 </div>;
       case 'ancient':
-        return <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+        return <div className="w-6 h-6 p-0.5 bg-purple-200 dark:bg-purple-700/30 rounded-lg flex items-center justify-center">
                   <img
                     src="/runes/ancient-rune.png"
                     alt="Ancient Rune"

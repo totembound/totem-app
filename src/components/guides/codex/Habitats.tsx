@@ -175,13 +175,13 @@ const Habitats: React.FC = () => {
                       {selectedHabitat.name}
                     </h2>
                   </div>
-                    <div className="absolute bottom-4 right-4">
-                    <p className="text-white/90 text-sm flex items-center gap-2">
+                  <div className="absolute bottom-4 right-4">
+                    <div className="text-white/90 text-sm flex items-center gap-2">
                       <div className={`p-1.5 rounded-md ${getDomainColor(selectedDomain)}`} >
                         {getTotemDomainIcon(selectedHabitat.domain)}
                       </div>
                       <span className="font-bold text-shadow-lg">{selectedHabitat.domain} Domain</span>
-                    </p>
+                    </div>
                   </div>
                 </div>
 

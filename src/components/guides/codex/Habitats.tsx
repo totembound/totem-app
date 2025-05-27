@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { MapPin, Trees, Mountain, Waves, Eye, EyeOff } from "lucide-react";
+import { X } from "lucide-react";
 import CodexSidebar from "./CodexSidebar";
 import { AVAILABLE_SPECIES, LOCATIONS } from "../../../config/constants";
-import { getDomainColor, getTotemDomainIcon, getSpeciesEmoji } from "../../../utils/totems";
+import { getDomainColor, getTotemDomainIcon } from "../../../utils/totems";
 import { Domain, Species } from "../../../types/types";
 
 interface HabitatCard {
@@ -168,7 +168,7 @@ const Habitats: React.FC = () => {
                     onClick={() => setSelectedHabitat(null)}
                     className="absolute top-4 right-4 w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
                   >
-                    ×
+                    <X className="h-4 w-4"/>
                   </button>
                   <div className="absolute bottom-4 left-4">
                     <h2 className="text-2xl font-bold text-white mb-1 text-shadow-lg">

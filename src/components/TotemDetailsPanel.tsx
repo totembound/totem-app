@@ -1,8 +1,9 @@
 import React from 'react';
-import { Cloud, Mountain, Waves, Dumbbell, Brain, Wind, Lock, Unlock, MapPin } from 'lucide-react';
+import { Lock, Unlock, MapPin } from 'lucide-react';
 import { Species, Color, Rarity } from '../types/types';
 import { AVAILABLE_SPECIES } from '../config/constants';
 import { formatTimeRemaining } from '../utils/formats';
+import { getTotemAffinityIcon, getTotemDomainIcon } from '../utils/totems';
 
 interface TotemDetailsPanelProps {
     stage: number;
@@ -27,25 +28,6 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
     isOnExpedition = false,
     expeditionEndTime = 0
 }) => {
-    // Get icons based on affinity and domain
-    const getAffinityIcon = () => {
-        switch (affinity) {
-            case 'Strength': return <Dumbbell size={16} className="text-yellow-600 dark:text-yellow-400" />;
-            case 'Agility': return <Wind size={16} className="text-yellow-600 dark:text-yellow-400" />;
-            case 'Wisdom': return <Brain size={16} className="text-yellow-600 dark:text-yellow-400" />;
-            default: return <Dumbbell size={16} className="text-yellow-600 dark:text-yellow-400" />;
-        }
-    };
-    
-    const getDomainIcon = () => {
-        switch (domain) {
-            case 'Air': return <Cloud size={16} className="text-cyan-600 dark:text-cyan-400" />;
-            case 'Earth': return <Mountain size={16} className="text-cyan-600 dark:text-cyan-400" />;
-            case 'Water': return <Waves size={16} className="text-cyan-600 dark:text-cyan-400" />;
-            default: return <Cloud size={16} className="text-cyan-600 dark:text-cyan-400" />;
-        }
-    };
-
     const getSpeciesDescription = (species: Species): string => {
         return AVAILABLE_SPECIES.find(s => s.species === species)?.desc || '';
     };
@@ -96,7 +78,7 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
                         <span className="text-sm text-gray-600 dark:text-gray-400">Affinity</span>
                         <span className="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
                             <div className="p-1 rounded-md bg-yellow-50 dark:bg-yellow-900/20">
-                                {getAffinityIcon()}
+                                {getTotemAffinityIcon(affinity)}
                             </div>
                             {affinity}
                         </span>
@@ -106,7 +88,7 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
                         <span className="text-sm text-gray-600 dark:text-gray-400">Domain</span>
                         <span className="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
                             <div className="p-1 rounded-md bg-cyan-50 dark:bg-cyan-900/20">
-                                {getDomainIcon()}
+                                {getTotemDomainIcon(domain)}
                             </div>
                             {domain}
                         </span>

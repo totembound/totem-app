@@ -1,3 +1,4 @@
+import { AVAILABLE_SPECIES, LOCATIONS } from '../config/constants';
 import { Affinity, Domain, NFTMetadata, Rarity, Species } from '../types/types';
 import { 
     Dumbbell, // Strength
@@ -7,7 +8,8 @@ import {
     Mountain, // Earth
     Waves, // Water
     Flame, // Fire
-    Infinity // Spirit
+    Sparkles, // Spirit
+    Moon // Shadow
 } from 'lucide-react';
 
 interface TotemStats {
@@ -28,17 +30,45 @@ export const DOMAIN_ICONS = {
     'Earth': Mountain,
     'Water': Waves,
     'Fire': Flame,
-    'Spirit': Infinity
+    'Spirit': Sparkles,
+    'Shadow': Moon
 } as const;
+
+export const getTotemAffinityIcon = (affinity: string) => {
+    switch (affinity) {
+        case 'Strength': return <Dumbbell size={16} className="text-red-600 dark:text-red-400" />;
+        case 'Agility': return <Wind size={16} className="text-blue-600 dark:text-blue-400" />;
+        case 'Wisdom': return <Brain size={16} className="text-purple-600 dark:text-purple-400" />;
+        default: return <Dumbbell size={16} className="text-cyan-600 dark:text-cyan-400" />;
+    }
+};
+
+export const getTotemDomainIcon = (domain: string) => {
+    switch (domain) {
+        case 'Air': return <Cloud size={16} className="text-sky-100 text-white border-sky-500" />;
+        case 'Earth': return <Mountain size={16} className="text-emerald-100 border-emerald-500" />;
+        case 'Water': return <Waves size={16} className="text-cyan-100 border-cyan-500" />;
+        case 'Fire': return <Flame size={16} className="text-red-100 border-red-500" />;
+        case 'Spirit': return <Sparkles size={16} className="text-amber-100 border-amber-500" />;
+        case 'Shadow': return <Moon size={16} className="text-purple-100 border-purple-500" />;
+        default: return <Cloud size={16} className="text-cyan-100 dark:text-cyan-500" />;
+    }
+};
 
 export const getDomainColor = (domain: Domain) => {
     switch (domain) {
         case Domain.Air:
-            return "bg-blue-500/70 text-blue-200 border-blue-500";
+            return "bg-sky-500/70 text-sky-100 border-sky-600";
         case Domain.Earth:
-            return "bg-stone-500/70 text-stone-200 border-stone-500";
+            return "bg-emerald-600/70 text-emerald-100 border-emerald-500";
         case Domain.Water:
             return "bg-cyan-500/70 text-cyan-200 border-cyan-500";
+        case Domain.Fire: 
+            return "bg-red-500/70 text-red-200 border-red-500";
+        case Domain.Spirit:
+            return "bg-amber-400/70 text-amber-100 border-amber-500";
+        case Domain.Shadow:
+            return "bg-purple-800/70 text-purple-200 border-purple-500";
         default:
             return "bg-gray-500/70 text-gray-200 border-gray-500";
     }
@@ -47,13 +77,25 @@ export const getDomainColor = (domain: Domain) => {
 export const getAffinityColor = (affinity: Affinity) => {
     switch (affinity) {
         case Affinity.Strength:
-            return "bg-red-500/80 text-red-200 border-red-500";
+            return "bg-red-100 dark:bg-red-900/30";
         case Affinity.Agility:
-            return "bg-emerald-500/80 text-emerald-200 border-emerald-500";
+            return "bg-blue-100 dark:bg-blue-900/30";
         case Affinity.Wisdom:
-            return "bg-indigo-500/80 text-indigo-200 border-indigo-500";
+            return "bg-purple-100 dark:bg-purple-900/30";
         default:
-            return "bg-gray-500/80 text-gray-200 border-gray-500";
+            return "bg-gray-100 dark:bg-gray-900/30";
+    }
+};
+
+export const getRarityFontColor = (rarity: Rarity) => {
+    switch(rarity) {
+        case Rarity.Common: return 'text-gray-600 dark:text-gray-300';
+        case Rarity.Uncommon: return 'text-green-600 dark:text-green-400';
+        case Rarity.Rare: return 'text-blue-600 dark:text-blue-400';
+        case Rarity.Epic: return 'text-purple-600 dark:text-purple-400';
+        case Rarity.Legendary: return 'text-orange-600 dark:text-orange-400';
+        case Rarity.Limited: return 'text-yellow-600 dark:text-yellow-400';
+        default: return 'text-gray-600 dark:text-gray-300';
     }
 };
 
@@ -234,6 +276,7 @@ export function getSpeciesEmoji(species: Species): string {
         [Species.Otter]: '🦦',
         [Species.Woodpecker]: '🐦',
         [Species.None]: '❓'
+
     };
 
     return emojiMap[species] || emojiMap[Species.None];
@@ -310,3 +353,11 @@ export function getSpeciesInfo(species: Species, rarity: Rarity) {
     };
 }
 
+export const getSpeciesMetadata = (species: Species): any => {
+    return AVAILABLE_SPECIES.find(s => s.species === species);
+};
+
+export const getSpeciesHabitat = (species: Species): any => {
+    const metadata = getSpeciesMetadata(species);
+    return LOCATIONS.find(l => l.id === metadata.locationId);
+}

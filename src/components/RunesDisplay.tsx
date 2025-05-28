@@ -1,5 +1,5 @@
 import React from 'react';
-import { Diamond, Hexagon, Pentagon } from 'lucide-react';
+import { Diamond } from 'lucide-react';
 import { useGame } from '../contexts/GameContext';
 
 interface RuneIconProps {
@@ -9,11 +9,26 @@ interface RuneIconProps {
 export const RuneIcon: React.FC<RuneIconProps> = ({ type }) => {
     switch (type) {
       case 'lesser':
-        return <Diamond className="w-4 h-4 text-gray-500 fill-gray-500" />;
+        return <div className="w-6 h-6 bg-blue-200 dark:bg-blue-700/30 rounded-lg flex items-center justify-center">
+                  <img
+                    src="/runes/lesser-rune.png"
+                    alt="Lesser Rune"
+                    className={`w-full h-full object-contain`}/>
+                </div>;
       case 'greater':
-        return <Pentagon className="w-4 h-4 text-blue-500 fill-blue-500" />;
+        return <div className="w-6 h-6 p-0.5 bg-orange-200 dark:bg-orange-700/30 rounded-lg flex items-center justify-center">
+                  <img
+                    src="/runes/greater-rune.png"
+                    alt="Greater Rune"
+                    className={`w-full h-full object-contain`}/>
+                </div>;
       case 'ancient':
-        return <Hexagon className="w-4 h-4 text-purple-500 fill-purple-500" />;
+        return <div className="w-6 h-6 p-0.5 bg-purple-200 dark:bg-purple-700/30 rounded-lg flex items-center justify-center">
+                  <img
+                    src="/runes/ancient-rune.png"
+                    alt="Ancient Rune"
+                    className={`w-full h-full object-contain`}/>
+                </div>;
       default:
         return <Diamond className="w-4 h-4 text-gray-500 fill-gray-500" />;
     }

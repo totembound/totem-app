@@ -60,14 +60,20 @@ describe('RuneValidator Tests', () => {
 
     it('should have symmetric combinations where they exist', () => {
       // Check if A + B = C, then B + A should also = C (where it exists)
+      const asymmetricCombinations: string[] = [];
+      
       Object.entries(elementsDB.elements).forEach(([elementA, dataA]) => {
         Object.entries(dataA.combinations).forEach(([elementB, result]) => {
           const dataB = elementsDB.elements[elementB];
-          if (dataB.combinations[elementA]) {
-            expect(dataB.combinations[elementA]).toBe(result);
+          const reverseResult = dataB.combinations[elementA];
+          
+          if (reverseResult && reverseResult !== result) {
+            asymmetricCombinations.push(`${elementA} + ${elementB} = ${result}, but ${elementB} + ${elementA} = ${reverseResult}`);
           }
         });
       });
+      
+      expect(asymmetricCombinations).toEqual([]);
     });
 
     it('should not have self-referencing combinations', () => {
@@ -80,14 +86,17 @@ describe('RuneValidator Tests', () => {
     });
 
     it('should have descriptions for tier 2+ elements', () => {
-      Object.entries(elementsDB.elements).forEach(([elementName, elementData]) => {
-        if (elementData.tier > 1) {
-          expect(elementData.description).toBeDefined();
-          expect(elementData.description).not.toBeNull();
-          expect(typeof elementData.description).toBe('string');
-          expect(elementData.description!.length).toBeGreaterThan(0);
-        }
-      });
+      const tier2PlusElements = Object.entries(elementsDB.elements)
+        .filter(([_, elementData]) => elementData.tier > 1);
+      
+      const elementsWithoutDescriptions = tier2PlusElements.filter(([_, elementData]) => 
+        !elementData.description || 
+        typeof elementData.description !== 'string' || 
+        elementData.description.length === 0
+      );
+      
+      expect(tier2PlusElements.length).toBeGreaterThan(0); // Ensure we have tier 2+ elements to test
+      expect(elementsWithoutDescriptions).toEqual([]);
     });
   });
 
@@ -163,6 +172,8 @@ describe('RuneValidator Tests', () => {
     
     it('should validate all possible two-element combinations work', () => {
       const tier1Elements = ['fire', 'water', 'earth', 'air', 'spirit'];
+      const invalidCombinations: string[] = [];
+      const validResults: string[] = [];
       
       tier1Elements.forEach(elementA => {
         tier1Elements.forEach(elementB => {
@@ -171,15 +182,25 @@ describe('RuneValidator Tests', () => {
             const runeB: RuneType = { id: 2, element: elementB, image: '/test.png' };
             
             const result = validateChainReaction([runeA, runeB]);
-            // Should either produce a valid result or null, never throw
-            expect(typeof result === 'string' || result === null).toBe(true);
             
-            if (result) {
-              expect(elementsDB.elements[result]).toBeDefined();
+            if (result === null) {
+              invalidCombinations.push(`${elementA} + ${elementB} = null`);
+            } else if (typeof result === 'string') {
+              if (!elementsDB.elements[result]) {
+                invalidCombinations.push(`${elementA} + ${elementB} = ${result} (undefined element)`);
+              } else {
+                validResults.push(`${elementA} + ${elementB} = ${result}`);
+              }
+            } else {
+              invalidCombinations.push(`${elementA} + ${elementB} = ${typeof result} (unexpected type)`);
             }
           }
         });
       });
+      
+      // Ensure we have some valid combinations and no invalid ones
+      expect(validResults.length).toBeGreaterThan(0);
+      expect(invalidCombinations).toEqual([]);
     });
 
     it('should ensure no orphaned elements (unreachable through combinations)', () => {

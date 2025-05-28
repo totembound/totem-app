@@ -20,7 +20,7 @@ const SpecialOffers: React.FC<SpecialOffersViewProps> = ({
     const currentMonthlySpecial = specialsData.monthlySpecials.find(special => special.month === currentMonth);
     const [isExpanded, setIsExpanded] = useState(true);
     const [loading, setLoading] = useState<{[key: string]: boolean}>({});
-    const { updateBalances, addTotem, showError, provider } = useUser();
+    const { updateBalances, addTotem, showError, provider, canSpendCurrency } = useUser();
     const { purchaseBundle } = useTotemGame();
 
     const commonBundle = specialsData.bundles.common;
@@ -119,7 +119,7 @@ const SpecialOffers: React.FC<SpecialOffersViewProps> = ({
                     </div>
                     <button 
                         onClick={() => handlePurchaseBundle(commonBundle.bundleId, commonBundle.price)}
-                        disabled={loading[0]}
+                        disabled={loading[commonBundle.bundleId] || !canSpendCurrency(commonBundle.price)}
                         className="w-full bg-green-500 text-white py-2 px-4 rounded font-semibold 
                             hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-600 mt-4
                             disabled:opacity-50 disabled:cursor-not-allowed">
@@ -142,7 +142,7 @@ const SpecialOffers: React.FC<SpecialOffersViewProps> = ({
                     </div>
                     <button 
                         onClick={() => handlePurchaseBundle(rareBundle.bundleId, rareBundle.price)}
-                        disabled={loading[1]}
+                        disabled={loading[rareBundle.bundleId] || !canSpendCurrency(rareBundle.price)}
                         className="w-full bg-blue-500 text-white py-2 px-4 rounded font-semibold 
                             hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 mt-4
                             disabled:opacity-50 disabled:cursor-not-allowed">
@@ -165,7 +165,7 @@ const SpecialOffers: React.FC<SpecialOffersViewProps> = ({
                     </div>
                     <button 
                         onClick={() => handlePurchaseBundle(epicBundle.bundleId, epicBundle.price)}
-                        disabled={loading[2]}
+                        disabled={loading[epicBundle.bundleId] || !canSpendCurrency(epicBundle.price)}
                         className="w-full bg-purple-500 text-white py-2 px-4 rounded font-semibold 
                             hover:bg-purple-600 dark:bg-purple-700 dark:hover:bg-purple-600 mt-4
                             disabled:opacity-50 disabled:cursor-not-allowed">
@@ -226,7 +226,7 @@ const SpecialOffers: React.FC<SpecialOffersViewProps> = ({
                     <div className="mt-4">
                         <button 
                             onClick={() => handlePurchaseBundle(currentMonthlySpecial.bundleId, currentMonthlySpecial.price)}
-                            disabled={loading[3]}
+                            disabled={loading[currentMonthlySpecial.bundleId] || !canSpendCurrency(currentMonthlySpecial.price)}
                             className="w-full bg-amber-500 text-white py-3 px-4 rounded font-semibold 
                                 hover:bg-amber-600 dark:bg-amber-700 dark:hover:bg-amber-600 text-lg 
                                 disabled:opacity-50 disabled:cursor-not-allowed"

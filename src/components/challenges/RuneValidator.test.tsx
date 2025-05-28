@@ -93,9 +93,9 @@ describe('RuneValidator Tests', () => {
 
   describe('Chain Reaction Validation', () => {
     
-    it('should return null for empty sequence', () => {
+    it('should return undefined for empty sequence', () => {
       const result = validateChainReaction([]);
-      expect(result).toBeNull();
+      expect(result).toBeUndefined();
     });
 
     it('should return the element for single rune', () => {

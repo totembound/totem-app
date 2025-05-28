@@ -74,5 +74,5 @@ jobs:
 
     - name: Run tests with coverage
       working-directory: ./totem-app
-      run: npm run test:ci || exit 0
+      run: npm run test:ci
 

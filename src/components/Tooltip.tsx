@@ -129,13 +129,8 @@ const Tooltip: React.FC<TooltipProps> = ({
                         bg-gray-900 dark:bg-gray-700 
                         text-white px-3 py-1.5 
                         rounded text-sm 
-<<<<<<< HEAD
                         whitespace-normal
                         max-w-[320px]
-=======
-                        whitespace-nowrap
-                        min-w-[200px] max-w-[320px]
->>>>>>> develop
                         text-center
                     ">
                         {content}

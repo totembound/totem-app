@@ -1,4 +1,4 @@
-import RuneCraftingElements from './RuneCraftingElements.json';
+import RuneCraftingElements from '../data/RuneCraftingElements.json';
 
 export type RuneType = {
   id: number;

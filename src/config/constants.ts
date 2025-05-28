@@ -67,7 +67,7 @@ export const AVAILABLE_SPECIES = [
     locationId: 13,
     affinity: 'Strength',
     domain: 'Water',
-    available: false,
+    available: true,
     image: '/totems/beaverplacecard.png'
   }, {
     id: 5, name: 'Deer', species: Species.Deer, 
@@ -885,3 +885,109 @@ export const OWL_TOTEMS = [
     image: `${IPFS_GATEWAY_URL}bafybeia5h3n33pvf47yqinlbphgvbqnb2tckbrcwdv67ewexxfzfpzctai`,
   },
 ];
+
+export const BEAVER_TOTEMS = [
+  {
+    id: 1,
+    name: "Brown Kit",
+    rarity: Rarity.Common,
+    image: `${IPFS_GATEWAY_URL}bafybeiczvakwot4e4jkkzfjafgxypaopmyqqtf22ha67q253a6clor77ue`,
+  },
+  {
+    id: 2,
+    name: "Gray Kit",
+    rarity: Rarity.Common,
+    image: `${IPFS_GATEWAY_URL}bafybeigkpyy3xjd656rd2dntqagtheytmwsj6kdpoj4metnrbh4mf4u4bq`,
+  },
+  {
+    id: 3,
+    name: "White Kit",
+    rarity: Rarity.Common,
+    image: `${IPFS_GATEWAY_URL}bafybeieoknhthzqzh6m2lecfllaauuzrplffvsdewp4w2x3at4quuiuaxa`,
+  },
+  {
+    id: 4,
+    name: "Tawny Kit",
+    rarity: Rarity.Common,
+    image: `${IPFS_GATEWAY_URL}bafybeicajgmn46tq2ryox2a3ern5xrdxhwxqzyqgou736xeq53yio756wq`,
+  },
+  {
+    id: 5,
+    name: "Slate Kit",
+    rarity: Rarity.Uncommon,
+    image: `${IPFS_GATEWAY_URL}bafybeid4t7uimf7cbcxt4y3resxmbcaswn6n5dt3kfqihya4acjqopa73u`,
+  },
+  {
+    id: 6,
+    name: "Copper Kit",
+    rarity: Rarity.Uncommon,
+    image: `${IPFS_GATEWAY_URL}bafybeiddonybtxamiditfs4atjanzyeoq2vqxfp7qninxlrxrgsif4e5la`,
+  },
+  {
+    id: 7,
+    name: "Cream Kit",
+    rarity: Rarity.Uncommon,
+    image: `${IPFS_GATEWAY_URL}bafybeigurfv3k4e36g7wb4e2szhsmobacvfaafxvqcyd3e4wcoxk6i36ia`,
+  },
+  {
+    id: 8,
+    name: "Dappled Kit",
+    rarity: Rarity.Uncommon,
+    image: `${IPFS_GATEWAY_URL}bafybeiamuiooy2jjwjzqt3lzek3i5ftqneguq7yg6cldrfvunfwc7hw3qi`,
+  },
+  {
+    id: 9,
+    name: "Sunbranch Kit",
+    rarity: Rarity.Rare,
+    image: `${IPFS_GATEWAY_URL}bafybeidt6yeej4xdp3xqbfuzzacux2lud7yl7opy74o7lbo7i2chzt7wlq`,
+  },
+  {
+    id: 10,
+    name: "Duskmire Kit",
+    rarity: Rarity.Rare,
+    image: `${IPFS_GATEWAY_URL}bafybeidakor6idad6qfzly4nr3k7irfrgasn4ddwtf77abkbr4f2ag5hga`,
+  },
+  {
+    id: 11,
+    name: "Emberdam Kit",
+    rarity: Rarity.Rare,
+    image: `${IPFS_GATEWAY_URL}bafybeif7pgxkxqpiwiyhduclgv7mhcxz4wxon2yczgmkf4zsombzizx3pm`,
+  },
+  {
+    id: 12,
+    name: "Verdantroot Kit",
+    rarity: Rarity.Epic,
+    image: `${IPFS_GATEWAY_URL}bafybeiakxazrnjrcakxy2hocx6jmw4icyggbihruvv55edt4fsub7mdijm`,
+  },
+  {
+    id: 13,
+    name: "Emberbranch Kit",
+    rarity: Rarity.Epic,
+    image: `${IPFS_GATEWAY_URL}bafybeigxkanr6g7rlsimgijxr6svzgyjqqkqkj5regbrgwf5or3owdmdpi`,
+  },
+  {
+    id: 14,
+    name: "Abysscurrent Kit",
+    rarity: Rarity.Epic,
+    image: `${IPFS_GATEWAY_URL}bafybeide2lpjkera3ishqda5w4zgsxcv5z73o47ax5wcyx5psi7uslisfq`,
+  },
+  {
+    id: 15,
+    name: "Moonlake Kit",
+    rarity: Rarity.Legendary,
+    image: `${IPFS_GATEWAY_URL}bafybeigrodxqqzfa2lcippgxoonhwtsxouuahb27nbb6yvdlxvttibukjy`,
+  },
+  {
+    id: 16,
+    name: "Celestial Kit",
+    rarity: Rarity.Legendary,
+    image: `${IPFS_GATEWAY_URL}bafybeicjeax6zbyt4dpxfdibm3jqbanrj6yldzipj2oj3w23d6foqfhkcq`,
+  },
+  {
+    id: 17,
+    name: "Blossomroot Kit",
+    rarity: Rarity.Limited,
+    image: `${IPFS_GATEWAY_URL}bafybeicz3qwrvy5a5p7d3rmn54ojgwvpmkmdqfcjbtkv5o2riklo4fpxva`,
+  },
+];
+

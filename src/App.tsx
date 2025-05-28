@@ -28,6 +28,30 @@ import Tutorial from './components/guides/Tutorial';
 import HowToGuides from './components/guides/HowToGuides';
 import TotemCodex from './components/guides/TotemCodex';
 import LoreArchives from './components/guides/LoreArchives';
+import Totems from './components/guides/codex/Totems';
+import OwlTotem from './components/guides/codex/OwlTotem';
+import BearTotem from './components/guides/codex/BearTotem';
+import BeaverTotem from './components/guides/codex/BeaverTotem';
+import DeerTotem from './components/guides/codex/DeerTotem';
+import FalconTotem from './components/guides/codex/FalconTotem';
+import GooseTotem from './components/guides/codex/GooseTotem';
+import OtterTotem from './components/guides/codex/OtterTotem';
+import RavenTotem from './components/guides/codex/RavenTotem';
+import SnakeTotem from './components/guides/codex/SnakeTotem';
+import TurtleTotem from './components/guides/codex/TurtleTotem';
+import WolfTotem from './components/guides/codex/WolfTotem';
+import WoodpeckerTotem from './components/guides/codex/WoodpeckerTotem';
+import Domains from './components/guides/codex/Domains';
+import Habitats from './components/guides/codex/Habitats';
+import Runes from './components/guides/codex/Runes';
+import TotemGear from './components/guides/codex/TotemGear';
+import AirDomain from './components/guides/codex/AirDomain';
+import EarthDomain from './components/guides/codex/EarthDomain';
+import WaterDomain from './components/guides/codex/WaterDomain';
+import FireDomain from './components/guides/codex/FireDomain';
+import SpiritDomain from './components/guides/codex/SpiritDomain';
+import ShadowDomain from './components/guides/codex/ShadowDomain';
+import WorldMap from './components/guides/codex/WorldMap';
 
 const AppRoutes: React.FC = () => {
   usePageViews();
@@ -89,20 +113,94 @@ const AppRoutes: React.FC = () => {
               </ProtectedRoute>
             } />
             <Route path="tutorial" element={
-              <ProtectedRoute>
-                <Tutorial />
-              </ProtectedRoute>
+              <Tutorial />
             } />
             <Route path="how-to" element={
-              <ProtectedRoute>
-                <HowToGuides />
-              </ProtectedRoute>
+              <HowToGuides />
             } />
-            <Route path="codex" element={
-              <ProtectedRoute>
+            <Route path="codex">
+              <Route index element={
                 <TotemCodex />
-              </ProtectedRoute>
-            } />
+              } />
+              <Route path="totems">
+                <Route index element={
+                  <Totems />
+                } />
+                <Route path="goose" element={
+                  <GooseTotem />
+                } />
+                <Route path="otter" element={
+                  <OtterTotem />
+                } />
+                <Route path="wolf" element={
+                  <WolfTotem />
+                } />
+                <Route path="falcon" element={
+                  <FalconTotem />
+                } />
+                <Route path="beaver" element={
+                  <BeaverTotem />
+                } />
+                <Route path="deer" element={
+                  <DeerTotem />
+                } />
+                <Route path="woodpecker" element={
+                  <WoodpeckerTotem />
+                } />
+                <Route path="turtle" element={
+                  <TurtleTotem />
+                } />
+                <Route path="bear" element={
+                  <BearTotem />
+                } />
+                <Route path="raven" element={
+                  <RavenTotem />
+                } />
+                <Route path="snake" element={
+                  <SnakeTotem />
+                } />
+                <Route path="owl" element={
+                  <OwlTotem />
+                } />
+              </Route>
+              <Route path="domains">
+                <Route index element={
+                  <Domains />
+                } />
+                <Route path="air" element={
+                  <AirDomain/>
+                } />
+                <Route path="earth" element={
+                  <EarthDomain/>
+                } />
+                <Route path="water" element={
+                  <WaterDomain/>
+                } />
+                <Route path="fire" element={
+                  <FireDomain/>
+                } />
+                <Route path="spirit" element={
+                  <SpiritDomain/>
+                } />
+                <Route path="shadow" element={
+                  <ShadowDomain/>
+                } />
+              </Route>
+              
+              <Route path="habitats" element={
+                <Habitats />
+              } />
+              <Route path="gear" element={
+                <TotemGear />
+              } />
+              <Route path="runes" element={
+                <Runes />
+              } />
+              <Route path="map" element={
+                <WorldMap />
+              } />
+            </Route>
+
             <Route path="lore" element={
               <ProtectedRoute>
                 <LoreArchives />

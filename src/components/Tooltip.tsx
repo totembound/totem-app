@@ -117,10 +117,11 @@ const Tooltip: React.FC<TooltipProps> = ({
             <div 
                 ref={contentRef}
                 className={`
-                    absolute z-50
+                    absolute z-[9999]
                     ${positionClasses[computedPosition]}
                     ${isVisible ? 'opacity-100 visible' : 'opacity-0 invisible'}
                     transition-opacity duration-200
+                    pointer-events-none
                 `}
             >
                 <div className="relative">
@@ -128,7 +129,7 @@ const Tooltip: React.FC<TooltipProps> = ({
                         bg-gray-900 dark:bg-gray-700 
                         text-white px-3 py-1.5 
                         rounded text-sm 
-                        whitespace-normal
+                        whitespace-nowrap
                         min-w-[200px] max-w-[320px]
                         text-center
                     ">

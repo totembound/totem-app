@@ -13,13 +13,13 @@ import { AFFINITY_ICONS, DOMAIN_ICONS, getSpeciesEmoji } from '../../utils/totem
 import React from 'react';
 import SpecialOffers from '../shop/SpecialOffers';
 import { useTransactionService } from '../../hooks/useTransactionService';
-import { AVAILABLE_SPECIES, IPFS_GATEWAY_URL } from '../../config/constants';
+import { AVAILABLE_SPECIES, IPFS_GATEWAY_URL, TOTEM_COST } from '../../config/constants';
 
 const tokenPackages = [
-  { amount: '100', cost: '1', popular: false },
-  { amount: '500', cost: '5', popular: true },
-  { amount: '1000', cost: '10', popular: false },
-  { amount: '10000', cost: '100', popular: false }
+  { amount: 100, cost: 1, popular: false },
+  { amount: 500, cost: 5, popular: true },
+  { amount: 1000, cost: 10, popular: false },
+  { amount: 10000, cost: 100, popular: false }
 ];
 
 const ShopInterface = () => {
@@ -27,28 +27,29 @@ const ShopInterface = () => {
   const [loading, setLoading] = useState(false);
   const [purchasingTotems, setPurchasingTotems] = useState<{[key: number]: boolean}>({});
   const [error, setError] = useState('');
-  const { provider, updateBalances, addTotem, showError, isGaslessEnabled } = useUser();
+  const { provider, updateBalances, addTotem, showError, isGaslessEnabled, canSpendTotem, canSpendCurrency } = useUser();
   const { buyTokens } = useTotemGame();
   const [purchasedTotem, setPurchasedTotem] = useState<any>(null);
   const availableSpecies = AVAILABLE_SPECIES;
+  const canBuyTotem = canSpendTotem(TOTEM_COST);
 
   const txService = useTransactionService({
       gaslessEnabled: isGaslessEnabled,
       waitForConfirmation: true
   });
 
-  const handleBuyTokens = async (polAmount: string) => {
+  const handleBuyTokens = async (polAmount: number) => {
       setLoading(true);
       setError('');
       try {
-          const receipt = await buyTokens(ethers.parseEther(polAmount));
+          const amount = BigInt(ethers.parseEther(polAmount.toString()));
+          const receipt = await buyTokens(amount);
           console.log('Token purchase complete:', receipt);
           await updateBalances();
       }
       catch (err) {
-          const message = err instanceof Error ? err.message : 'Failed to buy tokens';
-          setError(message);
-          console.error('Purchase error:', err);
+          showError("Error", "Failed to purchase totem. Try again shortly.");
+          console.error(err);
       }
       finally {
           setLoading(false);
@@ -61,7 +62,6 @@ const ShopInterface = () => {
       try {
           if (!txService) throw new Error('Transaction service not initialized');
 
-          //const tokenId = await purchaseTotem(speciesId);
           const result = await txService.purchaseTotem(speciesId);
           const tokenId = result.data.tokenId;
           console.log(`Purchased totem ${speciesId}:`, tokenId);
@@ -173,7 +173,9 @@ const ShopInterface = () => {
                 </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {availableSpecies.map((species) => (
+                {availableSpecies.map((species) => {
+                  const disabledBuyButton = !species.available || purchasingTotems[species.id] || !canBuyTotem;
+                  return (
                   <div 
                     key={species.id}
                     className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden h-full flex flex-col
@@ -209,7 +211,7 @@ const ShopInterface = () => {
                       <div className="flex justify-between items-start mb-2">
                         <h3 className="font-bold text-lg dark:text-gray-200">{species.name}</h3>
                         <span className="text-sm bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 px-2 py-1 rounded">
-                          500 TOTEM
+                          {TOTEM_COST} TOTEM
                         </span>
                       </div>
 
@@ -254,12 +256,12 @@ const ShopInterface = () => {
                         
                         <button
                           onClick={() => species.available && handlePurchaseTotem(species.id)}
-                          disabled={!species.available || purchasingTotems[species.id]}
+                          disabled={disabledBuyButton}
                           className={`w-full py-2 px-4 rounded font-semibold
                             ${species.available
                               ? 'bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600'
-                              : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                            } disabled:opacity-50`}
+                              : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                            } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                           {purchasingTotems[species.id] ? 'Purchasing...' : 
                           (species.available ? 'Buy Totem' : 'Coming Soon')}
@@ -267,7 +269,7 @@ const ShopInterface = () => {
                       </div>
                     </div>
                   </div>
-                ))}
+                )})}
                 {/* Celebration Modal */}
                 {purchasedTotem && (
                   <CelebrationModal
@@ -297,7 +299,9 @@ const ShopInterface = () => {
                   </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {tokenPackages.map((pkg) => (
+                {tokenPackages.map((pkg) =>  {
+                  const disabledBuyButton = loading || !canSpendCurrency(pkg.cost)
+                  return (
                   <div 
                     key={pkg.amount}
                     className={`bg-white dark:bg-gray-800 rounded-lg border shadow-sm 
@@ -319,7 +323,7 @@ const ShopInterface = () => {
                       </div>
                       <button 
                         onClick={() => handleBuyTokens(pkg.cost)}
-                        disabled={loading}
+                        disabled={disabledBuyButton}
                         className="w-full bg-purple-600 text-white py-2 px-4 rounded font-semibold 
                           hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 
                           disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
@@ -329,7 +333,7 @@ const ShopInterface = () => {
                       </button>
                     </div>
                   </div>
-                ))}
+                )})}
               </div>
                 
                 {error && (

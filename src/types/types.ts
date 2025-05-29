@@ -20,6 +20,8 @@ export interface UserContextType extends UserContextState {
     setGaslessEnabled: (enabled: boolean) => void;
     setGaslessApiKey: (apiKey: string) => void;
     updateAccountType: (providedApiKey?: string) => AccountType;
+    canSpendTotem: (amount: number) => boolean;
+    canSpendCurrency: (amount: number) => boolean;
 }
 
 export interface TotemUpdate {

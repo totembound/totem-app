@@ -33,9 +33,10 @@ const UnboundTotemCard: React.FC<{
     onPurchaseClick: (totem: UnboundTotem) => void;
     isPurchasing: boolean;
 }> = ({ totem, onPurchaseClick, isPurchasing }) => {
-    const { provider } = useUser();
+    const { provider, canSpendTotem } = useUser();
     const purchasePrice = convertPrice(totem.sellPrice) + 100;
     const [imageUri, setImageUri] = useState('');
+    const disabledBuyButton = isPurchasing || !canSpendTotem(purchasePrice);
 
     useEffect(() => {
         const getImageUri = async () => {
@@ -117,10 +118,10 @@ const UnboundTotemCard: React.FC<{
 
                 <button
                     onClick={() => onPurchaseClick(totem)}
-                    disabled={isPurchasing}
+                    disabled={disabledBuyButton}
                     className="w-full bg-purple-600 text-white py-2 px-4 rounded font-semibold 
                         hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 
-                        transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                        transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                     {isPurchasing && <Loader2 className="w-4 h-4 animate-spin" />}
                     {isPurchasing ? 'Purchasing...' : 'Buy Totem'}
@@ -137,7 +138,7 @@ const UnboundTotems: React.FC = () => {
     const [selectedTotem, setSelectedTotem] = useState<UnboundTotem | null>(null);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [purchasingTotems, setPurchasingTotems] = useState<{[key: string]: boolean}>({});
-    const { provider, signer, addTotem, updateBalances, isGaslessEnabled } = useUser();
+    const { provider, addTotem, updateBalances, isGaslessEnabled } = useUser();
     const [totalItems, setTotalItems] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;

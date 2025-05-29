@@ -5,6 +5,7 @@ export const PRESTIGE_XP_REQUIREMENT = 2500;
 export const BASE_ELDER_XP = 7500;
 export const STAGE_THRESHOLDS = [0, 500, 1500, 3500, 7500];
 export const IPFS_GATEWAY_URL = process.env.REACT_APP_IPFS_GATEWAY_URL || 'https://ipfs.totembound.com/ipfs/';
+export const TOTEM_COST = 500;
 
 export const TIER_TYPES = {
     free: 'Free',

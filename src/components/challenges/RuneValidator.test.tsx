@@ -58,7 +58,7 @@ describe('RuneValidator Tests', () => {
       });
     });
 
-    it('should have symmetric combinations where they exist', () => {
+    it('shouldn\'t have asymmetric combinations', () => {
       // Check if A + B = C, then B + A should also = C (where it exists)
       const asymmetricCombinations: string[] = [];
       
@@ -89,14 +89,45 @@ describe('RuneValidator Tests', () => {
       const tier2PlusElements = Object.entries(elementsDB.elements)
         .filter(([_, elementData]) => elementData.tier > 1);
       
-      const elementsWithoutDescriptions = tier2PlusElements.filter(([_, elementData]) => 
-        !elementData.description || 
-        typeof elementData.description !== 'string' || 
-        elementData.description.length === 0
-      );
+      // Collect all validation failures
+      const validationFailures = tier2PlusElements.flatMap(([elementName, elementData]) => {
+        const failures = [];
+        const desc = elementData.description;
+        
+        // Basic existence check
+        if (!desc) {
+          failures.push(`${elementName}: missing description`);
+          return failures;
+        }
+        
+        if (typeof desc !== 'string') {
+          failures.push(`${elementName}: description is not a string`);
+          return failures;
+        }
+        
+        // Length validation
+        if (desc.length < 20) {
+          failures.push(`${elementName}: description too short (${desc.length} chars, min 20)`);
+        }
+        
+        if (desc.length > 150) {
+          failures.push(`${elementName}: description too long (${desc.length} chars, max 150)`);
+        }
+        
+        // Word count validation
+        const wordCount = desc.trim().split(/\s+/).length;
+        if (wordCount < 4) {
+          failures.push(`${elementName}: too few words (${wordCount}, min 4)`);
+        }
+        
+        if (wordCount > 15) {
+          failures.push(`${elementName}: too many words (${wordCount}, max 15)`);
+        }
+        
+        return failures;
+      });
       
-      expect(tier2PlusElements.length).toBeGreaterThan(0); // Ensure we have tier 2+ elements to test
-      expect(elementsWithoutDescriptions).toEqual([]);
+      expect(validationFailures).toEqual([]);
     });
   });
 

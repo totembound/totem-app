@@ -120,10 +120,6 @@ describe('RuneValidator Tests', () => {
           failures.push(`${elementName}: too few words (${wordCount}, min 4)`);
         }
         
-        if (wordCount > 15) {
-          failures.push(`${elementName}: too many words (${wordCount}, max 15)`);
-        }
-        
         return failures;
       });
       

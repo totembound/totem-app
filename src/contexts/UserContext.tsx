@@ -62,6 +62,36 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }));
     };
 
+    const canSpendTotem = (amount: number) => {
+        if (!state.isTokenApproved) {
+            return false;
+        }
+
+        if (state.totemBalance) {
+            const balance = Number(state.totemBalance);
+            if (Number(balance) > amount) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    const canSpendCurrency = (amount: number) => {
+        if (!state.isTokenApproved) {
+            return false;
+        }
+
+        if (state.polBalance) {
+            const balance = Number(state.polBalance);
+            if (balance > amount) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     const fetchTotems = useCallback(async () => {
         if (!state.provider || !state.address || !state.isConnected || !state.isSignedUp) return;
 
@@ -803,7 +833,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setGaslessApiKey,
                 accountType: state.accountType,
                 updateAccountType,
-                comingSoon
+                comingSoon,
+                canSpendTotem,
+                canSpendCurrency
             }}
         >
             {children}

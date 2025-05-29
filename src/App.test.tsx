@@ -29,6 +29,11 @@ jest.mock('./contexts/GameContext', () => ({
   )
 }));
 
+// mock for app tests
+jest.mock('./hooks/usePageViews', () => ({
+  usePageViews: jest.fn()
+}));
+
 // Mock route components
 jest.mock('./components/pages/Home', () => ({
   __esModule: true,

@@ -59,12 +59,12 @@ jobs:
 
     - name: Check types
       working-directory: ./totem-app
-      run: npm run check-types || exit 0
+      run: npm run check-types
 
     - name: Run ESLint
       working-directory: ./totem-app
       # Adding || true to prevent lint warnings from failing the build
-      run: npm run lint || true
+      run: npm run lint
 
     - name: Build
       working-directory: ./totem-app
@@ -74,5 +74,5 @@ jobs:
 
     - name: Run tests with coverage
       working-directory: ./totem-app
-      run: npm run test:ci || exit 0
+      run: npm run test:ci
 

@@ -1,0 +1,784 @@
+{
+  "elements": {
+    "fire": {
+      "image": "/challenges/runes/fire-rune.png",
+      "tier": 1,
+      "combinations": {
+        "earth": "lava",
+        "air": "lightning",
+        "spirit": "soulflame",
+        "water": "combust"
+      }
+    },
+    "water": {
+      "image": "/challenges/runes/water-rune.png",
+      "tier": 1,
+      "combinations": {
+        "air": "ice",
+        "earth": "growth",
+        "spirit": "lifespring",
+        "fire": "combust"
+      }
+    },
+    "earth": {
+      "image": "/challenges/runes/earth-rune.png",
+      "tier": 1,
+      "combinations": {
+        "fire": "lava",
+        "water": "growth",
+        "spirit": "crystal",
+        "air": "sand"
+      }
+    },
+    "air": {
+      "image": "/challenges/runes/air-rune.png",
+      "tier": 1,
+      "combinations": {
+        "water": "ice",
+        "fire": "lightning",
+        "spirit": "dream",
+        "earth": "sand"
+      }
+    },
+    "spirit": {
+      "image": "/challenges/runes/spirit-rune.png",
+      "tier": 1,
+      "combinations": {
+        "fire": "soulflame",
+        "water": "lifespring",
+        "earth": "crystal",
+        "air": "dream"
+      }
+    },
+    "ice": {
+      "image": "/challenges/runes/ice-effect.png",
+      "tier": 2,
+      "description": "Water freezes under the cool air, forming ice crystals",
+      "combinations": {
+        "fire": "balance",
+        "earth": "frost",
+        "spirit": "echo"
+      }
+    },
+    "lava": {
+      "image": "/challenges/runes/lava-effect.png",
+      "tier": 2,
+      "description": "Earth melts under intense heat, creating molten lava",
+      "combinations": {
+        "water": "obsidian",
+        "air": "smoke",
+        "spirit": "eruption"
+      }
+    },
+    "lightning": {
+      "image": "/challenges/runes/lightning-effect.png",
+      "tier": 2,
+      "description": "Air and fire dance together, generating electrical energy",
+      "combinations": {
+        "water": "storm",
+        "earth": "quake",
+        "spirit": "judgement"
+      }
+    },
+    "growth": {
+      "image": "/challenges/runes/growth-effect.png",
+      "tier": 2,
+      "description": "Water nurtures the earth, sprouting vibrant plantlife",
+      "combinations": {
+        "fire": "wildfire",
+        "air": "spore",
+        "spirit": "animus"
+      }
+    },
+    "soulflame": {
+      "image": "/challenges/runes/soulflame-effect.png",
+      "tier": 2,
+      "description": "Spirit enhances fire, creating eternal mystical flames",
+      "combinations": {
+        "water": "rite",
+        "earth": "cairn",
+        "air": "wisp"
+      }
+    },
+    "lifespring": {
+      "image": "/challenges/runes/lifespring-effect.png",
+      "tier": 2,
+      "description": "Spirit imbues water with healing properties",
+      "combinations": {
+        "fire": "radiance",
+        "earth": "grove",
+        "air": "mist"
+      }
+    },
+    "crystal": {
+      "image": "/challenges/runes/crystal-effect.png",
+      "tier": 2,
+      "description": "Spirit condenses earth into magical crystal formations",
+      "combinations": {
+        "fire": "gem",
+        "water": "prism",
+        "air": "vortex"
+      }
+    },
+    "dream": {
+      "image": "/challenges/runes/dream-effect.png",
+      "tier": 2,
+      "description": "Spirit flows through air, carrying ancient knowledge",
+      "combinations": {
+        "fire": "nightmare",
+        "water": "illusion",
+        "earth": "sanctuary"
+      }
+    },
+    "sand": {
+      "image": "/challenges/runes/sand-effect.png",
+      "tier": 2,
+      "description": "Sand flows over the earth created by the wind",
+      "combinations": {
+        "fire": "glass",
+        "water": "oasis",
+        "spirit": "time"
+      }
+    },
+    "combust": {
+      "image": "/challenges/runes/combust-effect.png",
+      "tier": 2,
+      "description": "The elemental union of fire and water ends in destruction",
+      "combinations": {
+        "earth": "forge",
+        "air": "tempest",
+        "spirit": "phoenix"
+      }
+    },
+    "forge": {
+      "image": "/challenges/runes/forge-effect.png",
+      "tier": 3,
+      "description": "The destructive power of fire and water harnesses earth to create a magical forge",
+      "combinations": {
+        "air": "kindle",
+        "spirit": "vessel"
+      }
+    },
+    "tempest": {
+      "image": "/challenges/runes/tempest-effect.png",
+      "tier": 3,
+      "description": "The chaotic energies of combustion swirl with air, creating a devastating magical storm",
+      "combinations": {
+        "earth": "destruction",
+        "spirit": "revenant"
+      }
+    },
+    "phoenix": {
+      "image": "/challenges/runes/phoenix-effect.png",
+      "tier": 3,
+      "description": "Spirit infuses the destruction of combustion with the power of rebirth",
+      "combinations": {
+        "earth": "basilisk",
+        "air": "griffin"
+      }
+    },
+    "obsidian": {
+      "image": "/challenges/runes/obsidian-effect.png",
+      "tier": 3,
+      "description": "Molten lava rapidly cooled by water forms a powerful black glass with protective properties",
+      "combinations": {
+        "air": "ashcloud",
+        "spirit": "relic"
+      }
+    },
+    "smoke": {
+      "image": "/challenges/runes/smoke-effect.png",
+      "tier": 3,
+      "description": "Lava meets air to create concealing clouds of mysterious smoke",
+      "combinations": {
+        "water": "murk",
+        "spirit": "haunt"
+      }
+    },
+    "eruption": {
+      "image": "/challenges/runes/eruption-effect.png",
+      "tier": 3,
+      "description": "Spirit channels the power of lava, creating an explosive release of primordial energy",
+      "combinations": {
+        "water": "scald",
+        "air": "choke"
+      }
+    },
+    "storm": {
+      "image": "/challenges/runes/storm-effect.png",
+      "tier": 3,
+      "description": "Lightning and water combine to form a raging tempest of elemental fury",
+      "combinations": {
+        "earth": "landslide",
+        "spirit": "omen"
+      }
+    },
+    "quake": {
+      "image": "/challenges/runes/quake-effect.png",
+      "tier": 3,
+      "description": "Lightning strikes deep into the earth, setting off powerful seismic tremors",
+      "combinations": {
+        "water": "sinkhole",
+        "spirit": "ruin"
+      }
+    },
+    "judgement": {
+      "image": "/challenges/runes/judgement-effect.png",
+      "tier": 3,
+      "description": "Spirit guides lightning with divine purpose, revealing truth and dispensing justice",
+      "combinations": {
+        "water": "absolution",
+        "earth": "verdict"
+      }
+    },
+    "rite": {
+      "image": "/challenges/runes/rite-effect.png",
+      "tier": 3,
+      "description": "Water quenches soulflame in a sacred ritual, connecting the material world to the realm of spirits",
+      "combinations": {
+        "earth": "sepulcher",
+        "air": "incantation"
+      }
+    },
+    "cairn": {
+      "image": "/challenges/runes/cairn-effect.png",
+      "tier": 3,
+      "description": "Soulflame imbues stones with memories, creating a monument to ancestors and forgotten knowledge",
+      "combinations": {
+        "water": "offering",
+        "air": "memory"
+      }
+    },
+    "wisp": {
+      "image": "/challenges/runes/wisp-effect.png",
+      "tier": 3,
+      "description": "Soulflame carried on the wind becomes an intelligent guide through dark and forgotten places",
+      "combinations": {
+        "water": "undine",
+        "earth": "gnome"
+      }
+    },
+    "wildfire": {
+      "image": "/challenges/runes/wildfire-effect.png",
+      "tier": 3,
+      "description": "Fire spreads through growth with uncontrollable speed, transforming landscapes in minutes",
+      "combinations": {
+        "air": "inferno",
+        "spirit": "embers"
+      }
+    },
+    "spore": {
+      "image": "/challenges/runes/spore-effect.png",
+      "tier": 3,
+      "description": "Air carries the seeds of growth to distant lands, spreading life across vast distances",
+      "combinations": {
+        "fire": "scorch",
+        "spirit": "plague"
+      }
+    },
+    "animus": {
+      "image": "/challenges/runes/animus-effect.png",
+      "tier": 3,
+      "description": "Spirit breathes consciousness into growth, creating sentient plant life with ancient wisdom",
+      "combinations": {
+        "fire": "fury",
+        "air": "howl"
+      }
+    },
+    "balance": {
+      "image": "/challenges/runes/balance-effect.png",
+      "tier": 3,
+      "description": "Fire and ice reach perfect equilibrium, creating a harmonious state of elemental balance",
+      "combinations": {
+        "earth": "core",
+        "spirit": "harmonics"
+      }
+    },
+    "frost": {
+      "image": "/challenges/runes/frost-effect.png",
+      "tier": 3,
+      "description": "Ice blankets the earth, creating intricate crystalline patterns that enhance magical focus",
+      "combinations": {
+        "fire": "dawn",
+        "spirit": "winter"
+      }
+    },
+    "echo": {
+      "image": "/challenges/runes/echo-effect.png",
+      "tier": 3,
+      "description": "Spirit resonates within ice, preserving sounds and memories from ages past",
+      "combinations": {
+        "fire": "seance",
+        "earth": "hollow"
+      }
+    },
+    "radiance": {
+      "image": "/challenges/runes/radiance-effect.png",
+      "tier": 3,
+      "description": "Fire illuminates the healing waters of lifespring, creating a brilliant aura of regeneration",
+      "combinations": {
+        "earth": "miracle",
+        "air": "aurora"
+      }
+    },
+    "grove": {
+      "image": "/challenges/runes/grove-effect.png",
+      "tier": 3,
+      "description": "Lifespring saturates the earth, creating a sacred sanctuary of extraordinary vitality",
+      "combinations": {
+        "fire": "embrace",
+        "air": "canopy"
+      }
+    },
+    "mist": {
+      "image": "/challenges/runes/mist-effect.png",
+      "tier": 3,
+      "description": "Lifespring rises into the air, forming a healing mist that restores body and mind",
+      "combinations": {
+        "fire": "glow",
+        "earth": "fume"
+      }
+    },
+    "gem": {
+      "image": "/challenges/runes/gem-effect.png",
+      "tier": 3,
+      "description": "Fire compresses crystal under immense heat, creating gems of extraordinary magical potential",
+      "combinations": {
+        "water": "clearwater",
+        "air": "starlight"
+      }
+    },
+    "prism": {
+      "image": "/challenges/runes/prism-effect.png",
+      "tier": 3,
+      "description": "Water flows through crystal, splitting light into component colors with divinatory properties",
+      "combinations": {
+        "fire": "glory",
+        "air": "refract"
+      }
+    },
+    "vortex": {
+      "image": "/challenges/runes/vortex-effect.png",
+      "tier": 3,
+      "description": "Air crushes and sweeps up crystals, creating a vortex of slicing wind",
+      "combinations": {
+        "fire": "blaze",
+        "water": "maelstrom"
+      }
+    },
+    "nightmare": {
+      "image": "/challenges/runes/nightmare-effect.png",
+      "tier": 3,
+      "description": "Fire corrupts dreams, transforming them into terrifying visions of primal fear",
+      "combinations": {
+        "water": "drown",
+        "earth": "burial"
+      }
+    },
+    "illusion": {
+      "image": "/challenges/runes/illusion-effect.png",
+      "tier": 3,
+      "description": "Water reflects dreams, creating convincing mirages that blur reality and fantasy",
+      "combinations": {
+        "fire": "mirage",
+        "earth": "facade"
+      }
+    },
+    "sanctuary": {
+      "image": "/challenges/runes/sanctuary-effect.png",
+      "tier": 3,
+      "description": "Dreams become manifest in earth, creating protected spaces where the impossible becomes possible",
+      "combinations": {
+        "fire": "hearth",
+        "water": "stillness"
+      }
+    },
+    "glass": {
+      "image": "/challenges/runes/glass-effect.png",
+      "tier": 3,
+      "description": "Fire transforms sand into transparent glass with properties that enhance scrying magic",
+      "combinations": {
+        "water": "seaglass",
+        "spirit": "looking glass"
+      }
+    },
+    "oasis": {
+      "image": "/challenges/runes/oasis-effect.png",
+      "tier": 3,
+      "description": "Water collects in sand, creating a wellspring of life in seemingly barren surroundings",
+      "combinations": {
+        "fire": "blight",
+        "spirit": "eden"
+      }
+    },
+    "time": {
+      "image": "/challenges/runes/time-effect.png",
+      "tier": 3,
+      "description": "Spirit flows through sand, revealing the passage of time and glimpses of possible futures",
+      "combinations": {
+        "fire": "burnout",
+        "water": "erosion"
+      }
+    },
+    "inferno": {
+      "image": "/challenges/runes/inferno-effect.png",
+      "tier": 4,
+      "description": "The wildfire rises into the air, creating an all-consuming inferno of magical flames",
+      "combinations": {}
+    },
+    "embers": {
+      "image": "/challenges/runes/ember-effect.png",
+      "tier": 4,
+      "description": "Spirit influences wildfire, creating magical embers that never fully extinguish",
+      "combinations": {}
+    },
+    "core": {
+      "image": "/challenges/runes/core-effect.png",
+      "tier": 4,
+      "description": "Balance carried on the wind forms a stable core of elemental energy",
+      "combinations": {}
+    },
+    "harmonics": {
+      "image": "/challenges/runes/harmonics-effect.png",
+      "tier": 4,
+      "description": "Spirit enhances balance, creating harmonious resonance between all elements",
+      "combinations": {}
+    },
+    "miracle": {
+      "image": "/challenges/runes/miracle-effect.png",
+      "tier": 4,
+      "description": "Radiance flows into the earth, manifesting miraculous healing effects",
+      "combinations": {}
+    },
+    "aurora": {
+      "image": "/challenges/runes/aurora-effect.png",
+      "tier": 4,
+      "description": "Radiance combines with air to form beautiful, magical lights in the sky",
+      "combinations": {}
+    },
+    "seaglass": {
+      "image": "/challenges/runes/seaglass-effect.png",
+      "tier": 4,
+      "description": "Water smooths and transforms glass into mystical seaglass with divination properties",
+      "combinations": {}
+    },
+    "looking glass": {
+      "image": "/challenges/runes/lookingglass-effect.png",
+      "tier": 4,
+      "description": "Spirit enchants glass, creating a magical looking glass that reveals hidden truths",
+      "combinations": {}
+    },
+    "clearwater": {
+      "image": "/challenges/runes/clearwater-effect.png",
+      "tier": 4,
+      "description": "Water refines gems, creating a purifying clearwater essence",
+      "combinations": {}
+    },
+    "starlight": {
+      "image": "/challenges/runes/starlight-effect.png",
+      "tier": 4,
+      "description": "Air carries the light of gems skyward, creating mystical starlight",
+      "combinations": {}
+    },
+    "glory": {
+      "image": "/challenges/runes/glory-effect.png",
+      "tier": 4,
+      "description": "Fire illuminates prism, generating a magnificent display of glory",
+      "combinations": {}
+    },
+    "refract": {
+      "image": "/challenges/runes/refract-effect.png",
+      "tier": 4,
+      "description": "Air passes through prism, refracting into spectrum of magical energies",
+      "combinations": {}
+    },
+    "mirage": {
+      "image": "/challenges/runes/mirage-effect.png",
+      "tier": 4,
+      "description": "Fire distorts illusion, creating deceptive mirages that lead travelers astray",
+      "combinations": {}
+    },
+    "facade": {
+      "image": "/challenges/runes/facade-effect.png",
+      "tier": 4,
+      "description": "Earth solidifies illusion, creating permanent facades that hide what lies beneath",
+      "combinations": {}
+    },
+    "drown": {
+      "image": "/challenges/runes/drown-effect.png",
+      "tier": 4,
+      "description": "Water intensifies nightmare, submerging the mind in depths of terror",
+      "combinations": {}
+    },
+    "burial": {
+      "image": "/challenges/runes/burial-effect.png",
+      "tier": 4,
+      "description": "Earth entombs nightmare, preserving fears in an eternal burial",
+      "combinations": {}
+    },
+    "hearth": {
+      "image": "/challenges/runes/hearth-effect.png",
+      "tier": 4,
+      "description": "Fire warms sanctuary, creating a welcoming hearth that rejuvenates travelers",
+      "combinations": {}
+    },
+    "stillness": {
+      "image": "/challenges/runes/stillness-effect.png",
+      "tier": 4,
+      "description": "Water calms sanctuary, bringing a profound stillness that clears the mind",
+      "combinations": {}
+    },
+    "blaze": {
+      "image": "/challenges/runes/blaze-effect.png",
+      "tier": 4,
+      "description": "Fire ignites vortex, creating a destructive blaze that consumes everything in its path",
+      "combinations": {}
+    },
+    "maelstrom": {
+      "image": "/challenges/runes/maelstrom-effect.png",
+      "tier": 4,
+      "description": "Water joins vortex, forming a powerful maelstrom that pulls everything to its center",
+      "combinations": {}
+    },
+    "glow": {
+      "image": "/challenges/runes/glow-effect.png",
+      "tier": 4,
+      "description": "Fire illuminates mist, creating a mystical glow with healing properties",
+      "combinations": {}
+    },
+    "fume": {
+      "image": "/challenges/runes/fume-effect.png",
+      "tier": 4,
+      "description": "Earth absorbs mist, releasing magical fumes with alchemical properties",
+      "combinations": {}
+    },
+    "embrace": {
+      "image": "/challenges/runes/embrace-effect.png",
+      "tier": 4,
+      "description": "Fire surrounds grove with a protective embrace of warmth and light",
+      "combinations": {}
+    },
+    "canopy": {
+      "image": "/challenges/runes/canopy-effect.png",
+      "tier": 4,
+      "description": "Air lifts grove upward, forming a magnificent canopy that shields from harm",
+      "combinations": {}
+    },
+    "dawn": {
+      "image": "/challenges/runes/dawn-effect.png",
+      "tier": 4,
+      "description": "Fire melts frost, heralding the dawn of a new day with renewed hope",
+      "combinations": {}
+    },
+    "winter": {
+      "image": "/challenges/runes/winter-effect.png",
+      "tier": 4,
+      "description": "Spirit deepens frost, bringing the quiet magic of winter's deepest rest",
+      "combinations": {}
+    },
+    "seance": {
+      "image": "/challenges/runes/seance-effect.png",
+      "tier": 4,
+      "description": "Fire warms echo, conducting a spiritual seance that reaches across realms",
+      "combinations": {}
+    },
+    "hollow": {
+      "image": "/challenges/runes/hollow-effect.png",
+      "tier": 4,
+      "description": "Earth shapes echo, creating a hollow chamber where memories resonate",
+      "combinations": {}
+    },
+    "fury": {
+      "image": "/challenges/runes/fury-effect.png",
+      "tier": 4,
+      "description": "Fire enrages animus, unleashing a primal fury of sentient plantlife",
+      "combinations": {}
+    },
+    "howl": {
+      "image": "/challenges/runes/howl-effect.png",
+      "tier": 4,
+      "description": "Air carries animus's voice, creating a haunting howl that commands nature",
+      "combinations": {}
+    },
+    "scorch": {
+      "image": "/challenges/runes/scorch-effect.png",
+      "tier": 4,
+      "description": "Fire burns spores, leaving scorched earth that resists new growth",
+      "combinations": {}
+    },
+    "plague": {
+      "image": "/challenges/runes/plague-effect.png",
+      "tier": 4,
+      "description": "Spirit corrupts spores, spreading a magical plague that transforms all it touches",
+      "combinations": {}
+    },
+    "undine": {
+      "image": "/challenges/runes/undine-effect.png",
+      "tier": 4,
+      "description": "Water absorbs wisp, creating an elemental undine with fluid intelligence",
+      "combinations": {}
+    },
+    "gnome": {
+      "image": "/challenges/runes/gnome-effect.png",
+      "tier": 4,
+      "description": "Earth captures wisp, forming a secretive gnome with knowledge of hidden treasures",
+      "combinations": {}
+    },
+    "offering": {
+      "image": "/challenges/runes/offering-effect.png",
+      "tier": 4,
+      "description": "Water poured over cairn becomes a sacred offering to ancient powers",
+      "combinations": {}
+    },
+    "memory": {
+      "image": "/challenges/runes/memory-effect.png",
+      "tier": 4,
+      "description": "Air stirs cairn, releasing memories of forgotten times",
+      "combinations": {}
+    },
+    "sepulcher": {
+      "image": "/challenges/runes/sepulcher-effect.png",
+      "tier": 4,
+      "description": "Earth enhances rite, creating a sepulcher where the veil between worlds thins",
+      "combinations": {}
+    },
+    "incantation": {
+      "image": "/challenges/runes/incantation-effect.png",
+      "tier": 4,
+      "description": "Air carries rite's power through spoken incantation, binding magic to word",
+      "combinations": {}
+    },
+    "absolution": {
+      "image": "/challenges/runes/absolution-effect.png",
+      "tier": 4,
+      "description": "Water cleanses judgement, offering absolution and a fresh beginning",
+      "combinations": {}
+    },
+    "verdict": {
+      "image": "/challenges/runes/verdict-effect.png",
+      "tier": 4,
+      "description": "Earth solidifies judgement, rendering final verdict that cannot be appealed",
+      "combinations": {}
+    },
+    "sinkhole": {
+      "image": "/challenges/runes/sinkhole-effect.png",
+      "tier": 4,
+      "description": "Water erodes quake-damaged earth, creating sudden sinkholes that trap the unwary",
+      "combinations": {}
+    },
+    "ruin": {
+      "image": "/challenges/runes/ruin-effect.png",
+      "tier": 4,
+      "description": "Spirit infuses quake, leaving magical ruins with prophetic properties",
+      "combinations": {}
+    },
+    "landslide": {
+      "image": "/challenges/runes/landslide-effect.png",
+      "tier": 4,
+      "description": "Earth displaced by storm creates devastating landslides of elemental power",
+      "combinations": {}
+    },
+    "omen": {
+      "image": "/challenges/runes/omen-effect.png",
+      "tier": 4,
+      "description": "Spirit reads storm patterns, revealing omens of future events",
+      "combinations": {}
+    },
+    "blight": {
+      "image": "/challenges/runes/blight-effect.png",
+      "tier": 4,
+      "description": "Fire corrupts oasis, creating a blighted land resistant to healing",
+      "combinations": {}
+    },
+    "eden": {
+      "image": "/challenges/runes/eden-effect.png",
+      "tier": 4,
+      "description": "Spirit enhances oasis, creating an eden of perfect harmony",
+      "combinations": {}
+    },
+    "burnout": {
+      "image": "/challenges/runes/burnout-effect.png",
+      "tier": 4,
+      "description": "Fire accelerates time, causing burnout that ages everything it touches",
+      "combinations": {}
+    },
+    "erosion": {
+      "image": "/challenges/runes/erosion-effect.png",
+      "tier": 4,
+      "description": "Water gradually erodes through time, revealing layers of ancient power",
+      "combinations": {}
+    },
+    "murk": {
+      "image": "/challenges/runes/murk-effect.png",
+      "tier": 4,
+      "description": "Water thickens smoke, creating murky depths that conceal deadly secrets",
+      "combinations": {}
+    },
+    "haunt": {
+      "image": "/challenges/runes/haunt-effect.png",
+      "tier": 4,
+      "description": "Spirit permeates smoke, creating haunting apparitions from the mists",
+      "combinations": {}
+    },
+    "scald": {
+      "image": "/challenges/runes/scald-effect.png",
+      "tier": 4,
+      "description": "Water heated by eruption creates scalding steam with purifying properties",
+      "combinations": {}
+    },
+    "choke": {
+      "image": "/challenges/runes/choke-effect.png",
+      "tier": 4,
+      "description": "Air carries eruption particles, creating a choking cloud that saps strength",
+      "combinations": {}
+    },
+    "ashcloud": {
+      "image": "/challenges/runes/ashcloud-effect.png",
+      "tier": 4,
+      "description": "Air lifts obsidian dust, forming an ashcloud that blocks the sun",
+      "combinations": {}
+    },
+    "relic": {
+      "image": "/challenges/runes/relic-effect.png",
+      "tier": 4,
+      "description": "Spirit infuses obsidian, creating magical relics of great power",
+      "combinations": {}
+    },
+    "basilisk": {
+      "image": "/challenges/runes/basilisk-effect.png",
+      "tier": 4,
+      "description": "Earth corrupted by phoenix energy forms a deadly basilisk that petrifies with its gaze",
+      "combinations": {}
+    },
+    "griffin": {
+      "image": "/challenges/runes/griffin-effect.png",
+      "tier": 4,
+      "description": "Air carries phoenix flame, giving rise to the majestic griffin",
+      "combinations": {}
+    },
+    "destruction": {
+      "image": "/challenges/runes/destruction-effect.png",
+      "tier": 4,
+      "description": "Earth crumbles under tempest fury, leaving nothing but destruction",
+      "combinations": {}
+    },
+    "revenant": {
+      "image": "/challenges/runes/revenant-effect.png",
+      "tier": 4,
+      "description": "Spirit persists through tempest, returning as a vengeful revenant",
+      "combinations": {}
+    },
+    "kindle": {
+      "image": "/challenges/runes/kindle-effect.png",
+      "tier": 4,
+      "description": "Air fuels forge, kindling magical flames that can enchant weapons",
+      "combinations": {}
+    },
+    "vessel": {
+      "image": "/challenges/runes/vessel-effect.png",
+      "tier": 4,
+      "description": "Spirit enters forge, creating a vessel capable of containing magical energies",
+      "combinations": {}
+    }
+  }
+}

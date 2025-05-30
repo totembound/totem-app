@@ -302,6 +302,7 @@ export function getCurrentMonth() {
 export const getGameDifficulty = (totem: NFTMetadata, reqStage: number) => {
     if (!totem) return 0;
     const totemStage = totem.attributes.stage + 1;
+    const prestigeLevel = Number(totem.attributes.prestigeLevel);
 
     if (reqStage === 2) {
         if (totemStage <= 2) {
@@ -329,7 +330,7 @@ export const getGameDifficulty = (totem: NFTMetadata, reqStage: number) => {
         if (totemStage <= 4) {
             return 1;
         }
-        else if (totemStage <= 5 && totem.attributes.prestigeLevel === 0) {
+        else if (totemStage <= 5 &&  prestigeLevel === 0) {
             return 2;
         }
         else {

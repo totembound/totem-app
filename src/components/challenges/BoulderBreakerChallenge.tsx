@@ -47,30 +47,47 @@ const BoulderBreakerChallenge: React.FC<BoulderBreakerChallengeProps> = ({
   };
 
   const generatePoints = useCallback(() => {
-    if (!boulderRef.current) return [];
+  if (!boulderRef.current) return [];
 
-    const boulderRect = boulderRef.current.getBoundingClientRect();
-    const padding = difficultySettings.hitRadius * 2;
+  const boulderRect = boulderRef.current.getBoundingClientRect();
+  const padding = difficultySettings.hitRadius * 2;
+  const minDistance = difficultySettings.hitRadius * 2; // Minimum distance between points
 
-    // Target area is roughly centered on the boulder
-    const targetWidth = boulderRect.width * 0.6;  // 60% of boulder width
-    const targetHeight = boulderRect.height * 0.6; // 60% of boulder height
+  const targetWidth = boulderRect.width * 0.6;
+  const targetHeight = boulderRect.height * 0.6;
+  const targetLeft = (boulderRect.width - targetWidth) / 8.2;
+  const targetTop = (boulderRect.height - targetHeight) / 2.2;
 
-    // Center the target area
-    const targetLeft = (boulderRect.width - targetWidth) / 8.2;
-    const targetTop = (boulderRect.height - targetHeight) / 2.2;
+  const points: Point[] = [];
+  let attempts = 0;
+  const maxAttempts = 100; // Prevent infinite loops
 
-    const points: Point[] = [];
-    for (let i = 0; i < difficultySettings.pointCount; i++) {
-      points.push({
-        x: targetLeft + padding + Math.random() * (targetWidth - padding * 2),
-        y: targetTop + padding + Math.random() * (targetHeight - padding * 2),
-        hit: false,
-        active: false
-      });
+  while (points.length < difficultySettings.pointCount && attempts < maxAttempts) {
+    const newPoint = {
+      x: targetLeft + padding + Math.random() * (targetWidth - padding * 2),
+      y: targetTop + padding + Math.random() * (targetHeight - padding * 2),
+      hit: false,
+      active: false
+    };
+
+    // Check if this point is too close to any existing points
+    const tooClose = points.some(existingPoint => {
+      const distance = Math.sqrt(
+        Math.pow(newPoint.x - existingPoint.x, 2) + 
+        Math.pow(newPoint.y - existingPoint.y, 2)
+      );
+      return distance < minDistance;
+    });
+
+    if (!tooClose) {
+      points.push(newPoint);
     }
-    return points;
-  }, [difficultySettings.pointCount, difficultySettings.hitRadius]);
+    
+    attempts++;
+  }
+
+  return points;
+}, [difficultySettings.pointCount, difficultySettings.hitRadius]);
 
   const initializeGame = useCallback(() => {
     const points = generatePoints();

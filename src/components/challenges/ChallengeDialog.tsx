@@ -24,21 +24,38 @@ const TotemSelectionCard: React.FC<{
     totem: NFTMetadata;
     challengeType: string;
     isSelected: boolean;
+    isAvailable: boolean; // Add this new prop
     onClick: () => void;
-}> = ({ totem, challengeType, isSelected, onClick }) => (
+}> = ({ totem, challengeType, isSelected, onClick, isAvailable }) => (
     <div
-        onClick={onClick}
-        className={`relative cursor-pointer transition-all duration-200 transform 
-        ${isSelected ? 'scale-105 ring-2 ring-purple-500' : 'hover:scale-102'}
-        rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800`}
+        onClick={isAvailable ? onClick : undefined} // Disable click when unavailable
+        className={`relative transition-all duration-200 transform rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800
+        ${!isAvailable 
+            ? 'cursor-not-allowed'
+            : `cursor-pointer ${isSelected ? 'scale-105 ring-2 ring-purple-500' : 'hover:scale-102'}`
+        }`}
     >
         <div className="aspect-square relative">
-            <img
-                src={totem.image.replace('ipfs://', IPFS_GATEWAY_URL)}
-                alt={totem.attributes.displayName || totem.name}
-                className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+            <div className={`w-full h-full transition-all duration-200 ${!isAvailable ? 'opacity-50 grayscale brightness-75' : ''}`}>
+                <img
+                    src={totem.image.replace('ipfs://', IPFS_GATEWAY_URL)}
+                    alt={totem.attributes.displayName || totem.name}
+                    className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+            </div>
+            
+            {/* Move the GIF overlay outside the filtered div */}
+            {!isAvailable && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <img 
+                        src="/challenges/owl_walk.gif" 
+                        alt="Unavailable"
+                        className="w-full h-full object-contain"
+                    />
+                </div>
+            )}
+            
             <div className="absolute bottom-0 left-0 right-0 p-2">
                 <h3 className="text-white truncate">{totem.attributes.displayName || totem.name}</h3>
             </div>
@@ -71,6 +88,7 @@ export const ChallengeDialog: React.FC<ChallengeDialogProps> = ({
     requirements
 }) => {
     const { getEligibleTotems } = useGame();
+    const { isTotemAvailable } = useGame();
     const [selectedTotem, setSelectedTotem] = useState<NFTMetadata | null>(null);
     const [showSelection, setShowSelection] = useState(true);
     const stage = requirements.stage;
@@ -126,6 +144,7 @@ export const ChallengeDialog: React.FC<ChallengeDialogProps> = ({
                                         totem={totem}
                                         challengeType={challengeType}
                                         isSelected={selectedTotem?.id === totem.id}
+                                        isAvailable={isTotemAvailable(totem.id)}
                                         onClick={() => handleTotemSelect(totem)}
                                     />
                                 ))}

@@ -953,9 +953,31 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     useEffect(() => {
-        updateStreakStatus();
-        updateWeeklyStatus();
+        // Set up periodic refresh (every 30 seconds)
+        const refreshStates = async () => {
+            try {
+                console.log('refreshing game state');
+                await Promise.all([
+                    updateStreakStatus(),
+                    updateWeeklyStatus()
+                ]);
+            } catch (error) {
+                console.error('Error refreshing states:', error);
+            }
+        };
+
+        // Call immediately
+        refreshStates();
         refreshExpeditions();
+
+        // Set up refresh interval
+        const refreshInterval = setInterval(refreshStates, 30000); // 30 seconds
+    
+        // Cleanup function
+        return () => {
+            if (refreshInterval) clearInterval(refreshInterval);
+        };
+
     }, [provider, address]);
     
     return (

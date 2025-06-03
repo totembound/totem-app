@@ -47,12 +47,18 @@ const TotemSelectionCard: React.FC<{
             
             {/* Move the GIF overlay outside the filtered div */}
             {!isAvailable && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <img 
-                        src="/challenges/owl_walk.gif" 
-                        alt="Unavailable"
-                        className="w-full h-full object-contain"
-                    />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <div className="relative">
+                        <img 
+                            src="/challenges/owl_walk.gif" 
+                            alt="Unavailable"
+                            className="w-full h-full object-contain"
+                        />
+                        <span className="absolute inset-0 flex items-center justify-center text-white font-bold text-s text-center px-1"
+                              style={{WebkitTextStroke: '1px black'}}>
+                            Out on Expedition
+                        </span>
+                    </div>
                 </div>
             )}
             

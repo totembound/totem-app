@@ -82,6 +82,17 @@
         "month": 5
       },
       {
+        "id": "june-2025",
+        "bundleId": 3,
+        "name": "Solstride Deer (Sunset Orange)",
+        "description": "A solar spirit, forever dancing between dusk and dawn.",
+        "baseSpecies": "Deer",
+        "price": 250,
+        "tokenAmount": 10000,
+        "image": "https://ipfs.totembound.com/ipfs/bafybeifocx5phnjridwieygwzjhsnxcw4k67i3y7y3uct3veuwtyybu3ni",
+        "month": 6
+      },
+      {
         "id": "december-2025",
         "bundleId": 3,
         "name": "Everfrost Owl (Starlit Silver)",

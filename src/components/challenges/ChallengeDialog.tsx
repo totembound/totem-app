@@ -54,8 +54,7 @@ const TotemSelectionCard: React.FC<{
                             alt="Unavailable"
                             className="w-full h-full object-contain"
                         />
-                        <span className="absolute inset-0 flex items-center justify-center text-white font-bold text-center px-1"
-                              style={{WebkitTextStroke: '1px black'}}>
+                        <span className="absolute inset-0 flex items-center justify-center text-red-800 text-shadow-outline font-bold text-center px-1">
                             Out on Expedition
                         </span>
                     </div>

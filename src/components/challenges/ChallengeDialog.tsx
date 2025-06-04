@@ -54,7 +54,7 @@ const TotemSelectionCard: React.FC<{
                             alt="Unavailable"
                             className="w-full h-full object-contain"
                         />
-                        <span className="absolute inset-0 flex items-center justify-center text-white font-bold text-s text-center px-1"
+                        <span className="absolute inset-0 flex items-center justify-center text-white font-bold text-center px-1"
                               style={{WebkitTextStroke: '1px black'}}>
                             Out on Expedition
                         </span>
@@ -93,8 +93,7 @@ export const ChallengeDialog: React.FC<ChallengeDialogProps> = ({
     challengeType,
     requirements
 }) => {
-    const { getEligibleTotems } = useGame();
-    const { isTotemAvailable } = useGame();
+    const { getEligibleTotems, isTotemAvailable } = useGame();
     const [selectedTotem, setSelectedTotem] = useState<NFTMetadata | null>(null);
     const [showSelection, setShowSelection] = useState(true);
     const stage = requirements.stage;

@@ -223,7 +223,7 @@ const RingDiveChallenge: React.FC<RingDiveChallengeProps> = ({
       // Process hoops (move, check scoring, remove off-screen)
       const updatedHoops = hoopsRef.current.map(hoop => ({
         ...hoop,
-        x: hoop.x - (config.hoopSpeed * deltaTime) / 16
+        x: hoop.x - ((config.hoopSpeed * containerWidth / 800) * deltaTime) / 16
       }));
       
       // Check for scoring and filter out off-screen hoops

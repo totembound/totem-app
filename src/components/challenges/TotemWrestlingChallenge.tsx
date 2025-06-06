@@ -30,12 +30,17 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
   const [showAlert, setShowAlert] = useState<boolean>(false);
   const [containerWidth, setContainerWidth] = useState<number>(1000);
   const [finalScore, setFinalScore] = useState<number>(0);
+  
+  // Position smoothing state
+  const [currentPosition, setCurrentPosition] = useState<number>(0);
 
-  // References for timer implementation
+  // References for timer implementation and animation
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<number | null>(null);
   const endTimeRef = useRef<number | null>(null);
+  const animationRef = useRef<number | null>(null);
+  const targetPositionRef = useRef<number>(0);
 
   // Calculate game settings based on difficulty and strength
   const gameSettings: GameSettings = {
@@ -115,7 +120,52 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
     return Math.max(0, Math.min(maxMovement, position));
   }, [maxMovement]);
 
-  const characterPosition = calculatePosition(playerScore, computerScore);
+  // Update target position when scores change (using ref to avoid re-renders)
+  useEffect(() => {
+    targetPositionRef.current = calculatePosition(playerScore, computerScore);
+  }, [playerScore, computerScore, calculatePosition]);
+
+  // Smooth position animation with constant movement speed
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const movementSpeed = 0.3; // pixels per frame - adjust this for faster/slower movement
+    
+    const animate = () => {
+      setCurrentPosition(current => {
+        const target = targetPositionRef.current;
+        const diff = target - current;
+        
+        // If we're close enough, snap to target
+        if (Math.abs(diff) < 1) {
+          return target;
+        }
+        
+        // Move toward target at constant rate
+        const direction = diff > 0 ? 1 : -1;
+        const nextPosition = current + (direction * movementSpeed);
+        
+        // Don't overshoot the target
+        if (direction > 0) {
+          return Math.min(nextPosition, target);
+        } else {
+          return Math.max(nextPosition, target);
+        }
+      });
+      
+      animationRef.current = requestAnimationFrame(animate);
+    };
+    
+    // Start animation
+    animationRef.current = requestAnimationFrame(animate);
+    
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+    };
+  }, [gameState]);
 
   // Function to handle game ending (extracted to avoid duplication)
   const handleGameEnd = useCallback((success: boolean, elapsedTime: number | null = null) => {
@@ -190,16 +240,24 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
     setComputerScore(gameSettings.initialComputerScore);
     setGameState('playing');
     setFinalScore(0);
+    
+    // Initialize positions to center
+    const centerPosition = maxMovement / 2;
+    setCurrentPosition(centerPosition);
+    targetPositionRef.current = centerPosition;
 
     // Start the timer
     startTimer();
-  }, [gameSettings.initialPlayerScore, gameSettings.initialComputerScore, startTimer]);
+  }, [gameSettings.initialPlayerScore, gameSettings.initialComputerScore, startTimer, maxMovement]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (timerRef.current) {
         window.clearInterval(timerRef.current);
+      }
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
       }
     };
   }, []);
@@ -239,11 +297,13 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
     return () => clearInterval(timer);
   }, [gameState, gameSettings.computerIncreaseRate]);
 
-  // Check for instant win condition
+  // Check for instant win condition - based on visual position
   useEffect(() => {
     if (gameState !== 'playing' || endTimeRef.current === null) return;
 
-    if (playerScore >= computerScore * 2) {
+    // Check if character has visually reached the right edge (player wins)
+    const winThreshold = maxMovement * 0.95; // 95% of the way to the right edge
+    if (currentPosition >= winThreshold) {
       // Calculate time elapsed for the instant win
       const now = Date.now();
       const elapsed = (gameSettings.timeLimit * 1000) - (endTimeRef.current - now);
@@ -252,17 +312,19 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
       // End game with win
       handleGameEnd(true, elapsedSeconds);
     }
-  }, [playerScore, computerScore, gameSettings.timeLimit, gameState, handleGameEnd]);
+  }, [currentPosition, gameSettings.timeLimit, gameState, handleGameEnd, maxMovement]);
 
-  // Check for instant lose condition
+  // Check for instant lose condition - based on visual position
   useEffect(() => {
     if (gameState !== 'playing') return;
 
-    if (computerScore >= playerScore * 2) {
+    // Check if character has visually reached the left edge (computer wins)
+    const loseThreshold = maxMovement * 0.05; // 5% of the way from the left edge
+    if (currentPosition <= loseThreshold) {
       // End game with loss
       handleGameEnd(false);
     }
-  }, [playerScore, computerScore, gameState, handleGameEnd]);
+  }, [currentPosition, gameState, handleGameEnd, maxMovement]);
 
   // Show alert when time is running low
   useEffect(() => {
@@ -298,12 +360,12 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
               className="w-full h-full object-cover"
             />
 
-            {/* Moving Character (Foreground) */}
+            {/* Moving Character (Foreground) - using currentPosition for smooth constant-rate movement */}
             <div
-              className="absolute bottom-0 transition-all duration-100"
+              className="absolute bottom-0"
               style={{
                 width: `${(characterWidth / backgroundWidth) * 100}%`,
-                left: `${(characterPosition / backgroundWidth) * 100}%`,
+                left: `${(currentPosition / backgroundWidth) * 100}%`,
               }}
             >
               <img

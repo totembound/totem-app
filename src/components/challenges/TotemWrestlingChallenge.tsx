@@ -33,6 +33,20 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
   
   // Position smoothing state
   const [currentPosition, setCurrentPosition] = useState<number>(0);
+  
+  // Particle effects state
+  const [particles, setParticles] = useState<Array<{
+    id: number;
+    x: number;
+    y: number;
+    timestamp: number;
+    size: number;
+    color: string;
+    directionX: number;
+    directionY: number;
+    rotation: number;
+    blur: boolean;
+  }>>([]);
 
   // References for timer implementation and animation
   const gameAreaRef = useRef<HTMLDivElement>(null);
@@ -41,6 +55,7 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
   const endTimeRef = useRef<number | null>(null);
   const animationRef = useRef<number | null>(null);
   const targetPositionRef = useRef<number>(0);
+  const particleIdRef = useRef<number>(0);
 
   // Calculate game settings based on difficulty and strength
   const gameSettings: GameSettings = {
@@ -129,7 +144,7 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
   useEffect(() => {
     if (gameState !== 'playing') return;
 
-    const movementSpeed = 0.3; // pixels per frame - adjust this for faster/slower movement
+    const movementSpeed = 2; // pixels per frame - adjust this for faster/slower movement
     
     const animate = () => {
       setCurrentPosition(current => {
@@ -222,12 +237,8 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
           timerRef.current = null;
         }
 
-        // Get latest scores for comparison (not using state variables directly)
-        const currentPlayerScore = playerScore;
-        const currentComputerScore = computerScore;
-
-        // End game based on final scores
-        handleGameEnd(currentPlayerScore > currentComputerScore);
+        // End game based on final scores - player must have higher score to win
+        handleGameEnd(playerScore > computerScore);
       }
     }, 100); // Update more frequently for smoother countdown
 
@@ -283,6 +294,56 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
     ) {
       // Click is within the game area boundaries
       setPlayerScore(prev => prev + gameSettings.playerClickValue);
+      
+      // Create particle effect at click position
+      const relativeX = x - gameAreaRect.left;
+      const relativeY = y - gameAreaRect.top;
+      
+      // Realistic dust colors - darker, more muted earth tones (increased opacity)
+      const dustColors = [
+        'bg-stone-600 bg-opacity-60',
+        'bg-gray-500 bg-opacity-55', 
+        'bg-amber-800 bg-opacity-50',
+        'bg-stone-700 bg-opacity-65',
+        'bg-gray-600 bg-opacity-60',
+        'bg-yellow-800 bg-opacity-45'
+      ];
+      
+      // Create multiple particles for each click - clustered dust cloud
+      const newParticles: Array<{
+        id: number;
+        x: number;
+        y: number;
+        timestamp: number;
+        size: number;
+        color: string;
+        directionX: number;
+        directionY: number;
+        rotation: number;
+        blur: boolean;
+      }> = [];
+      
+      for (let i = 0; i < 12; i++) { // Increased from 8 to 12 particles for more visible effect
+        // Start particles very close together, then expand gradually
+        const angle = (Math.PI * 2 * i) / 12; // Distribute in circle
+        const initialRadius = Math.random() * 10; // Slightly larger initial clustering (10px max)
+        const expansionRadius = Math.random() * 40 + 25; // Larger expansion (25-65px instead of 15-40px)
+        
+        newParticles.push({
+          id: particleIdRef.current++,
+          x: relativeX + Math.cos(angle) * initialRadius, // Start clustered
+          y: relativeY + Math.sin(angle) * initialRadius,
+          timestamp: Date.now() + i * 15, // Faster succession for denser cloud
+          size: Math.random() * 3 + 3, // Larger particles (3-6px instead of 2-4px)
+          color: dustColors[Math.floor(Math.random() * dustColors.length)],
+          directionX: Math.cos(angle) * expansionRadius, // Expand outward from center
+          directionY: Math.sin(angle) * expansionRadius - Math.random() * 20, // Larger upward bias
+          rotation: Math.random() * 90, // Less dramatic rotation
+          blur: Math.random() > 0.3 // More blur for dust effect (70% chance)
+        });
+      }
+      
+      setParticles(prev => [...prev, ...newParticles]);
     }
   }, [gameState, gameSettings.playerClickValue]);
 
@@ -335,6 +396,16 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
     }
   }, [timeLeft, gameState]);
 
+  // Clean up old particles
+  useEffect(() => {
+    const cleanupInterval = setInterval(() => {
+      const now = Date.now();
+      setParticles(prev => prev.filter(particle => now - particle.timestamp < 1000)); // Match longer particle lifetime
+    }, 100);
+
+    return () => clearInterval(cleanupInterval);
+  }, []);
+
   // Score ticker component - similar to second code
   const scoreTicker = (
     <div className="text-gray-300 font-bold">
@@ -353,6 +424,64 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
             className="relative w-full h-96 bg-slate-700 rounded-lg overflow-hidden cursor-pointer"
             onClick={handleGameAreaClick}
           >
+            {/* Tug-of-War Progress Bar - Top of game area */}
+            <div className="absolute top-4 left-4 right-4 h-6 bg-gray-800 rounded-lg overflow-hidden border-2 border-gray-600">
+              {/* Calculate progress based on current position */}
+              {(() => {
+                const progressPercentage = maxMovement > 0 ? (currentPosition / maxMovement) * 100 : 50;
+                const clampedProgress = Math.max(5, Math.min(95, progressPercentage)); // Keep between 5-95% for visual purposes
+                
+                // Intensity effects based on how close to winning
+                const centerDistance = Math.abs(clampedProgress - 50);
+                const intensity = centerDistance / 45; // 0 to 1 scale
+                const isPlayerWinning = clampedProgress > 50;
+                const isComputerWinning = clampedProgress < 50;
+                
+                return (
+                  <>
+                    {/* Single container approach - avoid overlapping */}
+                    <div className="relative w-full h-full">
+                      {/* Player (Left/Blue) Section */}
+                      <div 
+                        className={`absolute top-0 left-0 h-full transition-transform duration-300 ${
+                          isPlayerWinning ? 'bg-blue-600' : 'bg-blue-500'
+                        }`}
+                        style={{ 
+                          width: '100%',
+                          transform: `scaleX(${clampedProgress / 100})`,
+                          transformOrigin: 'left',
+                          boxShadow: isPlayerWinning && intensity > 0.6 ? `inset 0 0 ${intensity * 10}px rgba(59, 130, 246, 0.8)` : ''
+                        }}
+                      />
+                      
+                      {/* Computer (Right/Red) Section - fills remaining space */}
+                      <div 
+                        className={`absolute top-0 right-0 h-full transition-transform duration-300 ${
+                          isComputerWinning ? 'bg-red-600' : 'bg-red-500'
+                        }`}
+                        style={{ 
+                          width: '100%',
+                          transform: `scaleX(${(100 - clampedProgress) / 100})`,
+                          transformOrigin: 'right',
+                          boxShadow: isComputerWinning && intensity > 0.6 ? `inset 0 0 ${intensity * 10}px rgba(239, 68, 68, 0.8)` : ''
+                        }}
+                      />
+                    </div>
+                    
+                    {/* Dramatic Effects for Near-Win States */}
+                    {intensity > 0.8 && (
+                      <div 
+                        className={`absolute top-0 h-full w-full animate-pulse ${
+                          isPlayerWinning ? 'bg-blue-400' : 'bg-red-400'
+                        } opacity-20`}
+                        style={{ animationDuration: '0.3s' }}
+                      />
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+
             {/* Static Background Image */}
             <img
               src="/challenges/forest-background.png"
@@ -374,6 +503,42 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
                 className="w-full h-auto"
               />
             </div>
+
+            {/* Particle Effects */}
+            {particles.map(particle => {
+              const age = Date.now() - particle.timestamp;
+              const maxAge = 1000; // Slightly longer lifetime for better visibility (was 800ms)
+              const progress = Math.min(age / maxAge, 1);
+              const opacity = Math.max(0, (1 - progress) * 0.9); // Higher max opacity (was 0.8)
+              
+              // Gradual expansion from center point - starts slow, speeds up
+              const expansionProgress = progress * progress; // Quadratic easing for natural expansion
+              const translateX = particle.directionX * expansionProgress;
+              const translateY = particle.directionY * expansionProgress;
+              const rotation = particle.rotation + (progress * 45); // Gentle rotation
+              
+              // Progressive blur and settling effect
+              const blur = particle.blur || progress > 0.4 ? 'blur-sm' : '';
+              const settling = progress > 0.7 ? 'opacity-60' : ''; // Less aggressive settling (was 0.6 threshold)
+              
+              return (
+                <div
+                  key={particle.id}
+                  className={`absolute pointer-events-none ${particle.color} rounded-full ${blur} ${settling}`}
+                  style={{
+                    left: particle.x,
+                    top: particle.y,
+                    width: `${particle.size}px`,
+                    height: `${particle.size}px`,
+                    opacity: opacity,
+                    transform: `translate(-50%, -50%) translate(${translateX}px, ${translateY}px) rotate(${rotation}deg)`,
+                    transition: 'none',
+                    boxShadow: '0 0 3px rgba(92, 92, 92, 0.5)', // Slightly more prominent shadow
+                    filter: progress > 0.6 ? 'blur(0.5px)' : '' // Less aggressive additional blur
+                  }}
+                />
+              );
+            })}
           </div>
         </div>
 

@@ -108,9 +108,7 @@ const AppRoutes: React.FC = () => {
         } />
         <Route path="guides">
             <Route index element={
-              <ProtectedRoute>
-                <Guides />
-              </ProtectedRoute>
+              <Guides />
             } />
             <Route path="tutorial" element={
               <Tutorial />

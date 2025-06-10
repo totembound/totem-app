@@ -343,7 +343,6 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     };
   }, [squareSize]);
 
-  // NEW: Progressive hint intensity based on time stuck
   const getHintIntensity = useCallback(() => {
     const timeSinceAction = Date.now() - lastActionTime;
     
@@ -358,7 +357,6 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     return 'obvious';
   }, [lastActionTime, difficulty]);
 
-  // NEW: Constellation ghost that shows unconnected parts
   const drawConstellationGhost = useCallback(() => {
     if (!currentConstellation || gameState !== 'playing') return;
     
@@ -442,7 +440,6 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     findValidNextStars();
   }, [selectedStars, findValidNextStars]);
 
-  // UPDATED: Draw connections between stars with constellation ghost
   const drawConnections = useCallback(() => {
     if (!canvasRef.current || !currentConstellation) return;
 
@@ -634,13 +631,12 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
           timerRef.current = null;
         }
 
-        // Time's up - calculate score based on completed connections
         handleGameEnd(true);
       }
     }, 100); // Update more frequently for smoother countdown
   }, [gameSettings.timeLimit, handleGameEnd]);
 
-  // UPDATED: Handle star clicks with action time tracking
+
   const handleStarClick = useCallback((starId: string) => {
     // Only allow interaction when game is in playing state
     if (gameState !== 'playing') return;
@@ -677,7 +673,7 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     endTimeRef.current = null;
   }, []);
 
-  // UPDATED: Initialize or restart the game with action time reset
+
   const startGame = useCallback(() => {
     // Reset all game states
     resetGameStates();
@@ -807,7 +803,7 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     };
   }, []);
 
-  // UPDATED: Render a single star with progressive hints
+
   const renderStar = (star: Star) => {
     const isSelected = selectedStars.includes(star.id);
     const isLastSelected = selectedStars.length > 0 && selectedStars[selectedStars.length - 1] === star.id;

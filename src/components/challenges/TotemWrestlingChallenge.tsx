@@ -75,7 +75,7 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
 
   // Calculate final game score based on win condition and time elapsed
   const calculateGameScore = useCallback((isWin: boolean, timeElapsed: number, timeLimit: number): number => {
-    if (!isWin) return 0; // No score for losing
+    if (!isWin) return 0;
 
     if (timeElapsed >= timeLimit) {
       // Player won when the timer ran out
@@ -144,7 +144,7 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
   useEffect(() => {
     if (gameState !== 'playing') return;
 
-    const movementSpeed = 2; // pixels per frame - adjust this for faster/slower movement
+    const movementSpeed = 0.3;
     
     const animate = () => {
       setCurrentPosition(current => {
@@ -203,7 +203,6 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
     }
   }, [gameSettings.timeLimit, calculateGameScore, onComplete, onFail]);
 
-  // Start the timer - fixed implementation
   const startTimer = useCallback(() => {
     // Clear any existing timer
     if (timerRef.current) {
@@ -294,12 +293,11 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
     ) {
       // Click is within the game area boundaries
       setPlayerScore(prev => prev + gameSettings.playerClickValue);
-      
+
       // Create particle effect at click position
       const relativeX = x - gameAreaRect.left;
       const relativeY = y - gameAreaRect.top;
-      
-      // Realistic dust colors - darker, more muted earth tones (increased opacity)
+
       const dustColors = [
         'bg-stone-600 bg-opacity-60',
         'bg-gray-500 bg-opacity-55', 
@@ -323,23 +321,22 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
         blur: boolean;
       }> = [];
       
-      for (let i = 0; i < 12; i++) { // Increased from 8 to 12 particles for more visible effect
-        // Start particles very close together, then expand gradually
-        const angle = (Math.PI * 2 * i) / 12; // Distribute in circle
-        const initialRadius = Math.random() * 10; // Slightly larger initial clustering (10px max)
-        const expansionRadius = Math.random() * 40 + 25; // Larger expansion (25-65px instead of 15-40px)
+      for (let i = 0; i < 12; i++) {
+        const angle = (Math.PI * 2 * i) / 12;
+        const initialRadius = Math.random() * 10;
+        const expansionRadius = Math.random() * 40 + 25;
         
         newParticles.push({
           id: particleIdRef.current++,
-          x: relativeX + Math.cos(angle) * initialRadius, // Start clustered
+          x: relativeX + Math.cos(angle) * initialRadius,
           y: relativeY + Math.sin(angle) * initialRadius,
-          timestamp: Date.now() + i * 15, // Faster succession for denser cloud
-          size: Math.random() * 3 + 3, // Larger particles (3-6px instead of 2-4px)
+          timestamp: Date.now() + i * 15,
+          size: Math.random() * 3 + 3,
           color: dustColors[Math.floor(Math.random() * dustColors.length)],
-          directionX: Math.cos(angle) * expansionRadius, // Expand outward from center
-          directionY: Math.sin(angle) * expansionRadius - Math.random() * 20, // Larger upward bias
-          rotation: Math.random() * 90, // Less dramatic rotation
-          blur: Math.random() > 0.3 // More blur for dust effect (70% chance)
+          directionX: Math.cos(angle) * expansionRadius,
+          directionY: Math.sin(angle) * expansionRadius - Math.random() * 20,
+          rotation: Math.random() * 90,
+          blur: Math.random() > 0.3
         });
       }
       
@@ -507,19 +504,19 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
             {/* Particle Effects */}
             {particles.map(particle => {
               const age = Date.now() - particle.timestamp;
-              const maxAge = 1000; // Slightly longer lifetime for better visibility (was 800ms)
+              const maxAge = 1000;
               const progress = Math.min(age / maxAge, 1);
-              const opacity = Math.max(0, (1 - progress) * 0.9); // Higher max opacity (was 0.8)
+              const opacity = Math.max(0, (1 - progress) * 0.9);
               
               // Gradual expansion from center point - starts slow, speeds up
-              const expansionProgress = progress * progress; // Quadratic easing for natural expansion
+              const expansionProgress = progress * progress;
               const translateX = particle.directionX * expansionProgress;
               const translateY = particle.directionY * expansionProgress;
-              const rotation = particle.rotation + (progress * 45); // Gentle rotation
+              const rotation = particle.rotation + (progress * 45);
               
               // Progressive blur and settling effect
               const blur = particle.blur || progress > 0.4 ? 'blur-sm' : '';
-              const settling = progress > 0.7 ? 'opacity-60' : ''; // Less aggressive settling (was 0.6 threshold)
+              const settling = progress > 0.7 ? 'opacity-60' : '';
               
               return (
                 <div
@@ -533,8 +530,8 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
                     opacity: opacity,
                     transform: `translate(-50%, -50%) translate(${translateX}px, ${translateY}px) rotate(${rotation}deg)`,
                     transition: 'none',
-                    boxShadow: '0 0 3px rgba(92, 92, 92, 0.5)', // Slightly more prominent shadow
-                    filter: progress > 0.6 ? 'blur(0.5px)' : '' // Less aggressive additional blur
+                    boxShadow: '0 0 3px rgba(92, 92, 92, 0.5)',
+                    filter: progress > 0.6 ? 'blur(0.5px)' : ''
                   }}
                 />
               );

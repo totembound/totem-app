@@ -304,10 +304,8 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     timeLimit: 30 + (wisdom - 9) * 5, // More wisdom gives more time
   };
 
-  // Calculate final game score
+  // Calculate final game score - MODIFIED TO USE timeLeft INSTEAD OF timeElapsed
   const calculateGameScore = useCallback((
-    timeElapsed: number,
-    timeLimit: number,
     numConnections: number,
     totalConnections: number
   ): number => {
@@ -315,15 +313,17 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     const completionPercentage = numConnections / totalConnections;
     const baseScore = 1000 * completionPercentage;
 
-    // Time bonus: Up to 50% bonus for quick completion
-    const timePercentage = 1 - (timeElapsed / timeLimit);
-    const timeBonus = baseScore * 0.5 * timePercentage;
+    // Time bonus: Use timeLeft and gameSettings.timeLimit directly
+    // timeLeft is frozen when game ends, so this will be consistent
+    const timeUsed = gameSettings.timeLimit - (timeLeft || 0);
+    const timePercentage = 1 - (timeUsed / gameSettings.timeLimit);
+    const timeBonus = baseScore * 0.5 * Math.max(0, timePercentage);
 
     // Difficulty bonus
     const difficultyBonus = difficulty * 100;
 
     return Math.round(Math.max(0, baseScore + timeBonus + difficultyBonus));
-  }, [difficulty]);
+  }, [difficulty, gameSettings.timeLimit, timeLeft]);
 
   // Calculate star position based on percentage coordinates within the square
   const getStarPosition = useCallback((x: number, y: number) => {
@@ -502,17 +502,6 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
 
     if (!currentConstellation) return;
 
-    // Calculate elapsed time
-    let elapsedTime = gameSettings.timeLimit;
-    if (endTimeRef.current !== null) {
-      const now = Date.now();
-      const elapsed = Math.min(
-        gameSettings.timeLimit * 1000,
-        endTimeRef.current - now > 0 ? gameSettings.timeLimit * 1000 - (endTimeRef.current - now) : gameSettings.timeLimit * 1000
-      );
-      elapsedTime = elapsed / 1000;
-    }
-
     // Create a set of player connections (regardless of order)
     const playerConnections = new Set();
 
@@ -532,10 +521,8 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
       }
     });
 
-    // Calculate score
+    // Calculate score using the new simplified function
     const score = calculateGameScore(
-      elapsedTime,
-      gameSettings.timeLimit,
       correctConnections,
       currentConstellation.connections.length
     );
@@ -554,7 +541,6 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
       onFail();
     }
   }, [
-    gameSettings.timeLimit,
     currentConstellation,
     selectedStars,
     calculateGameScore,

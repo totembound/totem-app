@@ -285,6 +285,9 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
   // State for valid next stars
   const [validNextStars, setValidNextStars] = useState<string[]>([]);
 
+  // NEW: Progressive hint system state
+  const [lastActionTime, setLastActionTime] = useState(Date.now());
+
   // References
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -298,13 +301,11 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     minStars: 5 + difficulty,
     maxStars: 7 + (difficulty * 2),
     numDistractorStars: Math.max(0, (difficulty * 5) - (wisdom - 9)),
-    timeLimit: 30 + (wisdom - 10) * 5, // More wisdom gives more time
+    timeLimit: 30 + (wisdom - 9) * 5, // More wisdom gives more time
   };
 
-  // Calculate final game score
+  // Calculate final game score - MODIFIED TO USE timeLeft INSTEAD OF timeElapsed
   const calculateGameScore = useCallback((
-    timeElapsed: number,
-    timeLimit: number,
     numConnections: number,
     totalConnections: number
   ): number => {
@@ -312,15 +313,17 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     const completionPercentage = numConnections / totalConnections;
     const baseScore = 1000 * completionPercentage;
 
-    // Time bonus: Up to 50% bonus for quick completion
-    const timePercentage = 1 - (timeElapsed / timeLimit);
-    const timeBonus = baseScore * 0.5 * timePercentage;
+    // Time bonus: Use timeLeft and gameSettings.timeLimit directly
+    // timeLeft is frozen when game ends, so this will be consistent
+    const timeUsed = gameSettings.timeLimit - (timeLeft || 0);
+    const timePercentage = 1 - (timeUsed / gameSettings.timeLimit);
+    const timeBonus = baseScore * 0.5 * Math.max(0, timePercentage);
 
     // Difficulty bonus
     const difficultyBonus = difficulty * 100;
 
     return Math.round(Math.max(0, baseScore + timeBonus + difficultyBonus));
-  }, [difficulty]);
+  }, [difficulty, gameSettings.timeLimit, timeLeft]);
 
   // Calculate star position based on percentage coordinates within the square
   const getStarPosition = useCallback((x: number, y: number) => {
@@ -339,6 +342,76 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
       y: squareTop + offsetY
     };
   }, [squareSize]);
+
+  const getHintIntensity = useCallback(() => {
+    const timeSinceAction = Date.now() - lastActionTime;
+    
+    // Base timing depends on difficulty
+    const baseDelay = difficulty === 1 ? 2000 : difficulty === 2 ? 4000 : 6000;
+    const moderateDelay = baseDelay * 2;
+    const obviousDelay = baseDelay * 4;
+    
+    if (timeSinceAction < baseDelay) return 'none';
+    if (timeSinceAction < moderateDelay) return 'subtle';
+    if (timeSinceAction < obviousDelay) return 'moderate';
+    return 'obvious';
+  }, [lastActionTime, difficulty]);
+
+  const drawConstellationGhost = useCallback(() => {
+    if (!currentConstellation || gameState !== 'playing') return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!ctx) return;
+    
+    const hintIntensity = getHintIntensity();
+    if (hintIntensity === 'none') return;
+    
+    // Opacity based on difficulty and hint intensity
+    const difficultyOpacity = {
+      1: { subtle: 0.18, moderate: 0.30, obvious: 0.40 },
+      2: { subtle: 0.15, moderate: 0.25, obvious: 0.35 },
+      3: { subtle: 0.10, moderate: 0.18, obvious: 0.28 }
+    }[difficulty];
+    
+    const baseOpacity = difficultyOpacity?.[hintIntensity] ?? 0.1;
+    
+    // Gentle pulsing effect - slower pulse for higher difficulty
+    const pulseSpeed = difficulty === 1 ? 2000 : difficulty === 2 ? 3000 : 4000;
+    const pulseMultiplier = 0.6 + 0.4 * Math.sin(Date.now() / pulseSpeed);
+    const opacity = baseOpacity * pulseMultiplier;
+    
+    ctx.strokeStyle = `rgba(135, 206, 235, ${opacity})`;
+    ctx.lineWidth = difficulty === 1 ? 1.5 : 1;
+    
+    // Dash pattern becomes more subtle with higher difficulty
+    const dashPattern = difficulty === 1 ? [4, 4] : difficulty === 2 ? [3, 6] : [2, 8];
+    ctx.setLineDash(dashPattern);
+    
+    // Only show connections that haven't been made by the player yet
+    currentConstellation.connections.forEach(([a, b]) => {
+      // Check if this connection has been made by the player
+      const aIndex = selectedStars.indexOf(a);
+      const bIndex = selectedStars.indexOf(b);
+      const isConnected = aIndex !== -1 && bIndex !== -1 && Math.abs(aIndex - bIndex) === 1;
+      
+      if (!isConnected) {
+        const starA = allStars.find(s => s.id === a);
+        const starB = allStars.find(s => s.id === b);
+        if (starA && starB) {
+          const posA = getStarPosition(starA.x, starA.y);
+          const posB = getStarPosition(starB.x, starB.y);
+          
+          ctx.beginPath();
+          ctx.moveTo(posA.x, posA.y);
+          ctx.lineTo(posB.x, posB.y);
+          ctx.stroke();
+        }
+      }
+    });
+    
+    ctx.setLineDash([]); // Reset line dash
+  }, [currentConstellation, gameState, getHintIntensity, difficulty, selectedStars, allStars, getStarPosition]);
 
   // Find valid next stars based on the current constellation's connections
   const findValidNextStars = useCallback(() => {
@@ -367,7 +440,6 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     findValidNextStars();
   }, [selectedStars, findValidNextStars]);
 
-  // Draw connections between stars
   const drawConnections = useCallback(() => {
     if (!canvasRef.current || !currentConstellation) return;
 
@@ -389,20 +461,20 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     // Clear canvas
     ctx.clearRect(0, 0, rect.width, rect.height);
 
-    // Set up line style for connections
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.lineWidth = 2;
+    // Draw constellation ghost first (behind player connections)
+    drawConstellationGhost();
 
     // Draw player connections
     if (selectedStars.length > 1) {
-      ctx.strokeStyle = 'rgba(255, 215, 0, 0.7)'; // Gold color for player connections
+      ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
 
       for (let i = 0; i < selectedStars.length - 1; i++) {
         const starA = allStars.find(s => s.id === selectedStars[i]);
         const starB = allStars.find(s => s.id === selectedStars[i + 1]);
 
         if (starA && starB) {
-          // Convert percentage coordinates to actual canvas coordinates using square scaling
           const posA = getStarPosition(starA.x, starA.y);
           const posB = getStarPosition(starB.x, starB.y);
 
@@ -412,59 +484,10 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
           ctx.stroke();
         }
       }
+      
+      ctx.lineCap = 'butt'; // Reset lineCap
     }
-
-    // Draw directional hint glows with visibility based on difficulty
-    if (selectedStars.length > 0 && validNextStars.length > 0 && gameState === 'playing') {
-      const lastSelectedStar = allStars.find(s => s.id === selectedStars[selectedStars.length - 1]);
-
-      if (lastSelectedStar) {
-        const lastPos = getStarPosition(lastSelectedStar.x, lastSelectedStar.y);
-
-        // Calculate opacity based on difficulty (more visible for easy, less visible for hard)
-        const baseOpacity = Math.max(0.1, 1 - (difficulty * 0.25));
-
-        // Draw glow hints for each valid next star
-        validNextStars.forEach(nextStarId => {
-          const nextStar = allStars.find(s => s.id === nextStarId);
-          if (nextStar) {
-            const nextPos = getStarPosition(nextStar.x, nextStar.y);
-
-            // Create gradient for glow effect with opacity based on difficulty
-            const gradient = ctx.createLinearGradient(lastPos.x, lastPos.y, nextPos.x, nextPos.y);
-            gradient.addColorStop(0, `rgba(255, 215, 0, ${baseOpacity})`); // Near the selected star
-            gradient.addColorStop(0.5, `rgba(255, 215, 0, ${baseOpacity * 0.5})`);
-            gradient.addColorStop(1, 'rgba(255, 215, 0, 0)'); // Fade out
-
-            // Draw directional glow line
-            ctx.strokeStyle = gradient;
-            ctx.lineWidth = Math.max(2, 6 - difficulty); // Thinner lines for higher difficulty
-            ctx.lineCap = 'round';
-
-            // Calculate direction from last selected star to next star
-            const dx = nextPos.x - lastPos.x;
-            const dy = nextPos.y - lastPos.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            // Normalize direction vector
-            const nx = dx / distance;
-            const ny = dy / distance;
-
-            // Make the glow length shorter for higher difficulties
-            const glowLength = distance * Math.max(0.3, 0.7 - (difficulty * 0.1));
-
-            ctx.beginPath();
-            ctx.moveTo(lastPos.x, lastPos.y);
-            ctx.lineTo(lastPos.x + nx * glowLength, lastPos.y + ny * glowLength);
-            ctx.stroke();
-
-            // Reset lineCap
-            ctx.lineCap = 'butt';
-          }
-        });
-      }
-    }
-  }, [currentConstellation, selectedStars, allStars, getStarPosition, difficulty, validNextStars, gameState]);
+  }, [currentConstellation, selectedStars, allStars, getStarPosition, drawConstellationGhost]);
 
   // Function to handle game ending
   const handleGameEnd = useCallback((timeExpired: boolean) => {
@@ -478,17 +501,6 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     }
 
     if (!currentConstellation) return;
-
-    // Calculate elapsed time
-    let elapsedTime = gameSettings.timeLimit;
-    if (endTimeRef.current !== null) {
-      const now = Date.now();
-      const elapsed = Math.min(
-        gameSettings.timeLimit * 1000,
-        endTimeRef.current - now > 0 ? gameSettings.timeLimit * 1000 - (endTimeRef.current - now) : gameSettings.timeLimit * 1000
-      );
-      elapsedTime = elapsed / 1000;
-    }
 
     // Create a set of player connections (regardless of order)
     const playerConnections = new Set();
@@ -509,10 +521,8 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
       }
     });
 
-    // Calculate score
+    // Calculate score using the new simplified function
     const score = calculateGameScore(
-      elapsedTime,
-      gameSettings.timeLimit,
       correctConnections,
       currentConstellation.connections.length
     );
@@ -531,7 +541,6 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
       onFail();
     }
   }, [
-    gameSettings.timeLimit,
     currentConstellation,
     selectedStars,
     calculateGameScore,
@@ -608,16 +617,18 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
           timerRef.current = null;
         }
 
-        // Time's up - calculate score based on completed connections
         handleGameEnd(true);
       }
     }, 100); // Update more frequently for smoother countdown
   }, [gameSettings.timeLimit, handleGameEnd]);
 
-  // Handle star clicks
+
   const handleStarClick = useCallback((starId: string) => {
     // Only allow interaction when game is in playing state
     if (gameState !== 'playing') return;
+
+    // Update last action time whenever player clicks a star
+    setLastActionTime(Date.now());
 
     // If clicking the last selected star, remove it (undo functionality)
     if (selectedStars.length > 0 && selectedStars[selectedStars.length - 1] === starId) {
@@ -648,7 +659,7 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     endTimeRef.current = null;
   }, []);
 
-  // Initialize or restart the game
+
   const startGame = useCallback(() => {
     // Reset all game states
     resetGameStates();
@@ -656,6 +667,7 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     // Use a short timeout to ensure state is reset
     setTimeout(() => {
       setGameState('playing');
+      setLastActionTime(Date.now()); // Reset the stuck timer
 
       // Select a random constellation from the available ones
       if (availableConstellations.length > 0) {
@@ -777,30 +789,45 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     };
   }, []);
 
-  // Render a single star
+
   const renderStar = (star: Star) => {
     const isSelected = selectedStars.includes(star.id);
     const isLastSelected = selectedStars.length > 0 && selectedStars[selectedStars.length - 1] === star.id;
     const isValidNext = validNextStars.includes(star.id);
+    const hintIntensity = getHintIntensity();
 
     // Calculate position within the square
     const position = getStarPosition(star.x, star.y);
 
-    // Calculate glow classes based on difficulty and whether this is a valid next star
+    // Progressive glow for valid next stars
     let glowClasses = '';
+    if (isValidNext && gameState === 'playing' && hintIntensity !== 'none') {
+      const intensityConfig = {
+        'subtle': {
+          brightness: difficulty === 1 ? 108 : difficulty === 2 ? 105 : 103,
+          shadow: difficulty === 1 ? 'shadow-sm shadow-amber-300/20' : 
+                  difficulty === 2 ? 'shadow-sm shadow-amber-300/15' : 
+                  'shadow-sm shadow-amber-300/10',
+          animation: ''
+        },
+        'moderate': {
+          brightness: difficulty === 1 ? 115 : difficulty === 2 ? 110 : 105,
+          shadow: difficulty === 1 ? 'shadow-md shadow-amber-400/30' : 
+                  difficulty === 2 ? 'shadow-md shadow-amber-400/20' : 
+                  'shadow-sm shadow-amber-400/15',
+          animation: difficulty === 1 ? 'animate-pulse' : ''
+        },
+        'obvious': {
+          brightness: difficulty === 1 ? 125 : difficulty === 2 ? 118 : 110,
+          shadow: difficulty === 1 ? 'shadow-lg shadow-amber-500/40' : 
+                  difficulty === 2 ? 'shadow-md shadow-amber-500/25' : 
+                  'shadow-md shadow-amber-500/15',
+          animation: difficulty === 1 ? 'animate-pulse' : difficulty === 2 ? 'animate-pulse' : ''
+        }
+      };
 
-    if (isValidNext && gameState === 'playing') {
-      // Adjust shadow intensity based on difficulty
-      const shadowIntensity = difficulty === 1 ? 'shadow-lg' :
-        difficulty === 2 ? 'shadow-md' :
-          'shadow-sm';
-
-      // Adjust animation speed based on difficulty (slower pulse is more subtle)
-      const animationSpeed = difficulty === 1 ? 'animate-pulse' :
-        difficulty === 2 ? 'animate-pulse' :
-          '';
-
-      glowClasses = `${animationSpeed} ${shadowIntensity} shadow-amber-500/${Math.max(10, 50 - (difficulty * 15))}`;
+      const config = intensityConfig[hintIntensity];
+      glowClasses = `${config.animation} ${config.shadow}`;
     }
 
     return (
@@ -809,7 +836,7 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
         className={`
           absolute w-4 h-4 transform -translate-x-1/2 -translate-y-1/2 
           ${gameState === 'playing' ? 'cursor-pointer' : 'cursor-default'}
-          flex items-center justify-center transition-all duration-200
+          flex items-center justify-center transition-all duration-300
           ${isSelected ? 'scale-125' : 'scale-100'}
           ${isLastSelected ? 'ring-1 ring-amber-500 rounded-full' : ''}
           ${glowClasses}
@@ -824,47 +851,19 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
           src="/challenges/16bit-star.png"
           alt="Star"
           className={`
-            w-full h-full object-contain
+            w-full h-full object-contain transition-all duration-300
             ${isSelected ? 'brightness-150' : 'brightness-100'}
             ${isSelected ? 'animate-pulse' : ''}
-            ${isValidNext && gameState === 'playing' ? `brightness-${Math.min(125, 100 + (25 / difficulty))}` : ''}
+            ${isValidNext && gameState === 'playing' && hintIntensity !== 'none' ? 
+              `brightness-${
+                hintIntensity === 'obvious' ? 
+                  (difficulty === 1 ? '125' : difficulty === 2 ? '118' : '110') :
+                hintIntensity === 'moderate' ?
+                  (difficulty === 1 ? '115' : difficulty === 2 ? '110' : '105') :
+                  (difficulty === 1 ? '108' : difficulty === 2 ? '105' : '103')
+              }` : ''}
           `}
         />
-
-        {/* Add directional indicator for valid next stars */}
-        {isLastSelected && validNextStars.length > 0 && gameState === 'playing' && (
-          <div className="absolute inset-0 z-10">
-            {validNextStars.map(nextStarId => {
-              const nextStar = allStars.find(s => s.id === nextStarId);
-              if (!nextStar) return null;
-
-              // Calculate direction to the next star
-              const nextPos = getStarPosition(nextStar.x, nextStar.y);
-              const direction = calculateDirection(position.x, position.y, nextPos.x, nextPos.y);
-
-              // Determine glow intensity based on difficulty
-              const glowOpacity = Math.max(0.2, 0.8 - (difficulty * 0.2));
-
-              return (
-                <div
-                  key={`indicator-${nextStarId}`}
-                  className="absolute w-3 h-3 top-0.5 left-0.5 pointer-events-none"
-                  style={{
-                    transform: `rotate(${direction}deg)`,
-                    opacity: glowOpacity
-                  }}
-                >
-                  {/* Only show indicators on easiest difficulty */}
-                  {difficulty === 1 && (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-ping opacity-75"></div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
     );
   };

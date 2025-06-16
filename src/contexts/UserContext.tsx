@@ -718,6 +718,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         setState(prev => ({
             ...prev,
+            totems: [],
             address: '',
             signer: null,
             isSignedUp: false,

@@ -26,6 +26,7 @@ import { useUser } from "../contexts/UserContext";
 import { useGame } from '../contexts/GameContext';
 import { useAchievements } from "../contexts/AchievementsContext";
 import { Rarity, Species } from "../types/types";
+import { formatTokenAmount } from "../utils/formats";
 
 const gameAddress = CONTRACT_ADDRESSES.game;
 const nftAddress = CONTRACT_ADDRESSES.nft;
@@ -603,13 +604,33 @@ export function useNotifications() {
     const handleRewardClaimed = (rewardId: any, user: any, amount: any) => {
       const isOwner = user.toLowerCase() === userAddress.toLowerCase();
       if (isOwner) {
-        const formattedAmount = ethers.formatEther(amount);
+        const formattedAmount = formatTokenAmount(amount);
         addNotification(
           NotificationType.REWARD_CLAIMED,
           `You claimed ${formattedAmount} TOTEM tokens!`,
           NotificationScope.PERSONAL,
           NotificationPriority.MEDIUM,
           { rewardId, amount: amount.toString() },
+          userAddress
+        );
+      }
+    };
+
+    const handleOneTimeRewardClaimed = (rewardId: any, user: any, tokenReward: any, experienceReward: any, totemId: any) => {
+      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
+      if (isOwner) {
+        const tokenRewardAmount = formatTokenAmount(tokenReward);
+        addNotification(
+          NotificationType.REWARD_CLAIMED,
+          `You claimed ${tokenRewardAmount} TOTEM tokens!`,
+          NotificationScope.PERSONAL,
+          NotificationPriority.MEDIUM,
+          { 
+            rewardId: rewardId.toString(),
+            tokenReward: tokenRewardAmount.toString(),
+            experienceReward: experienceReward.toString(),
+            totemId: totemId.toString()
+          },
           userAddress
         );
       }
@@ -756,6 +777,7 @@ export function useNotifications() {
     achievementsContract.on("AchievementUnlocked", handleAchievementUnlocked);
     achievementsContract.on("MilestoneUnlocked", handleMilestoneUnlocked);
     rewardsContract.on("RewardClaimed", handleRewardClaimed);
+    rewardsContract.on("OneTimeRewardClaimed", handleOneTimeRewardClaimed);
     challengesContract.on("ChallengeCompleted", handleChallengeCompleted);
     challengesContract.on("HighScoreSet", handleHighScoreSet);
     //expeditionsContract.on("ExpeditionStarted", handleExpeditionStarted);
@@ -776,6 +798,7 @@ export function useNotifications() {
       achievementsContract.off("AchievementUnlocked", handleAchievementUnlocked);
       achievementsContract.off("MilestoneUnlocked", handleMilestoneUnlocked);
       rewardsContract.off("RewardClaimed", handleRewardClaimed);
+      rewardsContract.off("OneTimeRewardClaimed", handleOneTimeRewardClaimed);
       challengesContract.off("ChallengeCompleted", handleChallengeCompleted);
       challengesContract.off("HighScoreSet", handleHighScoreSet);
       //expeditionsContract.off("ExpeditionStarted", handleExpeditionStarted);

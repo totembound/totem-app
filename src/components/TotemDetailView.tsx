@@ -4,7 +4,7 @@ import { useUser } from '../contexts/UserContext';
 import { useGame } from '../contexts/GameContext';
 import { useTransactionService } from '../hooks/useTransactionService';
 import CelebrationModal from './CelebrationModal';
-
+import { useAchievements } from '../contexts/AchievementsContext';
 // Import modular components
 import TotemDetailHeader from './TotemDetailHeader';
 import TotemImageSection from './TotemImageSection';
@@ -47,7 +47,8 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     const [activeTab, setActiveTab] = useState<'stats' | 'details'>('stats');
     const [showExpEffect, setShowExpEffect] = useState(false);
     const dialogRef = useRef<HTMLDivElement>(null);
-    
+    const { refreshAchievements } = useAchievements();
+
     // Use either the externally provided canUseAction function or the one from the game context
     const canUseAction = externalCanUseAction || gameCanUseAction;
     
@@ -92,6 +93,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
             else {
                 await updateTotem(totem.tokenId, action);
             }
+            refreshAchievements();
         }
         catch (err) {
             console.error(`Error with ${ActionType[action]}:`, err);
@@ -102,7 +104,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
              // Clear the effect after a delay
             setTimeout(() => {
                 setActiveEffect(null);
-            }, 2000);
+            }, 1000);
         }
     };
 

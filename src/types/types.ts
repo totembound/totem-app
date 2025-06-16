@@ -499,4 +499,28 @@ export interface Location {
   image: string;
 }
 
+export interface Step {
+  label: string;
+  complete: boolean;
+  optional?: boolean;
+  isStepComplete?: () => {};
+  actionId?: string;
+  actionType?: "button" | "link" | "external";
+  actionUrl?: string;
+  actionText?: string;
+  imageUrl?: string;
+}
+
+export interface TutorialStep {
+  stepId: number;
+  title: string;
+  subtitle: string;
+  imageUrl?: string;
+  steps: Step[];
+  rewardId: string;
+  tokenReward: string;
+  experienceReward: number;
+  requiresTotem: boolean;
+}
+
 export {}

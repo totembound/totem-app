@@ -159,7 +159,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     const getAchievementById = useCallback((id: string): AchievementView | undefined => {
         for (const categoryAchievements of Object.values(achievements)) {
-            const found = categoryAchievements.find(a => a.id === id);
+            const found = categoryAchievements.find(a => a.id === id || a.subType === id);
             if (found) return found;
         }
         return undefined;
@@ -181,6 +181,9 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     useEffect(() => {
         if (isConnected && provider && address) {
             loadAchievements();
+        }
+        if (!isConnected) {
+            setAchievements({} as Record<AchievementCategory, AchievementView[]>);
         }
     }, [isConnected, provider, address, loadAchievements]);
 

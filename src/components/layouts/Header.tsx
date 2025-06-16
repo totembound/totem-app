@@ -6,7 +6,7 @@ import { UserMenu } from './UserMenu';
 import NotificationsPanel from '../NotificationsPanel';
 import { Link } from 'react-router-dom';
 import { ThemeToggle } from './ThemeToggle';
-import { Flame, Info, TagIcon, UserPlus, X } from 'lucide-react';
+import { BookOpenText, Flame, Info, TagIcon, UserPlus, X } from 'lucide-react';
 
 const Header: React.FC = () => {
   const { isConnected, isSignedUp, address, isTokenApproved } = useUser();
@@ -98,6 +98,13 @@ const Header: React.FC = () => {
                 </Link>
                 <span>|</span>
                 <Link
+                  to="/guides"
+                  className="flex items-center gap-2 px-2 md:px-3 py-1 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/50 font-medium"
+                >
+                  Guides
+                </Link>
+                <span>|</span>
+                <Link
                   to="/plans"
                   className="flex items-center gap-2 px-2 md:px-3 py-1 rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/50 font-medium"
                 >
@@ -122,6 +129,13 @@ const Header: React.FC = () => {
                   aria-label="About"
                 >
                   <Info size={20} />
+                </Link>
+                <Link
+                  to="/guides"
+                  className="text-gray-600 dark:text-gray-300 p-2"
+                  aria-label="Guides"
+                >
+                  <BookOpenText size={20} />
                 </Link>
                 <Link
                   to="/plans"

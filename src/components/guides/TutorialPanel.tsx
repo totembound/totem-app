@@ -1,11 +1,8 @@
-import { ethers } from 'ethers';
 import { CheckCircle, Gift, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useUser } from '../../contexts/UserContext';
-import { useAchievements } from "../../contexts/AchievementsContext";
-import { useEffect, useState } from 'react';
-import { useTransactionService } from '../../hooks/useTransactionService';
-import { ActionType, Step } from '../../types/types';
+import { useState } from 'react';
+import { Step } from '../../types/types';
 
 interface TutorialPanelProps {
   title: string;
@@ -38,7 +35,7 @@ export default function TutorialPanel({
   hasClaimed,
   onClaimReward
 }: TutorialPanelProps) {
-  const { comingSoon, totems } = useUser();
+  const { comingSoon, totems, setTutorialWizardVisible } = useUser();
   const [loading, setLoading] = useState(false);
   const current = !isComplete && !isLocked;
 
@@ -100,7 +97,9 @@ export default function TutorialPanel({
             </span>
             
             {!complete && step.actionType === 'link' && step.actionUrl && (
-              <Link className="ml-2 text-purple-500 hover:text-purple-400 hover:underline font-bold" to={step.actionUrl!}>
+              <Link className="ml-2 text-purple-500 hover:text-purple-400 hover:underline font-bold"
+                onClick={() => setTutorialWizardVisible(true)}
+                to={step.actionUrl!}>
                 {step.actionText}
               </Link>
             )}

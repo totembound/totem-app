@@ -22,6 +22,7 @@ export interface UserContextType extends UserContextState {
     updateAccountType: (providedApiKey?: string) => AccountType;
     canSpendTotem: (amount: number) => boolean;
     canSpendCurrency: (amount: number) => boolean;
+    setTutorialWizardVisible: (visible: boolean) => void;
 }
 
 export interface TotemUpdate {
@@ -35,7 +36,7 @@ export interface TotemUpdate {
 export type AccountType = 'Free' | 'Premium' | 'Advanced';
 
 export interface UserContextState {
-        // user state
+    // user state
     isSignedUp: boolean;
     isTokenApproved: boolean;
     totemBalance: string;
@@ -56,6 +57,7 @@ export interface UserContextState {
     gaslessApiKey: string;
     accountType: AccountType;
     comingSoon: boolean;
+    tutorialWizardVisible: boolean;
 }
 
 export enum Species {

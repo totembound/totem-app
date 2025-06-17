@@ -20,6 +20,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         totems: [],
         totemLoading: false,
         totemError: null,
+        tutorialWizardVisible: true,
         isApprovalMessageDismissed: getUserStorage(STORAGE_KEYS.tokenApprovalMessageDismissed, '', false),
         messageDialog: {
             isOpen: false,
@@ -501,6 +502,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 isGaslessEnabled: getUserStorage(STORAGE_KEYS.isGaslessEnabled, normalizedAddress, false),
                 gaslessApiKey: getUserStorage(STORAGE_KEYS.gaslessApiKey, normalizedAddress, ''),
                 accountType: initialAccountType(normalizedAddress),
+                tutorialWizardVisible: getUserStorage(STORAGE_KEYS.tutorialWizardVisible, normalizedAddress, true)
             }));
         }
         catch (err) {
@@ -585,6 +587,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
     
+    const setTutorialWizardVisible = (visible: boolean) => {
+        setUserStorage(STORAGE_KEYS.tutorialWizardVisible, state.address, visible);
+        setState(prev => ({ ...prev, tutorialWizardVisible: visible }));
+    };
+
     // Setup listeners only once on mount
     useEffect(() => {
         if (window.ethereum) {
@@ -836,7 +843,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 updateAccountType,
                 comingSoon,
                 canSpendTotem,
-                canSpendCurrency
+                canSpendCurrency,
+                tutorialWizardVisible: state.tutorialWizardVisible,
+                setTutorialWizardVisible,
             }}
         >
             {children}

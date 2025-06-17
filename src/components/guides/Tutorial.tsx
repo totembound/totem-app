@@ -1,24 +1,27 @@
-import { ChevronLeft } from "lucide-react";
 import React from "react";
-import { Link } from "react-router-dom";
+import TutorialPanels from "./TutorialPanels";
+import GuidesHeader from "./GuidesHeader";
+import { useUser } from "../../contexts/UserContext";
 
 const Tutorial: React.FC = () => {
+    const { tutorialWizardVisible, setTutorialWizardVisible } = useUser();
+
     return (
     <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg">
       <div className="max-w-7xl mx-auto">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                Spiritkeeper's Path
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-                Begin your Totem’s journey. Learn core mechanics and earn early achievements.
-            </p>
-            <div className="text-center">
-                
-            </div>
-            <Link to="/guides" className="inline-flex items-center text-purple-500 hover:text-purple-400 text-sm font-medium">
-                <ChevronLeft size={18} className="mr-1" />
-                Back to Guides
-            </Link>
+        <GuidesHeader title="Spiritkeeper's Path"/>
+        <div className="flex items-center gap-2">
+          <p className="text-gray-600 dark:text-gray-400">
+              Begin your Totem’s journey. Learn core mechanics and earn early achievements.
+          </p>
+          <button
+            onClick={() => setTutorialWizardVisible(true)}
+            className="text-sm text-purple-500 hover:text-purple-400 font-bold"
+          >
+            <span>Show Wizard</span>
+          </button>
+        </div>
+        <TutorialPanels/>
       </div>
     </div>
   );

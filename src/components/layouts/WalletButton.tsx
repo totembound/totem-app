@@ -13,7 +13,8 @@ export const WalletButton: React.FC = () => {
         hover:bg-purple-700 transition-colors font-medium ${comingSoon ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       <Wallet size={18} />
-      Connect Wallet
+      <span className="hidden md:block">Connect Wallet</span>
+      <span className="block md:hidden">Connect</span>
     </button>
   );
 };

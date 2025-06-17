@@ -21,7 +21,8 @@ export const STORAGE_KEYS = {
     tokenApprovalMessageDismissed: 'totem-approval-message-dismissed',
     isGaslessEnabled: 'totem-gasless-enabled',
     gaslessApiKey: 'totem-gasless-api-key',
-    accountType: 'totem-account-type'
+    accountType: 'totem-account-type',
+    tutorialWizardVisible: 'totem-tutorialWizardVisible'
 };
 
 export const AVAILABLE_SPECIES = [

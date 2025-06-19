@@ -127,7 +127,7 @@ const Tooltip: React.FC<TooltipProps> = ({
                 <div className="relative">
                     <div className="
                         bg-gray-900 dark:bg-gray-700 
-                        text-white px-2 py-1.5 
+                        text-white px-2 py-1 
                         rounded text-sm 
                         whitespace-normal
                         max-w-[320px] min-w-[120px]

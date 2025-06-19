@@ -33,7 +33,7 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
                     : ''
                 }
                 ${isLoading ? 'opacity-50 pointer-events-none' : ''}
-                relative z-0 hover:z-10 h-full flex flex-col
+                relative hover:z-10 h-full flex flex-col
             `}
         >
             {/* Rarity Badge - Absolute positioned over image */}

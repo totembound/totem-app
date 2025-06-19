@@ -57,7 +57,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config }) => {
             -ml-4 md:ml-0
             overflow-y-auto
             transition-transform duration-300 ease-in-out
-            bg-gray-100/50 dark:bg-gray-800 text-gray-800 dark:text-white
+            bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white
           `}
         >
           <div className="p-4 font-bold text-xl flex items-center justify-between border-b border-gray-200 dark:border-gray-700">

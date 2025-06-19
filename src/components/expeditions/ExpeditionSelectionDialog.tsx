@@ -58,7 +58,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
       setSelectedTotems([]);
       setCaptain(null);
       setError(null);
-      setTeamScore(70); // Reset to base score
+      setTeamScore(50); // Reset to base score
       setHideUnavailable(true);
     }
   }, [isOpen]);
@@ -66,49 +66,80 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
   // Calculate team score based on composition
   useEffect(() => {
     if (!expedition || selectedTotems.length === 0) {
-      setTeamScore(70);
+      setTeamScore(50);
       return;
     }
 
-    let score = 60;
-
+    let score = 50;
     
     if (captain) {
       const captainTotem = totems.find((t) => t.id === captain);
-      // Captain domain bonus (+10)
+      // Captain domain bonus
       if (captainTotem?.domain?.toLowerCase() === Domain[expedition.domain].toLowerCase()) {
+        score += 15;
+      }
+      // Captain Elder bonus
+      if (captainTotem?.attributes.stage! >= 4) {
         score += 10;
       }
-      // Captain Elder bonus (+5)
-      if (captainTotem?.attributes.stage! >= 4) {
-        score += 5;
+    }
+
+    // Domain synergy calculation
+    let domainMatches = 0;
+
+    // Count captain domain match
+    if (captain) {
+      const captainTotem = totems.find((t) => t.id === captain);
+      if (captainTotem?.domain?.toLowerCase() === Domain[expedition.domain].toLowerCase()) {
+        domainMatches++;
       }
+    }
+
+    // Count team member domain matches
+    selectedTotems.forEach((id) => {
+      if (id !== captain) { // Skip captain, already counted
+        const totem = totems.find((t) => t.id === id);
+        if (totem?.domain?.toLowerCase() === Domain[expedition.domain].toLowerCase()) {
+          domainMatches++;
+        }
+      }
+    });
+
+    // Domain synergy bonus
+    if (domainMatches === 3) {
+      score += 15; // All same domain bonus
+    } else if (domainMatches === 2) {
+      score += 8; // Partial domain bonus
     }
 
     // Affinity matching
     const affinityCount = { strength: 0, agility: 0, wisdom: 0 };
-
+    
+    // Only count team members (not captain) for affinity
     selectedTotems.forEach((id) => {
-      const totem = totems.find((t) => t.id === id);
-      if (totem?.affinity) {
-        affinityCount[
-          totem.affinity.toLowerCase() as keyof typeof affinityCount
-        ]++;
+      if (id !== captain) { // Contract only counts team members for affinity
+        const totem = totems.find((t) => t.id === id);
+        if (totem?.affinity) {
+          affinityCount[
+            totem.affinity.toLowerCase() as keyof typeof affinityCount
+          ]++;
+        }
       }
     });
 
-    // Primary affinity bonus (+5)
+    // Primary affinity bonus
     const primaryAffinity = expedition.primaryAffinity.toLowerCase();
-    if (affinityCount[primaryAffinity as keyof typeof affinityCount] > 0) {
-      score += 5;
+    const primaryAffinityCount = affinityCount[primaryAffinity as keyof typeof affinityCount];
+    if (primaryAffinityCount > 0) {
+      score += 5 + (primaryAffinityCount * 3); // Scale with count - matches contract
     }
 
-    // Shared affinity bonus (+5)
+    // Shared affinity bonus (+8) 
     const hasSharedAffinity = Object.values(affinityCount).some(
       (count) => count >= 2
     );
     if (hasSharedAffinity) {
-      score += 5;
+      score += 8;
     }
 
     // Balanced team bonus (+5)
@@ -119,7 +150,8 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
       score += 5;
     }
 
-    setTeamScore(Math.min(100, score));
+    // Cap at 100 and ensure no negative scores
+    setTeamScore(Math.min(100, Math.max(0, score)));
   }, [selectedTotems, expedition, totems, captain]);
 
   // Check if totem is already on an expedition
@@ -250,23 +282,23 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
   const getRewardsText = () => {
     if (teamScore >= 90) {
       return {
-        exp: `${Math.floor(expedition.baseExperience * 1.5)} XP`,
-        runeChance: "High Rune Chance (+30%)",
-        details: "Your you have a great chance to succeed!",
+        exp: `${Math.floor(expedition.baseExperience * 1.5)} XP`, // Great Success: 150%
+        runeChance: "High Rune Chance (+30%)", // Contract uses 130% multiplier
+        details: "Great Success! Your team has excellent synergy!",
       };
     }
     else if (teamScore >= 70) {
       return {
-        exp: `${Math.floor(expedition.baseExperience * 1.25)} XP`,
-        runeChance: "Normal Rune Chance",
-        details: "You have a normal chance to succeed.",
+        exp: `${Math.floor(expedition.baseExperience * 1.25)} XP`, // Success: 125%
+        runeChance: "Normal Rune Chance", // Contract uses 100% multiplier
+        details: "Success! Your team has good synergy.",
       };
     }
     else {
       return {
-        exp: `${Math.floor(expedition.baseExperience * 0.5)} XP`,
-        runeChance: "Low Rune Chance (-50%)",
-        details: "You have a low chance to succeed.",
+        exp: `${Math.floor(expedition.baseExperience * 0.5)} XP`, // Failure: 50%
+        runeChance: "Low Rune Chance (-50%)", // Contract uses 50% multiplier
+        details: "Poor synergy. Consider a better team composition.",
       };
     }
   };

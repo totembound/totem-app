@@ -13,6 +13,7 @@ import RingDiveChallenge from './RingDiveChallenge';
 import DrumDanceChallenge from './DrumDanceChallenge';
 import RuneCraftingChallenge from './RuneCraftingChallenge';
 import StarMapChallenge from './StarMapChallenge';
+import WhackAMoleChallenge from './WhackAMoleChallenge';
 
 interface ChallengeGameProps {
     challengeId: string;
@@ -195,6 +196,13 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
                 {challengeType === 'wisdom' && challengeId === 'wisdom-challenge-3' && (
                     <RuneCraftingChallenge
                         wisdom={attributes.wisdom}
+                        difficulty={difficulty}
+                        onComplete={handleScore}
+                    />
+                )}
+                {challengeType === 'strength' && challengeId === 'beginner-challenge-1' && (
+                    <WhackAMoleChallenge
+                        strength={attributes.strength}
                         difficulty={difficulty}
                         onComplete={handleScore}
                     />

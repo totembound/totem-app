@@ -251,11 +251,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             // Get all challenge IDs
             const challengeIds = await challengesContract.getChallengeIds();
-
+            console.log(challengeIds);
             // Fetch challenge info and user status for each challenge
             const challengeInfoPromises = challengeIds.map(id => 
                 challengesContract.getChallengeInfo(id)
-            );
+            ); 
             const userStatusPromises = challengeIds.map(id =>
                 challengesContract.getUserChallengeStatus(id, address)
             );
@@ -338,6 +338,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const getEligibleTotems = useCallback((challengeId: string) => {
         const id = ethers.id(challengeId);
         const challenge = challengeState.challenges[id];
+        console.log(challenge);
         if (!challenge) return [];
 
         return totems

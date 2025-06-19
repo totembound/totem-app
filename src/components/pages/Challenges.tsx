@@ -146,6 +146,22 @@ const wisdomChallenges: Challenge[] = [
     }
 ];
 
+const beginnerChallenge: Challenge[] = [
+    {
+        id: 'beginner-challenge-1',
+        type: 'strength',
+        title: 'Whack-A-Mole',
+        description: 'Help smack down those pesky moles where they pop up. Use your fast reflexes to hit as many as you can and get a high score.',
+        image: '/challenges/breaking-background.png',
+        requirements: {
+            stage: 1,
+            strength: 1,
+            agility: 1,
+            wisdom: 1
+        }
+    }
+]
+
 interface TabButtonProps {
     isActive: boolean;
     onClick: () => void;
@@ -181,6 +197,8 @@ const Challenges = () => {
                 return agilityChallenges;
             case 'wisdom':
                 return wisdomChallenges;
+            case 'beginner':
+                return beginnerChallenge;
         }
     };
 
@@ -209,6 +227,12 @@ const Challenges = () => {
 
                     {/* Challenge Type Tabs */}
                     <div className="flex border-b border-gray-200 dark:border-gray-700 mb-2">
+                        <TabButton
+                            isActive={activeTab === 'beginner'}
+                            onClick={() => setActiveTab('beginner')}
+                        >
+                            Beginner
+                        </TabButton>
                         <TabButton
                             isActive={activeTab === 'strength'}
                             onClick={() => setActiveTab('strength')}

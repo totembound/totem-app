@@ -201,9 +201,7 @@ const AppRoutes: React.FC = () => {
             </Route>
 
             <Route path="lore" element={
-              <ProtectedRoute>
                 <LoreArchives />
-              </ProtectedRoute>
             } />
         </Route>
         <Route path="achievements" element={

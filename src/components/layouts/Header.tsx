@@ -9,7 +9,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { BookOpenText, Flame, Info, TagIcon, UserPlus, X } from 'lucide-react';
 
 const Header: React.FC = () => {
-  const { isConnected, isSignedUp, address, isTokenApproved } = useUser();
+  const { isConnected, isSignedUp, isTokenApproved } = useUser();
   const { rewardsState, claimDailyReward } = useGame();
   const [showStreakTracker, setShowStreakTracker] = useState<boolean>(true);
   const disabledStyle = !rewardsState.streakStatus?.canClaimToday ? 'opacity-50 cursor-not-allowed' : '';

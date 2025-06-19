@@ -29,7 +29,7 @@ const Header: React.FC = () => {
   return (
     <>
       {isConnected && isSignedUp && isTokenApproved && showStreakTracker && (
-        <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-purple-500 text-white px-4 py-2 shadow-lg">
+        <div className="md:hidden absolute top-0 left-0 right-0 z-50 bg-purple-500 text-white px-4 py-2 shadow-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Flame className="w-4 h-4" />
@@ -64,8 +64,7 @@ const Header: React.FC = () => {
       )}
 
       <header
-        className="sticky top-0 z-30 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 
-        dark:border-gray-700 shadow-sm"
+        className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm"
       >
         <div className="max-w-screen-xl w-full mx-auto px-2 sm:px-4 h-14 sm:h-16">
           <div className="flex items-center justify-between h-full text-gray-600 dark:text-gray-400">

@@ -13,16 +13,25 @@ export const MainLayout: React.FC = () => {
   const { isConnected, isSignedUp, messageDialog, hideError } = useUser();
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-x-hidden">
+    <div className="min-h-screen flex flex-col relative">
         <GameBackground />
-        <div className="flex flex-col flex-grow relative z-1 w-full">
+        
+        <div className="header-nav-sticky-container sticky top-0 z-40 bg-gray-50 dark:bg-gray-900 relative">
             <Header />
             {isConnected && isSignedUp && <Navigation />}
-            <main className="flex-grow w-full flex flex-col pb-16 sm:pb-0">
-                <div className="max-w-screen-xl w-full mx-auto px-2 sm:px-4 py-2 sm:py-3 flex-grow">
-                    <Outlet />
-                </div>
-            </main>
+        </div>
+
+        <main className="w-full pb-16 sm:pb-0 overflow-x-hidden flex-grow relative">
+            <div className="max-w-screen-xl w-full mx-auto px-2 sm:px-4 py-2 sm:py-3">
+                <Outlet />
+            </div>
+        </main>
+
+        <div className="relative">
+            <Footer />
+        </div>
+
+        <div className="z-50 relative">
             <MessageDialog
                 isOpen={messageDialog.isOpen}
                 title={messageDialog.title}
@@ -33,7 +42,6 @@ export const MainLayout: React.FC = () => {
             </MessageDialog>
             <AchievementEffectManager />
             <ExpeditionEffectManager />
-            <Footer />
         </div>
     </div>
   );

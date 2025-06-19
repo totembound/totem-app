@@ -30,11 +30,6 @@ const DisplayNameEditor: React.FC<DisplayNameEditorProps> = ({
     }, []);
 
     const handleUpdate = async () => {
-        if (!newName.trim()) {
-            showError('Error', 'Name cannot be empty');
-            return;
-        }
-
         setIsSubmitting(true);
         try {
             await setDisplayName(tokenId, newName.trim());

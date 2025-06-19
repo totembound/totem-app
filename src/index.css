@@ -5,7 +5,10 @@
 html, body {
     margin: 0;
     padding: 0;
-    overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
 }
 
 .bg {
@@ -24,6 +27,7 @@ html, body {
     color: white;
     text-align: center;
     padding: 20px;
+    overflow: visible;
 }
 
 .raven-emoji {

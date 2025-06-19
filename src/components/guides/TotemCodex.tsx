@@ -1,5 +1,6 @@
 import React from "react";
 import CodexSidebar from "./codex/CodexSidebar";
+import GuidesHeader from "./GuidesHeader";
 
 const TotemCodex: React.FC = () => {
   return (
@@ -7,9 +8,7 @@ const TotemCodex: React.FC = () => {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-[280px_1fr]">
         <CodexSidebar />
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            Totem Codex
-          </h1>
+          <GuidesHeader title="Totem Codex"/>
           <p className="text-gray-600 dark:text-gray-400 mb-3">
             The Codex records all known Totems. This living record grows as new spirits emerge.
           </p>

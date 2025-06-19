@@ -1,6 +1,6 @@
 // src/services/TransactionService.ts
 import { ethers } from 'ethers';
-import { CONTRACT_ADDRESSES, createExpeditionsContract, FORWARDER_ABI } from '../config/contracts';
+import { CONTRACT_ADDRESSES, createChallengesContract, createExpeditionsContract, FORWARDER_ABI } from '../config/contracts';
 import { createGameContract, createTokenContract, createTotemNFTContract, createShopContract, createRewardsContract } from '../config/contracts';
 import { ContractEvent, ContractType, ForwardRequest, TransactionConfig, TransactionResult } from '../types/types';
 
@@ -46,6 +46,9 @@ export class TransactionService {
                 break;
             case 'rewards':
                 contract = createRewardsContract(this.provider);
+                break;
+            case 'challenges':
+                contract = createChallengesContract(this.provider);
                 break;
             case 'expeditions':
                 contract = createExpeditionsContract(this.provider);
@@ -475,6 +478,17 @@ export class TransactionService {
         return this.executeTransaction('rewards', 'claim', [weeklyRewardId], expectedEvents);
     }
 
+    public async claimTutorialStepReward(rewardId: string, totemId: string): Promise<TransactionResult> {
+        const rewardsContract = await this.getContract('rewards');
+        const expectedEvents = [{
+            contract: rewardsContract,
+            eventName: 'OneTimeRewardClaimed',
+            filter: [rewardId, this.userAddress]
+        }];
+
+        return this.executeTransaction('rewards', 'claimOneTimeReward', [rewardId, totemId], expectedEvents);
+    }
+
     public async purchaseProtection(rewardId: string, tier: number): Promise<TransactionResult> {
         const rewardsContract = await this.getContract('rewards');
         const expectedEvents = [{
@@ -560,5 +574,24 @@ export class TransactionService {
         ];
     
         return this.executeTransaction('expeditions', 'claimExpeditionRewards', [expeditionIdHash], expectedEvents);
+    }
+
+    public async query(contractType: ContractType, functionName: string, args: any[] = []): Promise<any> {
+        try {
+            const contract = await this.getContract(contractType);
+            
+            // Check if the function exists
+            if (!(functionName in contract)) {
+                throw new Error(`Function "${functionName}" not found on contract`);
+            }
+
+            // Call the function (read-only)
+            const result = await (contract as any)[functionName](...args);
+
+            return result;
+        } catch (error) {
+            console.error(`Query failed: ${contractType}.${functionName}`, error);
+            throw error;
+        }
     }
 }

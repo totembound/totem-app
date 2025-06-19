@@ -52,6 +52,7 @@ import FireDomain from './components/guides/codex/FireDomain';
 import SpiritDomain from './components/guides/codex/SpiritDomain';
 import ShadowDomain from './components/guides/codex/ShadowDomain';
 import WorldMap from './components/guides/codex/WorldMap';
+import TutorialWizard from './components/guides/TutorialWizard';
 
 const AppRoutes: React.FC = () => {
   usePageViews();
@@ -200,9 +201,7 @@ const AppRoutes: React.FC = () => {
             </Route>
 
             <Route path="lore" element={
-              <ProtectedRoute>
                 <LoreArchives />
-              </ProtectedRoute>
             } />
         </Route>
         <Route path="achievements" element={
@@ -237,6 +236,7 @@ const App: React.FC = () => {
             <AchievementsProvider>
               <AppRoutes />
               <ServiceWorkerDialog/>
+              <TutorialWizard/>
             </AchievementsProvider>
           </GameProvider>
         </UserProvider>

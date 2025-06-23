@@ -212,7 +212,7 @@ const WhackAMoleChallenge: React.FC<WhackAMoleChallengeProps> = ({
           {/* Background terrain */}
           <div className="absolute inset-0">
             <img
-              src="/challenges/breaking-background.png"
+              src="/challenges/first-path-challenge.jpg"
               alt="Game background"
               className="w-full h-full object-cover"
             />
@@ -231,9 +231,9 @@ const WhackAMoleChallenge: React.FC<WhackAMoleChallengeProps> = ({
                 {/* Hole */}
                 <div className="w-20 h-20 relative">
                   <img
-                    src="/challenges/mole-hole.png"
+                    src="/challenges/new-hole.png"
                     alt="Mole hole"
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover"
                   />
                   
                   {/* Mole */}
@@ -247,9 +247,9 @@ const WhackAMoleChallenge: React.FC<WhackAMoleChallengeProps> = ({
                       type="button"
                     >
                       <img
-                        src="/challenges/whack-a-mole.png"
+                        src="/challenges/new-mole.png"
                         alt="Mole"
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-cover overflow-hidden"
                       />
                     </button>
                   )}

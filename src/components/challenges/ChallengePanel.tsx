@@ -36,7 +36,7 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
     const stage = requirements.stage;
     const eligibleTotems = getEligibleTotems(id);
     const meetsRequirements = eligibleTotems.length > 0;
-    const maxExpReward = stage * 10 - 10;
+    const maxExpReward = Math.max(10, stage * 10 - 10);
 
     const getAffinityColor = () => {
         switch(affinityType) {

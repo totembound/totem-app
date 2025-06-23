@@ -150,9 +150,9 @@ const beginnerChallenge: Challenge[] = [
     {
         id: 'beginner-challenge-1',
         type: 'balance',
-        title: 'Whack-A-Mole',
-        description: 'Help smack down those pesky moles where they pop up. Use your fast reflexes to hit as many as you can and get a high score.',
-        image: '/challenges/breaking-background.png',
+        title: 'Garden Pest Patrol',
+        description: 'These challenges mark key moments in your totem\'s journey, requiring instinct and spirit to guide the way. Help smack down those pesky moles where they pop up.',
+        image: '/challenges/first-path-challenge.jpg',
         requirements: {
             stage: 1,
             strength: 1,

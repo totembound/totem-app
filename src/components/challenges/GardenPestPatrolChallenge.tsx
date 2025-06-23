@@ -239,17 +239,22 @@ const WhackAMoleChallenge: React.FC<WhackAMoleChallengeProps> = ({
                   {/* Mole */}
                   {hole.hasMole && (
                     <button
-                      className={`absolute inset-0 w-full h-full
-                        transition-all duration-200 hover:scale-105 focus:outline-none
-                        animate-bounce cursor-pointer
+                      className={`absolute transition-all duration-200 hover:scale-105 outline-none
+                        animate-bounce cursor-pointer z-10
                         ${showPulse ? 'animate-pulse' : ''}`}
                       onClick={() => handleWhack(hole.id)}
                       type="button"
+                      style={{
+                        width: '140%',
+                        height: '140%',
+                        top: '-20%',
+                        left: '-20%'
+                      }}
                     >
                       <img
                         src="/challenges/new-mole.png"
                         alt="Mole"
-                        className="w-full h-full object-cover overflow-hidden"
+                        className="w-full h-full object-cover"
                       />
                     </button>
                   )}

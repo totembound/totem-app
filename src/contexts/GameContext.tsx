@@ -338,7 +338,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const getEligibleTotems = useCallback((challengeId: string) => {
         const id = ethers.id(challengeId);
         const challenge = challengeState.challenges[id];
-        console.log(challenge);
         if (!challenge) return [];
 
         return totems

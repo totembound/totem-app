@@ -4,7 +4,7 @@ import ChallengePanel from '../challenges/ChallengePanel';
 import { useGame } from '../../contexts/GameContext';
 import { ethers } from 'ethers';
 
-type AffinityType = 'strength' | 'agility' | 'wisdom';
+type AffinityType = 'strength' | 'agility' | 'wisdom' | "balance";
 
 interface Challenge {
     id: string;
@@ -149,7 +149,7 @@ const wisdomChallenges: Challenge[] = [
 const beginnerChallenge: Challenge[] = [
     {
         id: 'beginner-challenge-1',
-        type: 'strength',
+        type: 'balance',
         title: 'Whack-A-Mole',
         description: 'Help smack down those pesky moles where they pop up. Use your fast reflexes to hit as many as you can and get a high score.',
         image: '/challenges/breaking-background.png',
@@ -181,11 +181,11 @@ const TabButton: React.FC<TabButtonProps> = ({ isActive, onClick, children }) =>
 
 const Challenges = () => {
     const { challengeState }  = useGame();
-    const [activeTab, setActiveTab] = useState('strength');
+    const [activeTab, setActiveTab] = useState('beginner');
     const [selectedChallenge, setSelectedChallenge] = useState<string | null>(null);
 
     const getSelectedChallenge = (): Challenge | undefined => {
-        const allChallenges = [...strengthChallenges, ...agilityChallenges, ...wisdomChallenges];
+        const allChallenges = [...strengthChallenges, ...agilityChallenges, ...wisdomChallenges, ...beginnerChallenge];
         return allChallenges.find(c => c.id === selectedChallenge);
     };
 
@@ -231,7 +231,7 @@ const Challenges = () => {
                             isActive={activeTab === 'beginner'}
                             onClick={() => setActiveTab('beginner')}
                         >
-                            Beginner
+                            Rites
                         </TabButton>
                         <TabButton
                             isActive={activeTab === 'strength'}

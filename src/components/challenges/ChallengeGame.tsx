@@ -200,7 +200,7 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
                         onComplete={handleScore}
                     />
                 )}
-                {challengeType === 'strength' && challengeId === 'beginner-challenge-1' && (
+                {challengeType === 'balance' && challengeId === 'beginner-challenge-1' && (
                     <WhackAMoleChallenge
                         strength={attributes.strength}
                         difficulty={difficulty}

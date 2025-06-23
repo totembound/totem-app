@@ -139,35 +139,43 @@ const WhackAMoleChallenge: React.FC<WhackAMoleChallengeProps> = ({
   };
 
   // Game timer
-  useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
+useEffect(() => {
+  let timer: NodeJS.Timeout | null = null;
 
-    if (gameState === 'playing' && timeLeft !== null) {
-      timer = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev === null) return null;
-          const newTime = prev - 0.1;
-          if (newTime <= 0) {
-            if (score >= 1000) {
-              setGameState('success');
-              onComplete(1000);
-            } else {
-              setGameState('success');
-              onComplete(score);
-            }
-            return 0;
-          }
-          return newTime;
-        });
-      }, 100);
+  if (gameState === 'playing' && timeLeft !== null) {
+    timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev === null) return null;
+        const newTime = prev - 0.1;
+        if (newTime <= 0) {
+          setGameState('success');
+          // Always win when timer runs out - defer the callback
+          setTimeout(() => {
+            onComplete(Math.floor(score));
+          }, 0);
+          return 0;
+        }
+        return newTime;
+      });
+    }, 100);
+  }
+
+  return () => {
+    if (timer) {
+      clearInterval(timer);
     }
+  };
+}, [gameState, timeLeft, score, onComplete]);
 
-    return () => {
-      if (timer) {
-        clearInterval(timer);
-      }
-    };
-  }, [gameState, timeLeft, score, onComplete, onFail]);
+// Separate effect to check for instant win at 1000 points
+useEffect(() => {
+  if (gameState === 'playing' && score >= 1000) {
+    setGameState('success');
+    setTimeout(() => {
+      onComplete(Math.floor(score));
+    }, 0);
+  }
+}, [gameState, score, onComplete]);
 
   // Mole spawning
   useEffect(() => {

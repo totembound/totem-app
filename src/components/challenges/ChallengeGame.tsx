@@ -13,7 +13,7 @@ import RingDiveChallenge from './RingDiveChallenge';
 import DrumDanceChallenge from './DrumDanceChallenge';
 import RuneCraftingChallenge from './RuneCraftingChallenge';
 import StarMapChallenge from './StarMapChallenge';
-import WhackAMoleChallenge from './WhackAMoleChallenge';
+import WhackAMoleChallenge from './GardenPestPatrolChallenge';
 
 interface ChallengeGameProps {
     challengeId: string;

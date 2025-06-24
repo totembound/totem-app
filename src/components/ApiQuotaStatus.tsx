@@ -40,7 +40,7 @@ const ApiQuotaStatus: React.FC = () => {
     setError(null);
 
     try {
-      const response = await fetch(`${API_GATEWAY_URL}/relay/quota`, {
+      const response = await fetch(`${API_GATEWAY_URL}/relay/quotas`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -96,15 +96,6 @@ const ApiQuotaStatus: React.FC = () => {
     if (percentage >= 80) return "bg-amber-500";
     if (percentage >= 60) return "bg-yellow-500";
     return "bg-green-500";
-  };
-
-  const getTierLabel = (tier: string) => {
-    switch (tier) {
-      case "premium":
-        return "Premium";
-      default:
-        return "Free";
-    }
   };
 
   const formatLastRefresh = () => {
@@ -174,20 +165,10 @@ const ApiQuotaStatus: React.FC = () => {
           API Usage
         </h3>
         <div className="flex items-center space-x-2">
-          <span
-            className={`px-3 py-1 rounded-full text-sm font-medium ${
-              quotaData.tier === "premium"
-                ? "text-purple-600 bg-purple-50 dark:text-purple-400 dark:bg-purple-900/20"
-                : "text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/20"
-            }`}
-          >
-            {getTierLabel(quotaData.tier)}
-          </span>
           <Tooltip content="Refresh quota">
             <button
                 onClick={fetchQuotaStatus}
-                disabled={loading}
-                className="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                className="flex items-center gap-2 p-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg transition-colors"
             >
                 <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             </button>

@@ -71,15 +71,6 @@ const ApiQuotaStatus: React.FC = () => {
 
   useEffect(() => {
     fetchQuotaStatus();
-
-    // Auto-refresh every 30 seconds if component is visible
-    const interval = setInterval(() => {
-      if (document.visibilityState === "visible" && gaslessApiKey) {
-        fetchQuotaStatus();
-      }
-    }, 30000);
-
-    return () => clearInterval(interval);
   }, [gaslessApiKey]);
 
   const getUsagePercentage = () => {

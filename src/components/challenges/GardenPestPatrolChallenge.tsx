@@ -16,14 +16,14 @@ type DifficultySettings = {
   moleSpeed: number;
 };
 
-interface WhackAMoleChallengeProps {
+interface GardenPestControlChallengeProps {
   strength?: number;
   difficulty?: number;
   onComplete?: (score: number) => void;
   onFail?: () => void;
 }
 
-const WhackAMoleChallenge: React.FC<WhackAMoleChallengeProps> = ({
+const GardenPestControlChallenge: React.FC<GardenPestControlChallengeProps> = ({
   strength = 0,
   difficulty = 2,
   onComplete = (score: number) => console.log('Challenge complete:', score),
@@ -239,7 +239,7 @@ useEffect(() => {
                 {/* Hole */}
                 <div className="w-20 h-20 relative">
                   <img
-                    src="/challenges/new-hole.png"
+                    src="/challenges/mole-hole.png"
                     alt="Mole hole"
                     className="w-full h-full object-cover"
                   />
@@ -260,7 +260,7 @@ useEffect(() => {
                       }}
                     >
                       <img
-                        src="/challenges/new-mole.png"
+                        src="/challenges/whack-a-mole.png"
                         alt="Mole"
                         className="w-full h-full object-cover"
                       />
@@ -341,4 +341,4 @@ useEffect(() => {
   );
 };
 
-export default WhackAMoleChallenge;
+export default GardenPestControlChallenge;

@@ -4,7 +4,7 @@ import ChallengePanel from '../challenges/ChallengePanel';
 import { useGame } from '../../contexts/GameContext';
 import { ethers } from 'ethers';
 
-type AffinityType = 'strength' | 'agility' | 'wisdom' | "balance";
+type AffinityType = 'strength' | 'agility' | 'wisdom' | 'balance';
 
 interface Challenge {
     id: string;
@@ -146,7 +146,7 @@ const wisdomChallenges: Challenge[] = [
     }
 ];
 
-const beginnerChallenge: Challenge[] = [
+const balanceChallenges: Challenge[] = [
     {
         id: 'beginner-challenge-1',
         type: 'balance',
@@ -181,11 +181,11 @@ const TabButton: React.FC<TabButtonProps> = ({ isActive, onClick, children }) =>
 
 const Challenges = () => {
     const { challengeState }  = useGame();
-    const [activeTab, setActiveTab] = useState('beginner');
+    const [activeTab, setActiveTab] = useState('balance');
     const [selectedChallenge, setSelectedChallenge] = useState<string | null>(null);
 
     const getSelectedChallenge = (): Challenge | undefined => {
-        const allChallenges = [...strengthChallenges, ...agilityChallenges, ...wisdomChallenges, ...beginnerChallenge];
+        const allChallenges = [...strengthChallenges, ...agilityChallenges, ...wisdomChallenges, ...balanceChallenges];
         return allChallenges.find(c => c.id === selectedChallenge);
     };
 
@@ -197,8 +197,8 @@ const Challenges = () => {
                 return agilityChallenges;
             case 'wisdom':
                 return wisdomChallenges;
-            case 'beginner':
-                return beginnerChallenge;
+            case 'balance':
+                return balanceChallenges;
         }
     };
 
@@ -228,8 +228,8 @@ const Challenges = () => {
                     {/* Challenge Type Tabs */}
                     <div className="flex border-b border-gray-200 dark:border-gray-700 mb-2">
                         <TabButton
-                            isActive={activeTab === 'beginner'}
-                            onClick={() => setActiveTab('beginner')}
+                            isActive={activeTab === 'balance'}
+                            onClick={() => setActiveTab('balance')}
                         >
                             Rites
                         </TabButton>

@@ -139,7 +139,7 @@ const Tooltip: React.FC<TooltipProps> = ({
                         className={`
                             absolute w-2 h-2 
                             border-4 border-gray-900 dark:border-gray-700
-                            bg-gray-900 dark:bg-gray-700 // Add this line
+                            bg-gray-900 dark:bg-gray-700
                             rotate-45 transform
                             ${arrowClasses[computedPosition]}
                         `}

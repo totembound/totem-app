@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import SubscriptionStatus from '../SubscriptionStatus';
 import { TIER_TYPES } from '../../config/constants';
 import * as serviceWorkerRegistration from '../../serviceWorkerRegistration';
+import ApiQuotaStatus from '../ApiQuotaStatus';
 
 const AccountSettings = () => {
     const {
@@ -255,6 +256,10 @@ const AccountSettings = () => {
                             </Link>
                         </div>
                     }
+                    {/* API Usage Card */}
+                    {accountType !== TIER_TYPES.advanced && <>
+                        <ApiQuotaStatus/>
+                    </>}
                     {/* Upgrade Card */}
                     {accountType !== TIER_TYPES.premium && 
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">

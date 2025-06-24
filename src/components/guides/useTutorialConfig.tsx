@@ -18,7 +18,14 @@ export interface TutorialStepConfig {
 
 export interface StepConfig {
   label: string;
-  checkType: 'isConnected' | 'isSignedUp' | 'isTokenApproved' | 'hasAchievement' | 'hasTotems' | 'hasTotemName' | 'hasAchievementProgress' | 'custom';
+  checkType: 'isConnected' 
+    | 'isSignedUp' 
+    | 'isTokenApproved' 
+    | 'hasAchievement' 
+    | 'hasTotems' 
+    | 'hasTotemName' 
+    | 'hasAchievementProgress' 
+    | 'custom';
   checkParam?: string; // For achievement IDs, etc.
   optional?: boolean;
   actionType?: 'link' | 'button' | 'external';
@@ -169,7 +176,7 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
       { 
         label: "Complete all daily attempts", 
         checkType: "hasAchievementProgress",
-        checkParam: "challenge_master",
+        checkParam: "challenge_progression",
         actionType: "link",
         actionUrl: "/challenges",
         actionText: "Complete"
@@ -225,12 +232,25 @@ export const useTutorialConfig = () => {
 
   const hasAchievement = (id: string) => {
     const ach = getAchievementById(ethers.id(id));
-    return ach?.currentCount! > 0;
+    if (!ach) return false;
+
+    // For OneTime achievements, check isCompleted
+    if (ach.achievementType == 0) { // AchievementType.OneTime = 0
+      return ach.isCompleted;
+    }
+
+    // For Progression achievements, check currentCount
+    return ach.currentCount > 0;
   };
 
-   const hasAchievementProgress = (id: string, targetCount: number) => {
+  const hasAchievementProgress = (id: string, targetCount: number) => {
     const achievement = getAchievementById(ethers.id(id));
-    return achievement ? achievement.currentCount >= targetCount : false;
+
+    if (!achievement) {
+      return false;
+    }
+
+    return achievement.currentCount >= targetCount;
   };
 
   const checkStep = (step: StepConfig): boolean => {

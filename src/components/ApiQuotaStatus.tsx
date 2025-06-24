@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useUser } from "../contexts/UserContext";
 import {
   AlertCircle,
@@ -27,13 +27,13 @@ interface QuotaData {
 }
 
 const ApiQuotaStatus: React.FC = () => {
-  const { gaslessApiKey, showError } = useUser();
+  const { gaslessApiKey } = useUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [quotaData, setQuotaData] = useState<QuotaData | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
-  const fetchQuotaStatus = async () => {
+  const fetchQuotaStatus = useCallback(async () => {
     if (!gaslessApiKey) return;
 
     setLoading(true);
@@ -67,11 +67,11 @@ const ApiQuotaStatus: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [gaslessApiKey]);
 
   useEffect(() => {
     fetchQuotaStatus();
-  }, [gaslessApiKey]);
+  }, [gaslessApiKey, fetchQuotaStatus]);
 
   const getUsagePercentage = () => {
     if (!quotaData) return 0;

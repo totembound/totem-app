@@ -166,7 +166,7 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
     requiresTotem: true,
     steps: [
       { 
-        label: "Complete Starter Challenge", 
+        label: "Complete Beginner Challenge", 
         checkType: "hasAchievement",
         checkParam: "challenge_initiate",
         actionType: "link",

@@ -13,7 +13,7 @@ import RingDiveChallenge from './RingDiveChallenge';
 import DrumDanceChallenge from './DrumDanceChallenge';
 import RuneCraftingChallenge from './RuneCraftingChallenge';
 import StarMapChallenge from './StarMapChallenge';
-import WhackAMoleChallenge from './GardenPestPatrolChallenge';
+import GardenPestControlChallenge from './GardenPestPatrolChallenge';
 
 interface ChallengeGameProps {
     challengeId: string;
@@ -201,7 +201,7 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
                     />
                 )}
                 {challengeType === 'balance' && challengeId === 'beginner-challenge-1' && (
-                    <WhackAMoleChallenge
+                    <GardenPestControlChallenge
                         strength={attributes.strength}
                         difficulty={difficulty}
                         onComplete={handleScore}

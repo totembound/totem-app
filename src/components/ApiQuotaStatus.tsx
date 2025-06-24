@@ -156,7 +156,7 @@ const ApiQuotaStatus: React.FC = () => {
           API Usage
         </h3>
         <div className="flex items-center space-x-2">
-          <Tooltip content="Refresh quota">
+          <Tooltip content="Refresh Usage">
             <button
                 onClick={fetchQuotaStatus}
                 className="flex items-center gap-2 p-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg transition-colors"

@@ -18,7 +18,14 @@ export interface TutorialStepConfig {
 
 export interface StepConfig {
   label: string;
-  checkType: 'isConnected' | 'isSignedUp' | 'isTokenApproved' | 'hasAchievement' | 'hasTotems' | 'hasTotemName' | 'custom';
+  checkType: 'isConnected' 
+    | 'isSignedUp' 
+    | 'isTokenApproved' 
+    | 'hasAchievement' 
+    | 'hasTotems' 
+    | 'hasTotemName' 
+    | 'hasAchievementProgress' 
+    | 'custom';
   checkParam?: string; // For achievement IDs, etc.
   optional?: boolean;
   actionType?: 'link' | 'button' | 'external';
@@ -159,12 +166,20 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
     requiresTotem: true,
     steps: [
       { 
-        label: "Complete Starter Challenge", 
-        checkType: "custom" // These would need custom implementation
+        label: "Complete Beginner Challenge", 
+        checkType: "hasAchievement",
+        checkParam: "challenge_initiate",
+        actionType: "link",
+        actionUrl: "/challenges",
+        actionText: "Attempt"
       },
       { 
-        label: "Complete all attempts", 
-        checkType: "custom"
+        label: "Complete all daily attempts", 
+        checkType: "hasAchievementProgress",
+        checkParam: "challenge_progression",
+        actionType: "link",
+        actionUrl: "/challenges",
+        actionText: "Complete"
       }
     ]
   },
@@ -217,7 +232,25 @@ export const useTutorialConfig = () => {
 
   const hasAchievement = (id: string) => {
     const ach = getAchievementById(ethers.id(id));
-    return ach?.currentCount! > 0;
+    if (!ach) return false;
+
+    // For OneTime achievements, check isCompleted
+    if (ach.achievementType == 0) { // AchievementType.OneTime = 0
+      return ach.isCompleted;
+    }
+
+    // For Progression achievements, check currentCount
+    return ach.currentCount > 0;
+  };
+
+  const hasAchievementProgress = (id: string, targetCount: number) => {
+    const achievement = getAchievementById(ethers.id(id));
+
+    if (!achievement) {
+      return false;
+    }
+
+    return achievement.currentCount >= targetCount;
   };
 
   const checkStep = (step: StepConfig): boolean => {
@@ -234,6 +267,8 @@ export const useTutorialConfig = () => {
         return totems?.length! > 0;
       case 'hasTotemName':
         return totems && totems.length > 0 && totems[0]?.attributes?.displayName?.length > 0;
+      case 'hasAchievementProgress':
+        return step.checkParam ? hasAchievementProgress(step.checkParam, 5) : false;
       case 'custom':
         // For custom checks, return false by default
         // These can be overridden in specific implementations

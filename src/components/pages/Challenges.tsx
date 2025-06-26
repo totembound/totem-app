@@ -4,7 +4,7 @@ import ChallengePanel from '../challenges/ChallengePanel';
 import { useGame } from '../../contexts/GameContext';
 import { ethers } from 'ethers';
 
-type AffinityType = 'strength' | 'agility' | 'wisdom';
+type AffinityType = 'strength' | 'agility' | 'wisdom' | 'balance';
 
 interface Challenge {
     id: string;
@@ -146,6 +146,22 @@ const wisdomChallenges: Challenge[] = [
     }
 ];
 
+const balanceChallenges: Challenge[] = [
+    {
+        id: 'beginner-challenge-1',
+        type: 'balance',
+        title: 'Garden Pest Patrol',
+        description: 'Start your totems journey by protecting the garden. Use your instinct and reflexes to smack down those pesky moles where they pop up.',
+        image: '/challenges/first-path-challenge.jpg',
+        requirements: {
+            stage: 1,
+            strength: 1,
+            agility: 1,
+            wisdom: 1
+        }
+    }
+]
+
 interface TabButtonProps {
     isActive: boolean;
     onClick: () => void;
@@ -165,11 +181,11 @@ const TabButton: React.FC<TabButtonProps> = ({ isActive, onClick, children }) =>
 
 const Challenges = () => {
     const { challengeState }  = useGame();
-    const [activeTab, setActiveTab] = useState('strength');
+    const [activeTab, setActiveTab] = useState('balance');
     const [selectedChallenge, setSelectedChallenge] = useState<string | null>(null);
 
     const getSelectedChallenge = (): Challenge | undefined => {
-        const allChallenges = [...strengthChallenges, ...agilityChallenges, ...wisdomChallenges];
+        const allChallenges = [...strengthChallenges, ...agilityChallenges, ...wisdomChallenges, ...balanceChallenges];
         return allChallenges.find(c => c.id === selectedChallenge);
     };
 
@@ -181,6 +197,8 @@ const Challenges = () => {
                 return agilityChallenges;
             case 'wisdom':
                 return wisdomChallenges;
+            case 'balance':
+                return balanceChallenges;
         }
     };
 
@@ -210,6 +228,12 @@ const Challenges = () => {
                     {/* Challenge Type Tabs */}
                     <div className="flex border-b border-gray-200 dark:border-gray-700 mb-2">
                         <TabButton
+                            isActive={activeTab === 'balance'}
+                            onClick={() => setActiveTab('balance')}
+                        >
+                            Rites
+                        </TabButton>
+                        <TabButton
                             isActive={activeTab === 'strength'}
                             onClick={() => setActiveTab('strength')}
                         >
@@ -231,6 +255,7 @@ const Challenges = () => {
 
                     {/* Challenge Info */}
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        {activeTab === 'balance' && "Mark your journey by completing these rites and strengthening your bond with your totems."}
                         {activeTab === 'strength' && "Test your totem's raw power with these strength-based challenges."}
                         {activeTab === 'agility' && "Push your totem's speed and reflexes to the limit."}
                         {activeTab === 'wisdom' && "Challenge your totem's mental acuity and problem-solving abilities."}

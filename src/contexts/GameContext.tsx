@@ -251,11 +251,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             // Get all challenge IDs
             const challengeIds = await challengesContract.getChallengeIds();
-
             // Fetch challenge info and user status for each challenge
             const challengeInfoPromises = challengeIds.map(id => 
                 challengesContract.getChallengeInfo(id)
-            );
+            ); 
             const userStatusPromises = challengeIds.map(id =>
                 challengesContract.getUserChallengeStatus(id, address)
             );

@@ -2,7 +2,7 @@ import React from 'react';
 import { useGame } from '../../contexts/GameContext';
 import { ArrowRight, Clock, GaugeCircle, Heart, Trophy } from 'lucide-react';
 
-type AffinityType = 'strength' | 'agility' | 'wisdom';
+type AffinityType = 'strength' | 'agility' | 'wisdom' | 'balance';
 
 interface ChallengePanelProps {
     id: string;
@@ -36,7 +36,7 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
     const stage = requirements.stage;
     const eligibleTotems = getEligibleTotems(id);
     const meetsRequirements = eligibleTotems.length > 0;
-    const maxExpReward = stage * 10 - 10;
+    const maxExpReward = Math.max(10, stage * 10 - 10);
 
     const getAffinityColor = () => {
         switch(affinityType) {
@@ -176,6 +176,12 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
                             <div className="text-sm px-3 py-1.5 rounded-md bg-blue-50 dark:bg-blue-900/20 
                                 text-blue-700 dark:text-blue-400">
                                 Wisdom: {requirements.wisdom}
+                            </div>
+                        )}
+                        {affinityType === 'balance' && (
+                            <div className="text-sm px-3 py-1.5 rounded-md bg-purple-50 dark:bg-purple-900/20 
+                            text-purple-700 dark:text-purple-400">
+                                None
                             </div>
                         )}
                         <div className="text-sm px-3 py-1.5 rounded-md bg-purple-50 dark:bg-purple-900/20 

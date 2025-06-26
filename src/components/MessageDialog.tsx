@@ -5,6 +5,7 @@ export interface MessageDialogState {
   isOpen: boolean;
   title: string;
   message: string;
+  isRateLimit?: boolean;
 }
 
 interface MessageDialogProps {
@@ -12,6 +13,7 @@ interface MessageDialogProps {
   children: React.ReactNode;
   isOpen: boolean;
   showDismiss: boolean;
+  isRateLimit?: boolean;
   onClose: () => void;
 }
 
@@ -20,6 +22,7 @@ const MessageDialog: React.FC<MessageDialogProps> = ({
   children,
   isOpen,
   showDismiss,
+  isRateLimit = false,
   onClose
 }) => {
   if (!isOpen) return null;
@@ -49,14 +52,26 @@ const MessageDialog: React.FC<MessageDialogProps> = ({
             {children}
           </div>
 
-          {/* Dismiss button */}
-          {showDismiss && 
+          {/* Dismiss button - hide for rate limit errors to prevent retry spam */}
+          {showDismiss && !isRateLimit && 
             <div className="flex justify-end mt-6">
               <button
                 onClick={onClose}
                 className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md text-gray-900 dark:text-gray-100 transition-colors"
               >
-                Dismiss
+                Try Again
+              </button>
+            </div>
+          }
+          
+          {/* Special dismiss button for rate limit errors */}
+          {isRateLimit && 
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 rounded-md text-red-900 dark:text-red-100 transition-colors"
+              >
+                Understood
               </button>
             </div>
           }

@@ -139,43 +139,43 @@ const GardenPestControlChallenge: React.FC<GardenPestControlChallengeProps> = ({
   };
 
   // Game timer
-useEffect(() => {
-  let timer: NodeJS.Timeout | null = null;
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
 
-  if (gameState === 'playing' && timeLeft !== null) {
-    timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev === null) return null;
-        const newTime = prev - 0.1;
-        if (newTime <= 0) {
-          setGameState('success');
-          // Always win when timer runs out - defer the callback
-          setTimeout(() => {
-            onComplete(Math.floor(score));
-          }, 0);
-          return 0;
-        }
-        return newTime;
-      });
-    }, 100);
-  }
-
-  return () => {
-    if (timer) {
-      clearInterval(timer);
+    if (gameState === 'playing' && timeLeft !== null) {
+      timer = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev === null) return null;
+          const newTime = prev - 0.1;
+          if (newTime <= 0) {
+            setGameState('success');
+            // Always win when timer runs out - defer the callback
+            setTimeout(() => {
+              onComplete(Math.floor(score));
+            }, 0);
+            return 0;
+          }
+          return newTime;
+        });
+      }, 100);
     }
-  };
-}, [gameState, timeLeft, score, onComplete]);
 
-// Separate effect to check for instant win at 1000 points
-useEffect(() => {
-  if (gameState === 'playing' && score >= 1000) {
-    setGameState('success');
-    setTimeout(() => {
-      onComplete(Math.floor(score));
-    }, 0);
-  }
-}, [gameState, score, onComplete]);
+    return () => {
+      if (timer) {
+        clearInterval(timer);
+      }
+    };
+  }, [gameState, timeLeft, score, onComplete]);
+
+  // Separate effect to check for instant win at 1000 points
+  useEffect(() => {
+    if (gameState === 'playing' && score >= 1000) {
+      setGameState('success');
+      setTimeout(() => {
+        onComplete(Math.floor(score));
+      }, 0);
+    }
+  }, [gameState, score, onComplete]);
 
   // Mole spawning
   useEffect(() => {
@@ -207,6 +207,30 @@ useEffect(() => {
     }
   }, [gameState]);
 
+  // Define hole positions with perspective scaling and positioning
+  const getHolePosition = (index: number) => {
+    const row = Math.floor(index / 3);
+    const col = index % 3;
+    
+    // Base positions for perspective effect
+    const basePositions = [
+      // Front row (largest, bottom)
+      { left: '20%', top: '80%', scale: 1.0 },
+      { left: '50%', top: '80%', scale: 1.0 },
+      { left: '80%', top: '80%', scale: 1.0 },
+      // Middle row (medium, middle)
+      { left: '25%', top: '55%', scale: 0.85 },
+      { left: '50%', top: '55%', scale: 0.85 },
+      { left: '75%', top: '55%', scale: 0.85 },
+      // Back row (smallest, top)
+      { left: '30%', top: '35%', scale: 0.7 },
+      { left: '50%', top: '35%', scale: 0.7 },
+      { left: '70%', top: '35%', scale: 0.7 },
+    ];
+    
+    return basePositions[index];
+  };
+
   const scoreTicker = (
     <div className="text-gray-300 font-bold">
       Time: {timeLeft ? timeLeft.toFixed(1) : '-'}s | Score: {Math.floor(score)}
@@ -226,63 +250,72 @@ useEffect(() => {
             />
           </div>
 
-          {/* Game grid */}
+          {/* Game grid with perspective positioning */}
           <div
             ref={gameRef}
-            className="absolute inset-0 p-8 grid grid-cols-3 gap-4"
+            className="absolute inset-0"
           >
-            {holes.map((hole) => (
-              <div
-                key={hole.id}
-                className="relative flex items-center justify-center"
-              >
-                {/* Hole */}
-                <div className="w-20 h-20 relative">
-                  <img
-                    src="/challenges/mole-hole.png"
-                    alt="Mole hole"
-                    className="w-full h-full object-cover"
-                  />
-                  
-                  {/* Mole */}
-                  {hole.hasMole && (
-                    <button
-                      className={`absolute transition-all duration-200 hover:scale-105 outline-none
-                        animate-bounce cursor-pointer z-10
-                        ${showPulse ? 'animate-pulse' : ''}`}
-                      onClick={() => handleWhack(hole.id)}
-                      type="button"
-                      style={{
-                        width: '140%',
-                        height: '140%',
-                        top: '-20%',
-                        left: '-20%'
-                      }}
-                    >
-                      <img
-                        src="/challenges/whack-a-mole.png"
-                        alt="Mole"
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  )}
+            {holes.map((hole, index) => {
+              const position = getHolePosition(index);
+              
+              return (
+                <div
+                  key={hole.id}
+                  className="absolute"
+                  style={{
+                    left: position.left,
+                    top: position.top,
+                    transform: `translate(-50%, -50%) scale(${position.scale})`,
+                  }}
+                >
+                  {/* Hole */}
+                  <div className="w-20 h-20 relative">
+                    <img
+                      src="/challenges/mole-hole.png"
+                      alt="Mole hole"
+                      className="w-full h-full object-cover"
+                    />
+                    
+                    {/* Mole */}
+                    {hole.hasMole && (
+                      <button
+                        className={`absolute transition-all duration-200 hover:scale-105 outline-none
+                          animate-bounce cursor-pointer z-10
+                          ${showPulse ? 'animate-pulse' : ''}`}
+                        onClick={() => handleWhack(hole.id)}
+                        type="button"
+                        style={{
+                          width: '140%',
+                          height: '140%',
+                          top: '-20%',
+                          left: '-20%'
+                        }}
+                      >
+                        <img
+                          src="/challenges/whack-a-mole.png"
+                          alt="Mole"
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    )}
 
-                  {/* Hit effect */}
-                  {hole.showEffect && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-8 h-8 bg-yellow-400 rounded-full animate-ping opacity-75"></div>
-                      <div className="absolute text-2xl">💥</div>
+                    {/* Hit effect */}
+                    {hole.showEffect && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-8 h-8 bg-yellow-400 rounded-full animate-ping opacity-75"></div>
+                        <div className="absolute text-2xl">💥</div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Glow effect for active holes */}
+                  {hole.hasMole && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     </div>
                   )}
                 </div>
-
-                {/* Glow effect for active holes */}
-                {hole.hasMole && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

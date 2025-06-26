@@ -295,7 +295,7 @@ useEffect(() => {
             onClick={initializeGame}
             type="button"
           >
-            Start Whack-a-Mole Challenge
+            Start Challenge
           </button>
         )}
 

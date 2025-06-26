@@ -151,7 +151,7 @@ const balanceChallenges: Challenge[] = [
         id: 'beginner-challenge-1',
         type: 'balance',
         title: 'Garden Pest Patrol',
-        description: 'These challenges mark key moments in your totem\'s journey, requiring instinct and spirit to guide the way. Help smack down those pesky moles where they pop up.',
+        description: 'Start your totems journey by protecting the garden. Use your instinct and reflexes to smack down those pesky moles where they pop up.',
         image: '/challenges/first-path-challenge.jpg',
         requirements: {
             stage: 1,
@@ -255,6 +255,7 @@ const Challenges = () => {
 
                     {/* Challenge Info */}
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        {activeTab === 'balance' && "Mark your journey by completing these rites and strengthening your bond with your totems."}
                         {activeTab === 'strength' && "Test your totem's raw power with these strength-based challenges."}
                         {activeTab === 'agility' && "Push your totem's speed and reflexes to the limit."}
                         {activeTab === 'wisdom' && "Challenge your totem's mental acuity and problem-solving abilities."}

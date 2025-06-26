@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
-import { UserContextType, UserContextState, ActionType, ActionTracking, NFTMetadata, TokenActionTrackings, Attribute, AccountType } from '../types/types';
+import { UserContextType, UserContextState, ActionType, ActionTracking, NFTMetadata, TokenActionTrackings, Attribute, AccountType, RateLimitState, RateLimitError } from '../types/types';
 import { CONTRACT_ADDRESSES, createGameContract, createTokenContract, createTotemNFTContract, TotemTokenContract, createAchievementsContract } from '../config/contracts';
 import { IPFS_GATEWAY_URL, STORAGE_KEYS } from '../config/constants';
 import { getSpeciesBaseStats } from '../utils/totems';
@@ -30,7 +30,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isGaslessEnabled: getUserStorage(STORAGE_KEYS.isGaslessEnabled, '', false),
         gaslessApiKey: getUserStorage(STORAGE_KEYS.gaslessApiKey, '', ''),
         accountType: initialAccountType(''),
-        comingSoon: true
+        comingSoon: true,
+        rateLimitState: {
+            isExceeded: false,
+            resetTime: null,
+            currentUsage: 0,
+            dailyLimit: 0
+        }
     });
     const normalizeAddress = (addr: string) => addr.toLowerCase();
     const comingSoon = false;
@@ -42,15 +48,39 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [totemCache, setTotemCache] = useState<Map<string, NFTMetadata>>(new Map());
     const SECONDS_PER_DAY = 86400;
 
-    const showError = (title: string, message: string) => {
+    // Rate limit callback for TransactionService
+    const handleRateLimitUpdate = useCallback((resetTime: string | null, currentUsage: number, dailyLimit: number, isExceeded: boolean) => {
+        setState(prev => ({
+            ...prev,
+            rateLimitState: {
+                resetTime,
+                currentUsage,
+                dailyLimit,
+                isExceeded
+            }
+        }));
+    }, []);
+
+    const showError = (title: string, message: string, isRateLimit = false) => {
         setState(prev => ({
             ...prev,
             messageDialog: {
                 isOpen: true,
                 title,
-                message
+                message,
+                isRateLimit
             }
         }));
+    };
+
+    // Helper function to handle rate limit errors consistently
+    const handleRateLimitError = (error: RateLimitError) => {
+        handleRateLimitUpdate(error.resetTime, error.currentUsage, error.dailyLimit, true);
+        showError(
+            'API Limit Reached', 
+            'You have reached your daily API usage limit. Your quota will reset at midnight UTC.', 
+            true
+        );
     };
     
     const hideError = () => {
@@ -846,6 +876,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 canSpendCurrency,
                 tutorialWizardVisible: state.tutorialWizardVisible,
                 setTutorialWizardVisible,
+                rateLimitState: state.rateLimitState,
+                handleRateLimitUpdate,
+                handleRateLimitError,
             }}
         >
             {children}

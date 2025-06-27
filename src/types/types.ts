@@ -15,7 +15,7 @@ export interface UserContextType extends UserContextState {
     approveTokens: () => Promise<boolean>;
     setApprovalMessageDismissed: (dismissed: boolean) => void;
     updateAchievementStatus: () => Promise<void>;
-    showError: (title: string, message: string) => void;
+    showError: (title: string, message: string, isRateLimit?: boolean) => void;
     hideError: () => void;
     setGaslessEnabled: (enabled: boolean) => void;
     setGaslessApiKey: (apiKey: string) => void;
@@ -23,6 +23,8 @@ export interface UserContextType extends UserContextState {
     canSpendTotem: (amount: number) => boolean;
     canSpendCurrency: (amount: number) => boolean;
     setTutorialWizardVisible: (visible: boolean) => void;
+    handleRateLimitUpdate: (resetTime: string | null, currentUsage: number, dailyLimit: number, isExceeded: boolean) => void;
+    handleRateLimitError: (error: RateLimitError) => void;
 }
 
 export interface TotemUpdate {
@@ -34,6 +36,13 @@ export interface TotemUpdate {
 }
 
 export type AccountType = 'Free' | 'Premium' | 'Advanced';
+
+export interface RateLimitState {
+    isExceeded: boolean;
+    resetTime: string | null;
+    currentUsage: number;
+    dailyLimit: number;
+}
 
 export interface UserContextState {
     // user state
@@ -58,6 +67,8 @@ export interface UserContextState {
     accountType: AccountType;
     comingSoon: boolean;
     tutorialWizardVisible: boolean;
+    // rate limiting
+    rateLimitState: RateLimitState;
 }
 
 export enum Species {
@@ -429,6 +440,20 @@ export interface TransactionResult {
   data?: any;
 }
 
+export class RateLimitError extends Error {
+  public readonly resetTime: string | null;
+  public readonly currentUsage: number;
+  public readonly dailyLimit: number;
+  
+  constructor(message: string, resetTime: string | null = null, currentUsage = 0, dailyLimit = 0) {
+    super(message);
+    this.name = 'RateLimitError';
+    this.resetTime = resetTime;
+    this.currentUsage = currentUsage;
+    this.dailyLimit = dailyLimit;
+  }
+}
+
 export type GameState = 'ready' | 'playing' | 'success' | 'failed';
 
 export interface Notification {
@@ -505,7 +530,7 @@ export interface Step {
   label: string;
   complete: boolean;
   optional?: boolean;
-  isStepComplete?: () => {};
+  isStepComplete?: () => boolean;
   actionId?: string;
   actionType?: "button" | "link" | "external";
   actionUrl?: string;

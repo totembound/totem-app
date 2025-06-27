@@ -96,6 +96,7 @@ export const MainLayout: React.FC = () => {
             <MessageDialog
                 isOpen={messageDialog.isOpen}
                 title={messageDialog.title}
+                isRateLimit={messageDialog.isRateLimit}
                 showDismiss={true}
                 onClose={hideError}
             >

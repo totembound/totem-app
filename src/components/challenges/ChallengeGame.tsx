@@ -3,7 +3,7 @@ import { useGame } from '../../contexts/GameContext';
 import { useUser } from '../../contexts/UserContext';
 import BoulderBreakerChallenge from './BoulderBreakerChallenge';
 import TotemWrestlingChallenge from './TotemWrestlingChallenge';
-import { ActionType, ChallengeInfo, TotemAttributes } from '../../types/types';
+import { ActionType, ChallengeInfo, TotemAttributes, RateLimitError } from '../../types/types';
 import { ethers } from 'ethers';
 import ExperienceEffect from '../effects/ExperienceEffect';
 import RockFallDefenseChallenge from './RockFallDefenseChallenge';
@@ -41,7 +41,7 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
     difficulty,
     onClose
 }) => {
-    const { updateTotem } = useUser();
+    const { updateTotem, handleRateLimitError } = useUser();
     const { completeChallenge, challengeState } = useGame();
     const [currentScore, setCurrentScore] = useState<number>(0);
     const [bestScore, setBestScore] = useState<number>(0);
@@ -111,7 +111,12 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
         }
         catch (error) {
             console.error('Complete challenge failed:', error);
-            setError('Failed to submit challenge');
+            
+            if (error instanceof RateLimitError) {
+                handleRateLimitError(error);
+            } else {
+                setError('Failed to submit challenge');
+            }
             setIsSubmitting(false);
         }
     };

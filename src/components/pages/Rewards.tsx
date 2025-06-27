@@ -118,7 +118,7 @@ const Rewards = () => {
             <ul className="space-y-1">
                 <li>• Base: 100 TOTEM</li>
                 <li>• Bonus: Up to 100%</li>
-                <li>• Grace Period: 1 day</li>
+                <li>• Claim anytime during your week</li>
             </ul>
         </div>
 
@@ -266,7 +266,7 @@ const Rewards = () => {
                             <ul className="space-y-1">
                                 <li>• Base: 10 TOTEM</li>
                                 <li>• Bonus: Up to 100%</li>
-                                <li>• Grace Period: Until 02:00 UTC</li>
+                                <li>• Claim anytime during your day</li>
                             </ul>
                         </div>
 

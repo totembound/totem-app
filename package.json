@@ -4,7 +4,10 @@
   "description": "Totembound is a blockchain-based NFT game where players raise, train, and evolve mystical owl companions. Players connect to their totemic spirit animals, unlocking wisdom, rewards, and governance roles in an immersive journey of growth and discovery.",
   "private": true,
   "dependencies": {
-    "ethers": "6.8.0",
+    "@babel/helpers": "^7.26.10",
+    "@babel/runtime": "^7.26.10",
+    "ethers": "^6.14.4",
+    "http-proxy-middleware": "^3.0.5",
     "lucide-react": "^0.474.0",
     "posthog-js": "^1.239.1",
     "react": "^18.2.0",
@@ -97,7 +100,7 @@
     "helmet": "^8.0.0",
     "jest-environment-jsdom": "^29.7.0",
     "lodash": "^4.17.21",
-    "postcss": "^8.4.32",
+    "postcss": "^8.4.41",
     "ts-jest": "^29.2.5",
     "typescript": "^4.9.5"
   }

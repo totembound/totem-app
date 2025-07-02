@@ -23,6 +23,8 @@ export interface UserContextType extends UserContextState {
     canSpendTotem: (amount: number) => boolean;
     canSpendCurrency: (amount: number) => boolean;
     setTutorialWizardVisible: (visible: boolean) => void;
+    trackLink: (linkId: string, metadata?: Record<string, any>) => void;
+    hasClickedLink: (linkId: string) => boolean;
 }
 
 export interface TotemUpdate {
@@ -58,6 +60,7 @@ export interface UserContextState {
     accountType: AccountType;
     comingSoon: boolean;
     tutorialWizardVisible: boolean;
+    linkTracking: Record<string, boolean>;
 }
 
 export enum Species {
@@ -510,6 +513,8 @@ export interface Step {
   actionType?: "button" | "link" | "external";
   actionUrl?: string;
   actionText?: string;
+  checkType?: string;
+  checkParam?: string;
   imageUrl?: string;
 }
 

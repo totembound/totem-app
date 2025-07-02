@@ -30,7 +30,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isGaslessEnabled: getUserStorage(STORAGE_KEYS.isGaslessEnabled, '', false),
         gaslessApiKey: getUserStorage(STORAGE_KEYS.gaslessApiKey, '', ''),
         accountType: initialAccountType(''),
-        comingSoon: true
+        comingSoon: true,
+        linkTracking: {}
     });
     const normalizeAddress = (addr: string) => addr.toLowerCase();
     const comingSoon = false;
@@ -41,6 +42,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [totemError, setTotemError] = useState<string | null>(null);
     const [totemCache, setTotemCache] = useState<Map<string, NFTMetadata>>(new Map());
     const SECONDS_PER_DAY = 86400;
+    const [linkTracking, setLinkTracking] = useState<Record<string, any>>(
+        getUserStorage(STORAGE_KEYS.linkTracking, state.address || '', {})
+    );
 
     const showError = (title: string, message: string) => {
         setState(prev => ({
@@ -92,6 +96,28 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         return false;
     }
+
+    const trackLink = useCallback((linkId: string, metadata?: Record<string, any>) => {
+        const now = Date.now();
+
+        setLinkTracking(prev => {
+            const updated = {
+                ...prev,
+                [linkId]: true
+            };
+
+            // Save to localStorage
+            if (state.address) {
+                setUserStorage(STORAGE_KEYS.linkTracking, state.address, updated);
+            }
+
+            return updated;
+        });
+    }, [state.address]);
+
+    const hasClickedLink = useCallback((linkId: string) => {
+        return linkTracking[linkId];
+    }, [linkTracking]);
 
     const fetchTotems = useCallback(async () => {
         if (!state.provider || !state.address || !state.isConnected || !state.isSignedUp) return;
@@ -592,6 +618,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setState(prev => ({ ...prev, tutorialWizardVisible: visible }));
     };
 
+    // Load link tracking data when address changes
+    useEffect(() => {
+        if (state.address) {
+            const userLinkTracking = getUserStorage(STORAGE_KEYS.linkTracking, state.address, {});
+            setLinkTracking(userLinkTracking);
+        } else {
+            setLinkTracking({});
+        }
+    }, [state.address]);
+
     // Setup listeners only once on mount
     useEffect(() => {
         if (window.ethereum) {
@@ -846,6 +882,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 canSpendCurrency,
                 tutorialWizardVisible: state.tutorialWizardVisible,
                 setTutorialWizardVisible,
+                linkTracking,
+                trackLink,
+                hasClickedLink
             }}
         >
             {children}

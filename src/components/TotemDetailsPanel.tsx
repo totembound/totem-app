@@ -2,7 +2,7 @@ import React from 'react';
 import { Lock, Unlock, MapPin } from 'lucide-react';
 import { Species, Color, Rarity } from '../types/types';
 import { AVAILABLE_SPECIES } from '../config/constants';
-import { formatTimeRemaining } from '../utils/formats';
+import { formatTimeRemaining, splitWords } from '../utils/formats';
 import { getTotemAffinityIcon, getTotemDomainIcon } from '../utils/totems';
 
 interface TotemDetailsPanelProps {
@@ -70,7 +70,7 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
                     <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600 dark:text-gray-400">Color</span>
                         <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {Color[color].replace(/([A-Z])/g, ' $1').trim()}
+                            {splitWords(Color[color])}
                         </span>
                     </div>
                     

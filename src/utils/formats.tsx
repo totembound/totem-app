@@ -21,3 +21,8 @@ export const formatTimeRemaining = (endTime: number): string => {
     
     return `${hours}h ${minutes}m remaining`;
 };
+
+export const splitWords = (text: string): string => {
+    // Split words and add spaces between them
+    return text.replace(/([A-Z])/g, ' $1').trim();
+};

@@ -184,6 +184,17 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
     experienceReward: 200,
     requiresTotem: true,
     steps: [
+      {
+        label: "Learn How to do Challenges",
+        checkType: "hasClickedLink",
+        checkParam: "guides_challenge_link",
+        actionType: "link",
+        actionUrl: "/guides/how-to",
+        linkState: {
+          openSection: 6
+        },
+        actionText: "Learn"
+      },
       { 
         label: "Complete Beginner Challenge", 
         checkType: "hasAchievement",
@@ -252,6 +263,17 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
     experienceReward: 0,
     requiresTotem: false,
     steps: [
+      {
+        label: "Learn How to Embark on a Expedition",
+        checkType: "hasClickedLink",
+        checkParam: "guides_expedition_link",
+        actionType: "link",
+        actionUrl: "/guides/how-to",
+        linkState: {
+          openSection: 8
+        },
+        actionText: "Learn"
+      },
       {
         label: "Recruit the Rest of Your Team",
         checkType: "hasAchievementProgress",

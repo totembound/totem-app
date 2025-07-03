@@ -79,7 +79,7 @@ export const AVAILABLE_SPECIES = [
     locationId: 14,
     affinity: 'Agility',
     domain: 'Earth',
-    available: false,
+    available: true,
     image: '/totems/deerplacecard.png'
   }, {
     id: 6, name: 'Woodpecker', species: Species.Woodpecker, 

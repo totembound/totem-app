@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { NFTMetadata, ActionType, TotemAttributes, ActionTracking } from '../types/types';
+import { NFTMetadata, ActionType, TotemAttributes, ActionTracking, RateLimitError } from '../types/types';
 import { useUser } from '../contexts/UserContext';
 import { useGame } from '../contexts/GameContext';
 import { useTransactionService } from '../hooks/useTransactionService';
@@ -38,7 +38,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     currentIndex,
     canUseAction: externalCanUseAction,
 }) => {
-    const { totems, updateTotem, updateTotemEvolved, totemBalance, isGaslessEnabled } = useUser();
+    const { totems, updateTotem, updateTotemEvolved, totemBalance, isGaslessEnabled, handleRateLimitError } = useUser();
     const { actionConfigs, canUseAction: gameCanUseAction, getActionStatus, getNextAvailableWindow, isTotemAvailable, expeditionState } = useGame();
     const [isLoading, setIsLoading] = useState<ActionType | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -97,7 +97,12 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
         }
         catch (err) {
             console.error(`Error with ${ActionType[action]}:`, err);
-            setError(`Failed to ${ActionType[action].toLowerCase()}. Please try again.`);
+            
+            if (err instanceof RateLimitError) {
+                handleRateLimitError(err);
+            } else {
+                setError(`Failed to ${ActionType[action].toLowerCase()}. Please try again.`);
+            }
         }
         finally {
             setIsLoading(null);

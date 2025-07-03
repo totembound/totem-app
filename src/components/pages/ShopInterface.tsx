@@ -14,6 +14,7 @@ import React from 'react';
 import SpecialOffers from '../shop/SpecialOffers';
 import { useTransactionService } from '../../hooks/useTransactionService';
 import { AVAILABLE_SPECIES, IPFS_GATEWAY_URL, TOTEM_COST } from '../../config/constants';
+import { RateLimitError } from '../../types/types';
 
 const tokenPackages = [
   { amount: 100, cost: 1, popular: false },
@@ -27,7 +28,7 @@ const ShopInterface = () => {
   const [loading, setLoading] = useState(false);
   const [purchasingTotems, setPurchasingTotems] = useState<{[key: number]: boolean}>({});
   const [error, setError] = useState('');
-  const { provider, updateBalances, addTotem, showError, isGaslessEnabled, canSpendTotem, canSpendCurrency } = useUser();
+  const { provider, updateBalances, addTotem, showError, handleRateLimitError, isGaslessEnabled, canSpendTotem, canSpendCurrency } = useUser();
   const { buyTokens } = useTotemGame();
   const [purchasedTotem, setPurchasedTotem] = useState<any>(null);
   const availableSpecies = AVAILABLE_SPECIES;
@@ -99,7 +100,11 @@ const ShopInterface = () => {
           addTotem(tokenId);
       }
       catch (err) {
-          showError("Error", "Failed to purchase totem. Try again shortly.");
+          if (err instanceof RateLimitError) {
+              handleRateLimitError(err);
+          } else {
+              showError("Error", "Failed to purchase totem. Try again shortly.");
+          }
           console.error(err);
       }
       finally {

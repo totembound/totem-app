@@ -11,7 +11,8 @@ export const useTransactionService = (initialConfig: TransactionConfig = {}) => 
         address, 
         isGaslessEnabled, 
         gaslessApiKey, 
-        accountType 
+        accountType,
+        handleRateLimitUpdate
     } = useUser();
 
     // Use useMemo to create the transaction service
@@ -32,14 +33,15 @@ export const useTransactionService = (initialConfig: TransactionConfig = {}) => 
         };
 
         // Create and return new TransactionService
-        return new TransactionService(provider, signer, address, fullConfig);
+        return new TransactionService(provider, signer, address, fullConfig, handleRateLimitUpdate);
     }, [
         provider, 
         signer, 
         address, 
         isGaslessEnabled, 
         gaslessApiKey, 
-        accountType
+        accountType,
+        handleRateLimitUpdate
     ]);
 
     return service;

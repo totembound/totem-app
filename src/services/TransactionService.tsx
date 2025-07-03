@@ -2,7 +2,7 @@
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESSES, createChallengesContract, createExpeditionsContract, FORWARDER_ABI } from '../config/contracts';
 import { createGameContract, createTokenContract, createTotemNFTContract, createShopContract, createRewardsContract } from '../config/contracts';
-import { ContractEvent, ContractType, ForwardRequest, TransactionConfig, TransactionResult } from '../types/types';
+import { ContractEvent, ContractType, ForwardRequest, TransactionConfig, TransactionResult, RateLimitError } from '../types/types';
 
 export class TransactionService {
     private provider: ethers.BrowserProvider;
@@ -10,18 +10,21 @@ export class TransactionService {
     private contracts: Map<string, ethers.Contract>;
     private config: TransactionConfig;
     private userAddress: string;
+    private onRateLimitUpdate?: (resetTime: string | null, currentUsage: number, dailyLimit: number, isExceeded: boolean) => void;
 
     constructor(
         provider: ethers.BrowserProvider,
         signer: ethers.JsonRpcSigner,
         userAddress: string,
-        config: TransactionConfig
+        config: TransactionConfig,
+        onRateLimitUpdate?: (resetTime: string | null, currentUsage: number, dailyLimit: number, isExceeded: boolean) => void
     ) {
         this.provider = provider;
         this.signer = signer;
         this.userAddress = userAddress.toLowerCase();
         this.config = config;
         this.contracts = new Map();
+        this.onRateLimitUpdate = onRateLimitUpdate;
     }
 
     // Initialize contract instances
@@ -322,8 +325,26 @@ export class TransactionService {
                 })
             });
 
+            // Parse rate limit information from response headers
+            const resetTime = response.headers.get('X-RateLimit-Reset-Time');
+            const currentUsage = parseInt(response.headers.get('X-RateLimit-Current') || '0');
+            const dailyLimit = parseInt(response.headers.get('X-RateLimit-Limit') || '0');
+            const remaining = parseInt(response.headers.get('X-RateLimit-Remaining') || '0');
+
+            // Update rate limit state if callback is provided
+            if (this.onRateLimitUpdate && dailyLimit > 0) {
+                this.onRateLimitUpdate(resetTime, currentUsage, dailyLimit, remaining <= 0);
+            }
+
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
+                
+                if (response.status === 429) {
+                    // Rate limit exceeded - create specific error with rate limit info
+                    const message = errorData.error || 'Daily API limit exceeded. Please wait until midnight UTC for reset.';
+                    throw new RateLimitError(message, resetTime, currentUsage, dailyLimit);
+                }
+                
                 throw new Error(`Relay request failed: ${errorData.error || response.statusText}`);
             }
 

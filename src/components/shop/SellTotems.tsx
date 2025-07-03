@@ -7,7 +7,7 @@ import { Pagination } from '../layouts/Pagination';
 import { getRarityBadgeColor } from '../../utils/totems';
 import { useTransactionService } from '../../hooks/useTransactionService';
 import { useGame } from '../../contexts/GameContext';
-import { formatTimeRemaining } from '../../utils/formats';
+import { formatTimeRemaining, splitWords } from '../../utils/formats';
 import { IPFS_GATEWAY_URL } from '../../config/constants';
 
 interface SellTotemCardProps {
@@ -42,9 +42,10 @@ const SellTotemCard: React.FC<SellTotemCardProps> = ({
     const timeRemaining = expeditionEndTime - now;
     const isComplete = timeRemaining <= 0;
     const expeditionMessage = isComplete ? 'Expedition complete' : `${formatTimeRemaining(expeditionEndTime)}`;
-    
+    const totemColor = splitWords(Color[totem.attributes.color]);
+
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-full">
             {/* Totem Image */}
             <div className="aspect-square bg-gray-100 dark:bg-gray-700 relative">
                 {/* Expedition Status Badge */}
@@ -80,18 +81,18 @@ const SellTotemCard: React.FC<SellTotemCardProps> = ({
             </div>
 
             {/* Totem Info */}
-            <div className="p-4">
+            <div className="p-4 flex flex-col h-full">
                 <div className="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
+                    <div className="min-w-0 mr-2">
+                        <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 truncate" title={totem.attributes.displayName || totem.name}>
                             {totem.attributes.displayName || totem.name}
                         </h3>
                         <p className="text-gray-600 dark:text-gray-400">
-                            {Color[totem.attributes.color]} {Species[totem.attributes.species]}
+                            {totemColor} {Species[totem.attributes.species]}
                         </p>
                     </div>
                     <div className="flex flex-col items-end gap-1">
-                        <span className="text-sm bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 px-2 py-1 rounded">
+                        <span className="text-sm bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 text-nowrap px-2 py-1 rounded">
                             Stage {totem.attributes.stage + 1}
                         </span>
                         <span className={`text-sm px-2 py-1 rounded border ${getRarityBadgeColor(totem.attributes.rarity)}`}>
@@ -111,19 +112,22 @@ const SellTotemCard: React.FC<SellTotemCardProps> = ({
                     </div>
                 </div>
 
-                <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                    <div className="flex justify-between items-center mb-2">
-                        <span className="text-gray-600 dark:text-gray-400">Sell Price</span>
-                        <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                            {sellValue.toLocaleString()} TOTEM
-                        </span>
+                {/* Spacer to push bottom content down */}
+                <div className="flex-grow">
+                    <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-gray-600 dark:text-gray-400">Sell Price</span>
+                            <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                                {sellValue.toLocaleString()} TOTEM
+                            </span>
+                        </div>
                     </div>
                 </div>
 
                 <button
                     onClick={() => onSellClick(totem, sellValue)}
                     disabled={isOnExpedition}
-                    className={`w-full py-2 px-4 rounded font-semibold transition-colors
+                    className={`w-full py-2 px-4 rounded font-semibold transition-colors mt-auto
                         ${isOnExpedition 
                             ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed' 
                             : 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600'

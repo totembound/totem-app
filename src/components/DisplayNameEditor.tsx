@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Check, X, Loader2 } from 'lucide-react';
 import { useGame } from '../contexts/GameContext';
 import { useUser } from '../contexts/UserContext';
+import { RateLimitError } from '../types/types';
 
 interface DisplayNameEditorProps {
     tokenId: bigint;
@@ -16,7 +17,7 @@ const DisplayNameEditor: React.FC<DisplayNameEditorProps> = ({
 }) => {
     const [newName, setNewName] = useState(currentName || '');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { showError } = useUser();
+    const { showError, handleRateLimitError } = useUser();
     const { setDisplayName } = useGame();
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -37,7 +38,12 @@ const DisplayNameEditor: React.FC<DisplayNameEditorProps> = ({
         }
         catch (err) {
             console.error('Error updating name:', err);
-            showError("Error", "Failed to update name. Try again shortly.");
+            
+            if (err instanceof RateLimitError) {
+                handleRateLimitError(err);
+            } else {
+                showError("Error", "Failed to update name. Try again shortly.");
+            }
         }
         finally {
             setIsSubmitting(false);

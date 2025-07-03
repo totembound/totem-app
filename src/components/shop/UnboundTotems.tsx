@@ -8,6 +8,7 @@ import { Pagination } from '../layouts/Pagination';
 import { getRarityBadgeColor } from '../../utils/totems';
 import { useTransactionService } from '../../hooks/useTransactionService';
 import { IPFS_GATEWAY_URL } from '../../config/constants';
+import { splitWords } from '../../utils/formats';
 
 interface UnboundTotem {
     tokenId: bigint;
@@ -37,6 +38,7 @@ const UnboundTotemCard: React.FC<{
     const purchasePrice = convertPrice(totem.sellPrice) + 100;
     const [imageUri, setImageUri] = useState('');
     const disabledBuyButton = isPurchasing || !canSpendTotem(purchasePrice);
+    const totemColor = splitWords(Color[totem.color]);
 
     useEffect(() => {
         const getImageUri = async () => {
@@ -54,7 +56,7 @@ const UnboundTotemCard: React.FC<{
     }, [totem]);
     
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-full">
             {/* Totem Image */}
             <div className="aspect-square bg-gray-100 dark:bg-gray-700 relative">
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -75,18 +77,18 @@ const UnboundTotemCard: React.FC<{
             </div>
 
             {/* Totem Info */}
-            <div className="p-4">
+            <div className="p-4 flex flex-col h-full">
                 <div className="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
-                            {totem.displayName || `${Color[totem.color]} ${Species[totem.species]}`}
+                    <div className="min-w-0 mr-2">
+                        <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 truncate" title={totem.displayName || `${Color[totem.color]} ${Species[totem.species]}`}>
+                            {totem.displayName || `${totemColor} ${Species[totem.species]}`}
                         </h3>
                         <p className="text-gray-600 dark:text-gray-400">
-                            {Color[totem.color]} {Species[totem.species]}
+                            {totemColor} {Species[totem.species]}
                         </p>
                     </div>
                     <div className="flex flex-col items-end gap-1">
-                        <span className="text-sm bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 px-2 py-1 rounded">
+                        <span className="text-sm bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 text-nowrap px-2 py-1 rounded">
                             Stage {Number(totem.stage) + 1}
                         </span>
                         <span className={`text-sm px-2 py-1 rounded border ${getRarityBadgeColor(Number(totem.rarity))}`}>
@@ -107,12 +109,15 @@ const UnboundTotemCard: React.FC<{
                     </div>
                 </div>
 
-                <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                    <div className="flex justify-between items-center mb-2">
-                        <span className="text-gray-600 dark:text-gray-400">Purchase Price</span>
-                        <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                            {purchasePrice.toLocaleString()} TOTEM
-                        </span>
+                {/* Spacer to push bottom content down */}
+                <div className="flex-grow">
+                    <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-gray-600 dark:text-gray-400">Purchase Price</span>
+                            <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                                {purchasePrice.toLocaleString()} TOTEM
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -121,7 +126,7 @@ const UnboundTotemCard: React.FC<{
                     disabled={disabledBuyButton}
                     className="w-full bg-purple-600 text-white py-2 px-4 rounded font-semibold 
                         hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 
-                        transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-auto"
                 >
                     {isPurchasing && <Loader2 className="w-4 h-4 animate-spin" />}
                     {isPurchasing ? 'Purchasing...' : 'Buy Totem'}
@@ -143,7 +148,8 @@ const UnboundTotems: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
     const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-    
+    const totemColor = splitWords(Color[selectedTotem?.color || 0]);
+
     const txService = useTransactionService({
         gaslessEnabled: isGaslessEnabled,
         waitForConfirmation: true
@@ -292,7 +298,7 @@ const UnboundTotems: React.FC = () => {
                         <p className="mb-2">
                             Are you sure you want to purchase this{' '}
                             <span className="font-semibold text-gray-900 dark:text-gray-100">
-                                {selectedTotem?.displayName || `${Color[selectedTotem?.color || 0]} ${Species[selectedTotem?.species || 0]}`}
+                                {selectedTotem?.displayName || `${totemColor} ${Species[selectedTotem?.species || 0]}`}
                             </span>{' '}
                             for <b>{(convertPrice(selectedTotem?.sellPrice!) + 100).toLocaleString()} TOTEM</b>?
                         </p>

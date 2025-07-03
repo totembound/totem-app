@@ -165,13 +165,14 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
                 {!complete && step.actionType && (
                 <div className="h-6 mr-1">
                     {step.actionType === 'link' && step.actionUrl && (
-                    <Link
+                      <Link
                         to={step.actionUrl}
+                        state={step.linkState} // NEW: Pass the state
                         className="text-sm text-purple-500 hover:text-purple-400 hover:underline font-bold"
-                        onClick={() => handleLinkClick(step)}  // Track if this step uses hasClickedLink
-                    >
+                        onClick={() => handleLinkClick(step)}
+                      >
                         {step.actionText}
-                    </Link>
+                      </Link>
                     )}
                     
                     {step.actionType === 'button' && step.actionId && (

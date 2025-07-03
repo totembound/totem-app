@@ -539,6 +539,7 @@ export interface Step {
   actionText?: string;
   checkType?: string;
   checkParam?: string;
+  linkState?: Record<string, any>;
   imageUrl?: string;
 }
 

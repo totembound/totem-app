@@ -110,16 +110,19 @@ export default function TutorialPanel({
               {step.label}
             </span>
             
-            {!complete && step.actionType === 'link' && step.actionUrl && (
-              <Link className="ml-2 text-purple-500 hover:text-purple-400 hover:underline font-bold"
-                onClick={() => {
-                  setTutorialWizardVisible(true);
-                  handleLinkClick(step);  // Track if this step uses hasClickedLink
-                }}
-                to={step.actionUrl!}>
-                {step.actionText}
-              </Link>
-            )}
+              {!complete && step.actionType === 'link' && step.actionUrl && (
+                <Link
+                  className="ml-2 text-purple-500 hover:text-purple-400 hover:underline font-bold"
+                  to={step.actionUrl}
+                  state={step.linkState}
+                  onClick={() => {
+                    setTutorialWizardVisible(true);
+                    handleLinkClick(step);
+                  }}
+                >
+                  {step.actionText}
+                </Link>
+              )}
 
             {!complete && step.actionType === 'button' && step.actionId && (
               <button

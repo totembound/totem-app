@@ -33,6 +33,7 @@ export interface StepConfig {
   actionType?: 'link' | 'button' | 'external';
   actionId?: string;
   actionUrl?: string;
+  linkState?: Record<string, any>;
   actionText?: string;
 }
 
@@ -212,6 +213,17 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
     experienceReward: 250,
     requiresTotem: true,
     steps: [
+      {
+        label: "Learn How to Evolve Your Totems",
+        checkType: "hasClickedLink",
+        checkParam: "guides_evolve_link",
+        actionType: "link",
+        actionUrl: "/guides/how-to",
+        linkState: {
+          openSection: 7
+        },
+        actionText: "Learn"
+      },
       { 
         label: "Trigger Stage Evolution", 
         checkType: "hasAchievement",
@@ -364,6 +376,7 @@ export const useTutorialConfig = () => {
         actionText: stepConfigItem.actionText,
         checkType: stepConfigItem.checkType,
         checkParam: stepConfigItem.checkParam,
+        linkState: stepConfigItem.linkState,
         isStepComplete: () => checkStep(stepConfigItem)
       } as Step;
     })

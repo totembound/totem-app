@@ -30,7 +30,7 @@ export interface StepConfig {
   checkParam?: string; // For achievement IDs, etc.
   checkParamNum?: number; // For achievement progress, etc.
   optional?: boolean;
-  actionType?: 'link' | 'button' | 'external';  // NEW: Added 'external' for external links
+  actionType?: 'link' | 'button' | 'external';
   actionId?: string;
   actionUrl?: string;
   actionText?: string;
@@ -250,7 +250,7 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
         actionText: "Embark"
       },
       { 
-        label: "Join Discord", 
+        label: "Join Discord (optional)", 
         checkType: "hasClickedLink",
         checkParam: "discord_join",
         actionType: "external",

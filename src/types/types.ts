@@ -69,6 +69,8 @@ export interface UserContextState {
     accountType: AccountType;
     comingSoon: boolean;
     tutorialWizardVisible: boolean;
+    linkTracking: Record<string, boolean>;
+    rateLimitState: RateLimitState;
 }
 
 export enum Species {

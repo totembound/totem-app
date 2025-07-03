@@ -31,7 +31,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         gaslessApiKey: getUserStorage(STORAGE_KEYS.gaslessApiKey, '', ''),
         accountType: initialAccountType(''),
         comingSoon: true,
-        linkTracking: {}
+        linkTracking: {},
         rateLimitState: {
             isExceeded: false,
             resetTime: null,
@@ -914,7 +914,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setTutorialWizardVisible,
                 linkTracking,
                 trackLink,
-                hasClickedLink
+                hasClickedLink,
                 rateLimitState: state.rateLimitState,
                 handleRateLimitUpdate,
                 handleRateLimitError,

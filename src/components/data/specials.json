@@ -93,6 +93,17 @@
         "month": 6
       },
       {
+        "id": "july-2025",
+        "bundleId": 3,
+        "name": "Blazebeak Woodpecker (Ember Red)",
+        "description": "A legendary fire-spirit, its drumming reignites the heart of the forest.",
+        "baseSpecies": "Woodpecker",
+        "price": 250,
+        "tokenAmount": 10000,
+        "image": "https://ipfs.totembound.com/ipfs/bafybeic7w6gew3uvawpqyqhocq64btwulvvyx4y7j6d6jb6zgc4jcbdkoi",
+        "month": 7
+      },
+      {
         "id": "december-2025",
         "bundleId": 3,
         "name": "Everfrost Owl (Starlit Silver)",

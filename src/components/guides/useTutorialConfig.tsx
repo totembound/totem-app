@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { useUser } from '../../contexts/UserContext';
 import { useAchievements } from '../../contexts/AchievementsContext';
-import { Step, TutorialStep } from '../../types/types';
+import { Step, TutorialStep, Species } from '../../types/types';
 
 // Pure configuration without function references
 export interface TutorialStepConfig {
@@ -139,6 +139,14 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
     experienceReward: 150,
     requiresTotem: true,
     steps: [
+      {
+        label: "Learn More About Your Chosen Totem",
+        checkType: "hasClickedLink",
+        checkParam: "habitat_totem_link",
+        actionType: "link",
+        actionUrl: "/guides/codex/totems/{species}",
+        actionText: "Learn"
+      },
       { 
         label: "Feed your Totem", 
         checkType: "hasAchievement", 
@@ -327,23 +335,40 @@ export const useTutorialConfig = () => {
     }
   };
 
+  const getSpeciesName = (species: Species): string => {
+  // Convert enum to string and make it lowercase/URL-friendly
+  return Species[species].toLowerCase();
+};
+
   const convertConfigToSteps = (config: TutorialStepConfig[]): TutorialStep[] => {
-    return config.map(stepConfig => ({
-      ...stepConfig,
-      steps: stepConfig.steps.map(stepConfigItem => ({
+  return config.map(stepConfig => ({
+    ...stepConfig,
+    steps: stepConfig.steps.map(stepConfigItem => {
+      let actionUrl = stepConfigItem.actionUrl;
+      
+      // Process {species} placeholder
+      if (actionUrl && actionUrl.includes('{species}')) {
+        if (totems && totems.length > 0) {
+          const speciesName = getSpeciesName(totems[0].attributes.species);
+          actionUrl = actionUrl.replace('{species}', speciesName);
+        } 
+      }
+
+      return {
         label: stepConfigItem.label,
-        complete: false, // Legacy field, not used when isStepComplete is present
+        complete: false,
         optional: stepConfigItem.optional,
         actionType: stepConfigItem.actionType,
         actionId: stepConfigItem.actionId,
-        actionUrl: stepConfigItem.actionUrl,
+        actionUrl: actionUrl, // This is now the processed URL
         actionText: stepConfigItem.actionText,
         checkType: stepConfigItem.checkType,
         checkParam: stepConfigItem.checkParam,
         isStepComplete: () => checkStep(stepConfigItem)
-      } as Step))
-    }));
-  };
+      } as Step;
+    })
+  }));
+};
 
   const areAllStepsComplete = (steps: Step[]) => {
     if (!Array.isArray(steps) || steps.length === 0) return false;

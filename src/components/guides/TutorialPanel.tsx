@@ -35,9 +35,23 @@ export default function TutorialPanel({
   hasClaimed,
   onClaimReward
 }: TutorialPanelProps) {
-  const { comingSoon, totems, setTutorialWizardVisible } = useUser();
+  const { comingSoon, totems, setTutorialWizardVisible, trackLink } = useUser();
   const [loading, setLoading] = useState(false);
   const current = !isComplete && !isLocked;
+
+  // Helper function to handle link clicks with tracking
+  const handleLinkClick = (step: Step & { checkType?: string; checkParam?: string }) => {
+    // Only track if this step uses hasClickedLink check type
+    if (step.checkType === 'hasClickedLink' && step.checkParam) {
+      trackLink(step.checkParam, {
+        source: 'tutorial_panel',
+        stepTitle: title,
+        url: step.actionUrl || '',
+        actionType: step.actionType || '',
+        timestamp: Date.now()
+      });
+    }
+  };
 
   const handleClaim = async () => {
       if (loading || hasClaimed) return;
@@ -96,13 +110,19 @@ export default function TutorialPanel({
               {step.label}
             </span>
             
-            {!complete && step.actionType === 'link' && step.actionUrl && (
-              <Link className="ml-2 text-purple-500 hover:text-purple-400 hover:underline font-bold"
-                onClick={() => setTutorialWizardVisible(true)}
-                to={step.actionUrl!}>
-                {step.actionText}
-              </Link>
-            )}
+              {!complete && step.actionType === 'link' && step.actionUrl && (
+                <Link
+                  className="ml-2 text-purple-500 hover:text-purple-400 hover:underline font-bold"
+                  to={step.actionUrl}
+                  state={step.linkState}
+                  onClick={() => {
+                    setTutorialWizardVisible(true);
+                    handleLinkClick(step);
+                  }}
+                >
+                  {step.actionText}
+                </Link>
+              )}
 
             {!complete && step.actionType === 'button' && step.actionId && (
               <button
@@ -121,6 +141,7 @@ export default function TutorialPanel({
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="ml-2 text-purple-500 hover:text-purple-400 hover:underline font-bold"
+                    onClick={() => handleLinkClick(step)}  // Track if this step uses hasClickedLink
                 >
                     {step.actionText}
                 </a>

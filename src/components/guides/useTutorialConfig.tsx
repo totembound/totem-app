@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { useUser } from '../../contexts/UserContext';
 import { useAchievements } from '../../contexts/AchievementsContext';
-import { Step, TutorialStep } from '../../types/types';
+import { Step, TutorialStep, Species } from '../../types/types';
 
 // Pure configuration without function references
 export interface TutorialStepConfig {
@@ -25,12 +25,15 @@ export interface StepConfig {
     | 'hasTotems' 
     | 'hasTotemName' 
     | 'hasAchievementProgress' 
+    | 'hasClickedLink'
     | 'custom';
   checkParam?: string; // For achievement IDs, etc.
+  checkParamNum?: number; // For achievement progress, etc.
   optional?: boolean;
   actionType?: 'link' | 'button' | 'external';
   actionId?: string;
   actionUrl?: string;
+  linkState?: Record<string, any>;
   actionText?: string;
 }
 
@@ -97,6 +100,14 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
     experienceReward: 100,
     requiresTotem: true,
     steps: [
+      {
+        label: "Explore the Available Totems",
+        checkType: "hasClickedLink",
+        checkParam: "codex_totem_link",
+        actionType: "link",
+        actionUrl: "/guides/codex/totems",
+        actionText: "Explore"
+      },
       { 
         label: "Purchase Your First Totem", 
         checkType: "hasTotems", 
@@ -116,7 +127,7 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
         actionType: "link", 
         actionUrl: "/totems", 
         actionText: "Name"
-      }
+      },
     ]
   },
   {
@@ -126,9 +137,17 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
     imageUrl: "/guides/tutorial/tutorial-traintotem.jpg",
     rewardId: TUTORIAL_REWARDS.STEP_3,
     tokenReward: "20",
-    experienceReward: 50,
+    experienceReward: 150,
     requiresTotem: true,
     steps: [
+      {
+        label: "Learn More About Your Chosen Totem",
+        checkType: "hasClickedLink",
+        checkParam: "habitat_totem_link",
+        actionType: "link",
+        actionUrl: "/guides/codex/totems/{species}",
+        actionText: "Learn"
+      },
       { 
         label: "Feed your Totem", 
         checkType: "hasAchievement", 
@@ -162,9 +181,20 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
     imageUrl: "/guides/tutorial/tutorial-challenge.jpg",
     rewardId: TUTORIAL_REWARDS.STEP_4,
     tokenReward: "30",
-    experienceReward: 75,
+    experienceReward: 200,
     requiresTotem: true,
     steps: [
+      {
+        label: "Learn How to do Challenges",
+        checkType: "hasClickedLink",
+        checkParam: "guides_challenge_link",
+        actionType: "link",
+        actionUrl: "/guides/how-to",
+        linkState: {
+          openSection: 6
+        },
+        actionText: "Learn"
+      },
       { 
         label: "Complete Beginner Challenge", 
         checkType: "hasAchievement",
@@ -177,6 +207,7 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
         label: "Complete all daily attempts", 
         checkType: "hasAchievementProgress",
         checkParam: "challenge_progression",
+        checkParamNum: 5,
         actionType: "link",
         actionUrl: "/challenges",
         actionText: "Complete"
@@ -190,16 +221,35 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
     imageUrl: "/guides/tutorial/tutorial-evolution.jpg",
     rewardId: TUTORIAL_REWARDS.STEP_5,
     tokenReward: "25",
-    experienceReward: 50,
+    experienceReward: 250,
     requiresTotem: true,
     steps: [
+      {
+        label: "Learn How to Evolve Your Totems",
+        checkType: "hasClickedLink",
+        checkParam: "guides_evolve_link",
+        actionType: "link",
+        actionUrl: "/guides/how-to",
+        linkState: {
+          openSection: 7
+        },
+        actionText: "Learn"
+      },
       { 
         label: "Trigger Stage Evolution", 
-        checkType: "custom"
+        checkType: "hasAchievement",
+        checkParam: "evolution_progression",
+        actionType: "link",
+        actionUrl: "/totems",
+        actionText: "Trigger"
       },
       { 
         label: "Reach Stage 2", 
-        checkType: "custom"
+        checkType: "hasAchievement",
+        checkParam: "evolution_progression",
+        actionType: "link",
+        actionUrl: "/totems",
+        actionText: "Evolve"
       }
     ]
   },
@@ -213,21 +263,58 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
     experienceReward: 0,
     requiresTotem: false,
     steps: [
-      { 
-        label: "Join Discord", 
-        checkType: "custom"
+      {
+        label: "Learn How to Embark on a Expedition",
+        checkType: "hasClickedLink",
+        checkParam: "guides_expedition_link",
+        actionType: "link",
+        actionUrl: "/guides/how-to",
+        linkState: {
+          openSection: 8
+        },
+        actionText: "Learn"
+      },
+      {
+        label: "Recruit the Rest of Your Team",
+        checkType: "hasAchievementProgress",
+        checkParam: "collector_progression",
+        checkParamNum: 3,
+        actionType: "link",
+        actionUrl: "/shop",
+        actionText: "Recruit"
       },
       { 
         label: "Begin an Expedition", 
-        checkType: "custom"
-      }
+        checkType: "hasAchievement",
+        checkParam: "expedition_explorer",
+        actionType: "link",
+        actionUrl: "/expeditions",
+        actionText: "Embark"
+      },
+      { 
+        label: "Join Discord (optional)", 
+        checkType: "hasClickedLink",
+        checkParam: "discord_join",
+        actionType: "external",
+        actionUrl: "https://discord.gg/MhKQC5E6xe",
+        actionText: "Join",
+        optional: true
+      },
     ]
   }
 ];
 
 // Hook to convert config to runtime tutorial steps with functions
 export const useTutorialConfig = () => {
-  const { isConnected, isSignedUp, isTokenApproved, totems, connect, comingSoon } = useUser();
+  const { 
+    isConnected, 
+    isSignedUp, 
+    isTokenApproved, 
+    totems, 
+    connect, 
+    comingSoon,
+    hasClickedLink
+  } = useUser();
   const { getAchievementById } = useAchievements();
 
   const hasAchievement = (id: string) => {
@@ -268,7 +355,11 @@ export const useTutorialConfig = () => {
       case 'hasTotemName':
         return totems && totems.length > 0 && totems[0]?.attributes?.displayName?.length > 0;
       case 'hasAchievementProgress':
-        return step.checkParam ? hasAchievementProgress(step.checkParam, 5) : false;
+        return step.checkParam && step.checkParamNum !== undefined
+          ? hasAchievementProgress(step.checkParam, step.checkParamNum)
+          : false;
+      case 'hasClickedLink':
+        return step.checkParam ? hasClickedLink(step.checkParam) : false;
       case 'custom':
         // For custom checks, return false by default
         // These can be overridden in specific implementations
@@ -278,21 +369,41 @@ export const useTutorialConfig = () => {
     }
   };
 
+  const getSpeciesName = (species: Species): string => {
+    // Convert enum to string and make it lowercase/URL-friendly
+    return Species[species].toLowerCase();
+  };
+
   const convertConfigToSteps = (config: TutorialStepConfig[]): TutorialStep[] => {
-    return config.map(stepConfig => ({
-      ...stepConfig,
-      steps: stepConfig.steps.map(stepConfigItem => ({
+  return config.map(stepConfig => ({
+    ...stepConfig,
+    steps: stepConfig.steps.map(stepConfigItem => {
+      let actionUrl = stepConfigItem.actionUrl;
+      
+      // Process {species} placeholder
+      if (actionUrl && actionUrl.includes('{species}')) {
+        if (totems && totems.length > 0) {
+          const speciesName = getSpeciesName(totems[0].attributes.species);
+          actionUrl = actionUrl.replace('{species}', speciesName);
+        } 
+      }
+
+      return {
         label: stepConfigItem.label,
-        complete: false, // Legacy field, not used when isStepComplete is present
+        complete: false,
         optional: stepConfigItem.optional,
         actionType: stepConfigItem.actionType,
         actionId: stepConfigItem.actionId,
-        actionUrl: stepConfigItem.actionUrl,
+        actionUrl: actionUrl, // This is now the processed URL
         actionText: stepConfigItem.actionText,
+        checkType: stepConfigItem.checkType,
+        checkParam: stepConfigItem.checkParam,
+        linkState: stepConfigItem.linkState,
         isStepComplete: () => checkStep(stepConfigItem)
-      } as Step))
-    }));
-  };
+      } as Step;
+    })
+  }));
+};
 
   const areAllStepsComplete = (steps: Step[]) => {
     if (!Array.isArray(steps) || steps.length === 0) return false;

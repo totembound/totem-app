@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import GuidesHeader from "./GuidesHeader";
 import { ChevronDown, Search } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 interface Guide {
   title: string;
@@ -196,6 +196,27 @@ const howToGuides: Guide[] = [
 const HowToGuides: React.FC = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Handle incoming state from tutorial links
+  useEffect(() => {
+    if (location.state?.openSection !== undefined) {
+      const sectionToOpen = location.state.openSection;
+      setOpenIndex(sectionToOpen);
+      
+      // Clear the state so back/forward navigation works normally
+      navigate(location.pathname, { replace: true, state: {} });
+      
+      // Scroll to the opened section for better UX
+      setTimeout(() => {
+        const element = document.querySelector(`[data-section="${sectionToOpen}"]`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const toggle = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -233,7 +254,11 @@ const HowToGuides: React.FC = () => {
           />
         </div>
         {filteredGuides.map((guide, idx) => (
-          <div key={idx} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+          <div 
+            key={idx} 
+            data-section={idx} 
+            className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+          >
             <button
               onClick={() => toggle(idx)}
               className={`w-full text-left p-4 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 transition-color ${openIndex === idx ? 'bg-gray-100 dark:bg-gray-700' : ''}`}

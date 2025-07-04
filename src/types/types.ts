@@ -25,6 +25,8 @@ export interface UserContextType extends UserContextState {
     setTutorialWizardVisible: (visible: boolean) => void;
     handleRateLimitUpdate: (resetTime: string | null, currentUsage: number, dailyLimit: number, isExceeded: boolean) => void;
     handleRateLimitError: (error: RateLimitError) => void;
+    trackLink: (linkId: string, metadata?: Record<string, any>) => void;
+    hasClickedLink: (linkId: string) => boolean;
 }
 
 export interface TotemUpdate {
@@ -67,7 +69,7 @@ export interface UserContextState {
     accountType: AccountType;
     comingSoon: boolean;
     tutorialWizardVisible: boolean;
-    // rate limiting
+    linkTracking: Record<string, boolean>;
     rateLimitState: RateLimitState;
 }
 
@@ -535,6 +537,9 @@ export interface Step {
   actionType?: "button" | "link" | "external";
   actionUrl?: string;
   actionText?: string;
+  checkType?: string;
+  checkParam?: string;
+  linkState?: Record<string, any>;
   imageUrl?: string;
 }
 

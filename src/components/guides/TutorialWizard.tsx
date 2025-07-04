@@ -14,7 +14,12 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
   className, 
   onComplete
 }) => {
-  const { tutorialWizardVisible, setTutorialWizardVisible, isSignedUp } = useUser();
+  const { 
+    tutorialWizardVisible, 
+    setTutorialWizardVisible, 
+    isSignedUp,
+    trackLink
+  } = useUser();
   const [isMinimized, setIsMinimized] = useState<boolean>(false);
   const [currentStep, setCurrentStep] = useState<number>(0);
 
@@ -27,6 +32,20 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
   const isStepLocked = currentStep > 0 && !areAllStepsComplete(tutorialSteps[currentStep - 1].steps);
   const { hasClaimed, isLoading } = getClaimStatus(currentTutorialStep.rewardId);
   const canClaimReward = canClaim(currentTutorialStep.rewardId, isStepComplete, currentTutorialStep.requiresTotem);
+
+  // Helper function to handle link clicks with tracking
+  const handleLinkClick = (step: any) => {
+    // Only track if this step uses hasClickedLink check type
+    if (step.checkType === 'hasClickedLink' && step.checkParam) {
+      trackLink(step.checkParam, {
+        source: 'tutorial_wizard',
+        stepTitle: currentTutorialStep.title,
+        url: step.actionUrl || '',
+        actionType: step.actionType || '',
+        timestamp: Date.now()
+      });
+    }
+  };
 
   const handleClaimClick = async () => {
     try {
@@ -146,12 +165,14 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
                 {!complete && step.actionType && (
                 <div className="h-6 mr-1">
                     {step.actionType === 'link' && step.actionUrl && (
-                    <Link
+                      <Link
                         to={step.actionUrl}
+                        state={step.linkState}
                         className="text-sm text-purple-500 hover:text-purple-400 hover:underline font-bold"
-                    >
+                        onClick={() => handleLinkClick(step)}
+                      >
                         {step.actionText}
-                    </Link>
+                      </Link>
                     )}
                     
                     {step.actionType === 'button' && step.actionId && (
@@ -171,7 +192,8 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
                         href={step.actionUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-block px-2 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                        className="text-sm text-purple-500 hover:text-purple-400 hover:underline font-bold"
+                        onClick={() => handleLinkClick(step)}  // Track if this step uses hasClickedLink
                     >
                         {step.actionText}
                     </a>

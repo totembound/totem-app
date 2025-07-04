@@ -993,3 +993,107 @@ export const BEAVER_TOTEMS = [
   },
 ];
 
+export const DEER_TOTEMS = [
+  {
+    id: 1,
+    name: "Brown Fawn",
+    rarity: Rarity.Common,
+    image: `${IPFS_GATEWAY_URL}bafybeiaczt2b5ztdmx3kdbixowqchh5aqc536cbzarzuxbuqsdkdgcjv4a`,
+  },
+  {
+    id: 2,
+    name: "Gray Fawn",
+    rarity: Rarity.Common,
+    image: `${IPFS_GATEWAY_URL}bafybeifcyzwyjx5q7y55jfvcaktrkua2zrpqya4xs2kslrv2embjnq53ge`,
+  },
+  {
+    id: 3,
+    name: "White Fawn",
+    rarity: Rarity.Common,
+    image: `${IPFS_GATEWAY_URL}bafybeicxlh3nt4r77calcfksdktciki2jah3lnii6r7co6avp2rabh5ule`,
+  },
+  {
+    id: 4,
+    name: "Tawny Fawn",
+    rarity: Rarity.Common,
+    image: `${IPFS_GATEWAY_URL}bafybeiczqymbrbtaxi6kirluxoxpl3ysbe5zfv2aeamansgouxb3jvq66e`,
+  },
+  {
+    id: 5,
+    name: "Slate Fawn",
+    rarity: Rarity.Uncommon,
+    image: `${IPFS_GATEWAY_URL}bafybeiezmaptquplvizvbggyqxk6waajys5tp5y2sgcavfjaivwfkgp5rm`,
+  },
+  {
+    id: 6,
+    name: "Copper Fawn",
+    rarity: Rarity.Uncommon,
+    image: `${IPFS_GATEWAY_URL}bafybeibz3peyfx6u4t5fpahyecnm6lvryxupz5lwwpqvjmqesiltlkcb2q`,
+  },
+  {
+    id: 7,
+    name: "Cream Fawn",
+    rarity: Rarity.Uncommon,
+    image: `${IPFS_GATEWAY_URL}bafybeier7rhh6nelzkhforwbayymqh5io3f2fpmis34vuqv4x7ixlkdaxe`,
+  },
+  {
+    id: 8,
+    name: "Dappled Fawn",
+    rarity: Rarity.Uncommon,
+    image: `${IPFS_GATEWAY_URL}bafybeid244wamd4rcigcy4tvcsfzefkc2ifqehfdbtt3ncptd3wxclhnvq`,
+  },
+  {
+    id: 9,
+    name: "Dawnsight Fawn",
+    rarity: Rarity.Rare,
+    image: `${IPFS_GATEWAY_URL}bafybeifofafnivd5sns4qpnko3dcxmig2yyrg5743glmg5n5yvmporst44`,
+  },
+  {
+    id: 10,
+    name: "Umbravale Fawn",
+    rarity: Rarity.Rare,
+    image: `${IPFS_GATEWAY_URL}bafybeigqwire2xr2lqhwhshol4pkgjkcuiqs27nao2ox4rp65wftjholky`,
+  },
+  {
+    id: 11,
+    name: "Emberhide Fawn",
+    rarity: Rarity.Rare,
+    image: `${IPFS_GATEWAY_URL}bafybeic4d6i6p6l2xa7oqi3zvckwpdij6ie63wam6xktkxuelgjxnzz2gq`,
+  },
+  {
+    id: 12,
+    name: "Verdantstride Fawn",
+    rarity: Rarity.Epic,
+    image: `${IPFS_GATEWAY_URL}bafybeiak5s3ptuhnyjtewtvf44o55w3mygx4ape6resrmpjebodte53aki`,
+  },
+  {
+    id: 13,
+    name: "Bloodleaf Fawn",
+    rarity: Rarity.Epic,
+    image: `${IPFS_GATEWAY_URL}bafybeicivbb6xwtpezmgygsg73hoyohxdkjy7ipyjtu4aegjrwgy2o2zve`,
+  },
+  {
+    id: 14,
+    name: "Abyssroot Fawn",
+    rarity: Rarity.Epic,
+    image: `${IPFS_GATEWAY_URL}bafybeid7437rbvwinnw454e52yv4avdddbo2vx4py6hras2winscfrwydq`,
+  },
+  {
+    id: 15,
+    name: "Moonshade Fawn",
+    rarity: Rarity.Legendary,
+    image: `${IPFS_GATEWAY_URL}bafybeibnm4t5veyztx3ccu6qylkpeahs2udc24skudyywc5cxu7q3j3sf4`,
+  },
+  {
+    id: 16,
+    name: "Celestag Fawn",
+    rarity: Rarity.Legendary,
+    image: `${IPFS_GATEWAY_URL}bafybeiekiuti5evqspr2rge7s4nhcrdbiidqy2udhozhusazffdcewrzda`,
+  },
+  {
+    id: 17,
+    name: "Solstride Fawn",
+    rarity: Rarity.Limited,
+    image: `${IPFS_GATEWAY_URL}bafybeifocx5phnjridwieygwzjhsnxcw4k67i3y7y3uct3veuwtyybu3ni`,
+  },
+];

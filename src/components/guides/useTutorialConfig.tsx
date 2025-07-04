@@ -370,9 +370,9 @@ export const useTutorialConfig = () => {
   };
 
   const getSpeciesName = (species: Species): string => {
-  // Convert enum to string and make it lowercase/URL-friendly
-  return Species[species].toLowerCase();
-};
+    // Convert enum to string and make it lowercase/URL-friendly
+    return Species[species].toLowerCase();
+  };
 
   const convertConfigToSteps = (config: TutorialStepConfig[]): TutorialStep[] => {
   return config.map(stepConfig => ({

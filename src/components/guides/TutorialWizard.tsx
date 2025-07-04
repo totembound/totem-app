@@ -167,7 +167,7 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
                     {step.actionType === 'link' && step.actionUrl && (
                       <Link
                         to={step.actionUrl}
-                        state={step.linkState} // NEW: Pass the state
+                        state={step.linkState}
                         className="text-sm text-purple-500 hover:text-purple-400 hover:underline font-bold"
                         onClick={() => handleLinkClick(step)}
                       >
@@ -192,7 +192,7 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
                         href={step.actionUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-purple-500 hover:text-purple-400 hover:underline font-bold"
+                        className="inline-block px-2 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
                         onClick={() => handleLinkClick(step)}  // Track if this step uses hasClickedLink
                     >
                         {step.actionText}

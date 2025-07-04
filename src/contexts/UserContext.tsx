@@ -128,7 +128,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const trackLink = useCallback((linkId: string, metadata?: Record<string, any>) => {
-        const now = Date.now();
 
         setLinkTracking(prev => {
             const updated = {

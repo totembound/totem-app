@@ -5,6 +5,8 @@ import { Feature } from './Feature';
 import { useTransactionService } from '../hooks/useTransactionService';
 import { ArrowRight, ArrowLeft, CheckCircle, Shield, Check, Info, Wallet, Key, Award, Zap, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Turnstile } from '@marsidev/react-turnstile';
+import { useTheme } from '../contexts/ThemeContext';
 
 type OnboardingStep = 'welcome' | 'connect' | 'plans' | 'email' | 'key-requested' | 'enter-api-key' | 'advanced' | 'processing' | 'success';
 
@@ -18,7 +20,10 @@ export const SignupForm: React.FC = () => {
     const normalizedAddress = (address as string || '').toLowerCase();
     const [apiKey, setApiKey] = useState('');
     const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
+    const [turnstileToken, setTurnstileToken] = useState<string>('');
+    const [showTurnstileError, setShowTurnstileError] = useState(false);
     const API_GATEWAY_URL = process.env.REACT_APP_API_GATEWAY_URL || 'https://api.totembound.com/v1';
+    const { theme } = useTheme();
     
     const txService = useTransactionService({
         gaslessEnabled: isGaslessEnabled,
@@ -64,6 +69,15 @@ export const SignupForm: React.FC = () => {
     const requestApiKey = async () => {
         setLoading(true);
         setError('');
+        setShowTurnstileError(false);
+        
+        // Validate turnstile token
+        if (!turnstileToken) {
+            setShowTurnstileError(true);
+            setError('Please complete the security verification');
+            setLoading(false);
+            return;
+        }
         
         try {
             // Make the API request based on selected plan
@@ -75,7 +89,8 @@ export const SignupForm: React.FC = () => {
                 body: JSON.stringify({
                     email,
                     walletAddress: address,
-                    tier: 'premium'
+                    tier: 'premium',
+                    turnstileToken
                 })
                 });
         
@@ -104,7 +119,8 @@ export const SignupForm: React.FC = () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         email,
-                        walletAddress: address
+                        walletAddress: address,
+                        turnstileToken
                     })
                 });
         
@@ -751,6 +767,33 @@ export const SignupForm: React.FC = () => {
                             </div>
                         </div>
                         
+                        <div className="mb-6">
+                            <Turnstile
+                                siteKey={process.env.REACT_APP_TURNSTILE_SITE_KEY || ''}
+                                onSuccess={(token) => {
+                                    setTurnstileToken(token);
+                                    setShowTurnstileError(false);
+                                }}
+                                onError={() => {
+                                    setTurnstileToken('');
+                                    setShowTurnstileError(true);
+                                }}
+                                onExpire={() => {
+                                    setTurnstileToken('');
+                                    setShowTurnstileError(true);
+                                }}
+                                options={{
+                                    theme: theme === 'dark' ? 'dark' : 'light',
+                                    size: 'normal'
+                                }}
+                            />
+                            {showTurnstileError && (
+                                <p className="text-red-600 dark:text-red-400 text-sm mt-2">
+                                    Please complete the security verification to continue
+                                </p>
+                            )}
+                        </div>
+                        
                         <div className="flex space-x-3">
                             <button
                                 onClick={() => setCurrentStep('plans')}
@@ -760,9 +803,9 @@ export const SignupForm: React.FC = () => {
                             </button>
                             <button
                                 onClick={requestApiKey}
-                                disabled={!email || !email.includes('@') || loading}
+                                disabled={!email || !email.includes('@') || !turnstileToken || loading}
                                 className={`flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg
-                                    ${(!email || !email.includes('@') || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    ${(!email || !email.includes('@') || !turnstileToken || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 {loading ? (
                                     <span className="flex items-center justify-center">

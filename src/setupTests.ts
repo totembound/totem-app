@@ -52,3 +52,14 @@ beforeAll(() => {
 afterAll(() => {
   console.error = originalError;
 });
+
+// Mock Turnstile component to prevent external script loading during tests
+jest.mock('@marsidev/react-turnstile', () => ({
+  Turnstile: jest.fn().mockImplementation(({ onSuccess }: any) => {
+    // Auto-trigger success for testing
+    if (onSuccess) {
+      setTimeout(() => onSuccess('mock-turnstile-token'), 0);
+    }
+    return null;
+  })
+}));

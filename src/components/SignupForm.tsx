@@ -142,9 +142,7 @@ export const SignupForm: React.FC = () => {
         }
         catch (err: any) {
             console.error('Error:', err);
-            setError(err.message?.includes('user rejected') 
-            ? 'You cancelled the transaction. Please try again.' 
-            : err.message || 'An unexpected error occurred during signup.');
+            setError('Unable to connect to the API service. Please try again later or contact support if the problem persists.');
         } finally {
             setLoading(false);
         }

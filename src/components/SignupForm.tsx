@@ -71,8 +71,8 @@ export const SignupForm: React.FC = () => {
         setError('');
         setShowTurnstileError(false);
         
-        // Validate turnstile token
-        if (!turnstileToken) {
+        // Validate turnstile token for Standard tier only
+        if (selectedPlan === 'standard' && !turnstileToken) {
             setShowTurnstileError(true);
             setError('Please complete the security verification');
             setLoading(false);
@@ -89,8 +89,7 @@ export const SignupForm: React.FC = () => {
                 body: JSON.stringify({
                     email,
                     walletAddress: address,
-                    tier: 'premium',
-                    turnstileToken
+                    tier: 'premium'
                 })
                 });
         
@@ -765,32 +764,34 @@ export const SignupForm: React.FC = () => {
                             </div>
                         </div>
                         
-                        <div className="mb-6">
-                            <Turnstile
-                                siteKey={process.env.REACT_APP_TURNSTILE_SITE_KEY || ''}
-                                onSuccess={(token) => {
-                                    setTurnstileToken(token);
-                                    setShowTurnstileError(false);
-                                }}
-                                onError={() => {
-                                    setTurnstileToken('');
-                                    setShowTurnstileError(true);
-                                }}
-                                onExpire={() => {
-                                    setTurnstileToken('');
-                                    setShowTurnstileError(true);
-                                }}
-                                options={{
-                                    theme: theme === 'dark' ? 'dark' : 'light',
-                                    size: 'normal'
-                                }}
-                            />
-                            {showTurnstileError && (
-                                <p className="text-red-600 dark:text-red-400 text-sm mt-2">
-                                    Please complete the security verification to continue
-                                </p>
-                            )}
-                        </div>
+                        {selectedPlan === 'standard' && (
+                            <div className="mb-6">
+                                <Turnstile
+                                    siteKey={process.env.REACT_APP_TURNSTILE_SITE_KEY || ''}
+                                    onSuccess={(token) => {
+                                        setTurnstileToken(token);
+                                        setShowTurnstileError(false);
+                                    }}
+                                    onError={() => {
+                                        setTurnstileToken('');
+                                        setShowTurnstileError(true);
+                                    }}
+                                    onExpire={() => {
+                                        setTurnstileToken('');
+                                        setShowTurnstileError(true);
+                                    }}
+                                    options={{
+                                        theme: theme === 'dark' ? 'dark' : 'light',
+                                        size: 'normal'
+                                    }}
+                                />
+                                {showTurnstileError && (
+                                    <p className="text-red-600 dark:text-red-400 text-sm mt-2">
+                                        Please complete the security verification to continue
+                                    </p>
+                                )}
+                            </div>
+                        )}
                         
                         <div className="flex space-x-3">
                             <button
@@ -801,9 +802,9 @@ export const SignupForm: React.FC = () => {
                             </button>
                             <button
                                 onClick={requestApiKey}
-                                disabled={!email || !email.includes('@') || !turnstileToken || loading}
+                                disabled={!email || !email.includes('@') || (selectedPlan === 'standard' && !turnstileToken) || loading}
                                 className={`flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg
-                                    ${(!email || !email.includes('@') || !turnstileToken || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    ${(!email || !email.includes('@') || (selectedPlan === 'standard' && !turnstileToken) || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 {loading ? (
                                     <span className="flex items-center justify-center">

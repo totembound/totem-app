@@ -141,7 +141,7 @@ export const SignupForm: React.FC = () => {
         }
         catch (err: any) {
             console.error('Error:', err);
-            setError('Unable to connect to the API service. Please try again later.');
+            setError('Unable to connect to the service. Please try again later.');
         } finally {
             setLoading(false);
         }

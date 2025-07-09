@@ -31,10 +31,10 @@ export const SignupForm: React.FC = () => {
 
     const turnstileErrorMessage = "Please complete the security verification to continue";
 
-    // Helper functions for validation logic
-    const isStandardPlanMissingTurnstile = () => selectedPlan === 'standard' && !turnstileToken;
-    const isEmailValid = () => email && email.includes('@');
-    const isFormValid = () => isEmailValid() && !isStandardPlanMissingTurnstile() && !loading;
+    // Helper variables for validation logic
+    const isStandardPlanMissingTurnstile = selectedPlan === 'standard' && !turnstileToken;
+    const isEmailValid = email && email.includes('@');
+    const isFormValid = isEmailValid && !isStandardPlanMissingTurnstile && !loading;
 
     // Effect to manage steps based on wallet connection
     useEffect(() => {
@@ -793,9 +793,9 @@ export const SignupForm: React.FC = () => {
                             </button>
                             <button
                                 onClick={requestApiKey}
-                                disabled={!isFormValid()}
+                                disabled={!isFormValid}
                                 className={`flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg
-                                    ${!isFormValid() ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    ${!isFormValid ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 {loading ? (
                                     <span className="flex items-center justify-center">

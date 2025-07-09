@@ -21,7 +21,6 @@ export const SignupForm: React.FC = () => {
     const [apiKey, setApiKey] = useState('');
     const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
     const [turnstileToken, setTurnstileToken] = useState<string>('');
-    const [showTurnstileError, setShowTurnstileError] = useState(false);
     const API_GATEWAY_URL = process.env.REACT_APP_API_GATEWAY_URL || 'https://api.totembound.com/v1';
     const { theme } = useTheme();
     
@@ -29,6 +28,13 @@ export const SignupForm: React.FC = () => {
         gaslessEnabled: isGaslessEnabled,
         waitForConfirmation: true
     });
+
+    const turnstileErrorMessage = "Please complete the security verification to continue";
+
+    // Helper functions for validation logic
+    const isStandardPlanMissingTurnstile = () => selectedPlan === 'standard' && !turnstileToken;
+    const isEmailValid = () => email && email.includes('@');
+    const isFormValid = () => isEmailValid() && !isStandardPlanMissingTurnstile() && !loading;
 
     // Effect to manage steps based on wallet connection
     useEffect(() => {
@@ -69,15 +75,6 @@ export const SignupForm: React.FC = () => {
     const requestApiKey = async () => {
         setLoading(true);
         setError('');
-        setShowTurnstileError(false);
-        
-        // Validate turnstile token for Standard tier only
-        if (selectedPlan === 'standard' && !turnstileToken) {
-            setShowTurnstileError(true);
-            setError('Please complete the security verification');
-            setLoading(false);
-            return;
-        }
         
         try {
             // Make the API request based on selected plan
@@ -770,26 +767,20 @@ export const SignupForm: React.FC = () => {
                                     siteKey={process.env.REACT_APP_TURNSTILE_SITE_KEY || ''}
                                     onSuccess={(token) => {
                                         setTurnstileToken(token);
-                                        setShowTurnstileError(false);
                                     }}
                                     onError={() => {
                                         setTurnstileToken('');
-                                        setShowTurnstileError(true);
+                                        setError(turnstileErrorMessage);
                                     }}
                                     onExpire={() => {
                                         setTurnstileToken('');
-                                        setShowTurnstileError(true);
+                                        setError(turnstileErrorMessage);
                                     }}
                                     options={{
-                                        theme: theme === 'dark' ? 'dark' : 'light',
+                                        theme: theme,
                                         size: 'normal'
                                     }}
                                 />
-                                {showTurnstileError && (
-                                    <p className="text-red-600 dark:text-red-400 text-sm mt-2">
-                                        Please complete the security verification to continue
-                                    </p>
-                                )}
                             </div>
                         )}
                         
@@ -802,9 +793,9 @@ export const SignupForm: React.FC = () => {
                             </button>
                             <button
                                 onClick={requestApiKey}
-                                disabled={!email || !email.includes('@') || (selectedPlan === 'standard' && !turnstileToken) || loading}
+                                disabled={!isFormValid()}
                                 className={`flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg
-                                    ${(!email || !email.includes('@') || (selectedPlan === 'standard' && !turnstileToken) || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    ${!isFormValid() ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 {loading ? (
                                     <span className="flex items-center justify-center">

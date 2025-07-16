@@ -46,6 +46,11 @@ export const SignupForm: React.FC = () => {
         }
     }, [isConnected, currentStep]);
 
+    // Clear error when navigating to a different step
+    useEffect(() => {
+        setError('');
+    }, [currentStep]);
+
     // Check for saved state on component mount
     useEffect(() => {
         if (isSignedUp) return; // Skip if already signed up
@@ -91,8 +96,16 @@ export const SignupForm: React.FC = () => {
                 });
         
                 if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to create checkout');
+                    const errorData = await response.json();
+                    
+                    // Handle specific error types for premium plan too
+                    if (response.status === 409 && errorData.keyExists) {
+                        // User already exists - provide generic message
+                        throw new Error('Email or wallet is already registered. Please sign in instead.');
+                    }
+                    
+                    // Default error handling
+                    throw new Error(errorData.message || 'Failed to create checkout');
                 }
         
                 const { sessionUrl } = await response.json();
@@ -116,12 +129,27 @@ export const SignupForm: React.FC = () => {
                     body: JSON.stringify({
                         email,
                         walletAddress: address,
+                        tier: 'free',
                         turnstileToken
                     })
                 });
         
                 if (!response.ok) {
                     const errorData = await response.json();
+                    
+                    // Handle specific error types
+                    if (response.status === 409 && errorData.keyExists) {
+                        // User already exists - provide generic message
+                        throw new Error('Email or wallet is already registered. Please sign in instead.');
+                    }
+                    
+                    if ((response.status === 401 || response.status === 400) && errorData.field === 'turnstile') {
+                        // Reset turnstile and show specific message
+                        setTurnstileToken('');
+                        throw new Error('Security verification failed. Please complete the challenge again.');
+                    }
+                    
+                    // Default error handling
                     throw new Error(errorData.message || 'Failed to request API key');
                 }
                 
@@ -137,8 +165,8 @@ export const SignupForm: React.FC = () => {
             }
         }
         catch (err: any) {
-            console.error('Error:', err);
-            setError('Unable to connect to the service. Please try again later.');
+            console.error('0Error:', err);
+            setError(err.message || 'Unable to connect to the service. Please try again later.');
         } finally {
             setLoading(false);
         }

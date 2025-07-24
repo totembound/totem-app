@@ -5,6 +5,8 @@ import { Feature } from './Feature';
 import { useTransactionService } from '../hooks/useTransactionService';
 import { ArrowRight, ArrowLeft, CheckCircle, Shield, Check, Info, Wallet, Key, Award, Zap, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Turnstile } from '@marsidev/react-turnstile';
+import { useTheme } from '../contexts/ThemeContext';
 
 type OnboardingStep = 'welcome' | 'connect' | 'plans' | 'email' | 'key-requested' | 'enter-api-key' | 'advanced' | 'processing' | 'success';
 
@@ -18,22 +20,32 @@ export const SignupForm: React.FC = () => {
     const normalizedAddress = (address as string || '').toLowerCase();
     const [apiKey, setApiKey] = useState('');
     const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
+    const [turnstileToken, setTurnstileToken] = useState<string>('');
     const API_GATEWAY_URL = process.env.REACT_APP_API_GATEWAY_URL || 'https://api.totembound.com/v1';
+    const { theme } = useTheme();
     
     const txService = useTransactionService({
         gaslessEnabled: isGaslessEnabled,
         waitForConfirmation: true
     });
 
+    const turnstileErrorMessage = "Please complete the security verification to continue";
+
+    // Helper variables for validation logic
+    const isStandardPlanMissingTurnstile = selectedPlan === 'standard' && !turnstileToken;
+    const isEmailValid = email && email.includes('@');
+    const isFormValid = isEmailValid && !isStandardPlanMissingTurnstile && !loading;
+
     // Effect to manage steps based on wallet connection
     useEffect(() => {
         if (isConnected && currentStep === 'connect') {
-            setCurrentStep('plans');
+            navigateToStep('plans');
         }
         if (!isConnected && (currentStep !== 'welcome' && currentStep !== 'connect')) {
-            setCurrentStep('welcome');
+            navigateToStep('welcome');
         }
     }, [isConnected, currentStep]);
+
 
     // Check for saved state on component mount
     useEffect(() => {
@@ -48,7 +60,7 @@ export const SignupForm: React.FC = () => {
                     if (state.step === 'connect' && isConnected) {
                         state.step = 'plans';
                     }
-                    setCurrentStep(state.step);
+                    navigateToStep(state.step);
                     if (state.plan) setSelectedPlan(state.plan);
                     if (state.email) setEmail(state.email);
                 }
@@ -80,8 +92,16 @@ export const SignupForm: React.FC = () => {
                 });
         
                 if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to create checkout');
+                    const errorData = await response.json();
+                    
+                    // Handle specific error types for premium plan too
+                    if (response.status === 409 && errorData.keyExists) {
+                        // User already exists - provide generic message
+                        throw new Error('Email or wallet is already registered. Please sign in instead.');
+                    }
+                    
+                    // Default error handling
+                    throw new Error(errorData.message || 'Failed to create checkout');
                 }
         
                 const { sessionUrl } = await response.json();
@@ -104,12 +124,28 @@ export const SignupForm: React.FC = () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         email,
-                        walletAddress: address
+                        walletAddress: address,
+                        tier: 'free',
+                        turnstileToken
                     })
                 });
         
                 if (!response.ok) {
                     const errorData = await response.json();
+                    
+                    // Handle specific error types
+                    if (response.status === 409 && errorData.keyExists) {
+                        // User already exists - provide generic message
+                        throw new Error('Email or wallet is already registered. Please sign in instead.');
+                    }
+                    
+                    if ((response.status === 401 || response.status === 400) && errorData.field === 'turnstile') {
+                        // Reset turnstile and show specific message
+                        setTurnstileToken('');
+                        throw new Error('Security verification failed. Please complete the challenge again.');
+                    }
+                    
+                    // Default error handling
                     throw new Error(errorData.message || 'Failed to request API key');
                 }
                 
@@ -121,14 +157,14 @@ export const SignupForm: React.FC = () => {
                 }));
                 
                 // Show success and move to confirmation step
-                setCurrentStep('key-requested');
+                navigateToStep('key-requested');
             }
         }
         catch (err: any) {
             console.error('Error:', err);
             setError(err.message?.includes('user rejected') 
             ? 'You cancelled the transaction. Please try again.' 
-            : err.message || 'An unexpected error occurred during signup.');
+            : err.message || 'Unable to connect to the service. Please try again later.');
         } finally {
             setLoading(false);
         }
@@ -137,7 +173,7 @@ export const SignupForm: React.FC = () => {
     // Clear saved state when signup is successful
     const handleSignupSuccess = () => {
         localStorage.removeItem('signupState');
-        setCurrentStep('success');
+        navigateToStep('success');
     };
     
     const handleSignupWithApiKey = async () => {
@@ -153,7 +189,7 @@ export const SignupForm: React.FC = () => {
             if (!txService) throw new Error('Transaction service not initialized');
             txService.setGaslessEnabled(true, apiKey);
 
-            setCurrentStep('processing');
+            navigateToStep('processing');
             const result = await txService.signup();
             console.log('Signup transaction complete:', result);
             
@@ -178,8 +214,7 @@ export const SignupForm: React.FC = () => {
     
     const handleSignupDirect = async () => {
         setLoading(true);
-        setError('');
-        setCurrentStep('processing');
+        navigateToStep('processing');
 
         try {
             // Advanced uses regular web3 transaction
@@ -209,13 +244,19 @@ export const SignupForm: React.FC = () => {
     };
     
     const handleConnect = async () => {
-        setCurrentStep('connect');
+        navigateToStep('connect');
         await connect();
     };
 
     const handleDisconnect = () => {
         disconnect();
-        setCurrentStep('welcome');
+        navigateToStep('welcome');
+    };
+
+    // Helper function to navigate between steps and clear errors
+    const navigateToStep = (step: OnboardingStep) => {
+        setError('');
+        setCurrentStep(step);
     };
 
     // Render progress indicator
@@ -335,7 +376,7 @@ export const SignupForm: React.FC = () => {
                         </div>
                         
                         <button
-                            onClick={() => setCurrentStep('connect')}
+                            onClick={() => navigateToStep('connect')}
                             disabled={comingSoon}
                             className={`bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 
                                 rounded-lg w-full text-lg transition-all focus:ring-2 focus:ring-purple-500 
@@ -412,7 +453,7 @@ export const SignupForm: React.FC = () => {
                         </div>
                         
                         <button
-                            onClick={() => setCurrentStep('welcome')}
+                            onClick={() => navigateToStep('welcome')}
                             className="mt-4 text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center hover:underline">
                             <ArrowLeft className="mr-1 h-4 w-4" />
                             Back to welcome
@@ -650,7 +691,7 @@ export const SignupForm: React.FC = () => {
                         
                         { selectedPlan !== 'advanced' && 
                             <button
-                                onClick={() => setCurrentStep('enter-api-key')}
+                                onClick={() => navigateToStep('enter-api-key')}
                                 className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg mb-3"
                             >
                                 I already have my API key!
@@ -678,14 +719,14 @@ export const SignupForm: React.FC = () => {
                             <button
                                 onClick={() => {
                                     disconnect();
-                                    setCurrentStep('connect');
+                                    navigateToStep('connect');
                                 }}
                                 className="flex-1 py-2 bg-transparent border border-gray-300 dark:border-gray-700 
                                     text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                                 Back
                             </button>
                             <button
-                                onClick={() => setCurrentStep(selectedPlan === 'advanced' ? 'advanced' : 'email')}
+                                onClick={() => navigateToStep(selectedPlan === 'advanced' ? 'advanced' : 'email')}
                                 className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg">
                                 Continue
                             </button>
@@ -751,18 +792,41 @@ export const SignupForm: React.FC = () => {
                             </div>
                         </div>
                         
+                        {selectedPlan === 'standard' && (
+                            <div className="mb-6">
+                                <Turnstile
+                                    siteKey={process.env.REACT_APP_TURNSTILE_SITE_KEY || ''}
+                                    onSuccess={(token) => {
+                                        setTurnstileToken(token);
+                                    }}
+                                    onError={() => {
+                                        setTurnstileToken('');
+                                        setError(turnstileErrorMessage);
+                                    }}
+                                    onExpire={() => {
+                                        setTurnstileToken('');
+                                        setError(turnstileErrorMessage);
+                                    }}
+                                    options={{
+                                        theme: theme,
+                                        size: 'normal'
+                                    }}
+                                />
+                            </div>
+                        )}
+                        
                         <div className="flex space-x-3">
                             <button
-                                onClick={() => setCurrentStep('plans')}
+                                onClick={() => navigateToStep('plans')}
                                 className="flex-1 py-2 bg-transparent border border-gray-300 dark:border-gray-700 
                                     text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                                 Back
                             </button>
                             <button
                                 onClick={requestApiKey}
-                                disabled={!email || !email.includes('@') || loading}
+                                disabled={!isFormValid}
                                 className={`flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg
-                                    ${(!email || !email.includes('@') || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    ${!isFormValid ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 {loading ? (
                                     <span className="flex items-center justify-center">
@@ -815,7 +879,7 @@ export const SignupForm: React.FC = () => {
                                     Once you have your API key, continue to complete your account setup.
                                 </p>
                                 <button
-                                    onClick={() => setCurrentStep('enter-api-key')}
+                                    onClick={() => navigateToStep('enter-api-key')}
                                     className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium"
                                 >
                                     I have my API key
@@ -825,7 +889,7 @@ export const SignupForm: React.FC = () => {
                             <div className="text-sm text-gray-500 dark:text-gray-400">
                                 <p>Haven't received the email?</p>
                                 <button 
-                                    onClick={() => setCurrentStep('email')}
+                                    onClick={() => navigateToStep('email')}
                                     className="text-purple-600 hover:text-purple-800 dark:text-purple-400 font-medium mt-1"
                                 >
                                     Try again with a different email
@@ -884,7 +948,7 @@ export const SignupForm: React.FC = () => {
                         
                         <div className="flex space-x-3">
                             <button
-                                onClick={() => setCurrentStep('email')}
+                                onClick={() => navigateToStep('email')}
                                 className="flex-1 py-2 bg-transparent border border-gray-300 dark:border-gray-700 
                                     text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                                 Back
@@ -966,7 +1030,7 @@ export const SignupForm: React.FC = () => {
                         
                         <div className="flex space-x-3">
                             <button
-                                onClick={() => setCurrentStep('plans')}
+                                onClick={() => navigateToStep('plans')}
                                 className="flex-1 py-2 bg-transparent border border-gray-300 dark:border-gray-700 
                                     text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                                 Back

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChartBar, ScrollText } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '../../contexts/UserContext';
 import { useGame } from '../../contexts/GameContext';
 import { NFTMetadata, Rarity, Species } from '../../types/types';
@@ -35,6 +36,10 @@ const TotemGallery = () => {
     });
     const [showStats, setShowStats] = useState(false);
     const itemsPerPage = 8;
+
+    // Navigation hooks
+    const location = useLocation();
+    const navigate = useNavigate();
 
     // Reuse your existing hooks and state
     const { totems, totemLoading, totemError } = useUser();
@@ -100,6 +105,26 @@ const TotemGallery = () => {
     useEffect(() => {
         setCurrentPage(1);
     }, [filters]);
+
+    // Handle linkState from tutorial navigation
+    useEffect(() => {
+        if (location.state?.selectedTotemId && totems.length > 0) {
+            let totemToSelect: NFTMetadata | null = null;
+            
+            // Select by specific tokenId (convert to bigint for comparison)
+            const targetTokenId = BigInt(location.state.selectedTotemId);
+            totemToSelect = totems.find(t => t.tokenId === targetTokenId) || null;
+            
+            if (totemToSelect && location.state.openTotemDetails) {
+                setSelectedTotem(totemToSelect);
+            }
+        }
+        
+        // Clear state after handling to prevent re-triggering
+        if (location.state && Object.keys(location.state).length > 0) {
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location.state, totems, navigate]);
 
     return (
         <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg">

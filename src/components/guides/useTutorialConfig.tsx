@@ -154,6 +154,10 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
         checkParam: "feed_progression", 
         actionType: "link", 
         actionUrl: "/totems", 
+        linkState: {
+          selectedTotemId: 1,
+          openTotemDetails: true
+        },
         actionText: "Feed" 
       },
       { 
@@ -162,6 +166,10 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
         checkParam: "train_progression", 
         actionType: "link", 
         actionUrl: "/totems", 
+        linkState: {
+          selectedTotemId: 1,
+          openTotemDetails: true
+        },
         actionText: "Train" 
       },
       { 
@@ -170,6 +178,10 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
         checkParam: "treat_progression", 
         actionType: "link", 
         actionUrl: "/totems", 
+        linkState: {
+          selectedTotemId: 1,
+          openTotemDetails: true
+        },
         actionText: "Treat" 
       }
     ]

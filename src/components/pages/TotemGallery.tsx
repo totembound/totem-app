@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChartBar, ScrollText } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useUser } from '../../contexts/UserContext';
 import { useGame } from '../../contexts/GameContext';
 import { NFTMetadata, Rarity, Species } from '../../types/types';

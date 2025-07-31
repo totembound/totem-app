@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChartBar, ScrollText } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { useUser } from '../../contexts/UserContext';
 import { useGame } from '../../contexts/GameContext';
 import { NFTMetadata, Rarity, Species } from '../../types/types';
@@ -18,9 +19,12 @@ interface SortConfig {
 }
 
 const TotemGallery = () => {
+    const location = useLocation();
+    const { totems, totemLoading } = useUser();
+    const { canUseAction } = useGame();
     // State Management
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-    const [selectedTotem, setSelectedTotem] = useState<NFTMetadata | null>(null);
+    const [selectedTotem, setSelectedTotem] = useState<NFTMetadata | null>(null!);
     const [filters, setFilters] = useState({
         species: '',
         rarity: '',
@@ -35,10 +39,6 @@ const TotemGallery = () => {
     });
     const [showStats, setShowStats] = useState(false);
     const itemsPerPage = 8;
-
-    // Reuse your existing hooks and state
-    const { totems, totemLoading, totemError } = useUser();
-    const { canUseAction } = useGame();
 
     const sortTotems = (totems: NFTMetadata[]) => {
         return [...totems].sort((a, b) => {
@@ -100,6 +100,17 @@ const TotemGallery = () => {
     useEffect(() => {
         setCurrentPage(1);
     }, [filters]);
+
+    useEffect(() => {
+        const preselectedTotem = totems.find((totem) => {
+            return totem.tokenId === location.state?.selectedTokenId;
+        });
+
+        if (preselectedTotem) {
+            setSelectedTotem(preselectedTotem);
+        }
+
+    }, [totems, location.state?.selectedTokenId]);
 
     return (
         <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg">

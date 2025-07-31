@@ -93,6 +93,10 @@ export default function TutorialPanel({
       <ul className="space-y-2 p-4 flex-grow">
         {steps.map((step, idx) => {
           const complete = step.isStepComplete ? step.isStepComplete() : step.complete;
+          const linkState = step.linkState || {};
+          if (step.actionType === 'link' && step.isSelectedTotem) {
+            linkState.selectedTokenId = totems[0]?.tokenId;
+          }
 
           return (
           <li
@@ -114,7 +118,7 @@ export default function TutorialPanel({
                 <Link
                   className="ml-2 text-purple-500 hover:text-purple-400 hover:underline font-bold"
                   to={step.actionUrl}
-                  state={step.linkState}
+                  state={linkState}
                   onClick={() => {
                     setTutorialWizardVisible(true);
                     handleLinkClick(step);

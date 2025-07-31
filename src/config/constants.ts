@@ -23,7 +23,7 @@ export const STORAGE_KEYS = {
     gaslessApiKey: 'totem-gasless-api-key',
     accountType: 'totem-account-type',
     tutorialWizardVisible: 'totem-tutorialWizardVisible',
-    linkTracking: 'linkTracking'
+    linkTracking: 'totem-link-tracking'
 };
 
 export const AVAILABLE_SPECIES = [

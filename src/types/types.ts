@@ -541,6 +541,7 @@ export interface Step {
   checkParam?: string;
   linkState?: Record<string, any>;
   imageUrl?: string;
+  isSelectedTotem?: boolean;
 }
 
 export interface TutorialStep {

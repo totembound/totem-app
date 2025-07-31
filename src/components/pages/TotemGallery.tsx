@@ -20,17 +20,11 @@ interface SortConfig {
 
 const TotemGallery = () => {
     const location = useLocation();
-
     const { totems, totemLoading } = useUser();
     const { canUseAction } = useGame();
-
-    const preselectedTotem = totems.find((totem) => {
-        return totem.tokenId === location.state?.selectedTokenId;
-    });
-
     // State Management
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-    const [selectedTotem, setSelectedTotem] = useState<NFTMetadata | null>(preselectedTotem!);
+    const [selectedTotem, setSelectedTotem] = useState<NFTMetadata | null>(null!);
     const [filters, setFilters] = useState({
         species: '',
         rarity: '',
@@ -106,6 +100,17 @@ const TotemGallery = () => {
     useEffect(() => {
         setCurrentPage(1);
     }, [filters]);
+
+    useEffect(() => {
+        const preselectedTotem = totems.find((totem) => {
+            return totem.tokenId === location.state?.selectedTokenId;
+        });
+
+        if (preselectedTotem) {
+            setSelectedTotem(preselectedTotem);
+        }
+
+    }, [totems, location.state?.selectedTokenId]);
 
     return (
         <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg">

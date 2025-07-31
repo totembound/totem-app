@@ -35,6 +35,7 @@ export interface StepConfig {
   actionUrl?: string;
   linkState?: Record<string, any>;
   actionText?: string;
+  isSelectedTotem?: boolean;
 }
 
 // Tutorial reward IDs
@@ -154,10 +155,7 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
         checkParam: "feed_progression", 
         actionType: "link", 
         actionUrl: "/totems", 
-        linkState: {
-          selectedTotemId: 1,
-          openTotemDetails: true
-        },
+        isSelectedTotem: true,
         actionText: "Feed" 
       },
       { 
@@ -166,10 +164,7 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
         checkParam: "train_progression", 
         actionType: "link", 
         actionUrl: "/totems", 
-        linkState: {
-          selectedTotemId: 1,
-          openTotemDetails: true
-        },
+        isSelectedTotem: true,
         actionText: "Train" 
       },
       { 
@@ -178,10 +173,7 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
         checkParam: "treat_progression", 
         actionType: "link", 
         actionUrl: "/totems", 
-        linkState: {
-          selectedTotemId: 1,
-          openTotemDetails: true
-        },
+        isSelectedTotem: true,
         actionText: "Treat" 
       }
     ]
@@ -411,6 +403,7 @@ export const useTutorialConfig = () => {
         checkType: stepConfigItem.checkType,
         checkParam: stepConfigItem.checkParam,
         linkState: stepConfigItem.linkState,
+        isSelectedTotem: stepConfigItem.isSelectedTotem,
         isStepComplete: () => checkStep(stepConfigItem)
       } as Step;
     })

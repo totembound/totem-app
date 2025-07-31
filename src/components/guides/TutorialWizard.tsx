@@ -142,6 +142,10 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
         <div className="space-y-3 mb-4">
           {currentTutorialStep.steps.map((step, idx) => {
             const complete = step.isStepComplete ? step.isStepComplete() : step.complete;
+            const linkState = step.linkState || {};
+            if (step.actionType === 'link' && step.isSelectedTotem) {
+              linkState.selectedTokenId = totems[0]?.tokenId;
+            }
 
             return (
               <div
@@ -167,7 +171,7 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
                     {step.actionType === 'link' && step.actionUrl && (
                       <Link
                         to={step.actionUrl}
-                        state={step.linkState}
+                        state={linkState}
                         className="text-sm text-purple-500 hover:text-purple-400 hover:underline font-bold"
                         onClick={() => handleLinkClick(step)}
                       >

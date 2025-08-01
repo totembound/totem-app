@@ -24,8 +24,8 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
   const [currentStep, setCurrentStep] = useState<number>(0);
 
   const { comingSoon, totems } = useUser();
-  const { tutorialSteps, areAllStepsComplete, stepActions } = useTutorialConfig();
-  const { handleClaimReward, getClaimStatus, canClaim } = useTutorialClaims();
+  const { handleClaimReward, getClaimStatus, canClaim, claimStatus } = useTutorialClaims();
+  const { tutorialSteps, areAllStepsComplete, stepActions } = useTutorialConfig(claimStatus);
 
   const currentTutorialStep = tutorialSteps[currentStep];
   const isStepComplete = areAllStepsComplete(currentTutorialStep.steps);

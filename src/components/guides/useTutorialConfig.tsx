@@ -309,7 +309,7 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
 ];
 
 // Hook to convert config to runtime tutorial steps with functions
-export const useTutorialConfig = (claimStatus?: Record<string, boolean>) => {
+export const useTutorialConfig = () => {
   const { 
     isConnected, 
     isSignedUp, 
@@ -384,8 +384,6 @@ export const useTutorialConfig = (claimStatus?: Record<string, boolean>) => {
 
   const convertConfigToSteps = (config: TutorialStepConfig[]): TutorialStep[] => {
   return config.map(stepConfig => {
-    const isStepClaimedOrComplete = claimStatus?.[stepConfig.rewardId] || false;
-    
     return {
       ...stepConfig,
       steps: stepConfig.steps.map(stepConfigItem => {
@@ -411,15 +409,7 @@ export const useTutorialConfig = (claimStatus?: Record<string, boolean>) => {
           checkParam: stepConfigItem.checkParam,
           linkState: stepConfigItem.linkState,
           isSelectedTotem: stepConfigItem.isSelectedTotem,
-          isStepComplete: () => {
-            // Decide when to override cache-dependent checks
-            const shouldOverride = isStepClaimedOrComplete && 
-                                 !stepConfigItem.optional && 
-                                 ['hasClickedLink', 'custom'].includes(stepConfigItem.checkType);
-            
-            // Use the override mechanism
-            return checkStep(stepConfigItem, shouldOverride);
-          }
+          isStepComplete: () => checkStep(stepConfigItem)
         } as Step;
       })
     };

@@ -24,8 +24,8 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
   const [currentStep, setCurrentStep] = useState<number>(0);
 
   const { comingSoon, totems } = useUser();
-  const { handleClaimReward, getClaimStatus, canClaim, claimStatus } = useTutorialClaims();
-  const { tutorialSteps, areAllStepsComplete, stepActions } = useTutorialConfig(claimStatus);
+  const { tutorialSteps, areAllStepsComplete, stepActions } = useTutorialConfig();
+  const { handleClaimReward, getClaimStatus, canClaim } = useTutorialClaims();
 
   const currentTutorialStep = tutorialSteps[currentStep];
   const isStepComplete = areAllStepsComplete(currentTutorialStep.steps);
@@ -141,7 +141,7 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
         {/* Steps List */}
         <div className="space-y-3 mb-4">
           {currentTutorialStep.steps.map((step, idx) => {
-            const complete = step.isStepComplete ? step.isStepComplete() : step.complete;
+            const complete = (hasClaimed && !step.optional) ? true : step.isStepComplete ? step.isStepComplete() : step.complete;
             const linkState = step.linkState || {};
             if (step.actionType === 'link' && step.isSelectedTotem) {
               linkState.selectedTokenId = totems[0]?.tokenId;

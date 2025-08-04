@@ -3,8 +3,8 @@ import { useTutorialClaims } from './useTutorialClaims';
 import TutorialPanel from './TutorialPanel';
 
 export default function TutorialPanels() {
-  const { handleClaimReward, getClaimStatus, claimStatus } = useTutorialClaims();
-  const { tutorialSteps, areAllStepsComplete, stepActions } = useTutorialConfig(claimStatus);
+  const { tutorialSteps, areAllStepsComplete, stepActions } = useTutorialConfig();
+  const { handleClaimReward, getClaimStatus } = useTutorialClaims();
 
   const handleClaimRewardWrapper = async (rewardId: string, totemId: string) => {
     const stepConfig = tutorialSteps.find(step => step.rewardId === rewardId);

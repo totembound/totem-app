@@ -344,11 +344,7 @@ export const useTutorialConfig = () => {
     return achievement.currentCount >= targetCount;
   };
 
-  const checkStep = (step: StepConfig, overrideComplete = false): boolean => {
-    // If step is being overridden as complete, return true for non-optional steps
-    if (overrideComplete && !step.optional) {
-      return true;
-    }
+  const checkStep = (step: StepConfig): boolean => {
     switch (step.checkType) {
       case 'isConnected':
         return isConnected;
@@ -383,37 +379,35 @@ export const useTutorialConfig = () => {
   };
 
   const convertConfigToSteps = (config: TutorialStepConfig[]): TutorialStep[] => {
-  return config.map(stepConfig => {
-    return {
-      ...stepConfig,
-      steps: stepConfig.steps.map(stepConfigItem => {
-        let actionUrl = stepConfigItem.actionUrl;
-        
-        // Process {species} placeholder
-        if (actionUrl && actionUrl.includes('{species}')) {
-          if (totems && totems.length > 0) {
-            const speciesName = getSpeciesName(totems[0].attributes.species);
-            actionUrl = actionUrl.replace('{species}', speciesName);
-          } 
-        }
+  return config.map(stepConfig => ({
+    ...stepConfig,
+    steps: stepConfig.steps.map(stepConfigItem => {
+      let actionUrl = stepConfigItem.actionUrl;
+      
+      // Process {species} placeholder
+      if (actionUrl && actionUrl.includes('{species}')) {
+        if (totems && totems.length > 0) {
+          const speciesName = getSpeciesName(totems[0].attributes.species);
+          actionUrl = actionUrl.replace('{species}', speciesName);
+        } 
+      }
 
-        return {
-          label: stepConfigItem.label,
-          complete: false,
-          optional: stepConfigItem.optional,
-          actionType: stepConfigItem.actionType,
-          actionId: stepConfigItem.actionId,
-          actionUrl: actionUrl, // This is now the processed URL
-          actionText: stepConfigItem.actionText,
-          checkType: stepConfigItem.checkType,
-          checkParam: stepConfigItem.checkParam,
-          linkState: stepConfigItem.linkState,
-          isSelectedTotem: stepConfigItem.isSelectedTotem,
-          isStepComplete: () => checkStep(stepConfigItem)
-        } as Step;
-      })
-    };
-  });
+      return {
+        label: stepConfigItem.label,
+        complete: false,
+        optional: stepConfigItem.optional,
+        actionType: stepConfigItem.actionType,
+        actionId: stepConfigItem.actionId,
+        actionUrl: actionUrl, // This is now the processed URL
+        actionText: stepConfigItem.actionText,
+        checkType: stepConfigItem.checkType,
+        checkParam: stepConfigItem.checkParam,
+        linkState: stepConfigItem.linkState,
+        isSelectedTotem: stepConfigItem.isSelectedTotem,
+        isStepComplete: () => checkStep(stepConfigItem)
+      } as Step;
+    })
+  }));
 };
 
   const areAllStepsComplete = (steps: Step[]) => {

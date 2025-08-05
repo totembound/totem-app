@@ -141,7 +141,8 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
         {/* Steps List */}
         <div className="space-y-3 mb-4">
           {currentTutorialStep.steps.map((step, idx) => {
-            const complete = step.isStepComplete ? step.isStepComplete() : step.complete;
+            const canOverride = hasClaimed && !step.optional;
+            const complete = canOverride || (step.isStepComplete ? step.isStepComplete() : step.complete);
             const linkState = step.linkState || {};
             if (step.actionType === 'link' && step.isSelectedTotem) {
               linkState.selectedTokenId = totems[0]?.tokenId;

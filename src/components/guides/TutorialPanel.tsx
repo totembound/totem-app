@@ -92,7 +92,8 @@ export default function TutorialPanel({
       <p className="text-sm px-4 text-gray-600 dark:text-gray-400">{subtitle}</p>
       <ul className="space-y-2 p-4 flex-grow">
         {steps.map((step, idx) => {
-          const complete = (hasClaimed && !step.optional) ? true : step.isStepComplete ? step.isStepComplete() : step.complete;
+          const canOverride = hasClaimed && !step.optional;
+          const complete = canOverride || (step.isStepComplete ? step.isStepComplete() : step.complete);
 
           const linkState = step.linkState || {};
           if (step.actionType === 'link' && step.isSelectedTotem) {

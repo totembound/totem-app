@@ -24,6 +24,7 @@ const domains = [
 // Duration options for filtering
 const durations = [
   { id: -1, name: 'All' },
+  { id: 0.5, name: '30 Minutes'},
   { id: 3, name: '3 Hours' },
   { id: 6, name: '6 Hours' },
   { id: 12, name: '12 Hours' },

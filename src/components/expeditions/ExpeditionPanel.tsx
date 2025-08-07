@@ -80,7 +80,7 @@ const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
                             bg-white/70 text-gray-800
                         `}>
                             <Clock className="inline w-3 h-3 mr-1" />
-                            {durationHours} hours
+                            {durationHours < 1 ? `${Math.round(durationHours * 60)} minutes` : `${durationHours} hours`}
                         </div>
                         <div className={`
                             flex items-center

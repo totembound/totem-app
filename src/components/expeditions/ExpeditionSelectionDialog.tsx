@@ -349,8 +349,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                 <div className="flex items-center gap-2 mb-2">
                   <MapPin className="w-5 h-5 text-purple-500" />
                   <span className="font-medium text-gray-800 dark:text-gray-200">
-                    {expedition.domainName} Domain • {expedition.durationHours}{" "}
-                    Hours
+                    {expedition.domainName} Domain • {expedition.durationHours < 1 ? `${Math.round(expedition.durationHours * 60)} minutes` : `${expedition.durationHours} hours`}{" "}
                   </span>
                 </div>
                 <div className="mt-2 flex items-center gap-2">

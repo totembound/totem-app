@@ -288,7 +288,7 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
         actionText: "Recruit"
       },
       { 
-        label: "Begin an Expedition", 
+        label: "Complete an Expedition", 
         checkType: "hasAchievement",
         checkParam: "expedition_explorer",
         actionType: "link",

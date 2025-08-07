@@ -26,3 +26,14 @@ export const splitWords = (text: string): string => {
     // Split words and add spaces between them
     return text.replace(/([A-Z])/g, ' $1').trim();
 };
+
+export const formatExpeditionDuration = (durationHours: number): string => {
+    if (durationHours < 1) {
+        const minutes = Math.round(durationHours * 60);
+        return `${minutes} minutes`;
+    } else if (durationHours === 1) {
+        return '1 hour';
+    } else {
+        return `${durationHours} hours`;
+    }
+};

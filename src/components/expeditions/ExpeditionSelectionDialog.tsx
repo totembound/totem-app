@@ -4,7 +4,7 @@ import { useGame } from "../../contexts/GameContext";
 import { ethers } from "ethers";
 import { X, MapPin, Heart, AlertCircle, Zap, Sparkles } from "lucide-react";
 import { Domain } from "../../types/types";
-import { formatTokenAmount } from "../../utils/formats";
+import { formatTokenAmount, formatExpeditionDuration } from "../../utils/formats";
 import { getRarityBorderColor, getTotemStage } from "../../utils/totems";
 import expeditions from "../data/expeditions.json";
 import { IPFS_GATEWAY_URL } from "../../config/constants";
@@ -349,7 +349,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                 <div className="flex items-center gap-2 mb-2">
                   <MapPin className="w-5 h-5 text-purple-500" />
                   <span className="font-medium text-gray-800 dark:text-gray-200">
-                    {expedition.domainName} Domain • {expedition.durationHours < 1 ? `${Math.round(expedition.durationHours * 60)} minutes` : `${expedition.durationHours} hours`}{" "}
+                    {expedition.domainName} Domain • {formatExpeditionDuration(expedition.durationHours)}{" "}
                   </span>
                 </div>
                 <div className="mt-2 flex items-center gap-2">

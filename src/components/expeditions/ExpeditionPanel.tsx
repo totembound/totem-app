@@ -1,6 +1,6 @@
 import React from 'react';
 import { Clock, Droplets, Heart, ArrowRight, Coins, Sparkles } from 'lucide-react';
-import { formatTokenAmount } from '../../utils/formats';
+import { formatTokenAmount, formatExpeditionDuration } from '../../utils/formats';
 import { getDomainColor, getTotemAffinityIcon } from '../../utils/totems';
 import { Affinity } from '../../types/types';
 
@@ -80,7 +80,7 @@ const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
                             bg-white/70 text-gray-800
                         `}>
                             <Clock className="inline w-3 h-3 mr-1" />
-                            {durationHours < 1 ? `${Math.round(durationHours * 60)} minutes` : `${durationHours} hours`}
+                            {formatExpeditionDuration(durationHours)}
                         </div>
                         <div className={`
                             flex items-center

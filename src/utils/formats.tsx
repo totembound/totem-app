@@ -27,7 +27,7 @@ export const splitWords = (text: string): string => {
     return text.replace(/([A-Z])/g, ' $1').trim();
 };
 
-export const formatExpeditionDuration = (durationHours: number): string => {
+export const formatHoursDuration = (durationHours: number): string => {
     if (durationHours < 1) {
         const minutes = Math.round(durationHours * 60);
         return `${minutes} minutes`;

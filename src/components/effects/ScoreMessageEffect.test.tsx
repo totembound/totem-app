@@ -1,8 +1,9 @@
 import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
+import { vi } from 'vitest';
 import ScoreMessages, { ScoreMessage } from './ScoreMessageEffect';
 
-jest.useFakeTimers();
+vi.useFakeTimers();
 
 describe('ScoreMessages Component', () => {
   const messages: ScoreMessage[] = [
@@ -21,7 +22,7 @@ describe('ScoreMessages Component', () => {
     expect(message).toHaveStyle('opacity: 1');
 
     act(() => {
-      jest.advanceTimersByTime(500);
+      vi.advanceTimersByTime(500);
     });
 
     rerender(<ScoreMessages messages={messages} duration={1000} />); // Force a re-render
@@ -29,7 +30,7 @@ describe('ScoreMessages Component', () => {
     await waitFor(() => expect(message).toHaveStyle('opacity: 0.5'));
 
     act(() => {
-      jest.advanceTimersByTime(500);
+      vi.advanceTimersByTime(500);
     });
 
     rerender(<ScoreMessages messages={messages} duration={1000} />);

@@ -74,15 +74,15 @@ cp .env.example .env
 
 6. Set up environment variables for testnet:
 ```plaintext
-REACT_APP_GAME_ADDRESS="game_proxy_address"
-REACT_APP_FORWARDER_ADDRESS="forwarder_address"
-REACT_APP_TOKEN_ADDRESS="token_proxy_address"
-REACT_APP_NFT_ADDRESS="nft_proxy_address"
-REACT_APP_SHOP_ADDRESS="shop_proxy_address"
-REACT_APP_REWARDS_ADDRESS="rewards_proxy_address"
-REACT_APP_ACHIEVEMENTS_ADDRESS="achievements_proxy_address"
-REACT_APP_CHALLENGES_ADDRESS="challenges_proxy_address"
-REACT_APP_EXPEDITIONS_ADDRESS="expeditions_proxy_address"
+VITE_GAME_ADDRESS="game_proxy_address"
+VITE_FORWARDER_ADDRESS="forwarder_address"
+VITE_TOKEN_ADDRESS="token_proxy_address"
+VITE_NFT_ADDRESS="nft_proxy_address"
+VITE_SHOP_ADDRESS="shop_proxy_address"
+VITE_REWARDS_ADDRESS="rewards_proxy_address"
+VITE_ACHIEVEMENTS_ADDRESS="achievements_proxy_address"
+VITE_CHALLENGES_ADDRESS="challenges_proxy_address"
+VITE_EXPEDITIONS_ADDRESS="expeditions_proxy_address"
 ```
 
 ## Development

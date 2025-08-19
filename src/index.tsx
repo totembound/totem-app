@@ -29,7 +29,7 @@ else {
 
 // Register the service worker for PWA functionality
 serviceWorkerRegistration.register({
-  onUpdate: (registration) => {
+  onUpdate: () => {
     // Show notification when a new version is available
     console.log('TotemBound is ready to be updated.');
   },
@@ -40,13 +40,13 @@ serviceWorkerRegistration.register({
 
 // Add this check on app initialization
 console.log('Contract addresses:', {
-  game: process.env.REACT_APP_GAME_ADDRESS,
-  forwarder: process.env.REACT_APP_FORWARDER_ADDRESS,
-  token: process.env.REACT_APP_TOKEN_ADDRESS,
-  nft: process.env.REACT_APP_NFT_ADDRESS,
-  shop: process.env.REACT_APP_SHOP_ADDRESS,
-  rewards: process.env.REACT_APP_REWARDS_ADDRESS,
-  achievements: process.env.REACT_APP_ACHIEVEMENTS_ADDRESS,
-  challenges: process.env.REACT_APP_CHALLENGES_ADDRESS,
-  expeditions: process.env.REACT_APP_EXPEDITIONS_ADDRESS
+  game: import.meta.env.VITE_GAME_ADDRESS,
+  forwarder: import.meta.env.VITE_FORWARDER_ADDRESS,
+  token: import.meta.env.VITE_TOKEN_ADDRESS,
+  nft: import.meta.env.VITE_NFT_ADDRESS,
+  shop: import.meta.env.VITE_SHOP_ADDRESS,
+  rewards: import.meta.env.VITE_REWARDS_ADDRESS,
+  achievements: import.meta.env.VITE_ACHIEVEMENTS_ADDRESS,
+  challenges: import.meta.env.VITE_CHALLENGES_ADDRESS,
+  expeditions: import.meta.env.VITE_EXPEDITIONS_ADDRESS
 });

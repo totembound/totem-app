@@ -52,7 +52,7 @@ const PremiumSignup: React.FC<PremiumSignupProps> = ({ onCheckout }) => {
     const [showAdvancedConfirmDialog, setShowAdvancedConfirmDialog] = useState(false);
     const [pendingAdvancedSwitch, setPendingAdvancedSwitch] = useState(false);
 
-    const API_GATEWAY_URL = process.env.REACT_APP_API_GATEWAY_URL || 'https://api.totembound.com/v1';
+    const API_GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL || 'https://api.totembound.com/v1';
 
     // Define pricing tiers
     const pricingTiers: PricingTier[] = [

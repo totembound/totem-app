@@ -10,7 +10,7 @@ import {
 import Tooltip from "./Tooltip";
 
 const API_GATEWAY_URL =
-  process.env.REACT_APP_RELAYER_API_URL || "https://api.totembound.com/v1";
+  import.meta.env.VITE_RELAYER_API_URL || "https://api.totembound.com/v1";
 
 interface QuotaData {
   userId: string;

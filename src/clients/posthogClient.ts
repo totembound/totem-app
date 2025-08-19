@@ -1,8 +1,8 @@
 import posthog from 'posthog-js';
 
-const POSTHOG_KEY = process.env.REACT_APP_PUBLIC_POSTHOG_KEY!;
-const POSTHOG_HOST = process.env.REACT_APP_PUBLIC_POSTHOG_HOST;
-const POSTHOG_AUTOCAPTURE = process.env.REACT_APP_PUBLIC_POSTHOG_AUTOCAPTURE === 'true';
+const POSTHOG_KEY = import.meta.env.VITE_PUBLIC_POSTHOG_KEY!;
+const POSTHOG_HOST = import.meta.env.VITE_PUBLIC_POSTHOG_HOST;
+const POSTHOG_AUTOCAPTURE = import.meta.env.VITE_PUBLIC_POSTHOG_AUTOCAPTURE === 'true';
 const isPostHogEnabled = !!POSTHOG_KEY && !!POSTHOG_HOST;
 
 if (isPostHogEnabled) {

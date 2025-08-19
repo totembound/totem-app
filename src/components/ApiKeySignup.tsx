@@ -14,7 +14,7 @@ const ApiKeySignup: React.FC<ApiKeySignupProps> = ({ onSuccess }) => {
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [apiKey, setApiKey] = useState<string | null>(null);
 
-    const API_GATEWAY_URL = process.env.REACT_APP_API_GATEWAY_URL || 'https://api.totembound.com/v1';
+    const API_GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL || 'https://api.totembound.com/v1';
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

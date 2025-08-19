@@ -21,7 +21,7 @@ export const SignupForm: React.FC = () => {
     const [apiKey, setApiKey] = useState('');
     const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
     const [turnstileToken, setTurnstileToken] = useState<string>('');
-    const API_GATEWAY_URL = process.env.REACT_APP_API_GATEWAY_URL || 'https://api.totembound.com/v1';
+    const API_GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL || 'https://api.totembound.com/v1';
     const { theme } = useTheme();
     
     const txService = useTransactionService({
@@ -795,7 +795,7 @@ export const SignupForm: React.FC = () => {
                         {selectedPlan === 'standard' && (
                             <div className="mb-6">
                                 <Turnstile
-                                    siteKey={process.env.REACT_APP_TURNSTILE_SITE_KEY || ''}
+                                    siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || ''}
                                     onSuccess={(token) => {
                                         setTurnstileToken(token);
                                     }}

@@ -10,15 +10,15 @@ import TotemExpeditionsABI from '../contracts/TotemExpeditions.abi.json';
 import { Achievement, AchievementProgress, AchievementView, CategoryProgress, TotemAttributes } from '../types/types';
 
 export const CONTRACT_ADDRESSES = {
-    game: process.env.REACT_APP_GAME_ADDRESS as string,
-    forwarder: process.env.REACT_APP_FORWARDER_ADDRESS as string,
-    token: process.env.REACT_APP_TOKEN_ADDRESS as string,
-    nft: process.env.REACT_APP_NFT_ADDRESS as string,
-    shop: process.env.REACT_APP_SHOP_ADDRESS as string,
-    rewards: process.env.REACT_APP_REWARDS_ADDRESS as string,
-    achievements: process.env.REACT_APP_ACHIEVEMENTS_ADDRESS as string,
-    challenges: process.env.REACT_APP_CHALLENGES_ADDRESS as string,
-    expeditions: process.env.REACT_APP_EXPEDITIONS_ADDRESS as string,
+    game: import.meta.env.VITE_GAME_ADDRESS as string,
+    forwarder: import.meta.env.VITE_FORWARDER_ADDRESS as string,
+    token: import.meta.env.VITE_TOKEN_ADDRESS as string,
+    nft: import.meta.env.VITE_NFT_ADDRESS as string,
+    shop: import.meta.env.VITE_SHOP_ADDRESS as string,
+    rewards: import.meta.env.VITE_REWARDS_ADDRESS as string,
+    achievements: import.meta.env.VITE_ACHIEVEMENTS_ADDRESS as string,
+    challenges: import.meta.env.VITE_CHALLENGES_ADDRESS as string,
+    expeditions: import.meta.env.VITE_EXPEDITIONS_ADDRESS as string,
 };
 
 // ABI snippets for the functions we need

@@ -1,4 +1,4 @@
-name: CI - Jest Tests
+name: CI - Vitest Tests
 
 on:
   push:

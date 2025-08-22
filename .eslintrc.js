@@ -1,12 +1,14 @@
 module.exports = {
     root: true,
     parser: '@typescript-eslint/parser',
-    plugins: ['@typescript-eslint', 'react', 'react-hooks'],
+    plugins: ['@typescript-eslint', 'react', 'react-hooks', 'testing-library'],
     extends: [
       'eslint:recommended',
       'plugin:@typescript-eslint/recommended',
       'plugin:react/recommended',
-      'plugin:react-hooks/recommended'
+      'plugin:react-hooks/recommended',
+      'plugin:testing-library/react',
+      'plugin:vitest-globals/recommended'
     ],
     env: {
       browser: true,

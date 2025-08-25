@@ -76,7 +76,7 @@ Object.defineProperty(window, 'scrollTo', {
 
 describe('App Component', () => {
   test('renders providers in correct order', () => {
-    const { container } = render(<App />);
+    render(<App />);
 
     // Check provider nesting order
     const providersOrder = [
@@ -86,7 +86,7 @@ describe('App Component', () => {
     ];
 
     providersOrder.forEach(provider => {
-      expect(container.querySelector(`[data-testid="${provider}"]`)).toBeInTheDocument();
+      expect(screen.getByTestId(provider)).toBeInTheDocument();
     });
   });
 

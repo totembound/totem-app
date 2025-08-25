@@ -16,8 +16,8 @@ describe('ScoreMessages Component', () => {
   });
 
   test('fades out over time', async () => {
-    const { getByText, rerender } = render(<ScoreMessages messages={messages} duration={1000} />);
-    const message = getByText('+100');
+    const { rerender } = render(<ScoreMessages messages={messages} duration={1000} />);
+    const message = screen.getByText('+100');
 
     expect(message).toHaveStyle('opacity: 1');
 

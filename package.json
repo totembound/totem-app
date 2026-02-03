@@ -14,7 +14,6 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "6.20.0",
-    "react-scripts": "5.0.1",
     "tailwind-merge": "^3.0.1",
     "tailwindcss": "^3.3.6",
     "tailwindcss-animate": "^1.0.7",
@@ -22,21 +21,23 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
+    "dev": "vite",
+    "start": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ci": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "coverage": "vitest --coverage",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "check-types": "tsc --noEmit",
-    "test:coverage": "react-scripts test --coverage --watchAll=false",
-    "test:ci": "react-scripts test --ci --coverage --watchAll=false --maxWorkers=2",
-    "validate": "npm run lint && npm run check-types && npm run test:coverage"
+    "analyze": "vite build --mode analyze",
+    "serve": "vite preview --port 3000"
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
-      "react-app/jest"
+      "react-app"
     ]
   },
   "browserslist": {
@@ -60,24 +61,12 @@
   "bugs": {
     "url": "https://github.com/totembound/totem-app/issues"
   },
-  "jest": {
-    "transformIgnorePatterns": [
-      "node_modules/(?!(lucide-react)/)/"
-    ],
-    "transform": {
-      "^.+\\.(js|jsx|ts|tsx)$": "babel-jest"
-    }
-  },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "@babel/preset-env": "^7.26.8",
-    "@babel/preset-react": "^7.26.3",
-    "@babel/preset-typescript": "^7.26.0",
     "@tailwindcss/typography": "^0.5.16",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.5.2",
     "@types/lodash": "^4.17.15",
     "@types/node": "^22.10.7",
     "@types/react": "^18.2.0",
@@ -85,19 +74,24 @@
     "@types/react-router-dom": "^5.3.3",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
     "autoprefixer": "^10.4.16",
-    "babel-jest": "^29.7.0",
-    "cra-template-typescript": "1.2.0",
     "dotenv": "^16.4.7",
     "eslint": "^8.57.1",
-    "eslint-plugin-jest": "^27.9.0",
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-testing-library": "^5.11.1",
-    "jest-environment-jsdom": "^29.7.0",
+    "eslint-plugin-vitest-globals": "^1.5.0",
     "lodash": "^4.17.21",
     "postcss": "^8.4.41",
-    "ts-jest": "^29.2.5",
-    "typescript": "^4.9.5"
+    "rollup-plugin-visualizer": "^6.0.3",
+    "typescript": "^4.9.5",
+    "vite": "^7.1.2",
+    "vite-plugin-pwa": "^1.0.3",
+    "vitest": "^3.2.4",
+    "workbox-precaching": "^7.3.0",
+    "workbox-window": "^7.3.0"
   }
 }

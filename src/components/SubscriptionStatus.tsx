@@ -20,7 +20,7 @@ const SubscriptionStatus: React.FC = () => {
   const [subscriptionData, setSubscriptionData] = useState<SubscriptionData | null>(null);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
 
-  const API_GATEWAY_URL = process.env.REACT_APP_API_GATEWAY_URL || 'https://api.totembound.com/v1';
+  const API_GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL || 'https://api.totembound.com/v1';
   
   const fetchSubscriptionStatus = async () => {
     if (!gaslessApiKey) return;

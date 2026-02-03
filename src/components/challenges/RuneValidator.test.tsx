@@ -1,4 +1,4 @@
-import { describe, it, expect, test } from '@jest/globals';
+import { describe, it, expect, test } from 'vitest';
 import { elementsDB, validateChainReaction, RuneType } from './RuneValidator';
 
 describe('RuneValidator Tests', () => {

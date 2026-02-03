@@ -1,15 +1,16 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { vi } from 'vitest';
 import App from './App';
 
 // Mock all context providers
-jest.mock('./contexts/ThemeContext', () => ({
+vi.mock('./contexts/ThemeContext', () => ({
   ThemeProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="theme-provider">{children}</div>
   )
 }));
 
-jest.mock('./contexts/UserContext', () => ({
+vi.mock('./contexts/UserContext', () => ({
   UserProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="user-provider">{children}</div>
   ),
@@ -17,30 +18,30 @@ jest.mock('./contexts/UserContext', () => ({
     address: '',
     isConnected: false,
     isSignedUp: false,
-    connect: jest.fn(),
-    disconnect: jest.fn(),
-    signup: jest.fn()
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+    signup: vi.fn()
   })
 }));
 
-jest.mock('./contexts/GameContext', () => ({
+vi.mock('./contexts/GameContext', () => ({
   GameProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="game-provider">{children}</div>
   )
 }));
 
 // mock for app tests
-jest.mock('./hooks/usePageViews', () => ({
-  usePageViews: jest.fn()
+vi.mock('./hooks/usePageViews', () => ({
+  usePageViews: vi.fn()
 }));
 
 // Mock route components
-jest.mock('./components/pages/Home', () => ({
+vi.mock('./components/pages/Home', () => ({
   __esModule: true,
   default: () => <div data-testid="home-page">Home Page</div>
 }));
 
-jest.mock('./components/layouts/MainLayout', () => ({
+vi.mock('./components/layouts/MainLayout', () => ({
   MainLayout: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="main-layout">
       {children}
@@ -49,30 +50,33 @@ jest.mock('./components/layouts/MainLayout', () => ({
 }));
 
 // Mock react-router components to prevent actual routing
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  BrowserRouter: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="browser-router">{children}</div>
-  ),
-  Routes: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="routes">{children}</div>
-  ),
-  Route: ({ element }: { element: React.ReactNode }) => (
-    <div data-testid="route">{element}</div>
-  ),
-  Outlet: () => <div data-testid="outlet">Outlet Content</div>,
-  Navigate: () => null
-}));
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    BrowserRouter: ({ children }: { children: React.ReactNode }) => (
+      <div data-testid="browser-router">{children}</div>
+    ),
+    Routes: ({ children }: { children: React.ReactNode }) => (
+      <div data-testid="routes">{children}</div>
+    ),
+    Route: ({ element }: { element: React.ReactNode }) => (
+      <div data-testid="route">{element}</div>
+    ),
+    Outlet: () => <div data-testid="outlet">Outlet Content</div>,
+    Navigate: () => null
+  };
+});
 
 // Mock window.scrollTo to prevent errors
 Object.defineProperty(window, 'scrollTo', {
-  value: jest.fn(),
+  value: vi.fn(),
   writable: true
 });
 
 describe('App Component', () => {
   test('renders providers in correct order', () => {
-    const { container } = render(<App />);
+    render(<App />);
 
     // Check provider nesting order
     const providersOrder = [
@@ -82,7 +86,7 @@ describe('App Component', () => {
     ];
 
     providersOrder.forEach(provider => {
-      expect(container.querySelector(`[data-testid="${provider}"]`)).toBeInTheDocument();
+      expect(screen.getByTestId(provider)).toBeInTheDocument();
     });
   });
 

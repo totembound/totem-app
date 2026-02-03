@@ -1,10 +1,10 @@
-import '@testing-library/jest-dom'
-import { expect, afterEach, vi, beforeAll, afterAll } from 'vitest'
-import { cleanup, configure } from '@testing-library/react'
-import * as matchers from '@testing-library/jest-dom/matchers'
+import '@testing-library/jest-dom';
+import { expect, afterEach, vi, beforeAll, afterAll } from 'vitest';
+import { cleanup, configure } from '@testing-library/react';
+import * as matchers from '@testing-library/jest-dom/matchers';
 
 // Extend Vitest's expect with jest-dom matchers
-expect.extend(matchers)
+expect.extend(matchers);
 
 // Configure Testing Library
 configure({
@@ -12,21 +12,21 @@ configure({
   computedStyleSupportsPseudoElements: false,
   defaultHidden: true,
   throwSuggestions: true,
-})
+});
 
 // Cleanup after each test
 afterEach(() => {
-  cleanup()
-})
+  cleanup();
+});
 
 // Suppress Node.js punycode deprecation warning
-const originalEmitWarning = process.emitWarning
+const originalEmitWarning = process.emitWarning;
 process.emitWarning = (...args) => {
   if (typeof args[0] === 'string' && args[0].includes('The `punycode` module is deprecated')) {
-    return
+    return;
   }
-  return originalEmitWarning.apply(process, args as any)
-}
+  return originalEmitWarning.apply(process, args as any);
+};
 
 // Mock window.matchMedia for Vitest
 Object.defineProperty(window, 'matchMedia', {
@@ -41,38 +41,38 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
-})
+});
 
 // Suppress specific console warnings
-const originalError = console.error
+const originalError = console.error;
 beforeAll(() => {
   console.error = (...args) => {
     // Skip React 18 strict mode warnings
     if (args[0]?.includes('Warning: ReactDOM.render is no longer supported')) {
-      return
+      return;
     }
     // Skip act() warnings
     if (args[0]?.includes('Warning: `ReactDOMTestUtils.act` is deprecated')) {
-      return
+      return;
     }
-    originalError.call(console, ...args)
-  }
-})
+    originalError.call(console, ...args);
+  };
+});
 
 afterAll(() => {
-  console.error = originalError
-})
+  console.error = originalError;
+});
 
 // Mock Turnstile component to prevent external script loading during tests
 vi.mock('@marsidev/react-turnstile', () => ({
   Turnstile: vi.fn().mockImplementation(({ onSuccess }: any) => {
     // Auto-trigger success for testing
     if (onSuccess) {
-      setTimeout(() => onSuccess('mock-turnstile-token'), 0)
+      setTimeout(() => onSuccess('mock-turnstile-token'), 0);
     }
-    return null
+    return null;
   })
-}))
+}));
 
 // Mock environment variables for tests
 vi.mock('import.meta.env', () => ({
@@ -87,4 +87,4 @@ vi.mock('import.meta.env', () => ({
   VITE_EXPEDITIONS_ADDRESS: '0xpqr...',
   VITE_VERSION: '0.0.1',
   VITE_TURNSTILE_SITE_KEY: 'test-key'
-}))
+}));

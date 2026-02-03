@@ -1,31 +1,31 @@
-// Temporary basic service worker registration
-// Will be replaced with Vite PWA plugin once types are resolved
+import { registerSW } from 'virtual:pwa-register';
 
 type Config = {
-  onSuccess?: () => void;
-  onUpdate?: () => void;
-};
-
-export function register(config?: Config): void {
-  if ('serviceWorker' in navigator && import.meta.env.PROD) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then((registration) => {
-          console.log('SW registered: ', registration);
-          if (config?.onSuccess) {
-            config.onSuccess();
-          }
-        })
-        .catch((registrationError) => {
-          console.log('SW registration failed: ', registrationError);
-        });
-    });
-  }
+  onSuccess?: (registration?: ServiceWorkerRegistration) => void;
+  onUpdate?: (registration?: ServiceWorkerRegistration) => void;
 }
 
-const VERSION = `${import.meta.env.VITE_VERSION}`;
-export function getVersion() {
-  return VERSION;
+export function register(config?: Config): void {
+  if ('serviceWorker' in navigator) {
+    registerSW({
+      immediate: true,
+      onNeedRefresh() {
+        console.log('New content is available and will be used when all tabs for this page are closed.');
+        if (config?.onUpdate) {
+          config.onUpdate();
+        }
+      },
+      onOfflineReady() {
+        console.log('Content is cached for offline use.');
+        if (config?.onSuccess) {
+          config.onSuccess();
+        }
+      },
+      onRegisterError(error: any) {
+        console.error('Error during service worker registration:', error);
+      }
+    });
+  }
 }
 
 export function unregister(): void {
@@ -40,5 +40,6 @@ export function unregister(): void {
   }
 }
 
-// Export placeholder for updateSW
-export const updateSW = undefined;
+export function getVersion(): string {
+  return import.meta.env.VITE_VERSION || '0.0.1';
+}

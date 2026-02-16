@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameState } from '../../types/types';
-import { ImageIcon } from 'lucide-react';
+// ImageIcon removed - unused import
 
 interface Position {
   row: number;
@@ -36,7 +36,7 @@ const SpiritPath: React.FC<SpiritPathProps> = ({
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [finalScore, setFinalScore] = useState<number>(0);
   const [moves, setMoves] = useState<number>(0);
-  const [pathIntegrityChecks, setPathIntegrityChecks] = useState<number>(0);
+  const [_pathIntegrityChecks, setPathIntegrityChecks] = useState<number>(0);
 
   // References for timer implementation
   const containerRef = useRef<HTMLDivElement>(null);
@@ -655,7 +655,7 @@ const SpiritPath: React.FC<SpiritPathProps> = ({
     const tileImage = tileImages[tile.imageIndex];
     
     // Special styling for start and end tiles - you might want special images for these
-    const isSpecialTile = (tile.position.row === gameSettings.gridSize - 1 && tile.position.col === 0) || 
+    const _isSpecialTile = (tile.position.row === gameSettings.gridSize - 1 && tile.position.col === 0) ||
                           (tile.position.row === 0 && tile.position.col === gameSettings.gridSize - 1);
     
     return (

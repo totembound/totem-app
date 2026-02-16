@@ -4,21 +4,21 @@ import { Rarity } from '../types/types';
 import DisplayNameEditor from './DisplayNameEditor';
 
 interface TotemDetailHeaderProps {
-    tokenId: bigint;
+    totemId: string;
     name: string;
     displayName: string;
     rarity: Rarity;
     onClose: () => void;
-    onUpdateTotem: (tokenId: bigint, actionType: number) => Promise<void>;
+    onNicknameUpdate?: (nickname: string | null) => void;
 }
 
 const TotemDetailHeader: React.FC<TotemDetailHeaderProps> = ({
-    tokenId,
+    totemId,
     name,
     displayName,
-    rarity,
+    _rarity,
     onClose,
-    onUpdateTotem
+    onNicknameUpdate
 }) => {
     const [isEditingName, setIsEditingName] = useState(false);
 
@@ -50,12 +50,10 @@ const TotemDetailHeader: React.FC<TotemDetailHeaderProps> = ({
                     <div className="flex items-center h-8">
                         {isEditingName ? (
                             <DisplayNameEditor
-                                tokenId={tokenId}
+                                totemId={totemId}
                                 currentName={displayName || ''}
-                                onClose={async () => {
-                                    await onUpdateTotem(tokenId, 99); // ActionType.None = 99
-                                    setIsEditingName(false);
-                                }}
+                                onClose={() => setIsEditingName(false)}
+                                onSuccess={onNicknameUpdate}
                             />
                         ) : (
                             <div className="flex items-center">

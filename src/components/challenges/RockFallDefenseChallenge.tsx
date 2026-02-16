@@ -35,7 +35,7 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
   difficulty = 2,
   strength = 10,
   onComplete = (score: number) => console.log('Challenge complete:', score),
-  onFail = () => console.log('Challenge failed')
+  _onFail = () => console.log('Challenge failed')
 }) => {
   // Game state management
   const [gameState, setGameState] = useState<GameState>('ready');
@@ -200,7 +200,7 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
   }, [gameSettings.timeLimit]);
 
   // Handle game ending
-  const handleGameEnd = useCallback((reason: 'timeout' | 'maxScore' = 'timeout') => {
+  const handleGameEnd = useCallback((_reason: 'timeout' | 'maxScore' = 'timeout') => {
     // Clear all timers
     if (timerRef.current) {
       window.clearInterval(timerRef.current);

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   Bell,
   Trash2,
@@ -475,9 +476,20 @@ function NotificationsPanel() {
         </div>
       )}
 
-      {showSettingsModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md w-full p-4">
+      {/* Settings Modal - rendered via portal to avoid positioning issues */}
+      {showSettingsModal && createPortal(
+        <div
+          className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowSettingsModal(false);
+            }
+          }}
+        >
+          <div
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md p-4 mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-semibold text-lg dark:text-gray-100">
                 Notification Settings
@@ -502,8 +514,8 @@ function NotificationsPanel() {
                     max="500"
                     value={maxNotificationsInput}
                     onChange={(e) => setMaxNotificationsInput(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
-                      rounded-md shadow-sm bg-white dark:bg-gray-700 
+                    className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600
+                      rounded-md shadow-sm bg-white dark:bg-gray-700
                       text-gray-900 dark:text-gray-100"
                   />
                 </div>
@@ -535,8 +547,8 @@ function NotificationsPanel() {
             <div className="flex justify-end gap-2 mt-6">
               <button
                 onClick={() => setShowSettingsModal(false)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 
-                  rounded-md shadow-sm text-sm font-medium 
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600
+                  rounded-md shadow-sm text-sm font-medium
                   text-gray-700 dark:text-gray-300
                   bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
@@ -547,15 +559,16 @@ function NotificationsPanel() {
                   updateMaxNotifications(parseInt(maxNotificationsInput));
                   setShowSettingsModal(false);
                 }}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm 
-                  text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm
+                  text-sm font-medium text-white bg-blue-600 hover:bg-blue-700
                   dark:bg-blue-700 dark:hover:bg-blue-800"
               >
                 Save
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

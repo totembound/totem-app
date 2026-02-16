@@ -1,14 +1,14 @@
 import React from 'react';
-import { Coffee, Heart, Dumbbell, Sparkles, Clock, Coins, Loader2 } from 'lucide-react';
+import { Coffee, Heart, Dumbbell, Sparkles, Clock, Loader2 } from 'lucide-react';
 import { TotemAttributes, ActionType, ActionTracking, ActionConfig } from '../types/types';
+import { CURRENCY_NAMES } from '../config/constants';
 
 interface TotemActionBarProps {
     attributes: TotemAttributes;
     actionConfigs: Record<ActionType, ActionConfig>;
     actionTracking: Partial<Record<ActionType, ActionTracking>>;
-    totemBalance: string;
+    essenceBalance: number;
     isTotemOnExpedition?: boolean;
-    expeditionEndTime?: number;
     canUseAction: (
         attributes: TotemAttributes,
         actionType: ActionType,
@@ -20,7 +20,7 @@ interface TotemActionBarProps {
         tracking: ActionTracking,
         config: ActionConfig
     ) => string;
-    getNextAvailableWindow: (tracking: ActionTracking) => string;
+    getNextFeedWindow: () => string;
     isLoading: ActionType | null;
     onTreat: () => void;
     onFeed: () => void;
@@ -33,25 +33,19 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
     attributes,
     actionConfigs,
     actionTracking,
-    totemBalance,
+    essenceBalance,
     isTotemOnExpedition = false,
-    expeditionEndTime = 0,
     canUseAction,
     getActionStatus,
-    getNextAvailableWindow,
+    getNextFeedWindow,
     isLoading,
     onTreat,
     onFeed,
     onTrain,
     onEvolve,
-    canEvolve
+    canEvolve,
 }) => {
-    const formatTokenCost = (weiAmount: bigint | number): number => {
-        // Assuming 18 decimal places (standard for ERC20 tokens)
-        const bigIntAmount = BigInt(weiAmount);
-        // Divide by 10^18 and convert back to number
-        return Number(bigIntAmount / BigInt(10 ** 18));
-    };
+    const getEssenceCost = (cost: number): number => cost;
 
     // Get expedition status message
     const expeditionStatusMessage = isTotemOnExpedition
@@ -60,27 +54,30 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
 
     // Render a single action button
     const renderActionButton = (
-        type: ActionType, 
-        icon: React.ReactNode, 
-        label: string, 
+        type: ActionType,
+        icon: React.ReactNode,
+        label: string,
         handler: () => void,
         canUse: boolean
     ) => {
-        const actionCost = formatTokenCost(actionConfigs[type]?.cost || 0);
-        const hasEnoughBalance = parseFloat(totemBalance) >= actionCost;
+        const actionCost = getEssenceCost(actionConfigs[type]?.cost || 0);
+        const hasEnoughBalance = essenceBalance >= actionCost;
         const hasMinHappiness = attributes.happiness >= (actionConfigs[type]?.minHappiness || 0);
     
         // Safe access to tracking data with nullish default
         const tracking = actionTracking[type];
-        
-        // Safely call getActionStatus with null check
-        const actionStatus = tracking ? getActionStatus(
-            type, 
-            attributes, 
-            tracking, 
+
+        // Get action status from cooldowns API (via getActionStatus)
+        // Use default tracking if none exists to allow getActionStatus to check cooldowns
+        const defaultTracking = { lastUsed: 0, dailyUses: 0, dayStartTime: 0 };
+        const actionStatus = getActionStatus(
+            type,
+            attributes,
+            tracking || defaultTracking,
             actionConfigs[type]
-        ) : 'No tracking data';
-    
+        );
+
+        // Use canUse from cooldowns API - this properly checks API-based cooldowns
         const isDisabled = isTotemOnExpedition || !canUse || isLoading !== null || !hasEnoughBalance || !hasMinHappiness;
     
         const getButtonVariant = () => {
@@ -101,7 +98,7 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
                 return expeditionStatusMessage;
             }
             if (!hasEnoughBalance) {
-                return `Requires ${actionCost} TOTEM`;
+                return `Requires ${actionCost} ${CURRENCY_NAMES.SOFT}`;
             }
             if (!hasMinHappiness) {
                 return `Needs ${actionConfigs[type]?.minHappiness} happiness`;
@@ -115,17 +112,18 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
         const statusMessage = getStatusMessage();
 
         return (
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col h-full border-0 ring-0 outline-none">
                 {/* Button container with fixed height */}
-                <div className="flex-grow">
+                <div className="flex-grow border-0 ring-0 outline-none">
                     <button
                         onClick={handler}
                         disabled={isDisabled}
                         className={`
                             p-2 rounded-xl flex flex-col items-center gap-2 w-full
                             transition-all duration-200 ${getButtonVariant()}
-                            ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}
-                            shadow-sm hover:shadow-md
+                            ${isDisabled ? 'cursor-not-allowed shadow-none' : 'cursor-pointer shadow-sm hover:shadow-md'}
+                            border-0 outline-none focus:outline-none
+                            ${!isDisabled ? 'focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:focus:ring-offset-gray-900' : ''}
                         `}
                     >
                         {isLoading === type ? (
@@ -134,7 +132,7 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
                         <div className="flex flex-col items-center">
                             <span className="text-sm font-medium">{label}</span>
                             <span className="text-xs flex items-center gap-1">
-                                <Coins size={12} /> {actionCost} TOTEM
+                                <Sparkles size={12} className="text-yellow-500" /> {actionCost} {CURRENCY_NAMES.SOFT}
                             </span>
                         </div>
                     </button>
@@ -147,7 +145,7 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
                             <div className="flex flex-col items-center text-center justify-center gap-1">
                                 {!hasEnoughBalance ? (
                                     <>
-                                        <Coins size={16} className="text-yellow-500" />
+                                        <Sparkles size={16} className="text-yellow-500" />
                                         {statusMessage}
                                     </>
                                 ) : (
@@ -156,9 +154,10 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
                                         {statusMessage}
                                     </>
                                 )}
-                                {!isTotemOnExpedition && !canUse && type === ActionType.Feed && tracking && 
-                                    <div>{getNextAvailableWindow(tracking)}</div>
-                                }
+                                {/* Show next feed window for Feed action when on cooldown */}
+                                {type === ActionType.Feed && !canUse && !isTotemOnExpedition && (
+                                    <div className="text-xs opacity-75">{getNextFeedWindow()}</div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -175,7 +174,7 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
     return (
         <div className="space-y-4">
             {/* Action Buttons with consistent heights */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-3 [&>*]:border-0 [&>*]:outline-none [&>*]:ring-0">
                 {renderActionButton(
                     ActionType.Treat, 
                     <Heart size={20} className="sm:w-6 sm:h-6" />,
@@ -200,31 +199,41 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
             </div>
             
             {/* Evolution Button */}
-            {canEvolve && (
-                <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                    <button
-                        onClick={onEvolve}
-                        disabled={isTotemOnExpedition || isLoading !== null }
-                        className={`
-                            w-full py-3 px-4 rounded-xl font-semibold 
-                            flex items-center justify-center gap-2
-                            transition-all duration-300
-                            ${isTotemOnExpedition || isLoading === ActionType.Evolve
-                                ? 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                                : 'bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 transform hover:scale-[1.02] active:scale-100'
-                            }
-                            shadow-sm hover:shadow-md
-                        `}
-                    >
-                        {isLoading === ActionType.Evolve ? (
-                            <Loader2 size={20} className="animate-spin" />
-                        ) : (
-                            <Sparkles size={20} />
+            {canEvolve && (() => {
+                const evolveMinHappiness = actionConfigs[ActionType.Evolve]?.minHappiness || 30;
+                const hasEnoughHappiness = attributes.happiness >= evolveMinHappiness;
+                const isEvolveDisabled = isTotemOnExpedition || isLoading !== null || !hasEnoughHappiness;
+                return (
+                    <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                            onClick={onEvolve}
+                            disabled={isEvolveDisabled}
+                            className={`
+                                w-full py-3 px-4 rounded-xl font-semibold
+                                flex items-center justify-center gap-2
+                                transition-all duration-300
+                                ${isEvolveDisabled
+                                    ? 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                                    : 'bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 transform hover:scale-[1.02] active:scale-100'
+                                }
+                                shadow-sm hover:shadow-md
+                            `}
+                        >
+                            {isLoading === ActionType.Evolve ? (
+                                <Loader2 size={20} className="animate-spin" />
+                            ) : (
+                                <Sparkles size={20} />
+                            )}
+                            Evolve to Next Stage
+                        </button>
+                        {!hasEnoughHappiness && !isTotemOnExpedition && (
+                            <p className="text-xs text-center text-amber-600 dark:text-amber-400 mt-2">
+                                Needs {evolveMinHappiness} happiness to evolve (current: {attributes.happiness})
+                            </p>
                         )}
-                        Evolve to Next Stage
-                    </button>
-                </div>
-            )}
+                    </div>
+                );
+            })()}
         </div>
     );
 };

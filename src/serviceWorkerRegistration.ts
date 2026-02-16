@@ -1,28 +1,20 @@
 import { registerSW } from 'virtual:pwa-register';
 
-type Config = {
-  onSuccess?: (registration?: ServiceWorkerRegistration) => void;
-  onUpdate?: (registration?: ServiceWorkerRegistration) => void;
-}
-
-export function register(config?: Config): void {
+export function register(): void {
   if ('serviceWorker' in navigator) {
     registerSW({
       immediate: true,
+      // With registerType: 'prompt', the plugin will NOT auto-skip-waiting.
+      // ServiceWorkerDialog handles the update UX independently via the
+      // browser SW API (registration.waiting + postMessage SKIP_WAITING).
       onNeedRefresh() {
-        console.log('New content is available and will be used when all tabs for this page are closed.');
-        if (config?.onUpdate) {
-          config.onUpdate();
-        }
+        console.log('[SW] New version available — waiting for user to approve update.');
       },
       onOfflineReady() {
-        console.log('Content is cached for offline use.');
-        if (config?.onSuccess) {
-          config.onSuccess();
-        }
+        console.log('[SW] App cached for offline use.');
       },
       onRegisterError(error: any) {
-        console.error('Error during service worker registration:', error);
+        console.error('[SW] Registration error:', error);
       }
     });
   }
@@ -31,12 +23,8 @@ export function register(config?: Config): void {
 export function unregister(): void {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.ready
-      .then((registration) => {
-        registration.unregister();
-      })
-      .catch((error) => {
-        console.error(error.message);
-      });
+      .then((registration) => registration.unregister())
+      .catch((error) => console.error(error.message));
   }
 }
 

@@ -1,0 +1,169 @@
+{
+  "description": "Shop configuration - static config, no API call needed",
+  "conversionRate": {
+    "gemToEssence": 5,
+    "note": "1 Gem = 5 Essence"
+  },
+  "essenceExchange": [
+    { "id": "exchange_small", "gems": 100, "essence": 500, "bonus": 0, "bonusNote": null, "label": "1 Totem" },
+    { "id": "exchange_medium", "gems": 500, "essence": 2750, "bonus": 10, "bonusNote": "+10%", "label": "5+ Totems", "popular": true },
+    { "id": "exchange_large", "gems": 1000, "essence": 6000, "bonus": 20, "bonusNote": "+20%", "label": "12 Totems" },
+    { "id": "exchange_mega", "gems": 2500, "essence": 16250, "bonus": 30, "bonusNote": "+30%", "label": "32+ Totems" }
+  ],
+  "specialOfferBundles": [
+    {
+      "id": "bundle_newplayer",
+      "bundleId": 0,
+      "name": "New Player Bundle",
+      "gemCost": 500,
+      "priceUsd": "$5",
+      "essence": 500,
+      "includesTotem": true,
+      "totemRarity": "random",
+      "dailyLimit": 1
+    },
+    {
+      "id": "bundle_rare",
+      "bundleId": 1,
+      "name": "Daily Rare Special",
+      "gemCost": 1000,
+      "priceUsd": "$10",
+      "essence": 500,
+      "includesTotem": true,
+      "totemRarity": "rare",
+      "dailyLimit": 1
+    },
+    {
+      "id": "bundle_epic",
+      "bundleId": 2,
+      "name": "Daily Epic Special",
+      "gemCost": 2500,
+      "priceUsd": "$25",
+      "essence": 1000,
+      "includesTotem": true,
+      "totemRarity": "epic",
+      "dailyLimit": 1
+    },
+    {
+      "id": "bundle_monthly",
+      "bundleId": 3,
+      "name": "Monthly Collector Series",
+      "gemCost": 5000,
+      "priceUsd": "$50",
+      "essence": 2500,
+      "includesTotem": true,
+      "totemRarity": "exclusive",
+      "dailyLimit": 1
+    }
+  ],
+  "gemPackages": [
+    {
+      "id": "pkg_starter",
+      "name": "Starter Pack",
+      "price": 499,
+      "priceFormatted": "$4.99",
+      "gems": 500,
+      "bonus": 0,
+      "bonusFormatted": null,
+      "category": "standard",
+      "enabled": true
+    },
+    {
+      "id": "pkg_popular",
+      "name": "Popular Pack",
+      "price": 999,
+      "priceFormatted": "$9.99",
+      "gems": 1100,
+      "bonus": 10,
+      "bonusFormatted": "+10%",
+      "category": "standard",
+      "enabled": true
+    },
+    {
+      "id": "pkg_best_value",
+      "name": "Best Value",
+      "price": 2499,
+      "priceFormatted": "$24.99",
+      "gems": 3000,
+      "bonus": 20,
+      "bonusFormatted": "+20%",
+      "category": "standard",
+      "enabled": true
+    },
+    {
+      "id": "pkg_ultimate",
+      "name": "Ultimate Pack",
+      "price": 4999,
+      "priceFormatted": "$49.99",
+      "gems": 6500,
+      "bonus": 30,
+      "bonusFormatted": "+30%",
+      "category": "standard",
+      "enabled": true
+    }
+  ],
+  "monthlySeriesBundles": [
+    {
+      "id": "bundle_collector",
+      "name": "Collector Bundle",
+      "description": "Monthly collector bundle with 1 exclusive limited totem",
+      "price": 7499,
+      "priceFormatted": "$74.99",
+      "polEquivalent": 250,
+      "gems": 10000,
+      "essence": 50000,
+      "bonus": 43,
+      "bonusFormatted": "+43%",
+      "limitedTotems": 1,
+      "exclusiveTitle": null,
+      "exclusiveBadge": false,
+      "category": "collector",
+      "dailyLimit": 1,
+      "enabled": false
+    },
+    {
+      "id": "bundle_founder",
+      "name": "Founder Bundle",
+      "description": "Premium bundle with exclusive Founder title",
+      "price": 9999,
+      "priceFormatted": "$99.99",
+      "polEquivalent": 333,
+      "gems": 15000,
+      "essence": 75000,
+      "bonus": 50,
+      "bonusFormatted": "+50%",
+      "limitedTotems": 1,
+      "exclusiveTitle": "Founder",
+      "exclusiveBadge": false,
+      "category": "collector",
+      "dailyLimit": 1,
+      "enabled": false
+    },
+    {
+      "id": "bundle_legendary",
+      "name": "Legendary Bundle",
+      "description": "Ultimate bundle with 2 limited totems, Legend title, and exclusive badge",
+      "price": 14999,
+      "priceFormatted": "$149.99",
+      "polEquivalent": 500,
+      "gems": 25000,
+      "essence": 125000,
+      "bonus": 67,
+      "bonusFormatted": "+67%",
+      "limitedTotems": 2,
+      "exclusiveTitle": "Legend",
+      "exclusiveBadge": true,
+      "category": "collector",
+      "dailyLimit": 1,
+      "enabled": false
+    }
+  ],
+  "limitedTotemSeries": {
+    "description": "Monthly limited totem releases. Each month features a new exclusive color/species combo.",
+    "schedule": "First of each month",
+    "availabilityDays": 30,
+    "maxPerUser": 1,
+    "currentSeries": null,
+    "upcomingSeries": []
+  }
+}

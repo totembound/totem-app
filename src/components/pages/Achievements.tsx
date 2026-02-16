@@ -1,5 +1,4 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { ethers } from 'ethers';
 import { useAchievements } from '../../contexts/AchievementsContext';
 import { Shield, Trophy, Swords, Sparkles, Crown, CheckCircle2, Lock, Flame, Map, LucideIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import Tooltip from '../Tooltip';
@@ -34,10 +33,6 @@ const categoryNames: Record<AchievementCategory, string> = {
     [AchievementCategory.Expedition]: 'Expedition'
 };
 
-type CategoryRefs = {
-    [key in AchievementCategory]?: React.RefObject<HTMLDivElement>;
-};
-
 interface AchievementCardProps {
     achievement: AchievementView;
 }
@@ -54,7 +49,7 @@ const typeOrder = {
     Progression: 2
 } as const;
 
-type TypeOrderKey = keyof typeof typeOrder;
+// typeOrder used directly with 'as const' in sort comparisons
 
 // Specific achievement ordering within categories
 const achievementOrder = {
@@ -100,18 +95,20 @@ const achievementOrder = {
     expedition_explorer: 1,
     expedition_progression: 2
 };
-type AchievementOrderKey = keyof typeof achievementOrder;
+// achievementOrder used directly with 'as const' in sort comparisons
 
+// Web2: Use plain achievement IDs with 'ach_' prefix instead of hashed IDs
 const useAchievementOrderHashes = () => {
     return useMemo(() => {
-        const hashedOrder: Record<string, number> = {};
-        
+        const orderedMap: Record<string, number> = {};
+
         Object.entries(achievementOrder).forEach(([key, value]) => {
-            const hashedKey = ethers.id(key);
-            hashedOrder[hashedKey] = value;
+            // Achievement IDs in Web2 are prefixed with 'ach_'
+            const achievementKey = key.startsWith('ach_') ? key : `ach_${key}`;
+            orderedMap[achievementKey] = value;
         });
-        
-        return hashedOrder;
+
+        return orderedMap;
     }, []); // Empty dependency array ensures this is calculated only once
 };
 
@@ -312,7 +309,10 @@ const AchievementStatsRow: React.FC<AchievementStatsRowProps> = ({
 
 const getBadgeUri = (uri: string | undefined) => {
     if (!uri) return "";
+    // Return empty for placeholder badge paths (local paths that don't exist yet)
+    // This makes it fall back to the category icon
     if (uri?.startsWith('ipfs://badge')) return "";
+    if (uri?.startsWith('badges/')) return ""; // Local badge paths don't exist yet
     return uri.replace('ipfs://', IPFS_GATEWAY_URL);
 };
 
@@ -389,12 +389,12 @@ const AchievementBadge: React.FC<{
 
 const MilestoneProgress: React.FC<{
     milestone: Milestone;
-    currentCount: bigint;
+    currentCount: number;
     isUnlocked: boolean;
     badgeUri?: string;
 }> = ({ milestone, currentCount, isUnlocked, badgeUri }) => {
-    const requirement = Number(milestone.requirement);
-    const count = Number(currentCount);
+    const requirement = milestone.requirement;
+    const count = currentCount;
     const progress = Math.min((count / requirement) * 100, 100);
     const uri = getBadgeUri(badgeUri);
 
@@ -450,7 +450,7 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
     const hasPrereqs = achievement.requirements.length === 0 ||
         achievement.requirements.every(req =>
             (achievementProgress?.requirementsMet ?? 
-                achievement.requirements.every(reqId =>
+                achievement.requirements.every(_reqId =>
                     achievementsById[req.achievementId]?.isCompleted
                 )
             )
@@ -595,7 +595,7 @@ const Achievements: React.FC = () => {
         const numericCategories = Object.values(AchievementCategory)
             .filter((v): v is number => typeof v === 'number');
         
-        setExpandedCategories(prev => {
+        setExpandedCategories(_prev => {
             if (isAllExpanded) {
                 return new Set(); // Collapse all
             } else {

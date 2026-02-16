@@ -1,24 +1,35 @@
-import { ethers } from 'ethers';
+/**
+ * Format utilities - Web2 version (whole integer amounts, no wei conversion)
+ */
 
-export const formatTokenAmount = (value: string): string => {
-    const formatted = ethers.formatEther(value);
-    // Check if the value is a whole number
-    if (formatted.endsWith('.0') || formatted.includes('.000')) {
-        // Remove trailing zeros and decimal point if it's a whole number
-        return parseFloat(formatted).toString();
-    }
-    return formatted;
+/**
+ * Format a token amount to human readable string with locale formatting
+ * @param value - Integer amount as string or number
+ */
+export const formatTokenAmount = (value: string | number): string => {
+    const numValue = typeof value === 'string' ? Number(value) : value;
+    if (isNaN(numValue)) return '0';
+    return numValue.toLocaleString();
+};
+
+/**
+ * Parse a human readable amount to integer
+ * @param value - Human readable value
+ */
+export const parseTokenAmount = (value: string | number): number => {
+    const numValue = typeof value === 'string' ? parseFloat(value) : value;
+    return Math.floor(numValue);
 };
 
 export const formatTimeRemaining = (endTime: number): string => {
     const now = Math.floor(Date.now() / 1000);
     const timeLeft = endTime - now;
-    
+
     if (timeLeft <= 0) return 'Completed';
-    
+
     const hours = Math.floor(timeLeft / 3600);
     const minutes = Math.floor((timeLeft % 3600) / 60);
-    
+
     return `${hours}h ${minutes}m remaining`;
 };
 

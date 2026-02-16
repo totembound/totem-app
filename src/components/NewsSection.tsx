@@ -18,19 +18,30 @@ type NewsSectionProps = {
   section: string;
 };
 
+// Module-level cache — news content is static, no need to re-fetch on remount
+const newsCache: Record<string, NewsItem[]> = {};
+
 const NewsSection: React.FC<NewsSectionProps> = ({ section }) => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    if (newsCache[section]) {
+      setNewsItems(newsCache[section]);
+      setLoading(false);
+      return;
+    }
+
     fetch(`/news/${section}.json`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load news");
         return res.json();
       })
       .then((data) => {
-        setNewsItems(data.items || []);
+        const items = data.items || [];
+        newsCache[section] = items;
+        setNewsItems(items);
         setLoading(false);
       })
       .catch((err) => {

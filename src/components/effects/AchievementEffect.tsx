@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Sparkles, Star, Trophy } from 'lucide-react';
 
-const AchievementEffect = ({ 
+const AchievementEffect = ({
   title,
-  description,
-  badgeUri,
+  description: _description,
+  badgeUri: _badgeUri,
   onComplete
-}: { 
+}: {
   title: string;
   description: string;
   badgeUri: string;

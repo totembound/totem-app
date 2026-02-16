@@ -2,7 +2,6 @@ import { useState } from 'react';
 import ChallengeDialog from '../challenges/ChallengeDialog';
 import ChallengePanel from '../challenges/ChallengePanel';
 import { useGame } from '../../contexts/GameContext';
-import { ethers } from 'ethers';
 
 type AffinityType = 'strength' | 'agility' | 'wisdom' | 'balance';
 
@@ -22,7 +21,7 @@ interface Challenge {
 
 const strengthChallenges: Challenge[] = [
     {
-        id: 'strength-challenge-1',
+        id: 'chl_boulder-breaker',
         type: 'strength',
         title: 'Boulder Breaker',
         description: 'Break a massive rock by timing your strikes correctly. Strength determines power and speed. Harder levels add resistance.',
@@ -35,39 +34,39 @@ const strengthChallenges: Challenge[] = [
         }
     },
     {
-        id: 'strength-challenge-2',
+        id: 'chl_totem-wrestling',
         type: 'strength',
         title: 'Totem Wrestling',
         description: 'Push against a guardian spirit in a strength duel. Tap rapidly to overpower it. Strength affects endurance and resistance.',
         image: '/challenges/totem-wrestling-background.png',
         requirements: {
             stage: 3,
-            strength: 10,
-            agility: 5,
-            wisdom: 5
+            strength: 15,
+            agility: 8,
+            wisdom: 8
         }
     },
     {
-        id: 'strength-challenge-3',
+        id: 'chl_rockfall-defense',
         type: 'strength',
         title: 'Rockfall Defense',
         description: 'Block falling boulders by clicking in the right zones. Strength increases stamina for longer survival. Higher levels add unpredictable patterns.',
         image: '/challenges/rockfall-defense-background.png',
         requirements: {
             stage: 4,
-            strength: 10,
-            agility: 5,
-            wisdom: 5
+            strength: 20,
+            agility: 10,
+            wisdom: 10
         }
     }
 ];
 
 const agilityChallenges: Challenge[] = [
     {
-        id: 'agility-challenge-1',
+        id: 'chl_spirit-path',
         type: 'agility',
         title: 'Spirit Path Navigation',
-        description: 'Navigate a magical path of vanishing tiles, racing from start to finish before the ground disappears beneath you..',
+        description: 'Navigate a magical path of vanishing tiles, racing from start to finish before the ground disappears beneath you.',
         image: '/challenges/spiritpath-background.png',
         requirements: {
             stage: 2,
@@ -77,36 +76,36 @@ const agilityChallenges: Challenge[] = [
         }
     },
     {
-        id: 'agility-challenge-2',
+        id: 'chl_aerial-ring-dive',
         type: 'agility',
         title: 'Aerial Ring Dive',
         description: 'Fly through shifting rings in the air. Agility improves control. Missing too many rings voids the attempt.',
         image: '/challenges/aerial-ring-background.png',
         requirements: {
             stage: 3,
-            strength: 5,
-            agility: 10,
-            wisdom: 5
+            strength: 8,
+            agility: 15,
+            wisdom: 8
         }
     },
     {
-        id: 'agility-challenge-3',
+        id: 'chl_spirit-dance',
         type: 'agility',
         title: 'Totem Spirit Dance',
         description: 'Tap in rhythm with spirit drum beats. Agility determines timing accuracy. Harder levels add offbeat sections.',
         image: '/challenges/totem-spirit-background.png',
         requirements: {
             stage: 4,
-            strength: 5,
-            agility: 10,
-            wisdom: 5
+            strength: 10,
+            agility: 20,
+            wisdom: 10
         }
     }
 ];
 
 const wisdomChallenges: Challenge[] = [
     {
-        id: 'wisdom-challenge-1',
+        id: 'chl_ancient-runes',
         type: 'wisdom',
         title: 'Ancient Runes Decoding',
         description: 'Memorize and repeat glowing rune patterns. Wisdom increases memory retention and mistake tolerance. Higher levels add speed.',
@@ -119,36 +118,36 @@ const wisdomChallenges: Challenge[] = [
         }
     },
     {
-        id: 'wisdom-challenge-2',
+        id: 'chl_star-mapping',
         type: 'wisdom',
         title: 'Celestial Star Mapping',
         description: 'Connect stars to form constellations. Wisdom provides hints and reduces errors. Higher difficulty means more complex patterns.',
         image: '/challenges/celestial-star-background.png',
         requirements: {
             stage: 3,
-            strength: 5,
-            agility: 5,
-            wisdom: 10
+            strength: 8,
+            agility: 8,
+            wisdom: 15
         }
     },
     {
-        id: 'wisdom-challenge-3',
+        id: 'chl_spirit-weaving',
         type: 'wisdom',
         title: 'Spirit Weaving Runes',
         description: 'Align magical runes in the correct order. Incorrect placements disrupt the pattern. Wisdom slows instability.',
         image: '/challenges/spirit-weaving-background.png',
         requirements: {
             stage: 4,
-            strength: 5,
-            agility: 5,
-            wisdom: 10
+            strength: 10,
+            agility: 10,
+            wisdom: 20
         }
     }
 ];
 
 const balanceChallenges: Challenge[] = [
     {
-        id: 'beginner-challenge-1',
+        id: 'chl_garden-pest-patrol',
         type: 'balance',
         title: 'Garden Pest Patrol',
         description: 'Start your totems journey by protecting the garden. Use your instinct and reflexes to smack down those pesky moles where they pop up.',
@@ -264,9 +263,9 @@ const Challenges = () => {
                     {/* Challenge Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {getCurrentChallenges()?.map(challenge => {
-                            const challengeId = ethers.id(challenge.id);
-                            const highScore = challengeState.userStatus[challengeId]?.highScore || 0;
-                            const dailyAttempts = challengeState.userStatus[challengeId]?.dailyAttempts || 0;
+                            // Web2: Use plain string IDs
+                            const highScore = challengeState.userStatus[challenge.id]?.highScore || 0;
+                            const dailyAttempts = challengeState.userStatus[challenge.id]?.dailyAttempts || 0;
 
                             return (
                             <ChallengePanel

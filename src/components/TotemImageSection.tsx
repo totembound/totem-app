@@ -27,7 +27,7 @@ const HABITAT_BACKGROUNDS: Record<Species, string> = {
 const STAGE_NAMES = ["Newborn", "Youngling", "Juvenile", "Adult", "Elder"];
 
 // Species-specific habitat elements
-const HABITAT_ELEMENTS: Record<Species, React.ReactNode> = {
+const _HABITAT_ELEMENTS: Record<Species, React.ReactNode> = {
     [Species.Goose]: (
         <div className="absolute bottom-0 w-full h-1/4 bg-blue-500/20 dark:bg-blue-900/30 backdrop-blur-sm" />
     ),

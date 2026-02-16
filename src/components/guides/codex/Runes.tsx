@@ -1,7 +1,11 @@
 import React from "react";
 import CodexSidebar from "./CodexSidebar";
+import { RunesDisplayPouchLarge } from "../../RunesDisplay";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const Runes: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-[280px_1fr]">
@@ -20,53 +24,63 @@ const Runes: React.FC = () => {
             potential it holds.
           </p>
 
-          <div className="space-y-6 mt-6">
+          {/* Your Rune Collection - only shown when logged in */}
+          {isAuthenticated && (
+            <div className="mt-6 mb-8">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Your Collection</h2>
+              <RunesDisplayPouchLarge showUserCounts={true} />
+            </div>
+          )}
+
+          {/* Rune Details */}
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Rune Details</h2>
+          <div className="space-y-4">
             {/* Lesser Rune */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-t-4 border-blue-500">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                  <img
-                    src="/runes/lesser-rune.png"
-                    alt="Lesser Rune"
-                    className={`w-full h-full object-contain`}/>
+            <div className="bg-gradient-to-r from-blue-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 rounded-lg overflow-hidden border border-blue-200 dark:border-slate-600">
+              <div className="flex">
+                <div className="w-2 bg-blue-500" />
+                <div className="p-4 flex-1">
+                  <div className="flex items-center gap-4 mb-3">
+                    <img src="/runes/lesser-rune.png" alt="Lesser Rune" className="w-12 h-12" />
+                    <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400">Lesser Rune</h3>
+                  </div>
+                  <p className="text-gray-600 dark:text-slate-300 text-sm">
+                    Lesser Runes are common spiritual fragments gathered from any completed expedition. They are stable, modest in energy, and form the foundation of most gear upgrades and basic enhancements. While unassuming, their purity is essential for all greater forms.
+                  </p>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Lesser Rune</h2>
               </div>
-              <p className="text-gray-600 dark:text-gray-300">
-                Lesser Runes are common spiritual fragments gathered from any completed expedition. They are stable, modest in energy, and form the foundation of most gear upgrades and basic enhancements. While unassuming, their purity is essential for all greater forms.
-              </p>
             </div>
 
             {/* Greater Rune */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-t-4 border-orange-500">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-10 h-10 p-0.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
-                  <img
-                    src="/runes/greater-rune.png"
-                    alt="Greater Rune"
-                    className={`w-full h-full object-contain`}/>
+            <div className="bg-gradient-to-r from-amber-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 rounded-lg overflow-hidden border border-amber-200 dark:border-slate-600">
+              <div className="flex">
+                <div className="w-2 bg-amber-500" />
+                <div className="p-4 flex-1">
+                  <div className="flex items-center gap-4 mb-3">
+                    <img src="/runes/greater-rune.png" alt="Greater Rune" className="w-12 h-12" />
+                    <h3 className="text-xl font-bold text-amber-600 dark:text-amber-400">Greater Rune</h3>
+                  </div>
+                  <p className="text-gray-600 dark:text-slate-300 text-sm">
+                    Greater Runes are rare finds, often uncovered in longer or domain-aligned expeditions. They hold concentrated elemental energy and are essential for crafting advanced gear. When forged with the right resonance, they awaken powerful Totem traits.
+                  </p>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Greater Rune</h2>
               </div>
-              <p className="text-gray-600 dark:text-gray-300">
-                Greater Runes are rare finds, often uncovered in longer or domain-aligned expeditions. They hold concentrated elemental energy and are essential for crafting advanced gear. When forged with the right resonance, they awaken powerful Totem traits.
-              </p>
             </div>
 
             {/* Ancient Rune */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-t-4 border-purple-500">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-10 h-10 p-0.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                  <img
-                    src="/runes/ancient-rune.png"
-                    alt="Ancient Rune"
-                    className={`w-full h-full object-contain`}/>
+            <div className="bg-gradient-to-r from-purple-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 rounded-lg overflow-hidden border border-purple-200 dark:border-slate-600">
+              <div className="flex">
+                <div className="w-2 bg-purple-500" />
+                <div className="p-4 flex-1">
+                  <div className="flex items-center gap-4 mb-3">
+                    <img src="/runes/ancient-rune.png" alt="Ancient Rune" className="w-12 h-12" />
+                    <h3 className="text-xl font-bold text-purple-600 dark:text-purple-400">Ancient Rune</h3>
+                  </div>
+                  <p className="text-gray-600 dark:text-slate-300 text-sm">
+                    Ancient Runes are legendary relics, unstable, potent, and deeply tied to the oldest layers of the spirit world. Found only in the longest and rarest expeditions, they are rumored to hold the power to alter fate, unlock rituals, or bind Totems to deeper forces.
+                  </p>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Ancient Rune</h2>
               </div>
-              <p className="text-gray-600 dark:text-gray-300">
-                Ancient Runes are legendary relics, unstable, potent, and deeply tied to the oldest layers of the spirit world. Found only in the longest and rarest expeditions, they are rumored to hold the power to alter fate, unlock rituals, or bind Totems to deeper forces.
-              </p>
             </div>
           </div>
 

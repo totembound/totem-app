@@ -5,20 +5,22 @@ import { useUser } from '../contexts/UserContext';
 import { RateLimitError } from '../types/types';
 
 interface DisplayNameEditorProps {
-    tokenId: bigint;
+    totemId: string;
     currentName: string;
     onClose: () => void;
+    onSuccess?: (nickname: string | null) => void;
 }
 
 const DisplayNameEditor: React.FC<DisplayNameEditorProps> = ({
-    tokenId,
+    totemId,
     currentName,
-    onClose
+    onClose,
+    onSuccess
 }) => {
     const [newName, setNewName] = useState(currentName || '');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { showError, handleRateLimitError } = useUser();
-    const { setDisplayName } = useGame();
+    const { setNickname } = useGame();
     const inputRef = useRef<HTMLInputElement>(null);
 
     // Auto-focus the input when component mounts
@@ -33,7 +35,10 @@ const DisplayNameEditor: React.FC<DisplayNameEditorProps> = ({
     const handleUpdate = async () => {
         setIsSubmitting(true);
         try {
-            await setDisplayName(tokenId, newName.trim());
+            const trimmedName = newName.trim() || null;
+            await setNickname(totemId, trimmedName || '');
+            // Notify parent of successful update for local state sync
+            onSuccess?.(trimmedName);
             onClose();
         }
         catch (err) {

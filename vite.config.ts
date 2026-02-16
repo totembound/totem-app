@@ -4,14 +4,31 @@ import { resolve } from 'path'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig({
+// Serve /docs as static files, bypassing SPA fallback
+function docsStaticPlugin() {
+  return {
+    name: 'docs-static',
+    configureServer(server: any) {
+      server.middlewares.use((req: any, _res: any, next: any) => {
+        // Redirect /docs to /docs/ so the static index.html is served
+        if (req.url === '/docs') {
+          req.url = '/docs/index.html'
+        }
+        next()
+      })
+    }
+  }
+}
+
+export default defineConfig(({ mode }) => ({
   plugins: [
+    docsStaticPlugin(),
     react(),
     visualizer({
       filename: 'dist/stats.html'
     }),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'service-worker.ts',
@@ -22,7 +39,7 @@ export default defineConfig({
       manifest: {
         name: 'TotemBound',
         short_name: 'TotemBound',
-        description: 'Blockchain-based NFT game where players raise, train, and evolve mystical owl companions',
+        description: 'A game where players raise, train, and evolve mystical animal spirit companions',
         theme_color: '#000000',
         background_color: '#ffffff',
         display: 'standalone',
@@ -78,13 +95,12 @@ export default defineConfig({
 
   build: {
     outDir: 'build',
-    sourcemap: true,
+    sourcemap: mode !== 'production',
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
-          blockchain: ['ethers'],
           ui: ['lucide-react', 'tailwind-merge']
         }
       }
@@ -93,17 +109,21 @@ export default defineConfig({
 
   define: {
     global: 'globalThis',
-    // Polyfill for Node.js globals used by ethers.js
     'process.env': {}
   },
 
   optimizeDeps: {
-    include: ['ethers', 'posthog-js']
+    include: ['posthog-js']
   },
 
   test: {
     globals: true,
     environment: 'jsdom',
+    environmentOptions: {
+      jsdom: {
+        url: 'http://localhost:3000'
+      }
+    },
     setupFiles: ['./src/setupTests.ts']
   }
-})
+}))

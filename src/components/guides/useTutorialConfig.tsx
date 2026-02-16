@@ -1,7 +1,11 @@
-import { ethers } from 'ethers';
+/**
+ * Tutorial Configuration
+ */
+import { useEffect, useRef } from 'react';
 import { useUser } from '../../contexts/UserContext';
 import { useAchievements } from '../../contexts/AchievementsContext';
 import { Step, TutorialStep, Species } from '../../types/types';
+import { CURRENCY_NAMES } from '../../config/constants';
 
 // Pure configuration without function references
 export interface TutorialStepConfig {
@@ -18,13 +22,12 @@ export interface TutorialStepConfig {
 
 export interface StepConfig {
   label: string;
-  checkType: 'isConnected' 
-    | 'isSignedUp' 
-    | 'isTokenApproved' 
-    | 'hasAchievement' 
-    | 'hasTotems' 
-    | 'hasTotemName' 
-    | 'hasAchievementProgress' 
+  checkType: 'isConnected'
+    | 'isSignedUp'
+    | 'hasAchievement'
+    | 'hasTotems'
+    | 'hasTotemName'
+    | 'hasAchievementProgress'
     | 'hasClickedLink'
     | 'custom';
   checkParam?: string; // For achievement IDs, etc.
@@ -38,14 +41,14 @@ export interface StepConfig {
   isSelectedTotem?: boolean;
 }
 
-// Tutorial reward IDs
+// Tutorial reward IDs - Web2 uses plain string IDs instead of hashed IDs
 export const TUTORIAL_REWARDS = {
-  STEP_1: ethers.id("tutorial_step_1_signup"),
-  STEP_2: ethers.id("tutorial_step_2_mint"),
-  STEP_3: ethers.id("tutorial_step_3_care"),
-  STEP_4: ethers.id("tutorial_step_4_challenge"),
-  STEP_5: ethers.id("tutorial_step_5_evolve"),
-  STEP_6: ethers.id("tutorial_step_6_explore")
+  STEP_1: "tutorial_step_1_signup",
+  STEP_2: "tutorial_step_2_mint",
+  STEP_3: "tutorial_step_3_care",
+  STEP_4: "tutorial_step_4_challenge",
+  STEP_5: "tutorial_step_5_evolve",
+  STEP_6: "tutorial_step_6_explore"
 };
 
 // Pure configuration data
@@ -56,45 +59,38 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
     subtitle: "As your journey begins, a small gift awaits. The Ancients honor the brave.",
     imageUrl: "/guides/tutorial/tutorial-spiritkeeper.jpg",
     rewardId: TUTORIAL_REWARDS.STEP_1,
-    tokenReward: "25",
+    tokenReward: "50",
     experienceReward: 0,
     requiresTotem: false,
     steps: [
-      { 
-        label: "Connect Wallet", 
-        checkType: "isConnected", 
-        actionType: "button", 
-        actionId: "connectWallet", 
-        actionText: "Connect" 
+      {
+        label: `Create Account and Claim ${CURRENCY_NAMES.SOFT}`,
+        checkType: "isSignedUp",
+        actionType: "link",
+        actionUrl: "/signup",
+        actionText: "Sign Up"
       },
-      { 
-        label: "Signup and Claim TOTEM", 
-        checkType: "isSignedUp", 
-        actionType: "link", 
-        actionUrl: "/signup", 
-        actionText: "Signup" 
+      {
+        label: "Open Your Uncommon Totem Box",
+        checkType: "hasTotems",
+        actionType: "link",
+        actionUrl: "/rewards",
+        actionText: "Open"
       },
-      { 
-        label: "Approve Tokens", 
-        checkType: "isTokenApproved", 
-        actionType: "link", 
-        actionUrl: "/rewards", 
-        actionText: "Approve" 
-      },
-      { 
-        label: "Claim Daily Reward", 
-        checkType: "hasAchievement", 
-        checkParam: "daily_login", 
-        actionType: "link", 
-        actionUrl: "/rewards", 
-        actionText: "Claim" 
+      {
+        label: "Claim Daily Reward",
+        checkType: "hasAchievement",
+        checkParam: "login-progression",
+        actionType: "link",
+        actionUrl: "/rewards",
+        actionText: "Claim"
       }
     ]
   },
   {
     stepId: 2,
     title: "2. Step into the Spirit World",
-    subtitle: "The veil thins. The Ancients call. But first… a Totem must be chosen.",
+    subtitle: "A strong team needs diversity. Try picking a totem from a different domain to cover more ground.",
     imageUrl: "/guides/tutorial/tutorial-spiritworld.jpg",
     rewardId: TUTORIAL_REWARDS.STEP_2,
     tokenReward: "50",
@@ -109,24 +105,26 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
         actionUrl: "/guides/codex/totems",
         actionText: "Explore"
       },
-      { 
-        label: "Purchase Your First Totem", 
-        checkType: "hasTotems", 
-        actionType: "link", 
-        actionUrl: "/shop", 
-        actionText: "Shop" 
+      {
+        label: "Buy a Totem from Another Domain",
+        checkType: "hasAchievementProgress",
+        checkParam: "collector_progression",
+        checkParamNum: 2,
+        actionType: "link",
+        actionUrl: "/shop",
+        actionText: "Shop"
       },
-      { 
-        label: "Become a Chosen Keeper", 
-        checkType: "hasAchievement", 
+      {
+        label: "Become a Chosen Keeper",
+        checkType: "hasAchievement",
         checkParam: "collector_progression"
       },
-      { 
-        label: "Give it a Nickname (optional)", 
-        checkType: "hasTotemName", 
-        optional: true, 
-        actionType: "link", 
-        actionUrl: "/totems", 
+      {
+        label: "Give it a Nickname (optional)",
+        checkType: "hasTotemName",
+        optional: true,
+        actionType: "link",
+        actionUrl: "/totems",
         actionText: "Name"
       },
     ]
@@ -137,7 +135,7 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
     subtitle: "Every Totem hungers, grows, and remembers. Begin the ritual of care.",
     imageUrl: "/guides/tutorial/tutorial-traintotem.jpg",
     rewardId: TUTORIAL_REWARDS.STEP_3,
-    tokenReward: "20",
+    tokenReward: "50",
     experienceReward: 150,
     requiresTotem: true,
     steps: [
@@ -149,32 +147,32 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
         actionUrl: "/guides/codex/totems/{species}",
         actionText: "Learn"
       },
-      { 
-        label: "Feed your Totem", 
-        checkType: "hasAchievement", 
-        checkParam: "feed_progression", 
-        actionType: "link", 
-        actionUrl: "/totems", 
+      {
+        label: "Feed your Totem",
+        checkType: "hasAchievement",
+        checkParam: "feed_progression",
+        actionType: "link",
+        actionUrl: "/totems",
         isSelectedTotem: true,
-        actionText: "Feed" 
+        actionText: "Feed"
       },
-      { 
-        label: "Train your Totem", 
-        checkType: "hasAchievement", 
-        checkParam: "train_progression", 
-        actionType: "link", 
-        actionUrl: "/totems", 
+      {
+        label: "Train your Totem",
+        checkType: "hasAchievement",
+        checkParam: "train_progression",
+        actionType: "link",
+        actionUrl: "/totems",
         isSelectedTotem: true,
-        actionText: "Train" 
+        actionText: "Train"
       },
-      { 
-        label: "Raise Happiness above threshold", 
-        checkType: "hasAchievement", 
-        checkParam: "treat_progression", 
-        actionType: "link", 
-        actionUrl: "/totems", 
+      {
+        label: "Raise Happiness above threshold",
+        checkType: "hasAchievement",
+        checkParam: "treat_progression",
+        actionType: "link",
+        actionUrl: "/totems",
         isSelectedTotem: true,
-        actionText: "Treat" 
+        actionText: "Treat"
       }
     ]
   },
@@ -184,7 +182,7 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
     subtitle: "Test your bond. Step into the Trials and be seen.",
     imageUrl: "/guides/tutorial/tutorial-challenge.jpg",
     rewardId: TUTORIAL_REWARDS.STEP_4,
-    tokenReward: "30",
+    tokenReward: "50",
     experienceReward: 200,
     requiresTotem: true,
     steps: [
@@ -195,20 +193,20 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
         actionType: "link",
         actionUrl: "/guides/how-to",
         linkState: {
-          openSection: 6
+          openSection: 4
         },
         actionText: "Learn"
       },
-      { 
-        label: "Complete Beginner Challenge", 
+      {
+        label: "Complete Beginner Challenge",
         checkType: "hasAchievement",
         checkParam: "challenge_initiate",
         actionType: "link",
         actionUrl: "/challenges",
         actionText: "Attempt"
       },
-      { 
-        label: "Complete all daily attempts", 
+      {
+        label: "Complete all daily attempts",
         checkType: "hasAchievementProgress",
         checkParam: "challenge_progression",
         checkParamNum: 5,
@@ -224,7 +222,7 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
     subtitle: "Only those who journey may grow. Let evolution mark your spirit.",
     imageUrl: "/guides/tutorial/tutorial-evolution.jpg",
     rewardId: TUTORIAL_REWARDS.STEP_5,
-    tokenReward: "25",
+    tokenReward: "50",
     experienceReward: 250,
     requiresTotem: true,
     steps: [
@@ -235,20 +233,20 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
         actionType: "link",
         actionUrl: "/guides/how-to",
         linkState: {
-          openSection: 7
+          openSection: 5
         },
         actionText: "Learn"
       },
-      { 
-        label: "Trigger Stage Evolution", 
+      {
+        label: "Trigger Stage Evolution",
         checkType: "hasAchievement",
         checkParam: "evolution_progression",
         actionType: "link",
         actionUrl: "/totems",
         actionText: "Trigger"
       },
-      { 
-        label: "Reach Stage 2", 
+      {
+        label: "Reach Stage 2",
         checkType: "hasAchievement",
         checkParam: "evolution_progression",
         actionType: "link",
@@ -263,7 +261,7 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
     subtitle: "Beyond the veil lies discovery, Codex, Expeditions, and fellow Spiritkeepers await.",
     imageUrl: "/guides/tutorial/tutorial-explore.jpg",
     rewardId: TUTORIAL_REWARDS.STEP_6,
-    tokenReward: "200",
+    tokenReward: "250",
     experienceReward: 0,
     requiresTotem: false,
     steps: [
@@ -274,7 +272,7 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
         actionType: "link",
         actionUrl: "/guides/how-to",
         linkState: {
-          openSection: 8
+          openSection: 6
         },
         actionText: "Learn"
       },
@@ -287,16 +285,16 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
         actionUrl: "/shop",
         actionText: "Recruit"
       },
-      { 
-        label: "Complete an Expedition", 
+      {
+        label: "Complete an Expedition",
         checkType: "hasAchievement",
         checkParam: "expedition_explorer",
         actionType: "link",
         actionUrl: "/expeditions",
         actionText: "Embark"
       },
-      { 
-        label: "Join Discord (optional)", 
+      {
+        label: "Join Discord (optional)",
         checkType: "hasClickedLink",
         checkParam: "discord_join",
         actionType: "external",
@@ -310,19 +308,40 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
 
 // Hook to convert config to runtime tutorial steps with functions
 export const useTutorialConfig = () => {
-  const { 
-    isConnected, 
-    isSignedUp, 
-    isTokenApproved, 
-    totems, 
-    connect, 
-    comingSoon,
+  const {
+    isConnected,
+    isSignedUp,
+    totems,
+    connect: _connect,
+    comingSoon: _comingSoon,
     hasClickedLink
   } = useUser();
-  const { getAchievementById } = useAchievements();
+  const { getAchievementById, refreshAchievements } = useAchievements();
+  const hasRefreshedRef = useRef(false);
+
+  // Reset refresh flag when user changes (logout/login)
+  useEffect(() => {
+    hasRefreshedRef.current = false;
+  }, [isSignedUp]);
+
+  // Refresh achievements when tutorial UI mounts or user changes
+  // Only fires once per user session — no extra DynamoDB queries during normal gameplay
+  useEffect(() => {
+    if (hasRefreshedRef.current || !isSignedUp) return;
+    hasRefreshedRef.current = true;
+    refreshAchievements();
+  }, [isSignedUp]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Convert achievement ID to format used by AchievementsContext
+  const getAchievementKey = (id: string): string => {
+    // In Web2, achievement IDs are prefixed with 'ach_' and use hyphens
+    // Config uses underscores (e.g., 'collector_progression') but IDs use hyphens ('ach_collector-progression')
+    const normalized = id.replace(/_/g, '-');
+    return normalized.startsWith('ach-') ? normalized : `ach_${normalized}`;
+  };
 
   const hasAchievement = (id: string) => {
-    const ach = getAchievementById(ethers.id(id));
+    const ach = getAchievementById(getAchievementKey(id));
     if (!ach) return false;
 
     // For OneTime achievements, check isCompleted
@@ -335,7 +354,7 @@ export const useTutorialConfig = () => {
   };
 
   const hasAchievementProgress = (id: string, targetCount: number) => {
-    const achievement = getAchievementById(ethers.id(id));
+    const achievement = getAchievementById(getAchievementKey(id));
 
     if (!achievement) {
       return false;
@@ -350,14 +369,13 @@ export const useTutorialConfig = () => {
         return isConnected;
       case 'isSignedUp':
         return isSignedUp;
-      case 'isTokenApproved':
-        return isTokenApproved;
       case 'hasAchievement':
         return step.checkParam ? hasAchievement(step.checkParam) : false;
       case 'hasTotems':
         return totems?.length! > 0;
       case 'hasTotemName':
-        return totems && totems.length > 0 && totems[0]?.attributes?.displayName?.length > 0;
+        // Web2: Check for nickname (user-customizable name) on attributes
+        return totems && totems.length > 0 && (totems[0]?.attributes?.nickname?.length ?? 0) > 0;
       case 'hasAchievementProgress':
         return step.checkParam && step.checkParamNum !== undefined
           ? hasAchievementProgress(step.checkParam, step.checkParamNum)
@@ -383,13 +401,13 @@ export const useTutorialConfig = () => {
     ...stepConfig,
     steps: stepConfig.steps.map(stepConfigItem => {
       let actionUrl = stepConfigItem.actionUrl;
-      
+
       // Process {species} placeholder
       if (actionUrl && actionUrl.includes('{species}')) {
         if (totems && totems.length > 0) {
           const speciesName = getSpeciesName(totems[0].attributes.species);
           actionUrl = actionUrl.replace('{species}', speciesName);
-        } 
+        }
       }
 
       return {
@@ -425,10 +443,6 @@ export const useTutorialConfig = () => {
   };
 
   const stepActions: Record<string, () => void> = {
-    connectWallet: () => {
-      if (comingSoon) return;
-      connect();
-    },
     startStarterChallenge: () => {
       console.log("Launching Starter Challenge");
     },

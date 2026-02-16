@@ -1,4 +1,4 @@
-import { describe, it, expect, test } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { elementsDB, validateChainReaction, RuneType } from './RuneValidator';
 
 describe('RuneValidator Tests', () => {
@@ -14,7 +14,7 @@ describe('RuneValidator Tests', () => {
     });
 
     it('should have valid image paths for all elements', () => {
-      Object.entries(elementsDB.elements).forEach(([elementName, elementData]) => {
+      Object.entries(elementsDB.elements).forEach(([_elementName, elementData]) => {
         expect(elementData.image).toBeDefined();
         expect(typeof elementData.image).toBe('string');
         expect(elementData.image.length).toBeGreaterThan(0);
@@ -22,7 +22,7 @@ describe('RuneValidator Tests', () => {
     });
 
     it('should have valid tier values (1-4)', () => {
-      Object.entries(elementsDB.elements).forEach(([elementName, elementData]) => {
+      Object.entries(elementsDB.elements).forEach(([_elementName, elementData]) => {
         expect(elementData.tier).toBeDefined();
         expect(elementData.tier).toBeGreaterThan(0);
         expect(elementData.tier).toBeLessThanOrEqual(4);
@@ -30,7 +30,7 @@ describe('RuneValidator Tests', () => {
     });
 
     it('should have all combination results exist as elements', () => {
-      Object.entries(elementsDB.elements).forEach(([elementName, elementData]) => {
+      Object.entries(elementsDB.elements).forEach(([_elementName, elementData]) => {
         Object.entries(elementData.combinations).forEach(([combinesWith, result]) => {
           expect(elementsDB.elements[result]).toBeDefined();
           expect(elementsDB.elements[combinesWith]).toBeDefined();
@@ -42,7 +42,7 @@ describe('RuneValidator Tests', () => {
       const tier4Elements = Object.entries(elementsDB.elements)
         .filter(([_, data]) => data.tier === 4);
       
-      tier4Elements.forEach(([elementName, elementData]) => {
+      tier4Elements.forEach(([_elementName, elementData]) => {
         expect(Object.keys(elementData.combinations).length).toBe(0);
       });
     });
@@ -51,7 +51,7 @@ describe('RuneValidator Tests', () => {
       const tier1Elements = Object.entries(elementsDB.elements)
         .filter(([_, data]) => data.tier === 1);
       
-      tier1Elements.forEach(([elementName, elementData]) => {
+      tier1Elements.forEach(([_elementName, elementData]) => {
         Object.values(elementData.combinations).forEach(result => {
           expect(elementsDB.elements[result].tier).toBe(2);
         });
@@ -247,7 +247,7 @@ describe('RuneValidator Tests', () => {
     });
 
     it('should validate tier progression makes sense', () => {
-      Object.entries(elementsDB.elements).forEach(([elementName, elementData]) => {
+      Object.entries(elementsDB.elements).forEach(([_elementName, elementData]) => {
         Object.values(elementData.combinations).forEach(result => {
           const resultTier = elementsDB.elements[result].tier;
           // Results should generally be higher tier than inputs

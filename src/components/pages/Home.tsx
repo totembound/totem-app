@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useUser } from "../../contexts/UserContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import {
   UserPlus,
@@ -12,26 +12,31 @@ import {
   Info,
   Sparkles,
   Zap,
+  Shield,
+  Star,
 } from "lucide-react";
 import specialsData from "../data/specials.json";
 import { getCurrentMonth } from "../../utils/totems";
 import NewsSection from "../NewsSection";
 
 const Home: React.FC = () => {
-  const { isConnected, isSignedUp } = useUser();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Check if user is logged in
+  const isLoggedIn = isAuthenticated;
+
   useEffect(() => {
     // If user is authenticated and was redirected here from a protected route
-    if (isConnected && isSignedUp && location.state?.from) {
+    if (isLoggedIn && location.state?.from) {
       // Navigate back to their intended destination
       navigate(location.state.from.pathname);
     }
-  }, [isConnected, isSignedUp, navigate, location]);
+  }, [isLoggedIn, navigate, location]);
 
   // Show different content based on login status
-  if (isConnected && isSignedUp) {
+  if (isLoggedIn) {
     return <LoggedInHome />;
   } else {
     return <PublicHome />;
@@ -47,59 +52,93 @@ const PublicHome: React.FC = () => {
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-2 sm:p-4 md:p-6">
-      {/* Hero Section */}
-      <div className="bg-purple-100 dark:bg-purple-900/20 rounded-xl p-6 mb-8 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-transparent pointer-events-none"></div>
-        <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
-          <div className={currentMonthlySpecial ? 'md:w-2/3' : ''}>
-            <h1 className="text-2xl md:text-3xl font-bold text-purple-900 dark:text-purple-200 mb-3">
-              TotemBound - Mystical Companions Await
+      {/* Hero Section — integrated split with featured totem (Option C) */}
+      <div className="mb-8 relative overflow-hidden rounded-2xl">
+        {/* Full background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-950" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_50%,rgba(168,85,247,0.2),transparent_60%)]" />
+
+        <div className="relative flex flex-col md:flex-row">
+          {/* Left side: Game info */}
+          <div className="md:w-1/2 p-6 md:p-10 flex flex-col justify-center">
+            <h1 className="text-3xl md:text-4xl font-black text-white mb-3 leading-tight">
+              TotemBound
+              <span className="block text-lg md:text-xl font-semibold text-purple-300 mt-1">
+                Mystical Companions Await
+              </span>
             </h1>
-            <p className="text-gray-700 dark:text-gray-300 mb-4">
+            <p className="text-gray-400 mb-6 leading-relaxed max-w-md">
               Discover a world where mystical animal spirits become your
               companions. Train, evolve, and bond with your Totems on a journey
               from Hatchling to Wise Elder.
             </p>
-            <Link
-              to="/signup"
-              className="inline-flex items-center bg-purple-600 text-white hover:bg-purple-700 py-3 px-6 rounded-lg font-medium transition-all"
-            >
-              <UserPlus className="mr-2 h-5 w-5" />
-              Begin Your Journey
-            </Link>
-            <div className="text-lg md:text-xl text-center mt-4 mb-2 md:text-left">
-              🐻🐺🦫🐢🦉<span className="raven-emoji">🦅</span>🦢🐍🦅🦌🦦🐦
+            <div className="flex flex-wrap gap-3 mb-6">
+              <Link
+                to="/signup"
+                className="inline-flex items-center bg-purple-600 hover:bg-purple-500 text-white py-3 px-6 rounded-lg font-bold transition-all hover:scale-105"
+              >
+                <UserPlus className="mr-2 h-5 w-5" />
+                Play Free Now
+              </Link>
+              <Link
+                to="/about"
+                className="inline-flex items-center border border-gray-600 hover:border-gray-400 text-gray-300 hover:text-white py-3 px-6 rounded-lg font-medium transition-all"
+              >
+                Learn More
+              </Link>
+            </div>
+            <div className="flex text-base md:text-lg gap-0.5">
+              <span>🐻</span><span>🐺</span><span>🦫</span><span>🐢</span><span>🦉</span><span className="raven-emoji">🦅</span><span>🦢</span><span>🐍</span><span>🦅</span><span>🦌</span><span>🦦</span><span>🐦</span>
             </div>
           </div>
 
-          {/* Monthly Totem Feature */}
-          {currentMonthlySpecial && 
-          <div className="md:w-1/3 bg-white/50 dark:bg-gray-800/30 rounded-lg p-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <h2 className="font-bold text-lg text-purple-900 dark:text-purple-200">
-                  Monthly Totem Series
-                </h2>
-                <h4 className="font-bold text-purple-800 dark:text-purple-300 mt-1">
-                  {currentMonthlySpecial.name}
-                </h4>
-                <div className="text-sm text-purple-800 dark:text-purple-300">
-                  {getCurrentMonth()} Edition
-                </div>
-                <p className="text-gray-700 dark:text-gray-300 text-sm mt-2 line-clamp-3">
-                  {currentMonthlySpecial.description}
-                </p>
+          {/* Right side: Featured monthly totem — compact */}
+          {currentMonthlySpecial && (
+            <div className="md:w-1/2 relative flex flex-col items-center justify-center p-4 md:p-6">
+              {/* Ambient glow behind totem */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-pink-500/15 blur-3xl" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 rounded-full bg-amber-400/10 blur-2xl" />
+
+              {/* Badge */}
+              <div className="relative inline-flex items-center gap-1.5 bg-amber-500/20 border border-amber-400/40 rounded-full px-2.5 py-0.5 mb-2">
+                <Sparkles className="w-3 h-3 text-amber-400" />
+                <span className="text-amber-300 text-[10px] font-bold uppercase tracking-widest">
+                  {getCurrentMonth()} Limited Edition
+                </span>
               </div>
-              <div className="bg-purple-200 dark:bg-purple-800/20 rounded-lg w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 overflow-hidden">
+
+              {/* Totem image — balanced size */}
+              <div className="relative mb-2">
                 <img
                   src={currentMonthlySpecial.image}
                   alt={currentMonthlySpecial.name}
-                  className="w-full h-full object-contain"
+                  className="relative w-36 h-36 sm:w-40 sm:h-40 md:w-44 md:h-44 object-contain drop-shadow-[0_0_25px_rgba(244,114,182,0.35)]"
                 />
               </div>
+
+              {/* Name plate */}
+              <h3 className="text-lg md:text-xl font-black text-white text-center mb-0.5">
+                {currentMonthlySpecial.name}
+              </h3>
+              <p className="text-xs text-gray-400 text-center mb-2">
+                {currentMonthlySpecial.description}
+              </p>
+
+              {/* Star rating + collect button */}
+              <div className="flex gap-0.5 mb-2">
+                {[1,2,3,4,5].map(i => (
+                  <Star key={i} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                ))}
+              </div>
+              <Link
+                to="/signup"
+                className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white py-2 px-5 rounded-lg font-bold text-sm shadow-lg shadow-amber-500/20 transition-all hover:scale-105"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                Collect This Totem
+              </Link>
             </div>
-          </div>
-          }
+          )}
         </div>
       </div>
 
@@ -117,10 +156,10 @@ const PublicHome: React.FC = () => {
               </div>
             </div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 text-center">
-              1. Connect & Collect
+              1. Sign Up & Collect
             </h3>
             <p className="text-gray-600 dark:text-gray-400 text-center text-sm">
-              Connect your wallet and adopt your first spirit Totem. Each Totem
+              Create your free account and adopt your first spirit Totem. Each Totem
               has unique attributes and personalities.
             </p>
           </div>
@@ -167,17 +206,17 @@ const PublicHome: React.FC = () => {
               <Zap className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </div>
             <span className="text-gray-700 dark:text-gray-300">
-              <strong>Gasless Transactions:</strong> Standard and Premium plans
-              cover your blockchain fees
+              <strong>Free to Play:</strong> Create your account and start playing
+              instantly with no upfront cost
             </span>
           </li>
           <li className="flex items-start">
             <div className="bg-blue-100 dark:bg-blue-900/30 p-1 rounded-full mr-3 mt-0.5">
-              <Zap className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </div>
             <span className="text-gray-700 dark:text-gray-300">
-              <strong>True Ownership:</strong> Your Totems evolve on-chain, with
-              metadata that grows with them
+              <strong>Your Collection:</strong> Your Totems evolve and grow with you,
+              building a unique collection over time
             </span>
           </li>
           <li className="flex items-start">

@@ -8,74 +8,78 @@ import {
   PawPrint,
   Zap,
   Github,
+  UserPlus,
 } from "lucide-react";
-import specialsData from "../data/specials.json";
-import { getCurrentMonth } from "../../utils/totems";
 import { Link } from "react-router-dom";
+import { CURRENCY_NAMES } from "../../config/constants";
 
 const About: React.FC = () => {
-  const currentMonth = new Date().getMonth() + 1;
-  const currentMonthlySpecial = specialsData.monthlySpecials.find(
-    (special) => special.month === currentMonth
-  )!;
 
   return (
     <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center">
-            About TotemBound
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto text-center">
-            TotemBound is a mystical game where players adopt, evolve, and care
-            for powerful animal spirit companions called Totems. From hatchling
-            to Wise Elder, each Totem follows a unique growth path driven by
-            your choices and rituals.
-          </p>
-        </div>
+        {/* Hero section — species grid showcase */}
+        <div className="mb-8 relative overflow-hidden rounded-2xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-950" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(168,85,247,0.15),transparent_70%)]" />
 
-        {/* Hero section with featured image */}
-        <div className="bg-purple-100 dark:bg-purple-900/20 rounded-xl p-6 mb-8 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-transparent pointer-events-none"></div>
-          <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
-            <div className={currentMonthlySpecial ? 'md:w-1/2 mb-auto' : 'mb-auto'}> 
-              <h2 className="text-2xl font-bold text-purple-900 dark:text-purple-200 mb-3">
+          <div className="relative flex flex-col md:flex-row h-full">
+            {/* Left side: About text */}
+            <div className="md:w-1/2 p-6 md:p-10 flex flex-col justify-center">
+              <h1 className="text-3xl md:text-4xl font-black text-white mb-2 leading-tight">
+                About TotemBound
+              </h1>
+              <p className="text-purple-300 text-base mb-4">
                 Begin Your Spiritual Journey
-              </h2>
-              <p className="text-gray-700 dark:text-gray-300 mb-4">
-                Become a Totem Keeper and forge bonds with mystical animal
-                spirits. Train, nurture, and grow your companions through unique
-                evolution paths, unlocking powerful abilities along the way.
               </p>
-              <div className="text-lg md:text-xl text-center mt-4 mb-2 md:text-left">
-                🐻🐺🦫🐢🦉<span className="raven-emoji">🦅</span>🦢🐍🦅🦌🦦🐦
+              <p className="text-gray-400 mb-6 leading-relaxed max-w-md">
+                TotemBound is a mystical game where players adopt, evolve, and care
+                for powerful animal spirit companions called Totems. From youngling
+                to Wise Elder, each Totem follows a unique growth path driven by
+                your choices and rituals.
+              </p>
+              <div>
+                <Link
+                  to="/signup"
+                  className="inline-flex items-center bg-purple-600 hover:bg-purple-500 text-white py-3 px-6 rounded-lg font-bold transition-all hover:scale-105"
+                >
+                  <UserPlus className="mr-2 h-5 w-5" />
+                  Start Your Adventure
+                </Link>
               </div>
             </div>
-            {currentMonthlySpecial && 
-            <div className="md:w-1/2 flex flex-col md:flex-row justify-center gap-4 h-auto md:h-64">
-              <div className="flex-grow">
-                <h2 className="font-bold text-xl text-purple-900 dark:text-purple-200">
-                  Monthly Totem Series
-                </h2>
-                <h4 className="font-bold text-lg text-purple-800 dark:text-purple-300 mt-2">
-                  {currentMonthlySpecial.name}
-                </h4>
-                <div className="text-purple-800 dark:text-purple-300">
-                  {getCurrentMonth()} Edition
-                </div>
-                <p className="text-gray-700 dark:text-gray-300 text-base mt-4 leading-relaxed">
-                  {currentMonthlySpecial.description}
-                </p>
-              </div>
-              <div className="aspect-square bg-purple-200 dark:bg-purple-800/20 rounded-lg">
-                <img
-                  src={currentMonthlySpecial.image}
-                  alt={currentMonthlySpecial.name}
-                  className="w-full h-64 object-contain"
-                />
+
+            {/* Right side: Species grid */}
+            <div className="md:w-1/2 relative flex items-center justify-center p-6 md:p-8">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,rgba(168,85,247,0.1),transparent_60%)]" />
+              <div className="relative grid grid-cols-4 gap-3 max-w-xs">
+                {[
+                  { name: 'Bear', img: '/totems/bearplacecard.png' },
+                  { name: 'Wolf', img: '/totems/wolfplacecard.png' },
+                  { name: 'Owl', img: '/totems/owlplacecard.png' },
+                  { name: 'Falcon', img: '/totems/falconplacecard.png' },
+                  { name: 'Deer', img: '/totems/deerplacecard.png' },
+                  { name: 'Turtle', img: '/totems/turtleplacecard.png' },
+                  { name: 'Otter', img: '/totems/otterplacecard.png' },
+                  { name: 'Snake', img: '/totems/snakeplacecard.png' },
+                  { name: 'Raven', img: '/totems/ravenplacecard.png' },
+                  { name: 'Beaver', img: '/totems/beaverplacecard.png' },
+                  { name: 'Goose', img: '/totems/gooseplacecard.png' },
+                  { name: 'Woodpecker', img: '/totems/woodpeckerplacecard.png' },
+                ].map((species) => (
+                  <div key={species.name} className="flex flex-col items-center">
+                    <div className="w-14 h-14 md:w-16 md:h-16 rounded-lg bg-white/5 border border-white/10 p-1 hover:border-purple-400/50 transition-colors">
+                      <img
+                        src={species.img}
+                        alt={species.name}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <span className="text-[10px] text-gray-400 mt-1">{species.name}</span>
+                  </div>
+                ))}
               </div>
             </div>
-            }
           </div>
         </div>
 
@@ -87,16 +91,15 @@ const About: React.FC = () => {
           </h2>
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              TotemBound blends rich lore, user ownership, and play-to-own
-              mechanics. Every action you take, from training to evolution,
-              shapes your Totem's destiny. Your companions are stored on-chain,
-              with metadata that updates as they grow.
+              TotemBound blends rich lore, meaningful progression, and engaging
+              gameplay mechanics. Every action you take, from training to evolution,
+              shapes your Totem's destiny. Your companions grow and evolve based on
+              the care and attention you give them.
             </p>
             <p className="text-gray-600 dark:text-gray-400">
-              Unlike traditional games, TotemBound gives you true ownership of
-              your digital companions and items. Our unique transaction system
-              eliminates the complexity of blockchain interactions, making Web3
-              gaming accessible to everyone.
+              Unlike other games, TotemBound offers a deep, persistent experience
+              where your digital companions truly feel like your own. Start playing
+              instantly with no barriers to entry.
             </p>
           </div>
         </div>
@@ -135,8 +138,8 @@ const About: React.FC = () => {
                   Rewards
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Complete achievements, maintain daily streaks, and earn TOTEM
-                  tokens to enhance your gameplay experience and unlock
+                  Complete achievements, maintain daily streaks, and earn {CURRENCY_NAMES.SOFT}
+                  to enhance your gameplay experience and unlock
                   exclusive content.
                 </p>
               </div>
@@ -161,77 +164,89 @@ const About: React.FC = () => {
               Key Features
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="flex flex-col items-center text-center p-4">
-                <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full mb-3">
-                  <PawPrint className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                <div className="flex items-center mb-3">
+                  <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full mr-3">
+                    <PawPrint className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Totem Growth
+                  </h3>
                 </div>
-                <h3 className="text-lg font-semibold text-lg text-gray-900 dark:text-white mb-2">
-                  Totem Growth
-                </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Watch your companions evolve through distinct growth stages,
-                  each with new abilities and visual transformations.
+                  Watch your companions evolve through 5 distinct growth stages,
+                  each with new abilities and visual transformations from Newborn to Wise Elder.
                 </p>
               </div>
-              <div className="flex flex-col items-center text-center p-4">
-                <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full mb-3">
-                  <Gift className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                <div className="flex items-center mb-3">
+                  <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full mr-3">
+                    <Gift className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Daily Rewards
+                  </h3>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Rewards
-                </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Earn in-game currency and special items through regular play,
-                  community events, and special promotions.
+                  Earn {CURRENCY_NAMES.SOFT} currency through daily check-ins, weekly bonuses,
+                  and special community events. Use it to train and care for your Totems.
                 </p>
               </div>
-              <div className="flex flex-col items-center text-center p-4">
-                <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full mb-3">
-                  <Flame className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                <div className="flex items-center mb-3">
+                  <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full mr-3">
+                    <Flame className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Login Streaks
+                  </h3>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Daily Streaks
-                </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Maintain your daily login streak to earn progressively
-                  valuable rewards and strengthen your bond with your Totems.
+                  Build your daily login streak to unlock progressively better rewards.
+                  The longer your streak, the more valuable your daily bonuses become.
                 </p>
               </div>
-              <div className="flex flex-col items-center text-center p-4">
-                <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full mb-3">
-                  <Award className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                <div className="flex items-center mb-3">
+                  <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full mr-3">
+                    <Award className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Achievements
+                  </h3>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Achievements
-                </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Accomplish milestones in your journey and showcase your
-                  dedication with exclusive badges and rewards.
+                  Complete milestones like evolving your first Totem, winning challenges,
+                  and exploring new territories. Earn badges and exclusive rewards.
                 </p>
               </div>
-              <div className="flex flex-col items-center text-center p-4">
-                <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full mb-3">
-                  <Swords className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                <div className="flex items-center mb-3">
+                  <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full mr-3">
+                    <Swords className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Challenges
+                  </h3>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Challenges
-                </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Test your strategy and your Totems' power in competitive
-                  arenas and time-limited events.
+                  Test your skills in 10 unique mini-games including Memory Match,
+                  Spirit Run, and Crystal Catch. Earn {CURRENCY_NAMES.SOFT} and XP for your Totems.
                 </p>
               </div>
-              <div className="flex flex-col items-center text-center p-4">
-                <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full mb-3">
-                  <Map className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                <div className="flex items-center mb-3">
+                  <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-full mr-3">
+                    <Map className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Expeditions
+                  </h3>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Expeditions
-                </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Explore mystical realms, each with unique resources and
-                  challenges that test your Totems' abilities.
+                  Send your Totems on adventures through mystical realms like the
+                  Enchanted Forest, Crystal Caves, and Spirit Mountains to discover rare treasures.
                 </p>
               </div>
             </div>
@@ -253,8 +268,9 @@ const About: React.FC = () => {
                 <div className="mt-6 md:mt-0">
                   <Link
                     to="/signup"
-                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-purple-700 bg-white hover:bg-purple-50"
+                    className="inline-flex items-center bg-purple-600 hover:bg-purple-500 text-white py-3 px-6 rounded-lg font-bold transition-all hover:scale-105"
                   >
+                    <UserPlus className="mr-2 h-5 w-5" />
                     Start Your Adventure
                   </Link>
                 </div>
@@ -270,7 +286,7 @@ const About: React.FC = () => {
             </h2>
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                We welcome collaboration across Web3, game dev, art, and
+                We welcome collaboration across game development, art, and
                 community building. TotemBound offers unique merchandising and
                 event integration opportunities. Let's build the future of
                 spiritual gaming together.
@@ -315,7 +331,7 @@ const About: React.FC = () => {
                     className="inline-flex items-center px-3 py-1 bg-gray-200 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-md text-gray-700 dark:text-gray-300 text-sm transition-colors"
                   >
                     <Github className="h-4 w-4 mr-1" />
-                    API
+                    Backend API
                   </a>
                   <a
                     href="https://github.com/totembound/totem-app"
@@ -324,16 +340,7 @@ const About: React.FC = () => {
                     className="inline-flex items-center px-3 py-1 bg-gray-200 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-md text-gray-700 dark:text-gray-300 text-sm transition-colors"
                   >
                     <Github className="h-4 w-4 mr-1" />
-                    Frontend
-                  </a>
-                  <a
-                    href="https://github.com/totembound/totem-contracts"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center px-3 py-1 bg-gray-200 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-md text-gray-700 dark:text-gray-300 text-sm transition-colors"
-                  >
-                    <Github className="h-4 w-4 mr-1" />
-                    Smart Contracts
+                    Frontend App
                   </a>
                 </div>
               </div>

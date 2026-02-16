@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { UserProvider } from './contexts/UserContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { GameProvider } from './contexts/GameContext';
 import { AchievementsProvider } from './contexts/AchievementsContext';
+import { loadAllSpecies } from './utils/species';
 import TotemGallery from './components/pages/TotemGallery';
 import ShopInterface from './components/pages/ShopInterface';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
@@ -9,19 +11,23 @@ import { MainLayout } from './components/layouts/MainLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Home from './components/pages/Home';
+import Login from './components/pages/Login';
+import Signup from './components/pages/Signup';
+import VerifyEmail from './components/pages/VerifyEmail';
 import Rewards from './components/pages/Rewards';
 import Challenges from './components/pages/Challenges';
 import Expeditions from './components/pages/Expeditions';
 import Achievements from './components/pages/Achievements';
 import AccountSettings from './components/pages/AccountSettings';
-import ApiKeySignup from './components/ApiKeySignup';
-import PremiumSignup from './components/PremiumSignup';
-import PremiumSuccess from './components/PremiumSuccess';
 import LegalDocument from './components/LegalDocument';
 import About from './components/pages/About';
 import Plans from './components/pages/Plans';
-import { SignupForm } from './components/SignupForm';
+import Roadmap from './components/pages/Roadmap';
+import ForgotPassword from './components/pages/ForgotPassword';
+// SignupForm removed, using email/password Signup only
 import { usePageViews } from './hooks/usePageViews';
+import { useIoTCommands } from './hooks/useIoTCommands';
+import { useUser } from './contexts/UserContext';
 import ServiceWorkerDialog from './components/ServiceWorkerDialog';
 import Guides from './components/pages/Guides';
 import Tutorial from './components/guides/Tutorial';
@@ -53,17 +59,31 @@ import SpiritDomain from './components/guides/codex/SpiritDomain';
 import ShadowDomain from './components/guides/codex/ShadowDomain';
 import WorldMap from './components/guides/codex/WorldMap';
 import TutorialWizard from './components/guides/TutorialWizard';
+import { TutorialClaimsProvider } from './components/guides/useTutorialClaims';
 
+// Email/password auth only - wallet auth removed
 const AppRoutes: React.FC = () => {
   usePageViews();
+  const { updateBalances, fetchTotems } = useUser();
+  useIoTCommands({
+    onBalanceUpdate: () => { updateBalances(); },
+    onSync: () => { updateBalances(); fetchTotems(); },
+  });
+
+  const Layout = MainLayout;
+  const Protected = ProtectedRoute;
 
   return (
     <Routes>
-      <Route path="/" element={<MainLayout />}>
+      <Route path="/" element={<Layout />}>
         {/* Public Routes */}
         <Route path="/about" element={<About/>} />
         <Route path="/plans" element={<Plans/>} />
-        <Route path="/signup" element={<SignupForm/>} />
+        <Route path="/roadmap" element={<Roadmap/>} />
+        <Route path="/login" element={<Login/>} />
+        <Route path="/signup" element={<Signup/>} />
+        <Route path="/verify-email" element={<VerifyEmail/>} />
+        <Route path="/forgot-password" element={<ForgotPassword/>} />
         <Route path="/terms" element={<LegalDocument doc="terms" />} />
         <Route path="/privacy" element={<LegalDocument doc="privacy" />} />
         <Route index element={<Home />} />
@@ -72,40 +92,25 @@ const AppRoutes: React.FC = () => {
         <Route path="account">
           <Route index element={<Navigate to="/account/settings" replace />} />
           <Route path="settings" element={
-            <ProtectedRoute>
+            <Protected>
               <AccountSettings />
-            </ProtectedRoute>
-          } />
-          <Route path="api-key" element={
-            <ProtectedRoute>
-              <ApiKeySignup />
-            </ProtectedRoute>
-          } />
-          <Route path="premium" element={
-            <ProtectedRoute>
-              <PremiumSignup />
-            </ProtectedRoute>
-          } />
-          <Route path="success" element={
-            <ProtectedRoute>
-              <PremiumSuccess/>
-            </ProtectedRoute>
+            </Protected>
           } />
         </Route>
         <Route path="totems" element={
-          <ProtectedRoute>
+          <Protected>
             <TotemGallery />
-          </ProtectedRoute>
+          </Protected>
         } />
         <Route path="challenges" element={
-          <ProtectedRoute>
+          <Protected>
             <Challenges />
-          </ProtectedRoute>
+          </Protected>
         } />
         <Route path="expeditions" element={
-          <ProtectedRoute>
+          <Protected>
             <Expeditions />
-          </ProtectedRoute>
+          </Protected>
         } />
         <Route path="guides">
             <Route index element={
@@ -205,19 +210,19 @@ const AppRoutes: React.FC = () => {
             } />
         </Route>
         <Route path="achievements" element={
-          <ProtectedRoute>
+          <Protected>
             <Achievements />
-          </ProtectedRoute>
+          </Protected>
         } />
         <Route path="rewards" element={
-          <ProtectedRoute>
+          <Protected>
             <Rewards />
-          </ProtectedRoute>
+          </Protected>
         } />
         <Route path="shop" element={
-          <ProtectedRoute>
+          <Protected>
             <ShopInterface />
-          </ProtectedRoute>
+          </Protected>
         } />
 
         {/* 404 Route - Always last */}
@@ -228,18 +233,29 @@ const AppRoutes: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  // Preload all species configs on app startup for instant image URL generation
+  useEffect(() => {
+    loadAllSpecies().catch(err => {
+      console.warn('Failed to preload species data:', err);
+    });
+  }, []);
+
   return (
     <BrowserRouter>
       <ThemeProvider>
-        <UserProvider>
-          <GameProvider>
-            <AchievementsProvider>
-              <AppRoutes />
-              <ServiceWorkerDialog/>
-              <TutorialWizard/>
-            </AchievementsProvider>
-          </GameProvider>
-        </UserProvider>
+        <AuthProvider>
+          <UserProvider>
+            <GameProvider>
+              <AchievementsProvider>
+                <TutorialClaimsProvider>
+                  <AppRoutes />
+                  <ServiceWorkerDialog/>
+                  <TutorialWizard/>
+                </TutorialClaimsProvider>
+              </AchievementsProvider>
+            </GameProvider>
+          </UserProvider>
+        </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>
   );

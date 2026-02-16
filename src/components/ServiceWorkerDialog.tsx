@@ -1,87 +1,69 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
-type ServiceWorkerStatus = 'installing' | 'installed' | 'activating' | 'activated' | 'redundant' | null;
-
 interface ServiceWorkerDialogProps {
   className?: string;
 }
 
 const ServiceWorkerDialog: React.FC<ServiceWorkerDialogProps> = ({ className }) => {
   const [showDialog, setShowDialog] = useState<boolean>(false);
-  const [updateAvailable, setUpdateAvailable] = useState<boolean>(false);
   const [serviceWorkerReg, setServiceWorkerReg] = useState<ServiceWorkerRegistration | null>(null);
-  const [serviceWorkerStatus, setServiceWorkerStatus] = useState<ServiceWorkerStatus>(null);
 
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      // Check if there's already a controller (service worker active)
-      const hasController = Boolean(navigator.serviceWorker.controller);
+    if (!('serviceWorker' in navigator)) return;
 
-      // Get the registration
-      navigator.serviceWorker.getRegistration().then((registration) => {
-        if (registration) {
-          setServiceWorkerReg(registration);
-          
-          // Check for waiting service worker (update available)
-          if (registration.waiting) {
-            setUpdateAvailable(true);
-            setShowDialog(true);
-          }
-          
-          // Check for installing service worker
-          if (registration.installing) {
-            trackInstallation(registration.installing);
-          }
-          
-          // Listen for new service worker updates
-          registration.addEventListener('updatefound', () => {
-            if (registration.installing) {
-              trackInstallation(registration.installing);
-            }
-          });
-        }
-      });
-      
-      // Set up periodic update checks
-      const checkInterval = setInterval(() => {
-        navigator.serviceWorker.getRegistration().then((registration) => {
-          if (registration) {
-            registration.update().catch(console.error);
-          }
-        });
-      }, 60 * 60 * 1000); // Check every hour
-      
-      return () => clearInterval(checkInterval);
-    }
-  }, []);
-  
-  // Track the installation state changes of a service worker
-  const trackInstallation = (sw: ServiceWorker) => {
-    setServiceWorkerStatus(sw.state as ServiceWorkerStatus);
-    
-    sw.addEventListener('statechange', () => {
-      setServiceWorkerStatus(sw.state as ServiceWorkerStatus);
-      
-      // If the service worker is installed but waiting
-      if (sw.state === 'installed' && navigator.serviceWorker.controller) {
-        setUpdateAvailable(true);
-        setShowDialog(true);
+    // Reload once the new SW takes control
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
       }
     });
-  };
-  
-  // Apply the update by telling the service worker to skip waiting
+
+    // Get the registration
+    navigator.serviceWorker.getRegistration().then((registration) => {
+      if (!registration) return;
+      setServiceWorkerReg(registration);
+
+      // Check for waiting service worker (update already downloaded)
+      if (registration.waiting) {
+        setShowDialog(true);
+      }
+
+      // Listen for new service worker updates
+      registration.addEventListener('updatefound', () => {
+        const newSW = registration.installing;
+        if (!newSW) return;
+
+        newSW.addEventListener('statechange', () => {
+          // New SW finished installing and is waiting
+          if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+            setServiceWorkerReg(registration);
+            setShowDialog(true);
+          }
+        });
+      });
+    });
+
+    // Check for updates every hour
+    const checkInterval = setInterval(() => {
+      navigator.serviceWorker.getRegistration().then((reg) => {
+        reg?.update().catch(console.error);
+      });
+    }, 60 * 60 * 1000);
+
+    return () => clearInterval(checkInterval);
+  }, []);
+
+  // Tell the waiting SW to activate — controllerchange listener handles reload
   const applyUpdate = () => {
-    if (serviceWorkerReg && serviceWorkerReg.waiting) {
-      // Send skip waiting message
+    if (serviceWorkerReg?.waiting) {
       serviceWorkerReg.waiting.postMessage({ type: 'SKIP_WAITING' });
-      setShowDialog(false);
     }
-    window.location.reload();
+    setShowDialog(false);
   };
-  
-  // Close the dialog without taking action
+
   const closeDialog = () => {
     setShowDialog(false);
   };

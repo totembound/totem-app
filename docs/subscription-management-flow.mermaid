@@ -1,38 +1,30 @@
 sequenceDiagram
     participant User
     participant Frontend
-    participant API
+    participant API as API Gateway
+    participant Lambda
     participant Stripe
-    participant Webhook
-    participant DB
-    participant Email
+    participant DB as DynamoDB
+    participant Email as SES
 
     User->>Frontend: Access account settings
-    Frontend->>API: Get subscription status
-    API->>DB: Fetch user subscription data
-    DB-->>API: Subscription details
-    API-->>Frontend: Display subscription info
-    
+    Frontend->>API: GET /v1/user/profile (JWT)
+    API->>Lambda: Forward request
+    Lambda->>DB: Fetch subscription data
+    DB-->>Lambda: Subscription details
+    Lambda-->>Frontend: Display subscription info
+
     alt Manage Subscription
         User->>Frontend: Click "Manage Billing"
-        Frontend->>API: Request billing portal
-        API->>Stripe: Create portal session
-        Stripe-->>API: Portal URL
-        API-->>Frontend: Redirect URL
+        Frontend->>API: POST /v1/shop/billing-portal (JWT)
+        API->>Lambda: Forward request
+        Lambda->>Stripe: Create portal session
+        Stripe-->>Lambda: Portal URL
+        Lambda-->>Frontend: Redirect URL
         Frontend->>User: Redirect to Stripe portal
-        User->>Stripe: Make changes (e.g., cancel)
-        Stripe->>Webhook: subscription.updated event
-        Webhook->>DB: Update subscription status
-        Webhook->>Email: Send status update email
+        User->>Stripe: Make changes (cancel, upgrade)
+        Stripe->>Lambda: subscription.updated webhook
+        Lambda->>DB: Update subscription status
+        Lambda->>Email: Send status update email
         Email-->>User: Confirmation email
-    end
-    
-    alt Cancel via API
-        User->>Frontend: Click "Cancel Subscription"
-        Frontend->>API: DELETE /subscription
-        API->>Stripe: Update subscription (cancel_at_period_end)
-        Stripe-->>API: Updated subscription
-        API->>DB: Update cancellation status
-        API-->>Frontend: Success message
-        Frontend-->>User: Display confirmation
     end

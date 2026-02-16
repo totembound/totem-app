@@ -1,8 +1,9 @@
 import React from 'react';
-import { Clock, Droplets, Heart, ArrowRight, Coins, Sparkles } from 'lucide-react';
+import { Clock, Droplets, Heart, ArrowRight, Sparkles } from 'lucide-react';
 import { formatTokenAmount, formatHoursDuration } from '../../utils/formats';
 import { getDomainColor, getTotemAffinityIcon } from '../../utils/totems';
 import { Affinity } from '../../types/types';
+import { CURRENCY_NAMES } from '../../config/constants';
 
 interface ExpeditionPanelProps {
     id: string;
@@ -13,9 +14,10 @@ interface ExpeditionPanelProps {
     domainName: string;
     duration: number;
     durationHours: number;
-    totemCost: string;
+    essenceCost: number;
     happinessCost: number;
     baseExperience: number;
+    baseEssence?: number;
     primaryAffinity: Affinity;
     runeDropChances: [number, number, number];
     minStage: number;
@@ -25,17 +27,18 @@ interface ExpeditionPanelProps {
 }
 
 const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
-    id,
+    id: _id,
     name,
     description,
     image,
     domain,
     domainName,
-    duration,
+    duration: _duration,
     durationHours,
-    totemCost,
+    essenceCost,
     happinessCost,
     baseExperience,
+    baseEssence: _baseEssence,
     primaryAffinity,
     runeDropChances,
     enabled,
@@ -50,13 +53,14 @@ const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
         <div className="flex flex-col bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg h-full border border-gray-300 dark:border-gray-700">
             {/* Header with background image */}
             <div className="relative h-40">
-                {image && (
-                    <img 
-                        src={image || '/expeditions/placeholder.png'}
-                        alt={`${domainName} expedition background`}
-                        className="absolute inset-0 w-full h-full object-cover"
-                    />
-                )}
+                <img
+                    src={image || '/expeditions/placeholder.png'}
+                    alt={`${domainName} expedition background`}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    width={400}
+                    height={160}
+                    loading="lazy"
+                />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/60" />
                 <div className="absolute inset-0 p-4 flex flex-col justify-between">
                     {/* Domain */}
@@ -117,21 +121,26 @@ const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
                             <Droplets className="w-5 h-5 text-blue-500 mr-2" />
                             <span className="text-sm text-gray-600 dark:text-gray-400">Rune Chances:</span>
                         </div>
-                        <div className="text-xs space-x-1">
+                        <div className="flex items-center gap-1">
                             {runeDropChances[0] > 0 && (
-                                <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-700 text-blue-800 dark:text-blue-200">
-                                    L:{runeDropChances[0]}%{durationHours >= 24 ? " (×3)" : durationHours >= 12 ? " (×2)" : ""}
-                                </span>
+                                <div className="flex items-center gap-1 px-1.5 py-0.5 bg-gradient-to-r from-blue-500 to-blue-600 rounded shadow-sm shadow-blue-500/30">
+                                    <img src="/runes/lesser-rune.png" alt="Lesser" className="w-3.5 h-3.5 drop-shadow" width={14} height={14} />
+                                    <span className="text-[11px] font-bold text-white tabular-nums drop-shadow">
+                                        {runeDropChances[0]}%{durationHours >= 24 ? " ×3" : durationHours >= 12 ? " ×2" : ""}
+                                    </span>
+                                </div>
                             )}
                             {runeDropChances[1] > 0 && (
-                                <span className="px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">
-                                    G:{runeDropChances[1]}%
-                                </span>
+                                <div className="flex items-center gap-1 px-1.5 py-0.5 bg-gradient-to-r from-amber-500 to-amber-600 rounded shadow-sm shadow-amber-500/30">
+                                    <img src="/runes/greater-rune.png" alt="Greater" className="w-3.5 h-3.5 drop-shadow" width={14} height={14} />
+                                    <span className="text-[11px] font-bold text-white tabular-nums drop-shadow">{runeDropChances[1]}%</span>
+                                </div>
                             )}
                             {runeDropChances[2] > 0 && (
-                                <span className="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200">
-                                    A:{runeDropChances[2]}%
-                                </span>
+                                <div className="flex items-center gap-1 px-1.5 py-0.5 bg-gradient-to-r from-purple-500 to-purple-600 rounded shadow-sm shadow-purple-500/30">
+                                    <img src="/runes/ancient-rune.png" alt="Ancient" className="w-3.5 h-3.5 drop-shadow" width={14} height={14} />
+                                    <span className="text-[11px] font-bold text-white tabular-nums drop-shadow">{runeDropChances[2]}%</span>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -140,15 +149,15 @@ const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
                 {/* Costs */}
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-3 space-y-2 mb-4">
                     <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                        Requirements
+                        Cost
                     </div>
                     <div className="flex justify-between items-center">
                         <div className="flex items-center">
-                            <Coins className="w-5 h-5 text-yellow-500 mr-2" />
-                            <span className="text-sm text-gray-600 dark:text-gray-400">Cost:</span>
+                            <Sparkles className="w-5 h-5 text-yellow-500 mr-2" />
+                            <span className="text-sm text-gray-600 dark:text-gray-400">{CURRENCY_NAMES.SOFT}:</span>
                         </div>
-                        <span className="font-semibold text-gray-800 dark:text-gray-200">
-                            {formatTokenAmount(totemCost)} TOTEM
+                        <span className="font-semibold text-yellow-600 dark:text-yellow-400">
+                            -{formatTokenAmount(essenceCost)}
                         </span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -189,4 +198,4 @@ const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
     );
 };
 
-export default ExpeditionPanel;
+export default React.memo(ExpeditionPanel);

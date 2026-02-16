@@ -26,12 +26,12 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
   const [currentOutcomeImage, setCurrentOutcomeImage] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [incorrectAttempts, setIncorrectAttempts] = useState<number>(0);
-  const [showAlert, setShowAlert] = useState<boolean>(false);
-  const [showMaxSlotsAlert, setShowMaxSlotsAlert] = useState<boolean>(false);
+  const [_showAlert, _setShowAlert] = useState<boolean>(false);
+  const [_showMaxSlotsAlert, _setShowMaxSlotsAlert] = useState<boolean>(false);
   const [finalScore, setFinalScore] = useState<number>(0);
-  const [showSuccess, setShowSuccess] = useState<boolean>(false);
-  const [showFailure, setShowFailure] = useState<boolean>(false);
-  const [outcomeDescription, setOutcomeDescription] = useState<string>('');
+  const [_showSuccess, _setShowSuccess] = useState<boolean>(false);
+  const [_showFailure, _setShowFailure] = useState<boolean>(false);
+  const [_outcomeDescription, _setOutcomeDescription] = useState<string>('');
 
   // References for timer implementation
   const containerRef = useRef<HTMLDivElement>(null);
@@ -348,7 +348,7 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
   };
 
   // Clear the selected runes sequence
-  const clearSelection = () => {
+  const _clearSelection = () => {
     setSelectedRunes([]);
     setCurrentOutcome(null);
     setCurrentOutcomeImage(null);
@@ -378,7 +378,7 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
   }, [timeLeft, gameState]);
 
   // Score ticker component
-  const scoreTicker = (
+  const _scoreTicker = (
     <div className="text-gray-300 font-bold">
       Time: {timeLeft ? timeLeft.toFixed(1) : '-'}s |
       Score: {Math.floor(finalScore)}

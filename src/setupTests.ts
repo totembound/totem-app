@@ -45,22 +45,34 @@ Object.defineProperty(window, 'matchMedia', {
 
 // Suppress specific console warnings
 const originalError = console.error;
+const originalWarn = console.warn;
 beforeAll(() => {
   console.error = (...args) => {
     // Skip React 18 strict mode warnings
     if (args[0]?.includes('Warning: ReactDOM.render is no longer supported')) {
       return;
     }
-    // Skip act() warnings
+    // Skip act() warnings - these occur due to async state updates in providers
     if (args[0]?.includes('Warning: `ReactDOMTestUtils.act` is deprecated')) {
       return;
     }
+    if (args[0]?.includes('Warning: An update to') && args[0]?.includes('inside a test was not wrapped in act')) {
+      return;
+    }
     originalError.call(console, ...args);
+  };
+  console.warn = (...args) => {
+    // Skip act() warnings that appear as warnings
+    if (args[0]?.includes('not wrapped in act')) {
+      return;
+    }
+    originalWarn.call(console, ...args);
   };
 });
 
 afterAll(() => {
   console.error = originalError;
+  console.warn = originalWarn;
 });
 
 // Mock Turnstile component to prevent external script loading during tests
@@ -76,15 +88,33 @@ vi.mock('@marsidev/react-turnstile', () => ({
 
 // Mock environment variables for tests
 vi.mock('import.meta.env', () => ({
-  VITE_GAME_ADDRESS: '0x123...',
-  VITE_FORWARDER_ADDRESS: '0x456...',
-  VITE_TOKEN_ADDRESS: '0x789...',
-  VITE_NFT_ADDRESS: '0xabc...',
-  VITE_SHOP_ADDRESS: '0xdef...',
-  VITE_REWARDS_ADDRESS: '0xghi...',
-  VITE_ACHIEVEMENTS_ADDRESS: '0xjkl...',
-  VITE_CHALLENGES_ADDRESS: '0xmno...',
-  VITE_EXPEDITIONS_ADDRESS: '0xpqr...',
+  VITE_API_URL: 'http://localhost:3001',
   VITE_VERSION: '0.0.1',
   VITE_TURNSTILE_SITE_KEY: 'test-key'
 }));
+
+// Mock fetch for static config files that are loaded during tests
+const originalFetch = global.fetch;
+global.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+
+  // Mock achievements config
+  if (url.includes('/config/achievements.json')) {
+    return Promise.resolve(new Response(JSON.stringify({
+      version: '1.0.0',
+      categories: [],
+      types: [],
+      achievements: []
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+  }
+
+  // Mock species index
+  if (url.includes('/data/species/index.json')) {
+    return Promise.resolve(new Response(JSON.stringify({
+      species: []
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+  }
+
+  // Pass through other requests
+  return originalFetch(input, init);
+}) as typeof fetch;

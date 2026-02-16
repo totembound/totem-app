@@ -1,16 +1,49 @@
 import { Location, Rarity, Species } from "../types/types";
 
+// Import static config from JSON files (single source of truth)
+import speciesConfig from './species.json';
+import raritiesConfig from './rarities.json';
+import colorsConfig from './colors.json';
+
+// Re-export for components that need full config
+export { speciesConfig, raritiesConfig, colorsConfig };
+
 // Constants for progression calculations
 export const PRESTIGE_XP_REQUIREMENT = 2500;
 export const BASE_ELDER_XP = 7500;
 export const STAGE_THRESHOLDS = [0, 500, 1500, 3500, 7500];
 export const IPFS_GATEWAY_URL = import.meta.env.VITE_IPFS_GATEWAY_URL || 'https://ipfs.totembound.com/ipfs/';
-export const TOTEM_COST = 500;
+export const ESSENCE_COST = 500;
+
+// Currency display names - change these to rebrand currencies
+export const CURRENCY_NAMES = {
+  SOFT: 'Essence',        // Soft currency (earned in-game)
+  PREMIUM: 'Gems',        // Premium currency (purchased)
+} as const;
+
+// Gem to Essence conversion rate
+export const GEM_TO_ESSENCE_RATIO = 5;
+
+// Standard gem packages (currency only)
+export const GEM_PACKAGES = [
+  { id: 'pkg_starter', name: 'Starter Pack', price: '$0.99', gems: 100, essence: 500 },
+  { id: 'pkg_popular', name: 'Popular Pack', price: '$4.99', gems: 550, essence: 2750, bonus: '10%' },
+  { id: 'pkg_best_value', name: 'Best Value', price: '$9.99', gems: 1200, essence: 6000, bonus: '20%' },
+  { id: 'pkg_mega', name: 'Mega Pack', price: '$19.99', gems: 2600, essence: 13000, bonus: '30%' },
+  { id: 'pkg_ultimate', name: 'Ultimate Pack', price: '$49.99', gems: 7000, essence: 35000, bonus: '40%' },
+] as const;
+
+// Collector bundles (includes limited totems) - based on original 250 POL (~$75-125) monthly series
+export const COLLECTOR_BUNDLES = [
+  { id: 'bundle_collector', name: 'Collector Bundle', price: '$74.99', gems: 10000, essence: 50000, bonus: '43%', limitedTotems: 1, enabled: false },
+  { id: 'bundle_founder', name: 'Founder Bundle', price: '$99.99', gems: 15000, essence: 75000, bonus: '50%', limitedTotems: 1, title: 'Founder', enabled: false },
+  { id: 'bundle_legendary', name: 'Legendary Bundle', price: '$149.99', gems: 25000, essence: 125000, bonus: '67%', limitedTotems: 2, title: 'Legend', badge: true, enabled: false },
+] as const;
 
 export const TIER_TYPES = {
     free: 'Free',
     premium: 'Premium',
-    advanced: 'Advanced'
+    vip: 'VIP',
 };
 
 export const STORAGE_KEYS = {
@@ -18,125 +51,39 @@ export const STORAGE_KEYS = {
     notifications: 'totem-notifications',
     notificationSound: "totem-notification-sound",
     maxNotifications: "totem-max-notifications",
-    tokenApprovalMessageDismissed: 'totem-approval-message-dismissed',
-    isGaslessEnabled: 'totem-gasless-enabled',
-    gaslessApiKey: 'totem-gasless-api-key',
-    accountType: 'totem-account-type',
     tutorialWizardVisible: 'totem-tutorialWizardVisible',
     linkTracking: 'totem-link-tracking'
 };
 
-export const AVAILABLE_SPECIES = [
-  {
-    id: 0, name: 'Goose', species: Species.Goose, 
-    title: 'The Watchful Guardian',
-    desc: 'The Goose represents protection, vigilance, and leadership. Known for its strong instincts and devotion to its flock, it ensures the safety of all who travel under its watchful eye.',
-    locationId: 9,
-    affinity: 'Wisdom',
-    domain: 'Water',
-    available: true,
-    image: '/totems/gooseplacecard.png'
-  }, {
-    id: 1, name: 'Otter', species: Species.Otter, 
-    title: 'The Joyful Trickster',
-    desc: 'The Otter represents adaptability, curiosity, and playfulness. It approaches challenges with an open mind, embracing creativity and joy even in difficult situations.',
-    locationId: 10,
-    affinity: 'Agility',
-    domain: 'Water',
-    available: true,
-    image: '/totems/otterplacecard.png'
-  }, {
-    id: 2, name: 'Wolf', species: Species.Wolf, 
-    title: 'The Pack Leader',
-    desc: 'The Wolf represents strategy, loyalty, and teamwork. As a natural pack hunter, it excels in coordination and thrives when working together with others.',
-    locationId: 11,
-    affinity: 'Strength',
-    domain: 'Earth',
-    available: true,
-    image: '/totems/wolfplacecard.png'
-  }, {
-    id: 3, name: 'Falcon', species: Species.Falcon, 
-    title: 'The Swift Hunter',
-    desc: 'The Falcon represents precision, agility, and speed. With unmatched vision and lightning reflexes, it never loses sight of its target.',
-    locationId: 12,
-    affinity: 'Agility',
-    domain: 'Air',
-    available: true,
-    image: '/totems/falconplacecard.png'
-  }, {
-    id: 4, name: 'Beaver', species: Species.Beaver, 
-    title: 'The Tireless Builder',
-    desc: 'The Beaver represents ingenuity, determination, and resourcefulness. It constructs solutions to any problem, always working toward long-term success.',
-    locationId: 13,
-    affinity: 'Strength',
-    domain: 'Water',
-    available: true,
-    image: '/totems/beaverplacecard.png'
-  }, {
-    id: 5, name: 'Deer', species: Species.Deer, 
-    title: 'The Gentle Pathfinder',
-    desc: 'The Deer represents grace, awareness, and intuition. It moves with ease through difficult terrain, staying alert to potential dangers.',
-    locationId: 14,
-    affinity: 'Agility',
-    domain: 'Earth',
-    available: true,
-    image: '/totems/deerplacecard.png'
-  }, {
-    id: 6, name: 'Woodpecker', species: Species.Woodpecker, 
-    title: 'The Relentless Worker',
-    desc: 'The Woodpecker represents persistence, rhythm, and focus. It never tires in its pursuit, chiseling away at obstacles until success.',
-    locationId: 15,
-    affinity: 'Agility',
-    domain: 'Air',
-    available: false,
-    image: '/totems/woodpeckerplacecard.png'
-  }, {
-    id: 7, name: 'Turtle', species: Species.Turtle, 
-    title: 'The Unyielding Navigator',
-    desc: 'The Turtle symbolizes resilience, grounded strength, and patient resolve. It carries its world while navigating waters with quiet, ancient wisdom.',
-    locationId: 16,
-    affinity: 'Strength',
-    domain: 'Water',
-    available: false,
-    image: '/totems/turtleplacecard.png'
-  }, {
-    id: 8, name: 'Bear', species: Species.Bear, 
-    title: 'The Unstoppable Force',
-    desc: 'The Bear represents strength, resilience, and dominance. It relies on brute force to overcome adversity, clearing obstacles through sheer power.',
-    locationId: 17,
-    affinity: 'Strength',
-    domain: 'Earth',
-    available: false,
-    image: '/totems/bearplacecard.png'
-  }, {
-    id: 9, name: 'Raven', species: Species.Raven, 
-    title: 'The Shadowed Trickster',
-    desc: 'The Raven represents intelligence, cunning, and mystery. A master of deception, it sees paths unseen by others.',
-    locationId: 18,
-    affinity: 'Wisdom',
-    domain: 'Air',
-    available: false,
-    image: '/totems/ravenplacecard.png'
-  }, {
-    id: 10, name: 'Snake', species: Species.Snake, 
-    title: 'The Silent Observer',
-    desc: 'The Snake represents stealth, transformation, and wisdom. It moves unnoticed, striking only when the time is right.',
-    locationId: 19,
-    affinity: 'Wisdom',
-    domain: 'Earth',
-    available: false,
-    image: '/totems/snakeplacecard.png'
-  }, {
-    id: 11, name: 'Owl', species: Species.Owl, 
-    title: 'The Eternal Watcher', 
-    desc: 'The Owl represents knowledge, insight, and patience. It sees beyond the present, guiding those who seek the truth.',
-    locationId: 20,
-    affinity: 'Wisdom',
-    domain: 'Air',
-    available: true,
-    image: '/totems/owlplacecard.png'
-  }
-];
+// Build AVAILABLE_SPECIES from JSON config (single source of truth)
+// Maps JSON data to include Species enum for type safety
+const speciesEnumMap: Record<number, Species> = {
+  0: Species.Goose,
+  1: Species.Otter,
+  2: Species.Wolf,
+  3: Species.Falcon,
+  4: Species.Beaver,
+  5: Species.Deer,
+  6: Species.Woodpecker,
+  7: Species.Turtle,
+  8: Species.Bear,
+  9: Species.Raven,
+  10: Species.Snake,
+  11: Species.Owl,
+};
+
+export const AVAILABLE_SPECIES = speciesConfig.species.map(s => ({
+  id: s.id,
+  name: s.name,
+  species: speciesEnumMap[s.id],
+  title: s.title,
+  desc: s.description,
+  locationId: s.locationId,
+  affinity: s.affinity,
+  domain: s.domain,
+  available: s.available,
+  image: s.image,
+}));
 
 export const LOCATIONS: Location[] = [
   {

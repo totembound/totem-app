@@ -12,6 +12,9 @@
 /build
 /dist
 
+# generated API docs (built during CI from totem-api)
+/public/docs/openapi.json
+
 # misc
 .DS_Store
 .env

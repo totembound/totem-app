@@ -15,6 +15,7 @@ interface TotemDetailsPanelProps {
     isStaked: boolean;
     isOnExpedition?: boolean;
     expeditionEndTime?: number;
+    stageDescription?: string;
 }
 
 const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
@@ -26,19 +27,23 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
     domain,
     isStaked,
     isOnExpedition = false,
-    expeditionEndTime = 0
+    expeditionEndTime = 0,
+    stageDescription
 }) => {
+    // Fallback to species-level description if stage description not available
     const getSpeciesDescription = (species: Species): string => {
         return AVAILABLE_SPECIES.find(s => s.species === species)?.desc || '';
     };
 
+    const description = stageDescription || getSpeciesDescription(species);
+
     return (
         <div className="space-y-6">
-            {/* Totem Description */}
+            {/* Totem Description - Stage-specific */}
             <div>
                 <h3 className="text-md font-semibold mb-2">Description</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                    {getSpeciesDescription(species)}
+                    {description}
                 </p>
             </div>
             

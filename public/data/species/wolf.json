@@ -1,0 +1,468 @@
+{
+  "id": 2,
+  "name": "Wolf",
+  "fullName": "Shadow Wolf",
+  "title": "The Pack Leader",
+  "description": "The Wolf represents strategy, loyalty, and teamwork. As a natural pack hunter, it excels in coordination and thrives when working together with others.",
+  "affinity": "Strength",
+  "domain": "Earth",
+  "locationId": 11,
+  "available": true,
+  "placeholderImage": "/totems/wolfplacecard.png",
+  "baseStats": {
+    "strength": 11,
+    "agility": 8,
+    "wisdom": 5
+  },
+  "stages": [
+    "Pup",
+    "Howler",
+    "Stalker",
+    "Alpha",
+    "Wise Elder"
+  ],
+  "colors": {
+    "brown": {
+      "id": 0,
+      "displayName": "Brown",
+      "rarity": "common",
+      "stageNames": [
+        "Brown Pup",
+        "Brown Howler",
+        "Brown Stalker",
+        "Brown Alpha",
+        "Brown Wise Elder"
+      ],
+      "stageDescriptions": [
+        "A playful brown-furred pup, full of boundless energy and curiosity.",
+        "A young wolf, testing its voice with strong and eager howls.",
+        "A skilled tracker, blending seamlessly into the woodland.",
+        "A powerful pack leader, guiding its kin with wisdom and strength.",
+        "A seasoned wolf, carrying the echoes of generations in its knowing gaze."
+      ],
+      "images": [
+        "bafybeibo3ttzjp3r5n4n2zzsristr6segyvowtlms6n3gxalyx7mppl5jm",
+        "bafybeid534zorzdbxbzcwqyxk2irifjuup6jlbwzzgciyxf4ko4j32btqq",
+        "bafybeieswb4ymgnfexxvtg4lqbqsghkk7rhtbgm25uhfow4jpftca4s5da",
+        "bafybeie7yav3eh6eok4euvq72kp4666xzwmea6frtacrzk3gxtiuhdtbwa",
+        "bafybeiefupoc6zmximov5msmay56r45mcbmfspxzqqs3r2czfhzvcerb64"
+      ]
+    },
+    "gray": {
+      "id": 1,
+      "displayName": "Gray",
+      "rarity": "common",
+      "stageNames": [
+        "Gray Pup",
+        "Gray Howler",
+        "Gray Stalker",
+        "Gray Alpha",
+        "Gray Wise Elder"
+      ],
+      "stageDescriptions": [
+        "A quiet but watchful pup, already showing the intelligence of its kind.",
+        "A young wolf, its call resonating through the misty dawn.",
+        "A calculating hunter, its movements precise and deliberate.",
+        "A formidable leader, its silvered coat a mark of experience.",
+        "A revered elder, its fur now streaked with the wisdom of time."
+      ],
+      "images": [
+        "bafybeib3qdygoysu4de27xckbkzu5f5sis4ix3nxgrezqeetaq7pmnwh6q",
+        "bafybeiem7qtodwgcvq37zk7hovcve4d6znpbfpuiqnhjbt445fc5j7ssv4",
+        "bafybeibombrfvrwssoskyjwo2j2ryuxe5h5g346aywhjtdawf275fgoxcy",
+        "bafybeig3272knycw46utwu6ch7jfwtuh2un6pzo4n3a4trh5jj2hzixlrq",
+        "bafybeicrwzwiinqs6n4ytzghpaslz3wxhq3tu3asgwca5p4k4lvbiawmfq"
+      ]
+    },
+    "white": {
+      "id": 2,
+      "displayName": "White",
+      "rarity": "common",
+      "stageNames": [
+        "White Pup",
+        "White Howler",
+        "White Stalker",
+        "White Alpha",
+        "White Wise Elder"
+      ],
+      "stageDescriptions": [
+        "A bright-furred pup, its pure coat gleaming like fresh snow.",
+        "A spirited wolf, its cry sharp and clear in the cold air.",
+        "A silent hunter, moving unseen through moonlit nights.",
+        "A noble leader, its presence commanding respect and loyalty.",
+        "A legendary figure, a symbol of ancient knowledge and balance."
+      ],
+      "images": [
+        "bafybeif5lbrlgs22ucyadi3h7r7wsbis37asa62x2cdjsktj47cwpoyxaq",
+        "bafybeie6egp3wrwfvbjchctexpwtirqeyo5dnfkni5kk3kaxsokpygjjuu",
+        "bafybeidhehs2jj4xlxfmz6euw63fbjzy6gllw5cgez5hfejwaxo65ju2ru",
+        "bafybeihdutaxetnl2t2qai4vz25lxsintj3evtw6vomx3xlqrkyth3g75u",
+        "bafybeic5lvfy6r5h4ltv4sfdtwazjrkqco34tcotvii4xvb55fetu3mk7y"
+      ]
+    },
+    "tawny": {
+      "id": 3,
+      "displayName": "Tawny",
+      "rarity": "common",
+      "stageNames": [
+        "Tawny Pup",
+        "Tawny Howler",
+        "Tawny Stalker",
+        "Tawny Alpha",
+        "Tawny Wise Elder"
+      ],
+      "stageDescriptions": [
+        "A lively pup with sun-kissed fur, bounding through the fields.",
+        "A swift and agile young wolf, its howl rolling across the plains.",
+        "A relentless hunter, weaving through the tall grass unseen.",
+        "A fierce protector, standing at the heart of its pack.",
+        "A respected guardian of tradition, its golden-brown coat weathered by time."
+      ],
+      "images": [
+        "bafybeihf6gt7lpolfhrjs5jmnl34oq6n5x2vtxhu4mz67lv73gmmhgitxy",
+        "bafybeiccf6e34murp2yeu66u5lkxoh36nxnnzvzobovqjm5hcpmzto22re",
+        "bafybeidujmma5egtnziepwlf3ib725a3dmjt2gfomwxee655wzvvtkedsi",
+        "bafybeiffkemvqqucs5r2bbmcs5nnbiaiywa4cgtqjeyipbnnxotridzmd4",
+        "bafybeign5iw7bwo4iar7hfpic2sbkbdmkdiwxgnyqkbssan44dk3fd6tnm"
+      ]
+    },
+    "slate": {
+      "id": 4,
+      "displayName": "Slate",
+      "rarity": "uncommon",
+      "stageNames": [
+        "Slate Pup",
+        "Slate Howler",
+        "Slate Stalker",
+        "Slate Alpha",
+        "Slate Mystic Elder"
+      ],
+      "stageDescriptions": [
+        "A dark-hued pup, watching the world with quiet curiosity.",
+        "A patient young wolf, its deep howl echoing through the cliffs.",
+        "A shadow in the forest, moving like the wind between the trees.",
+        "A battle-hardened leader, unyielding and cunning.",
+        "A keeper of forgotten paths, its wisdom as deep as stone."
+      ],
+      "images": [
+        "bafybeie5bovoqxkrbjggvpm5thmng64d3hnjfyzu62avk7ehshlrv3lagy",
+        "bafybeiaqyza5fqc3tplftvt63mjicj4km3ni7wxjnqvyybio5v42gvow2e",
+        "bafybeifshe4ijoouo5nmp2u57i6brr6ob3jb6guh6pwu6f5rkdnwlfeaxa",
+        "bafybeib5jzsq2dqcox3fordmq6luhhlhoj6xfhccue427ceavt7inec5sm",
+        "bafybeiekluuv3tkxkriw6ccm66ksyeemqzkatthpaxsgvvvuky4zhukzny"
+      ]
+    },
+    "copper": {
+      "id": 5,
+      "displayName": "Copper",
+      "rarity": "uncommon",
+      "stageNames": [
+        "Copper Pup",
+        "Copper Howler",
+        "Copper Stalker",
+        "Copper Alpha",
+        "Copper Mystic Elder"
+      ],
+      "stageDescriptions": [
+        "A fiery-furred pup, full of restless energy.",
+        "A bold young wolf, its call ringing through the mountains.",
+        "A skilled predator, moving with the speed of wildfire.",
+        "A fierce and noble leader, its presence impossible to ignore.",
+        "A revered force of nature, its copper coat now burnished with time."
+      ],
+      "images": [
+        "bafybeifbrytl43fjiabzkmim7jrckygndlwdjekuyjqrlitdntzcsuuxqy",
+        "bafybeigxuqkkd2gdiaf2ybca6ut26ivoofo66gst5cuoaiikoz7pk4ereq",
+        "bafybeiaprz4lycs27t3nfwgalyigf7lzdk4vynzwn2xuvcuk5mtgxhglyu",
+        "bafybeihvphoygd73bmnsjtz2lm4dum7mksjkt6c4y3pvr5kuraon5e4wyq",
+        "bafybeiafesuis6uzlvjfwblmwqo5d4nueblo57md66buuub7l7b3ajn7d4"
+      ]
+    },
+    "cream": {
+      "id": 6,
+      "displayName": "Cream",
+      "rarity": "uncommon",
+      "stageNames": [
+        "Cream Pup",
+        "Cream Howler",
+        "Cream Stalker",
+        "Cream Alpha",
+        "Cream Mystic Elder"
+      ],
+      "stageDescriptions": [
+        "A soft-furred pup, gentle yet observant.",
+        "A keen wolf, its voice carrying a rare and melodic tone.",
+        "A silent presence in the wild, unseen but always felt.",
+        "A wise and measured leader, commanding with quiet authority.",
+        "A guardian of balance, its spirit intertwined with the natural world."
+      ],
+      "images": [
+        "bafybeihwztoeqyrj7kes4xomq77e4ybpb6vlzjf3k52iqjo4tf5akuachi",
+        "bafybeigctotuzw62bkvc4rdmnelic5tmva5occrv2idshx4aadfiml2nyy",
+        "bafybeialpsf6uhuachowjm56dqttvmwn6mtlw2zed6qr6e6s6tnb2nuehy",
+        "bafybeidgau6bsvzteahpyipfuypsyhrlbbktapuaj7h4oafqedcwkatvaq",
+        "bafybeic7gea4ybytrushf6vdaqjo65lckvyyvpwqj6n5yhwjghkfd3rdfm"
+      ]
+    },
+    "dappled": {
+      "id": 7,
+      "displayName": "Dappled",
+      "rarity": "uncommon",
+      "stageNames": [
+        "Dappled Pup",
+        "Dappled Howler",
+        "Dappled Stalker",
+        "Dappled Alpha",
+        "Dappled Mystic Elder"
+      ],
+      "stageDescriptions": [
+        "A uniquely patterned pup, blending into its surroundings effortlessly.",
+        "A tricky young wolf, moving unpredictably with grace.",
+        "A master of deception, its movements impossible to track.",
+        "A tactical leader, guiding with instinct and strategy.",
+        "A legendary wanderer, its presence felt but rarely seen."
+      ],
+      "images": [
+        "bafybeiffp4oamlsq6skpnu3z2yq6n3y4lkkooduiszyer4yhx72gvsr2g4",
+        "bafybeigasurtggud3oyiixss237ysh5fn3a5qasdohxyczi5snykgxlnsq",
+        "bafybeiebdi4sfjel4lq4f2od5hpaqiuujlesnsf7orxpw5u4dmsj2ypy6q",
+        "bafybeigsw4v2mwi6oqpl3xiqqhx4fubw75ns3zexrcwusqyh72lopgusaa",
+        "bafybeiftmzcfnkjy2gp2vcycgl7xl4g2bwqkba26q3rynfzohslz4va7oa"
+      ]
+    },
+    "golden": {
+      "id": 8,
+      "displayName": "Golden",
+      "rarity": "rare",
+      "stageNames": [
+        "Dawnfang Pup",
+        "Dawnfang Howler",
+        "Dawnfang Stalker",
+        "Dawnfang Phantom",
+        "Dawnfang Veiled Elder"
+      ],
+      "stageDescriptions": [
+        "A golden-furred pup, glowing softly like the first light of day.",
+        "A radiant young wolf, its howl spreading warmth through the cold night.",
+        "A swift and elegant hunter, moving like liquid sunlight.",
+        "A golden blur in the wild, a figure of legend.",
+        "A luminous being, its wisdom shining brighter than the stars."
+      ],
+      "images": [
+        "bafybeieol25lnnbqdfvkh5sted3w5ikbojjejmykgrqwe5wwhibnn2w7ja",
+        "bafybeiffi2bjihmmpzvxlbvrm2savlbirhoni5rrhyk6wx7aik2cn7krp4",
+        "bafybeib4oecjg2n3spxtvdf3n5ucwutkyyidvpu5kkoqlgznzbg33ie7bq",
+        "bafybeiekalocfyvy7ys5alzc5bmpnga7iyhnp4566pjnbpadp7obizzdou",
+        "bafybeihu2gg4mfdzqnu4rg7h7py3q356cvsfdueewuzqisbuuaud72mnf4"
+      ]
+    },
+    "purple": {
+      "id": 9,
+      "displayName": "DarkPurple",
+      "rarity": "rare",
+      "stageNames": [
+        "Umbral Pup",
+        "Umbral Howler",
+        "Umbral Stalker",
+        "Umbral Phantom",
+        "Umbral Veiled Elder"
+      ],
+      "stageDescriptions": [
+        "A deep violet-furred pup, its eyes gleaming with hidden knowledge.",
+        "A ghostly young wolf, its voice unsettling yet hypnotic.",
+        "A shadowy figure, slipping between worlds with ease.",
+        "A spectral hunter, appearing only when the moon is high.",
+        "A living myth, its presence bending the boundary between dream and reality."
+      ],
+      "images": [
+        "bafybeienrc4vdrwyyshei47iz256feue4yk4czydyhwkl3pyc3t67pslza",
+        "bafybeihpa432lzulte6uwhsrwviw6hqdluns344nedjnhn6hvxkehsgwem",
+        "bafybeicutiq4mmcyjobkotcmapfw2ozxjjdotxc2de33skfmk5jmy7mdb4",
+        "bafybeia2kzfj2mgriy3tkvj67ofdc56hvqy6azeebo5bsucgxipbtnioxa",
+        "bafybeiacclifr6coylrm2jpemyvmakkhmde32oxkywuhpkhzbklbd7jp2q"
+      ]
+    },
+    "charcoal": {
+      "id": 10,
+      "displayName": "Charcoal",
+      "rarity": "rare",
+      "stageNames": [
+        "Ashen Pup",
+        "Ashen Howler",
+        "Ashen Stalker",
+        "Ashen Phantom",
+        "Ashen Veiled Elder"
+      ],
+      "stageDescriptions": [
+        "A coal-colored pup, its paws leaving faint embers where it steps.",
+        "A smoldering young wolf, its howl carrying the scent of fire and smoke.",
+        "A relentless hunter, moving like a shadow cast by flames.",
+        "A fiery silhouette, feared and revered in equal measure.",
+        "A spirit of ash and ember, a burning legend of the wild."
+      ],
+      "images": [
+        "bafybeigsdzz62fsv5tuek2k7o5akjur3dqea4jouhg5uurxohbhrticmue",
+        "bafybeigskzy3yd4rrx2lz3zinbx4dknb7fmlfvxixad5ibq5hjvyvrgsym",
+        "bafybeie533763gdyae34hzemx674g2m46wfqoa7ve5dij3bksehz347kb4",
+        "bafybeicnn6a6kf2wrohlipyxsjdc3l66ovgnkrxopxhh2tehz33b3lslqi",
+        "bafybeibtgljj6syy4z63ohjlbo53fkmrv7jdvq5tpfg73qbhruhi25nh3u"
+      ]
+    },
+    "emerald": {
+      "id": 11,
+      "displayName": "EmeraldGreen",
+      "rarity": "epic",
+      "stageNames": [
+        "Verdant Pup",
+        "Verdant Howler",
+        "Verdant Stalker",
+        "Verdant Sage",
+        "Verdant Eternal Sage"
+      ],
+      "stageDescriptions": [
+        "A green-furred pup, brimming with the energy of an untouched forest.",
+        "A swift young wolf, its howl echoing like wind through ancient trees.",
+        "A guardian of nature, moving with silent grace among the flora.",
+        "A wolf of living essence, its very presence causing plants to bloom in its wake.",
+        "A timeless guardian, an embodiment of nature’s eternal cycle of life and renewal."
+      ],
+      "images": [
+        "bafybeigysqzrg7u54aqy7yq7t4gq54st6ipzivulc7as6ne26phpybibqe",
+        "bafybeiawyzjke7z3c66wbczmpsmwwdhq6u4lq43umpjzrjb3db25fdocau",
+        "bafybeigwzr6yc6i3certqckgqyurccnojbwl6jey6q4rqnjw55fe4dzww4",
+        "bafybeib75wns57st7xsogtffvrhh6t2ah6sweockkaykqkrimfu5ohhirm",
+        "bafybeieaj37rh5ldbkuy2n4vxpwcw2mk3gr4fgsu6lfv7qvq4eircvfzpi"
+      ]
+    },
+    "crimson": {
+      "id": 12,
+      "displayName": "CrimsonRed",
+      "rarity": "epic",
+      "stageNames": [
+        "Bloodfang Pup",
+        "Bloodfang Howler",
+        "Bloodfang Stalker",
+        "Bloodfang Sage",
+        "Bloodfang Eternal Sage"
+      ],
+      "stageDescriptions": [
+        "A fierce crimson pup, its eyes burning with untamed energy.",
+        "A relentless young wolf, its howl sharp as a battle cry.",
+        "A warrior’s shadow, its movements precise and deadly.",
+        "A predator of legend, its fiery form radiating raw, primal power.",
+        "A wolf of burning wrath, a force of destruction and rebirth, forever hunting through time."
+      ],
+      "images": [
+        "bafybeiewumg56dwukxhdvv6fhkqvkoimf7pdgn4kdwvqn5xzdolwoxfrxi",
+        "bafybeibaps4bkfx5yoan4ucwnenjppi42dow532354rd3rwpihinwloyey",
+        "bafybeia6iao54bmzuuc2kfoorz353ndkgdvncrfgrq7y45sbwpm6g4dzgq",
+        "bafybeiacid7q4ic2zuadhoq3rpvhqp53v5sz6u5j5xjppfxnb45iw2l4da",
+        "bafybeihgii5eyqvihthfrhmkc2rmh7wicrf6sxqg7g3xic5luqw4rkipxq"
+      ]
+    },
+    "sapphire": {
+      "id": 13,
+      "displayName": "DeepSapphire",
+      "rarity": "epic",
+      "stageNames": [
+        "Abyssal Pup",
+        "Abyssal Howler",
+        "Abyssal Stalker",
+        "Abyssal Sage",
+        "Abyssal Eternal Sage"
+      ],
+      "stageDescriptions": [
+        "A deep blue-furred pup, its coat shimmering like the ocean under moonlight.",
+        "A haunting young wolf, its howl carrying across vast waters like an unanswered call.",
+        "A being of water and shadow, its steps flowing like the tides.",
+        "A silent ruler of the deep, its sapphire eyes glowing with an ancient and unfathomable wisdom.",
+        "A legend lost to the sea, existing between the seen and unseen, its spirit drifting with the ocean’s eternal rhythm."
+      ],
+      "images": [
+        "bafybeia55ttmypxlqvbi4wlhlb5dt6ie26fbpi2h5bi6ryay5pigwzavza",
+        "bafybeia64tltmlt6ob6nvw2e3dvpnmh5yozotqpdkzuwby6f5a7mggiare",
+        "bafybeiddfae6aar4l7nxrvdnsap2zekzdtlv3l466cd43hls57ajatglfa",
+        "bafybeihqoohdpzwmln2hsqvdjatb3wzuka4b7kgetjye5kkyoltqj7qste",
+        "bafybeidwocpr3ej2yphasldmkxl4fssreb6ysxtcribq4z4zzejewd23jq"
+      ]
+    },
+    "silver": {
+      "id": 14,
+      "displayName": "EtherealSilver",
+      "rarity": "legendary",
+      "stageNames": [
+        "Moonshadow Pup",
+        "Moonshadow Howler",
+        "Moonshadow Stalker",
+        "Moonshadow Oracle",
+        "Moonshadow Ascendant Oracle"
+      ],
+      "stageDescriptions": [
+        "A spectral silver pup, flickering like mist under the full moon.",
+        "A phantom wolf, its howl heard only by those attuned to the night’s mysteries.",
+        "A being of shadow and light, slipping seamlessly through unseen paths.",
+        "A celestial guide, its silver glow illuminating the lost and the wandering.",
+        "A guardian of fate, existing in the dreamscape where moonlight meets eternity."
+      ],
+      "images": [
+        "bafybeibinbdjqkmossbnfmxqx4kyxidrncxtcfhyp2prdxjbjtaokgei5i",
+        "bafybeiagiwcxprkbxdseh3tudm2e43yh4bu2adtxnf5owxwjwz5hh2pp5m",
+        "bafybeics37upm4kw66alfm5wjkiaqeal2z3u37uv3leu3memr3h5fvyynq",
+        "bafybeie2vlwnohjfi4rfomeqka6ut5hnynj4zmx3uqx6cvmgjshjdt4oze",
+        "bafybeibgfw6z7xi7hibkeq7o2erf5yuznhz5f4edcqwgsn2jsqb5wtqp4i"
+      ]
+    },
+    "gold": {
+      "id": 15,
+      "displayName": "RadiantGold",
+      "rarity": "legendary",
+      "stageNames": [
+        "Celestial Pup",
+        "Celestial Howler",
+        "Celestial Stalker",
+        "Celestial Oracle",
+        "Celestial Ascendant Oracle"
+      ],
+      "stageDescriptions": [
+        "A golden pup, its fur radiating the warmth of a newborn star.",
+        "A luminous young wolf, its voice resonating like a song of the cosmos.",
+        "A cosmic wanderer, leaving golden constellations in its path.",
+        "A divine wolf, gazing into the vast unknown with knowledge beyond time.",
+        "A cosmic force, transcending existence itself, its form no longer bound by physical reality."
+      ],
+      "images": [
+        "bafybeighykr65um6tcdvz6vrpf64vdfhjkzfqecvk6icovhlxnnx55ax2e",
+        "bafybeibniehornyax22e4m5rdi4liyc4ebdirgt53gcf7tndaxrj4u3q3i",
+        "bafybeiaqgqfxq3icftrbiixxjw3xqvhlrcn5qsv2lvs7rozhxxy2gjrhca",
+        "bafybeiasfpznj5dxw55isswegvsas4ag2gg7e2jvsdbf77revzj74yfz7m",
+        "bafybeifwc4423utu4m7ikkgdchzc2zwwsljpmo7bdch56uznxoobnblw4i"
+      ]
+    },
+    "verdant": {
+      "id": 18,
+      "displayName": "VerdantGold",
+      "rarity": "limited",
+      "stageNames": [
+        "Cloverfang Pup",
+        "Cloverfang Howler",
+        "Cloverfang Stalker",
+        "Cloverfang Sage",
+        "Cloverfang Oracle"
+      ],
+      "stageDescriptions": [
+        "A bright-eyed pup, playfully chasing after golden leaves.",
+        "A charming young wolf, its howl bringing unexpected fortune.",
+        "A clever hunter, always finding the best path through danger.",
+        "A wolf with an aura of prosperity, drawing good fortune wherever it roams.",
+        "A mythical guardian of destiny, its golden coat shimmering with fate’s unseen threads."
+      ],
+      "images": [
+        "bafybeieezvdacnrn36zbubevnb67b3pezoumpyepwzoyvlmjqsnosluu7i",
+        "bafybeiamuk7yvoohlqjx4b4trhe6hzvn6wrxktm4sdpyouapjchmz7ziga",
+        "bafybeiasosaxuwuzrkf2p7condhhzkienryl6voki3d4bjrnta757t7rai",
+        "bafybeig6t345rlet4oj4chkg5h32aff55twk2yfhxfrx3fya2k3sotdck4",
+        "bafybeifbciz4p5f37dc6hluakcrvodmytqpmwspbdr47sbqijxtfk2p654"
+      ]
+    }
+  }
+}

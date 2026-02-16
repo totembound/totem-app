@@ -33,7 +33,7 @@ const BoulderBreakerChallenge: React.FC<BoulderBreakerChallengeProps> = ({
   const [currentPoint, setCurrentPoint] = useState<number>(0);
   const [score, setScore] = useState<number>(0);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  const [showAlert, setShowAlert] = useState<boolean>(false);
+  const [_showAlert, _setShowAlert] = useState<boolean>(false);
   const [showPulse, setShowPulse] = useState(false);
 
   const boulderRef = useRef<HTMLDivElement>(null);

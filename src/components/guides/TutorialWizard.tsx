@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, CheckCircle, Gift, Lock, Maximize2, Minus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTutorialConfig } from './useTutorialConfig';
 import { useTutorialClaims } from './useTutorialClaims';
 import { useUser } from '../../contexts/UserContext';
+import { CURRENCY_NAMES } from '../../config/constants';
+import TutorialCompleteModal from './TutorialCompleteModal';
 
 interface TutorialWizardProps {
   className?: string;
@@ -25,7 +27,24 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
 
   const { comingSoon, totems } = useUser();
   const { tutorialSteps, areAllStepsComplete, stepActions } = useTutorialConfig();
-  const { handleClaimReward, getClaimStatus, canClaim } = useTutorialClaims();
+  const { handleClaimReward, getClaimStatus, canClaim, claimStatus, tutorialComplete, dismissTutorialComplete } = useTutorialClaims();
+
+  // Reset tutorial wizard state when user changes (logout/login)
+  useEffect(() => {
+    setHasInitialized(false);
+    setCurrentStep(0);
+  }, [isSignedUp]);
+
+  // Initialize to first unclaimed step when claim status loads
+  const [hasInitialized, setHasInitialized] = useState(false);
+  useEffect(() => {
+    if (hasInitialized || Object.keys(claimStatus).length === 0) return;
+    const firstUnclaimed = tutorialSteps.findIndex(step => !claimStatus[step.rewardId]);
+    if (firstUnclaimed >= 0) {
+      setCurrentStep(firstUnclaimed);
+    }
+    setHasInitialized(true);
+  }, [claimStatus, tutorialSteps, hasInitialized]);
 
   const currentTutorialStep = tutorialSteps[currentStep];
   const isStepComplete = areAllStepsComplete(currentTutorialStep.steps);
@@ -72,7 +91,7 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
     onComplete?.();
   };
 
-  const showWizard = () => {
+  const _showWizard = () => {
     setTutorialWizardVisible(true);
   };
 
@@ -85,7 +104,9 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
   }
 
   return (
-    <div className={`fixed bottom-6 right-2 w-96 max-w-[calc(100vw-1rem)] bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden transition-all duration-300 ease-in-out z-50 border border-gray-200 dark:border-gray-700 ${
+    <>
+    {tutorialComplete && <TutorialCompleteModal onClose={dismissTutorialComplete} />}
+    <div className={`fixed bottom-16 sm:bottom-6 right-2 w-96 max-w-[calc(100vw-1rem)] bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden transition-all duration-300 ease-in-out z-50 border border-gray-200 dark:border-gray-700 ${
       isMinimized ? 'h-auto' : ''} ${className}`}>
       {/* Header */}
       <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
@@ -101,7 +122,7 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
         <div className="flex items-center gap-2">
             <button
                 onClick={toggleMinimize}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors md:hidden"
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
                 aria-label={isMinimized ? "Expand" : "Minimize"}
             >
                 {isMinimized ? <Maximize2 size={18} /> : <Minus size={18} />}
@@ -145,7 +166,8 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
             const complete = canOverride || (step.isStepComplete ? step.isStepComplete() : step.complete);
             const linkState = step.linkState || {};
             if (step.actionType === 'link' && step.isSelectedTotem) {
-              linkState.selectedTokenId = totems[0]?.tokenId;
+              // Web2: Use string id instead of tokenId
+              linkState.selectedTotemId = totems[0]?.id;
             }
 
             return (
@@ -217,7 +239,7 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
             <div className="flex items-center gap-2">
               <Gift className="w-4 h-4 text-purple-500" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {currentTutorialStep.tokenReward} TOTEM
+                {currentTutorialStep.tokenReward} {CURRENCY_NAMES.SOFT}
                 {currentTutorialStep.experienceReward > 0 && ` + ${currentTutorialStep.experienceReward} XP`}
               </span>
             </div>
@@ -286,6 +308,7 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
         </button>
       </div>
     </div>
+    </>
   );
 };
 

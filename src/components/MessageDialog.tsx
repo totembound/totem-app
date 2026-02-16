@@ -6,6 +6,7 @@ export interface MessageDialogState {
   title: string;
   message: string;
   isRateLimit?: boolean;
+  isSuccess?: boolean;
 }
 
 interface MessageDialogProps {
@@ -14,6 +15,7 @@ interface MessageDialogProps {
   isOpen: boolean;
   showDismiss: boolean;
   isRateLimit?: boolean;
+  isSuccess?: boolean;
   onClose: () => void;
 }
 
@@ -23,6 +25,7 @@ const MessageDialog: React.FC<MessageDialogProps> = ({
   isOpen,
   showDismiss,
   isRateLimit = false,
+  isSuccess = false,
   onClose
 }) => {
   if (!isOpen) return null;
@@ -53,13 +56,25 @@ const MessageDialog: React.FC<MessageDialogProps> = ({
           </div>
 
           {/* Dismiss button - hide for rate limit errors to prevent retry spam */}
-          {showDismiss && !isRateLimit && 
+          {showDismiss && !isRateLimit && !isSuccess &&
             <div className="flex justify-end mt-6">
               <button
                 onClick={onClose}
                 className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md text-gray-900 dark:text-gray-100 transition-colors"
               >
                 Try Again
+              </button>
+            </div>
+          }
+
+          {/* Success button */}
+          {isSuccess &&
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900 dark:hover:bg-emerald-800 rounded-md text-emerald-900 dark:text-emerald-100 transition-colors"
+              >
+                Awesome!
               </button>
             </div>
           }

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useGame } from '../../contexts/GameContext';
 import { useUser } from '../../contexts/UserContext';
+import { useAchievements } from '../../contexts/AchievementsContext';
 import BoulderBreakerChallenge from './BoulderBreakerChallenge';
 import TotemWrestlingChallenge from './TotemWrestlingChallenge';
 import { ActionType, ChallengeInfo, TotemAttributes, RateLimitError } from '../../types/types';
-import { ethers } from 'ethers';
 import ExperienceEffect from '../effects/ExperienceEffect';
 import RockFallDefenseChallenge from './RockFallDefenseChallenge';
 import SpiritPathChallenge from './SpiritPathChallenge';
@@ -43,15 +43,16 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
 }) => {
     const { updateTotem, handleRateLimitError } = useUser();
     const { completeChallenge, challengeState } = useGame();
-    const [currentScore, setCurrentScore] = useState<number>(0);
+    const { refreshAchievements } = useAchievements();
+    const [_currentScore, setCurrentScore] = useState<number>(0);
     const [bestScore, setBestScore] = useState<number>(0);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [showSuccess, setShowSuccess] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
     const [showScoreEffect, setShowScoreEffect] = useState(false);
 
-    // Get current challenge status
-    const userStatus: ChallengeStatus = challengeState.userStatus[ethers.id(challengeId)] || {
+    // Get current challenge status (Web2: use plain string IDs)
+    const userStatus: ChallengeStatus = challengeState.userStatus[challengeId] || {
         dailyAttempts: 0,
         attemptsRemaining: 5,
         highScore: 0,
@@ -59,8 +60,8 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
         totalAttempts: 0,
         totalScore: 0
     };
-    
-    const challenge: ChallengeInfo = challengeState.challenges[ethers.id(challengeId)];
+
+    const challenge: ChallengeInfo = challengeState.challenges[challengeId];
 
     const attemptsLeft = 5 - Number(userStatus.dailyAttempts);
     const highScore = Number(userStatus.highScore);
@@ -98,11 +99,12 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
             setError('');
             
             await completeChallenge(challengeId, tokenId, bestScore);
+            await refreshAchievements();
             setShowScoreEffect(true);
 
              // Update totem state after delay
              setTimeout(async () => {
-                await updateTotem(BigInt(tokenId), ActionType.None);
+                await updateTotem(tokenId, ActionType.None);
                 setShowSuccess(true);
                 setTimeout(() => {
                     onClose();
@@ -142,70 +144,70 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
             {/* Challenge Game */}
             <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-100 
               dark:border-gray-700 shadow-sm">
-                {challengeType === 'strength' && challengeId === 'strength-challenge-1' && (
+                {challengeType === 'strength' && challengeId === 'chl_boulder-breaker' && (
                     <BoulderBreakerChallenge
                         strength={attributes.strength}
                         difficulty={difficulty}
                         onComplete={handleScore}
                     />
                 )}
-                {challengeType === 'strength' && challengeId === 'strength-challenge-2' && (
+                {challengeType === 'strength' && challengeId === 'chl_totem-wrestling' && (
                     <TotemWrestlingChallenge
                         strength={attributes.strength}
                         difficulty={difficulty}
                         onComplete={handleScore}
                     />
                 )}
-                {challengeType === 'strength' && challengeId === 'strength-challenge-3' && (
+                {challengeType === 'strength' && challengeId === 'chl_rockfall-defense' && (
                     <RockFallDefenseChallenge
                         strength={attributes.strength}
                         difficulty={difficulty}
                         onComplete={handleScore}
                     />
                 )}
-                {challengeType === 'agility' && challengeId === 'agility-challenge-1' && (
+                {challengeType === 'agility' && challengeId === 'chl_spirit-path' && (
                     <SpiritPathChallenge
                         agility={attributes.agility}
                         difficulty={difficulty}
                         onComplete={handleScore}
                     />
                 )}
-                {challengeType === 'agility' && challengeId === 'agility-challenge-2' && (
+                {challengeType === 'agility' && challengeId === 'chl_aerial-ring-dive' && (
                     <RingDiveChallenge
                         agility={attributes.agility}
                         difficulty={difficulty}
                         onComplete={handleScore}
                     />
                 )}
-                {challengeType === 'agility' && challengeId === 'agility-challenge-3' && (
+                {challengeType === 'agility' && challengeId === 'chl_spirit-dance' && (
                     <DrumDanceChallenge
                         agility={attributes.agility}
                         difficulty={difficulty}
                         onComplete={handleScore}
                     />
                 )}
-                {challengeType === 'wisdom' && challengeId === 'wisdom-challenge-1' && (
+                {challengeType === 'wisdom' && challengeId === 'chl_ancient-runes' && (
                     <RuneDecodingChallenge
                         wisdom={attributes.wisdom}
                         difficulty={difficulty}
                         onComplete={handleScore}
                     />
                 )}
-                {challengeType === 'wisdom' && challengeId === 'wisdom-challenge-2' && (
+                {challengeType === 'wisdom' && challengeId === 'chl_star-mapping' && (
                     <StarMapChallenge
                         wisdom={attributes.wisdom}
                         difficulty={difficulty}
                         onComplete={handleScore}
                     />
                 )}
-                {challengeType === 'wisdom' && challengeId === 'wisdom-challenge-3' && (
+                {challengeType === 'wisdom' && challengeId === 'chl_spirit-weaving' && (
                     <RuneCraftingChallenge
                         wisdom={attributes.wisdom}
                         difficulty={difficulty}
                         onComplete={handleScore}
                     />
                 )}
-                {challengeType === 'balance' && challengeId === 'beginner-challenge-1' && (
+                {challengeType === 'balance' && challengeId === 'chl_garden-pest-patrol' && (
                     <GardenPestControlChallenge
                         strength={attributes.strength}
                         difficulty={difficulty}
@@ -250,13 +252,13 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
             )}
 
             {/* Action Buttons */}
-            <div className="flex justify-between mt-4 gap-4">
+            <div className="flex mt-4 gap-4">
                 <button
                     onClick={onClose}
                     type="button"
-                    className="px-4 py-2 text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 
+                    className="flex-1 px-4 py-2.5 text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800
                       hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors
-                      border border-gray-200 dark:border-gray-700"
+                      border border-gray-200 dark:border-gray-700 font-medium"
                 >
                     Cancel
                 </button>
@@ -264,7 +266,7 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
                     onClick={handleSubmit}
                     disabled={isSubmitting || bestScore === 0 || attemptsLeft == 0}
                     type="button"
-                    className={`px-4 py-2 text-white rounded-lg transition-colors
+                    className={`flex-1 px-4 py-2.5 text-white rounded-lg transition-colors font-medium
                         ${isSubmitting || bestScore === 0 || attemptsLeft == 0
                             ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
                             : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600'}`}

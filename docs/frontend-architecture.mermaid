@@ -1,0 +1,63 @@
+graph TD
+    App[App.tsx] --> AuthCtx[AuthContext]
+    App --> UserCtx[UserContext]
+    App --> GameCtx[GameContext]
+    App --> AchCtx[AchievementsContext]
+    App --> IoTHook[useIoTCommands]
+    App --> Router[React Router v6]
+
+    Router --> Gallery[Totem Gallery]
+    Router --> Detail[Totem Detail]
+    Router --> Shop[Shop Interface]
+    Router --> Rewards[Rewards Page]
+    Router --> Challenges[Challenges Page]
+    Router --> Expeditions[Expeditions Page]
+    Router --> Achievements[Achievements Page]
+    Router --> Settings[Account Settings]
+
+    AuthCtx --> AuthSvc[AuthService]
+    AuthSvc --> ApiClient[ApiClient - Singleton]
+    UserCtx --> ApiClient
+    GameCtx --> ConfigLoader[Config Loader]
+
+    ConfigLoader --> SpeciesJSON[species.json]
+    ConfigLoader --> GameJSON[game-config.json]
+    ConfigLoader --> ChallengesJSON[challenges.json]
+    ConfigLoader --> ExpeditionsJSON[expeditions.json]
+    ConfigLoader --> RewardsJSON[rewards.json]
+    ConfigLoader --> AchievementsJSON[achievements.json]
+    ConfigLoader --> ShopJSON[shop-config.json]
+
+    ApiClient --> |HTTP REST| Backend[API Gateway /v1/*]
+
+    IoTHook --> IoTSvc[IoTService]
+    IoTSvc --> |MQTT WebSocket| IoTCore[IoT Core]
+    IoTSvc --> NotifSvc[NotificationService]
+
+    subgraph "Static Config - Zero API Cost"
+        ConfigLoader
+        SpeciesJSON
+        GameJSON
+        ChallengesJSON
+        ExpeditionsJSON
+        RewardsJSON
+        AchievementsJSON
+        ShopJSON
+    end
+
+    subgraph "Contexts - State Management"
+        AuthCtx
+        UserCtx
+        GameCtx
+        AchCtx
+    end
+
+    classDef page fill:#E8F5E9,stroke:#2E7D32
+    classDef ctx fill:#E3F2FD,stroke:#1565C0
+    classDef svc fill:#FFF3E0,stroke:#E65100
+    classDef config fill:#F3E5F5,stroke:#6A1B9A
+
+    class Gallery,Detail,Shop,Rewards,Challenges,Expeditions,Achievements,Settings page
+    class AuthCtx,UserCtx,GameCtx,AchCtx ctx
+    class AuthSvc,ApiClient,IoTSvc,NotifSvc svc
+    class ConfigLoader,SpeciesJSON,GameJSON,ChallengesJSON,ExpeditionsJSON,RewardsJSON,AchievementsJSON,ShopJSON config

@@ -24,7 +24,6 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
   difficulty = 2,
   agility = 10,
   onComplete = (score: number) => console.log('Challenge complete:', score),
-  _onFail = () => console.log('Challenge failed')
 }) => {
   const SONG_DURATION = 30;
   

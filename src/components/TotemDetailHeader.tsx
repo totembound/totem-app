@@ -16,7 +16,6 @@ const TotemDetailHeader: React.FC<TotemDetailHeaderProps> = ({
     totemId,
     name,
     displayName,
-    _rarity,
     onClose,
     onNicknameUpdate
 }) => {

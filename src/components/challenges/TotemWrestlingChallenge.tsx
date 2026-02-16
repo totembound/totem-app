@@ -27,7 +27,7 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
   const [playerScore, setPlayerScore] = useState<number>(50);
   const [computerScore, setComputerScore] = useState<number>(50);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  const [_showAlert, _setShowAlert] = useState<boolean>(false);
+  const [_showAlert, setShowAlert] = useState<boolean>(false);
   const [containerWidth, setContainerWidth] = useState<number>(1000);
   const [finalScore, setFinalScore] = useState<number>(0);
   

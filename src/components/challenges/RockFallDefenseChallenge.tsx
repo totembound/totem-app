@@ -35,7 +35,6 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
   difficulty = 2,
   strength = 10,
   onComplete = (score: number) => console.log('Challenge complete:', score),
-  _onFail = () => console.log('Challenge failed')
 }) => {
   // Game state management
   const [gameState, setGameState] = useState<GameState>('ready');

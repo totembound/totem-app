@@ -26,12 +26,12 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
   const [currentOutcomeImage, setCurrentOutcomeImage] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [incorrectAttempts, setIncorrectAttempts] = useState<number>(0);
-  const [_showAlert, _setShowAlert] = useState<boolean>(false);
-  const [_showMaxSlotsAlert, _setShowMaxSlotsAlert] = useState<boolean>(false);
+  const [_showAlert, setShowAlert] = useState<boolean>(false);
+  const [_showMaxSlotsAlert, setShowMaxSlotsAlert] = useState<boolean>(false);
   const [finalScore, setFinalScore] = useState<number>(0);
-  const [_showSuccess, _setShowSuccess] = useState<boolean>(false);
-  const [_showFailure, _setShowFailure] = useState<boolean>(false);
-  const [_outcomeDescription, _setOutcomeDescription] = useState<string>('');
+  const [_showSuccess, setShowSuccess] = useState<boolean>(false);
+  const [_showFailure, setShowFailure] = useState<boolean>(false);
+  const [_outcomeDescription, setOutcomeDescription] = useState<string>('');
 
   // References for timer implementation
   const containerRef = useRef<HTMLDivElement>(null);

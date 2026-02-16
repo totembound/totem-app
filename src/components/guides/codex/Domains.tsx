@@ -3,7 +3,7 @@ import CodexSidebar from "./CodexSidebar";
 import { getDomainColor, getTotemDomainIcon } from "../../../utils/totems";
 import { Domain } from "../../../types/types";
 import { Link } from "react-router-dom";
-import InteractiveMap from "../InteractiveMap";
+
 
 const Domains: React.FC = () => {
     return (

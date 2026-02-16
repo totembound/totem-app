@@ -24,7 +24,6 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
   difficulty = 2,
   agility = 10,
   onComplete = (score: number) => console.log('Challenge complete:', score),
-  onFail = () => console.log('Challenge failed')
 }) => {
   const SONG_DURATION = 30;
   
@@ -35,7 +34,7 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
   const [timeLeft, setTimeLeft] = useState<number>(SONG_DURATION);
   const [lastHitType, setLastHitType] = useState<'perfect' | 'good' | 'ok' | 'miss' | null>(null);
   const [showHitFeedback, setShowHitFeedback] = useState<boolean>(false);
-  const [pendingRings, setPendingRings] = useState<Ring[]>([]);
+  const [_pendingRings, setPendingRings] = useState<Ring[]>([]);
   const [lastHitBongo, setLastHitBongo] = useState<'left' | 'right' | null>(null);
   const [isVerticalLayout, setIsVerticalLayout] = useState<boolean>(false);
 
@@ -397,7 +396,7 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
           ring.hitType = 'miss';
           // Set despawn time to exactly when the animation ends
           const startTime = ring.visibleSince || ring.spawnTime;
-          const animationEndTime = startTime + gameConfig.current.ringAnimationDuration;
+          const _animationEndTime = startTime + gameConfig.current.ringAnimationDuration;
           ring.despawnTime = timestamp + gameConfig.current.ringDespawnDelay;
           
           lastHitTypeRef.current = 'miss';
@@ -475,7 +474,7 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
       if (ring.id === closestRing.id) {
         // Calculate when the animation should end
         const startTime = ring.visibleSince || ring.spawnTime;
-        const animationEndTime = startTime + config.ringAnimationDuration;
+        const _animationEndTime = startTime + config.ringAnimationDuration;
         
         return { 
           ...ring, 

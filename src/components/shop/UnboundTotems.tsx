@@ -1,76 +1,63 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
-import { Species, Rarity, Color } from '../../types/types';
-import { createShopContract, createTotemNFTContract } from '../../config/contracts';
+import { Species, Rarity } from '../../types/types';
 import MessageDialog from '../MessageDialog';
 import { Pagination } from '../layouts/Pagination';
-import { getRarityBadgeColor } from '../../utils/totems';
-import { useTransactionService } from '../../hooks/useTransactionService';
-import { IPFS_GATEWAY_URL } from '../../config/constants';
-import { splitWords } from '../../utils/formats';
+import { getRarityBadgeColor, getSpeciesEmoji } from '../../utils/totems';
+import { CURRENCY_NAMES, IPFS_GATEWAY_URL } from '../../config/constants';
+
+import apiClient from '../../services/ApiClient';
+import { getTotemImageUrl, isSpeciesLoaded, getSpeciesName, getStageName } from '../../utils/species';
+import { notificationService } from '../../services/NotificationService';
 
 interface UnboundTotem {
-    tokenId: bigint;
+    tokenId: string;
     previousOwner: string;
-    sellPrice: bigint;
-    species: Species;
-    color: Color;
-    rarity: Rarity;
+    sellPrice: number;
+    species: number;
+    color: number;
+    rarity: number;
     happiness: number;
     experience: number;
     stage: number;
-    displayName: string;
+    displayName: string | null;
     prestigeLevel: number;
 }
 
-const convertPrice = (price: bigint) => {
-    // Convert from wei to TOTEM (18 decimals)
-    return Number(price) / Math.pow(10, 18);
-};
+const SHOP_FEE = 100;
 
 const UnboundTotemCard: React.FC<{
     totem: UnboundTotem;
     onPurchaseClick: (totem: UnboundTotem) => void;
     isPurchasing: boolean;
-}> = ({ totem, onPurchaseClick, isPurchasing }) => {
-    const { provider, canSpendTotem } = useUser();
-    const purchasePrice = convertPrice(totem.sellPrice) + 100;
-    const [imageUri, setImageUri] = useState('');
-    const disabledBuyButton = isPurchasing || !canSpendTotem(purchasePrice);
-    const totemColor = splitWords(Color[totem.color]);
+}> = React.memo(({ totem, onPurchaseClick, isPurchasing }) => {
+    const { canSpendEssence } = useUser();
+    const purchasePrice = totem.sellPrice + SHOP_FEE;
+    const disabledBuyButton = isPurchasing || !canSpendEssence(purchasePrice);
 
-    useEffect(() => {
-        const getImageUri = async () => {
-            // Fetch full metadata if needed
-            if (!provider) return;
+    const displayName = totem.displayName || getStageName(totem.species, totem.color, totem.stage);
+    const speciesLabel = Species[totem.species];
 
-            const nftContract = createTotemNFTContract(provider);
-            
-            const uri = await nftContract.tokenURI(totem.tokenId);
-            const ipfsMetadata = await fetch(uri.replace('ipfs://', IPFS_GATEWAY_URL)).then(res => res.json());
-            const image = ipfsMetadata.image.replace('ipfs://', IPFS_GATEWAY_URL);
-            setImageUri(image);
-        }
-        getImageUri();
-    }, [totem]);
-    
+    // Image URL computed synchronously from species cache (loaded on app mount)
+    const imageUrl = isSpeciesLoaded(totem.species)
+        ? getTotemImageUrl(totem.species, totem.color, totem.stage)
+        : '';
+
     return (
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col h-full">
             {/* Totem Image */}
             <div className="aspect-square bg-gray-100 dark:bg-gray-700 relative">
                 <div className="absolute inset-0 flex items-center justify-center">
-                    {imageUri ? (
+                    {imageUrl ? (
                         <img
-                            src={imageUri}
-                            alt={totem?.displayName || `${Color[totem?.color || 0]} ${Species[totem?.species || 0]}`}
+                            src={imageUrl.replace('ipfs://', IPFS_GATEWAY_URL)}
+                            alt={displayName}
                             className="w-full h-full object-contain"
                         />
                     ) : (
                         <div className="text-6xl text-gray-400 dark:text-gray-500">
-                            {Species[totem.species] === 'Wolf' ? '🐺' :
-                                Species[totem.species] === 'Otter' ? '🦦' :
-                                    Species[totem.species] === 'Owl' ? '🦉' : '❓'}
+                            {getSpeciesEmoji(totem.species)}
                         </div>
                     )}
                 </div>
@@ -80,18 +67,18 @@ const UnboundTotemCard: React.FC<{
             <div className="p-4 flex flex-col h-full">
                 <div className="flex justify-between items-start mb-4">
                     <div className="min-w-0 mr-2">
-                        <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 truncate" title={totem.displayName || `${Color[totem.color]} ${Species[totem.species]}`}>
-                            {totem.displayName || `${totemColor} ${Species[totem.species]}`}
+                        <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 truncate" title={displayName}>
+                            {displayName}
                         </h3>
                         <p className="text-gray-600 dark:text-gray-400">
-                            {totemColor} {Species[totem.species]}
+                            {speciesLabel}
                         </p>
                     </div>
                     <div className="flex flex-col items-end gap-1">
                         <span className="text-sm bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 text-nowrap px-2 py-1 rounded">
-                            Stage {Number(totem.stage) + 1}
+                            Stage {totem.stage + 1}
                         </span>
-                        <span className={`text-sm px-2 py-1 rounded border ${getRarityBadgeColor(Number(totem.rarity))}`}>
+                        <span className={`text-sm px-2 py-1 rounded border ${getRarityBadgeColor(totem.rarity)}`}>
                             {Rarity[totem.rarity]}
                         </span>
                     </div>
@@ -101,11 +88,11 @@ const UnboundTotemCard: React.FC<{
                 <div className="grid grid-cols-2 gap-2 mb-4">
                     <div className="text-sm">
                         <span className="text-gray-600 dark:text-gray-400">Happiness: </span>
-                        <span className="text-gray-900 dark:text-gray-100">{Number(totem.happiness)}%</span>
+                        <span className="text-gray-900 dark:text-gray-100">{totem.happiness}%</span>
                     </div>
                     <div className="text-sm text-right">
                         <span className="text-gray-600 dark:text-gray-400">Experience: </span>
-                        <span className="text-gray-900 dark:text-gray-100">{Number(totem.experience)}</span>
+                        <span className="text-gray-900 dark:text-gray-100">{totem.experience}</span>
                     </div>
                 </div>
 
@@ -115,7 +102,7 @@ const UnboundTotemCard: React.FC<{
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-gray-600 dark:text-gray-400">Purchase Price</span>
                             <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                                {purchasePrice.toLocaleString()} TOTEM
+                                {purchasePrice.toLocaleString()} {CURRENCY_NAMES.SOFT}
                             </span>
                         </div>
                     </div>
@@ -124,8 +111,8 @@ const UnboundTotemCard: React.FC<{
                 <button
                     onClick={() => onPurchaseClick(totem)}
                     disabled={disabledBuyButton}
-                    className="w-full bg-purple-600 text-white py-2 px-4 rounded font-semibold 
-                        hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 
+                    className="w-full bg-purple-600 text-white py-2 px-4 rounded font-semibold
+                        hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600
                         transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-auto"
                 >
                     {isPurchasing && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -134,7 +121,7 @@ const UnboundTotemCard: React.FC<{
             </div>
         </div>
     );
-};
+});
 
 const UnboundTotems: React.FC = () => {
     const [unboundTotems, setUnboundTotems] = useState<UnboundTotem[]>([]);
@@ -143,85 +130,104 @@ const UnboundTotems: React.FC = () => {
     const [selectedTotem, setSelectedTotem] = useState<UnboundTotem | null>(null);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [purchasingTotems, setPurchasingTotems] = useState<{[key: string]: boolean}>({});
-    const { provider, addTotem, updateBalances, isGaslessEnabled } = useUser();
+    const { updateBalances, fetchTotems } = useUser();
     const [totalItems, setTotalItems] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
     const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-    const totemColor = splitWords(Color[selectedTotem?.color || 0]);
 
-    const txService = useTransactionService({
-        gaslessEnabled: isGaslessEnabled,
-        waitForConfirmation: true
-    });
+    const selectedDisplayName = selectedTotem?.displayName ||
+        (selectedTotem ? getStageName(selectedTotem.species, selectedTotem.color, selectedTotem.stage) : '');
 
-    const loadUnboundTotems = async () => {
-        if (!provider) return;
+    const loadUnboundTotems = useCallback(async () => {
+        if (!apiClient.isAuthenticated()) return;
 
         try {
             setLoading(true);
             setError(null);
-            const shopContract = createShopContract(provider);
-            
-            // Get total count first
-            const totalCount = await shopContract.getUnboundTotemCount();
-            
-            // Calculate offset and limit
-            const offset = (currentPage - 1) * itemsPerPage;
-            const limit = itemsPerPage;
-            
-            // Fetch totems for current page
-            const totems = await shopContract.getUnboundTotems(offset, limit);
-            setTotalItems(Number(totalCount));
-            setUnboundTotems(totems);
+
+            const response = await apiClient.getShopListings({
+                page: currentPage,
+                limit: itemsPerPage
+            });
+
+            if (response.success && response.data) {
+                const listings = (response.data.listings || []).map((listing: any) => ({
+                    tokenId: listing.totemId || '',
+                    previousOwner: listing.originalOwnerId || '',
+                    sellPrice: listing.sellPrice || 0,
+                    species: listing.totem?.speciesId ?? 0,
+                    color: listing.totem?.colorId ?? 0,
+                    rarity: listing.totem?.rarityId ?? 0,
+                    happiness: listing.totem?.stats?.happiness ?? 50,
+                    experience: listing.totem?.experience ?? 0,
+                    stage: listing.totem?.stage ?? 0,
+                    displayName: listing.totem?.name || null,
+                    prestigeLevel: listing.totem?.prestigeLevel ?? 0
+                }));
+                setUnboundTotems(listings);
+                setTotalItems(response.data.total || listings.length);
+            } else {
+                setUnboundTotems([]);
+                setTotalItems(0);
+            }
         }
         catch (err) {
-            console.error('Error loading unbound totems:', err);
-            setError('Failed to load unbound totems. Please try again.');
+            console.error('Error loading marketplace listings:', err);
+            setError('Failed to load marketplace. Please try again.');
         }
         finally {
             setLoading(false);
         }
-    };
+    }, [currentPage]);
 
     useEffect(() => {
         loadUnboundTotems();
-    }, [provider, currentPage]);
+    }, [loadUnboundTotems]);
 
-    const handlePurchaseClick = (totem: UnboundTotem) => {
+    const handlePurchaseClick = useCallback((totem: UnboundTotem) => {
         setSelectedTotem(totem);
         setIsConfirmOpen(true);
-    };
+    }, []);
 
     const handleConfirmPurchase = async () => {
-        if (!selectedTotem || !provider) return;
-        
+        if (!selectedTotem) return;
+
         const tokenId = selectedTotem.tokenId;
-        setPurchasingTotems(prev => ({ ...prev, [tokenId.toString()]: true }));
-        
+        setPurchasingTotems(prev => ({ ...prev, [tokenId]: true }));
+
         try {
-            const result = await txService?.purchaseUnboundTotem(tokenId);
+            const response = await apiClient.purchaseUnboundTotem(tokenId);
 
-            await Promise.all([
-                updateBalances(),
-                addTotem(tokenId)
-            ])
+            if (!response.success) {
+                throw new Error(response.error?.message || 'Purchase failed');
+            }
 
-            // Remove the purchased totem from the local state immediately
-            setUnboundTotems(prev => prev.filter(totem => totem.tokenId !== tokenId));
+            await updateBalances();
 
-            // Close the confirmation dialog
+            const rarityName = Rarity[selectedTotem.rarity] || 'Unknown';
+            const speciesName = getSpeciesName(selectedTotem.species);
+            notificationService.showTotemPurchased({
+                tokenId,
+                rarity: rarityName,
+                species: speciesName.charAt(0).toUpperCase() + speciesName.slice(1),
+                amount: (selectedTotem.sellPrice + SHOP_FEE).toString(),
+            });
+            notificationService.processAchievementsFromResponse((response.data as any)?.achievements);
+
+            await fetchTotems();
+
+            setUnboundTotems(prev => prev.filter(t => t.tokenId !== tokenId));
             setIsConfirmOpen(false);
-            
-            // Refresh the list
+
             loadUnboundTotems();
         }
         catch (err) {
-            console.error('Error purchasing unbound totem:', err);
+            console.error('Error purchasing totem:', err);
             setError('Failed to purchase totem. Please try again.');
         }
         finally {
-            setPurchasingTotems(prev => ({ ...prev, [tokenId.toString()]: false }));
+            setPurchasingTotems(prev => ({ ...prev, [tokenId]: false }));
             setSelectedTotem(null);
         }
     };
@@ -240,8 +246,8 @@ const UnboundTotems: React.FC = () => {
             <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                 <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-gray-100">Unbound Totem Sanctuary</h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                    Discover pre-owned totems looking for a new keeper. These spirit companions retain their 
-                    experience and evolution stage, offering a unique opportunity to acquire advanced totems. 
+                    Discover pre-owned totems looking for a new keeper. These mystical companions retain their
+                    experience and evolution stage, offering a unique opportunity to acquire advanced totems.
                     Each totem is sold at its original value plus a small market fee.
                 </p>
             </div>
@@ -257,7 +263,7 @@ const UnboundTotems: React.FC = () => {
                 <div className="pb-4 sm:pb-4 ml-4">
                     <div className="flex flex-wrap gap-3 items-center justify-between">
                         <div className="text-gray-900 dark:text-gray-100 text-lg">Available Totems</div>
-                        <Pagination 
+                        <Pagination
                             currentPage={currentPage}
                             totalPages={totalPages}
                             totalItems={totalItems}
@@ -277,10 +283,10 @@ const UnboundTotems: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {unboundTotems.map((totem) => (
                         <UnboundTotemCard
-                            key={totem.tokenId.toString()}
+                            key={totem.tokenId}
                             totem={totem}
                             onPurchaseClick={handlePurchaseClick}
-                            isPurchasing={purchasingTotems[totem.tokenId.toString()]}
+                            isPurchasing={!!purchasingTotems[totem.tokenId]}
                         />
                     ))}
                 </div>
@@ -298,30 +304,30 @@ const UnboundTotems: React.FC = () => {
                         <p className="mb-2">
                             Are you sure you want to purchase this{' '}
                             <span className="font-semibold text-gray-900 dark:text-gray-100">
-                                {selectedTotem?.displayName || `${totemColor} ${Species[selectedTotem?.species || 0]}`}
+                                {selectedDisplayName || Species[selectedTotem?.species || 0]}
                             </span>{' '}
-                            for <b>{(convertPrice(selectedTotem?.sellPrice!) + 100).toLocaleString()} TOTEM</b>?
+                            for <b>{((selectedTotem?.sellPrice || 0) + SHOP_FEE).toLocaleString()} {CURRENCY_NAMES.SOFT}</b>?
                         </p>
                     </div>
 
                     <div className="flex justify-end gap-3">
                         <button
                             onClick={() => setIsConfirmOpen(false)}
-                            disabled={purchasingTotems[selectedTotem?.tokenId.toString() || '']}
-                            className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 
-                                hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 
+                            disabled={!!selectedTotem && purchasingTotems[selectedTotem.tokenId]}
+                            className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100
+                                hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600
                                 rounded font-medium transition-colors disabled:opacity-50"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleConfirmPurchase}
-                            disabled={purchasingTotems[selectedTotem?.tokenId.toString() || '']}
+                            disabled={!!selectedTotem && purchasingTotems[selectedTotem.tokenId]}
                             className="px-4 py-2 bg-purple-600 text-white rounded font-medium
-                                hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 
+                                hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600
                                 transition-colors disabled:opacity-50 flex items-center gap-2"
                         >
-                            {purchasingTotems[selectedTotem?.tokenId.toString() || ''] ? (
+                            {selectedTotem && purchasingTotems[selectedTotem.tokenId] ? (
                                 <>
                                     <Loader2 className="w-4 h-4 animate-spin" />
                                     Purchasing...

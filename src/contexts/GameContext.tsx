@@ -1,11 +1,11 @@
 // contexts/GameContext.tsx
-import React, { createContext, useContext, useCallback, useEffect, useState } from 'react';
+import React, { createContext, useContext, useCallback, useEffect, useState, useRef } from 'react';
 import { useUser } from './UserContext';
-import { createAchievementsContract, createChallengesContract, createExpeditionsContract, createGameContract, createRewardsContract, TotemGameContract, TotemRewardsContract } from '../config/contracts';
-import { ActionType, ActionConfig, TimeWindows, GameParameters, TotemAttributes, ActionTracking, ChallengeState, ChallengeInfo, ChallengeStatus, NFTMetadata, StreakStatus, WeeklyStatus, RewardsState, RuneBalances, ExpeditionState, ExpeditionRewardsData } from '../types/types';
-import { ethers } from 'ethers';
+import { ActionType, ActionConfig, TimeWindows, GameParameters, TotemAttributes, ActionTracking, ChallengeState, ChallengeInfo, ChallengeStatus, TotemData, StreakStatus, WeeklyStatus, RewardsState, RuneBalances, ExpeditionState, ExpeditionRewardsData } from '../types/types';
+import { CooldownStatus } from '../hooks/useTotemGameApi';
 import { getTotemStage } from '../utils/totems';
-import { useTransactionService } from '../hooks/useTransactionService';
+import apiClient from '../services/ApiClient';
+import notificationService from '../services/NotificationService';
 
 export interface GameContextType {
     actionConfigs: Record<ActionType, ActionConfig>;
@@ -42,8 +42,8 @@ export interface GameContextType {
     // Challenge-related state and methods
     challengeState: ChallengeState;
     refreshChallenges: () => Promise<void>;
-    getEligibleTotems: (challengeId: string) => NFTMetadata[];
-    canAttemptChallenge: (challengeId: string, tokenId: string) => boolean;
+    getEligibleTotems: (challengeId: string) => TotemData[];
+    canAttemptChallenge: (challengeId: string, totemId: string) => boolean;
     getChallengeStatus: (challengeId: string) => string;
     completeChallenge: (challengeId: string, tokenId: string, score: number) => Promise<void>;
 
@@ -53,8 +53,9 @@ export interface GameContextType {
     claimDailyReward: () => Promise<boolean>;
     claimWeeklyReward: () => Promise<boolean>;
     purchaseProtection: (type: 'daily' | 'weekly', tier: number) => Promise<boolean>;
+    refreshRewardStatus: () => Promise<void>;
 
-    setDisplayName: (tokenId: bigint, newName: string) => Promise<void>;
+    setNickname: (totemId: string, newName: string) => Promise<void>;
 
     runeBalances: RuneBalances;
     getUserRuneBalances: () => Promise<void>;
@@ -68,7 +69,43 @@ export interface GameContextType {
     activeExpeditionEffect: ExpeditionRewardsData | null;
     showExpeditionEffect: (data: ExpeditionRewardsData) => void;
     hideExpeditionEffect: () => void;
+
+    // Loot box system
+    lootItems: LootItem[];
+    fetchLootItems: () => Promise<void>;
+    claimLootItem: (lootItemId: string, options?: { speciesId?: number }) => Promise<unknown>;
+
+    // Totem cooldown cache (single source of truth)
+    getTotemCooldowns: (totemId: string) => CooldownStatus | null;
+    setTotemCooldowns: (totemId: string, cooldowns: CooldownStatus) => void;
+    fetchTotemCooldowns: (totemId: string) => Promise<CooldownStatus | null>;
 }
+
+export interface LootItem {
+    id: string;
+    boxId: string;
+    source: string;
+    status: string;
+    grantedAt: string;
+    box: {
+        id: string;
+        name: string;
+        description: string;
+        icon: string;
+        rarity: string;
+        type: string;
+        config: {
+            rarityId?: number;
+            minAmount?: number;
+            maxAmount?: number;
+            userChooses: string[];
+            randomized: string[];
+        };
+    };
+}
+
+// Module-level dedup for loot items fetch (prevents StrictMode double-fire)
+let lootFetchPromise: Promise<void> | null = null;
 
 const defaultGetFormattedWindowTimes = () => {
     return {
@@ -125,7 +162,8 @@ const GameContext = createContext<GameContextType>({
     claimDailyReward: async () => false,
     claimWeeklyReward: async () => false,
     purchaseProtection: async () => false,
-    setDisplayName: async() => {},
+    refreshRewardStatus: async () => {},
+    setNickname: async() => {},
     runeBalances: {
         lesser: 0,
         greater: 0,
@@ -144,11 +182,17 @@ const GameContext = createContext<GameContextType>({
       isTotemAvailable: () => false,
       activeExpeditionEffect: null,
       showExpeditionEffect: () => undefined,
-      hideExpeditionEffect: () => undefined
+      hideExpeditionEffect: () => undefined,
+      lootItems: [],
+      fetchLootItems: async () => {},
+      claimLootItem: async () => undefined,
+      getTotemCooldowns: () => null,
+      setTotemCooldowns: () => {},
+      fetchTotemCooldowns: async () => null,
 });
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { provider, address, signer, totems, updateBalances, updateTotem, isGaslessEnabled } = useUser();
+    const { address, totems, updateBalances, updateTotem: _updateTotem, fetchTotems, updateTotemNickname } = useUser();
     const [actionConfigs, setActionConfigs] = useState<Record<ActionType, ActionConfig>>({} as Record<ActionType, ActionConfig>);
     const [timeWindows, setTimeWindows] = useState<TimeWindows | null>(null);
     const [gameParams, setGameParams] = useState<GameParameters | null>(null);
@@ -168,16 +212,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         hasStakingUnlocked: false
     })
 
-    const txService = useTransactionService({
-        gaslessEnabled: isGaslessEnabled,
-        waitForConfirmation: true
-    });
+    // Web2: Transaction service not used in REST API mode
 
-    const [runeBalances, setRuneBalances] = useState<RuneBalances>({
-        lesser: 0,
-        greater: 0,
-        ancient: 0
-    });
+    const [runeBalances, setRuneBalances] = useState<RuneBalances>({ lesser: 0, greater: 0, ancient: 0 });
       
     const [expeditionState, setExpeditionState] = useState<ExpeditionState>({
         expeditions: {},
@@ -187,50 +224,143 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     const [activeExpeditionEffect, setActiveExpeditionEffect] = useState<ExpeditionRewardsData | null>(null);
+    const [lootItems, setLootItems] = useState<LootItem[]>([]);
+
+    // Per-totem cooldown cache - persists across navigation, single source of truth
+    const cooldownCacheRef = useRef<Record<string, CooldownStatus>>({});
+    const cooldownFetchRef = useRef<Record<string, Promise<CooldownStatus | null>>>({});
+
+    const getTotemCooldowns = useCallback((totemId: string): CooldownStatus | null => {
+        return cooldownCacheRef.current[totemId] || null;
+    }, []);
+
+    const setTotemCooldowns = useCallback((totemId: string, cooldowns: CooldownStatus) => {
+        cooldownCacheRef.current[totemId] = cooldowns;
+    }, []);
+
+    const fetchTotemCooldowns = useCallback(async (totemId: string): Promise<CooldownStatus | null> => {
+        // Return cached if available
+        if (cooldownCacheRef.current[totemId]) {
+            return cooldownCacheRef.current[totemId];
+        }
+        // Dedup: return in-flight promise for same totem
+        if (totemId in cooldownFetchRef.current) {
+            return cooldownFetchRef.current[totemId];
+        }
+        // Fetch from API and cache
+        const promise = (async () => {
+            try {
+                const response = await apiClient.getCooldowns(totemId);
+                if (response.success && response.data) {
+                    const { cooldowns } = response.data;
+                    const status: CooldownStatus = {
+                        feed: {
+                            onCooldown: cooldowns.feed.onCooldown,
+                            readyAt: cooldowns.feed.readyAt ? new Date(cooldowns.feed.readyAt) : null,
+                            remainingMs: cooldowns.feed.remainingMs,
+                        },
+                        train: {
+                            onCooldown: cooldowns.train.onCooldown,
+                            readyAt: cooldowns.train.readyAt ? new Date(cooldowns.train.readyAt) : null,
+                            remainingMs: cooldowns.train.remainingMs,
+                        },
+                        treat: {
+                            onCooldown: cooldowns.treat.onCooldown,
+                            readyAt: cooldowns.treat.readyAt ? new Date(cooldowns.treat.readyAt) : null,
+                            remainingMs: cooldowns.treat.remainingMs,
+                        },
+                    };
+                    cooldownCacheRef.current[totemId] = status;
+                    return status;
+                }
+            } catch { /* silently fail */ }
+            return null;
+        })();
+        cooldownFetchRef.current[totemId] = promise;
+        promise.finally(() => { delete cooldownFetchRef.current[totemId]; });
+        return promise;
+    }, []);
 
     const loadGameConfigs = useCallback(async () => {
-        if (!provider) return;
-        console.log('loading game config');
+        // Web2: Use static game configuration
+        // In Web2, these configs are managed server-side and don't need to be fetched from contracts
+        console.log('loading game config (Web2 static)');
 
         try {
             setIsLoading(true);
             setError(null);
-            const gameContract = createGameContract(provider);
 
-            // Get all configuration in one call to reduce RPC requests
-            const [params, windows, configs] = await gameContract.getGameConfiguration();
-
-            // Set game parameters
+            // Set game parameters (Web2 defaults)
             setGameParams({
-                signupReward: params.signupReward,
-                mintPrice: params.mintPrice
+                signupReward: 2000, // 2000 Essence signup bonus
+                mintPrice: 0 // Free totems in Web2
             });
 
-            // Set time windows
+            // Set time windows (UTC hours for feeding windows)
             setTimeWindows({
-                window1Start: Number(windows.window1Start),
-                window2Start: Number(windows.window2Start),
-                window3Start: Number(windows.window3Start)
+                window1Start: 0,    // 00:00 UTC
+                window2Start: 28800, // 08:00 UTC (8 * 3600)
+                window3Start: 57600  // 16:00 UTC (16 * 3600)
             });
 
-            // Load all action configs
-            const actionTypes = [ActionType.Feed, ActionType.Train, ActionType.Treat];
-            const configMap: Record<ActionType, ActionConfig> = {} as Record<ActionType, ActionConfig>;
-
-            configs.forEach((config: ActionConfig, index: number) => {
-                const actionType = actionTypes[index];
-                configMap[actionType] = {
-                    cost: config.cost,
-                    cooldown: Number(config.cooldown),
-                    maxDaily: Number(config.maxDaily),
-                    minHappiness: Number(config.minHappiness),
-                    happinessChange: Number(config.happinessChange),
-                    experienceGain: Number(config.experienceGain),
-                    useTimeWindows: config.useTimeWindows,
-                    increasesHappiness: config.increasesHappiness,
-                    enabled: config.enabled
-                };
-            });
+            // Web2 action configs (simplified - backend handles actual logic)
+            const configMap: Record<ActionType, ActionConfig> = {
+                [ActionType.Feed]: {
+                    cost: 0,
+                    cooldown: 0, // Uses time windows instead
+                    maxDaily: 3,
+                    minHappiness: 0,
+                    happinessChange: 10,
+                    experienceGain: 15,
+                    useTimeWindows: true,
+                    increasesHappiness: true,
+                    enabled: true
+                },
+                [ActionType.Train]: {
+                    cost: 10,
+                    cooldown: 3600, // 1 hour
+                    maxDaily: 3,
+                    minHappiness: 20,
+                    happinessChange: -5,
+                    experienceGain: 25,
+                    useTimeWindows: false,
+                    increasesHappiness: false,
+                    enabled: true
+                },
+                [ActionType.Treat]: {
+                    cost: 25,
+                    cooldown: 7200, // 2 hours
+                    maxDaily: 2,
+                    minHappiness: 0,
+                    happinessChange: 30,
+                    experienceGain: 5,
+                    useTimeWindows: false,
+                    increasesHappiness: true,
+                    enabled: true
+                },
+                [ActionType.Evolve]: {
+                    cost: 100,
+                    cooldown: 0,
+                    maxDaily: 0, // No daily limit
+                    minHappiness: 50,
+                    happinessChange: 0,
+                    experienceGain: 0,
+                    useTimeWindows: false,
+                    increasesHappiness: false,
+                    enabled: true
+                },
+                [ActionType.None]: {
+                    cost: 0,
+                    cooldown: 0,
+                    maxDaily: 0,
+                    minHappiness: 0,
+                    happinessChange: 0,
+                    experienceGain: 0,
+                    useTimeWindows: false,
+                    increasesHappiness: false,
+                    enabled: false
+                }
+            };
 
             setActionConfigs(configMap);
         } catch (err) {
@@ -239,58 +369,55 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } finally {
             setIsLoading(false);
         }
-    }, [provider]);
+    }, []);
 
     const loadChallenges = useCallback(async () => {
-        if (!provider || !address) return;
+        // Web2: Use REST API instead of smart contracts
+        if (!apiClient.isAuthenticated()) return;
         console.log('loading challenges');
 
         try {
             setChallengeState(prev => ({ ...prev, loading: true, error: null }));
-            const challengesContract = createChallengesContract(provider);
 
-            // Get all challenge IDs
-            const challengeIds = await challengesContract.getChallengeIds();
-            // Fetch challenge info and user status for each challenge
-            const challengeInfoPromises = challengeIds.map(id => 
-                challengesContract.getChallengeInfo(id)
-            ); 
-            const userStatusPromises = challengeIds.map(id =>
-                challengesContract.getUserChallengeStatus(id, address)
-            );
+            const response = await apiClient.getChallenges();
 
-            const [challengeInfos, userStatuses] = await Promise.all([
-                Promise.all(challengeInfoPromises),
-                Promise.all(userStatusPromises)
-            ]);
+            if (!response.success || !response.data) {
+                throw new Error(response.error?.message || 'Failed to load challenges');
+            }
 
-            // Build challenge state
+            // Build challenge state from API response
             const challenges: Record<string, ChallengeInfo> = {};
             const userStatus: Record<string, ChallengeStatus> = {};
 
-            challengeIds.forEach((id, index) => {
-                const info = challengeInfos[index];
-                const status = userStatuses[index];
+            // Handle both array format and object with challenges property
+            const challengeList = Array.isArray(response.data)
+                ? response.data
+                : response.data.challenges || [];
+
+            challengeList.forEach((challenge: any) => {
+                const id = challenge.id;
 
                 challenges[id] = {
                     id,
-                    name: info.name,
-                    description: info.description,
-                    challengeType: info.challengeType,
-                    attribute: info.attribute,
-                    requirements: info.requirements,
-                    maxDailyAttempts: info.maxDailyAttempts,
-                    maxScore: info.maxScore,
-                    enabled: info.enabled
+                    name: challenge.name,
+                    description: challenge.description,
+                    challengeType: challenge.challengeType || challenge.type,
+                    attribute: challenge.attribute || challenge.affinity,
+                    requirements: challenge.requirements || { stage: 0, strength: 0, agility: 0, wisdom: 0 },
+                    maxDailyAttempts: challenge.maxDailyAttempts || 3,
+                    maxScore: challenge.maxScore || 100,
+                    enabled: challenge.enabled !== false
                 };
 
                 userStatus[id] = {
-                    lastAttemptTime: Math.floor(Date.now() / 1000), // Current timestamp for new attempts
-                    dailyAttempts: status.dailyAttempts,
-                    attemptsRemaining: status.attemptsRemaining,
-                    highScore: status.highScore,
-                    totalAttempts: status.totalAttempts,
-                    totalScore: status.totalScore
+                    lastAttemptTime: challenge.progress?.lastAttemptAt
+                        ? new Date(challenge.progress.lastAttemptAt).getTime() / 1000
+                        : 0,
+                    dailyAttempts: challenge.daily?.attemptsToday || 0,
+                    attemptsRemaining: challenge.daily?.attemptsRemaining ?? challenge.maxDailyAttempts ?? 3,
+                    highScore: challenge.progress?.highScore || challenge.userStatus?.highScore || 0,
+                    totalAttempts: challenge.progress?.totalAttempts || challenge.userStatus?.totalAttempts || 0,
+                    totalScore: challenge.progress?.totalXpEarned || challenge.userStatus?.totalScore || 0
                 };
             });
 
@@ -308,7 +435,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 error: 'Failed to load challenges'
             }));
         }
-    }, [provider, address]);
+    }, []);
 
     // Check if a totem can attempt a challenge
     const canAttemptChallenge = useCallback((challengeId: string, tokenId: string) => {
@@ -335,8 +462,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Get eligible totems for a challenge
     const getEligibleTotems = useCallback((challengeId: string) => {
-        const id = ethers.id(challengeId);
-        const challenge = challengeState.challenges[id];
+        // Web2: Use plain string IDs instead of hashed IDs
+        const challenge = challengeState.challenges[challengeId];
         if (!challenge) return [];
 
         return totems
@@ -351,15 +478,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Get user-friendly status message
     const getChallengeStatus = useCallback((challengeId: string) => {
-        const id = ethers.id(challengeId);
-        const challenge = challengeState.challenges[id];
-        const status = challengeState.userStatus[id];
-        
+        // Web2: Use plain string IDs instead of hashed IDs
+        const challenge = challengeState.challenges[challengeId];
+        const status = challengeState.userStatus[challengeId];
+
         if (!challenge) return 'Challenge not found';
         if (!challenge.enabled) return 'Challenge disabled';
         if (!status) return 'No attempts yet';
         if (status.attemptsRemaining <= 0) return 'No attempts remaining today';
-        
+
         return `${status.attemptsRemaining} attempts remaining`;
     }, [challengeState]);
 
@@ -369,23 +496,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         tokenId: string,
         score: number
     ) => {
-        if (!provider || !address) throw new Error('Not connected');
-        if (!txService) throw new Error('Transaction service not initialized');
-
-        const id = ethers.id(challengeId);
-        const challenge = challengeState.challenges[id];
+        // Web2: Use REST API instead of smart contracts
+        const challenge = challengeState.challenges[challengeId];
 
         if (!challenge) throw new Error('Challenge not found');
         if (!challenge.enabled) throw new Error('Challenge disabled');
 
-        const gameContract = createGameContract(provider);
-        const connectedGame = gameContract.connect(signer) as TotemGameContract;
+        const response = await apiClient.completeChallenge(challengeId, tokenId, score);
 
-        const result = await txService.completeChallenge(id, BigInt(tokenId), score);
+        if (!response.success) {
+            throw new Error(response.error?.message || 'Failed to complete challenge');
+        }
 
         // Refresh challenge state
         await loadChallenges();
-    }, [provider, address, challengeState, loadChallenges]);
+    }, [challengeState, loadChallenges]);
 
     // Helper to convert UTC hours to seconds since day start
     function utcHoursToSeconds(hours: number): number {
@@ -433,11 +558,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     useEffect(() => {
-        if (provider) {
-            loadGameConfigs();
+        // Web2: Load configs immediately, no provider needed
+        loadGameConfigs();
+        // Load challenges when authenticated
+        if (apiClient.isAuthenticated()) {
             loadChallenges();
         }
-    }, [provider, address, loadGameConfigs, loadChallenges]);
+    }, [address, loadGameConfigs, loadChallenges]);
 
     function getActionStatus(
         actionType: ActionType,
@@ -578,63 +705,93 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }
 
-    const updateStreakStatus = async (): Promise<StreakStatus | undefined> => {
-        if (!provider || !address) return undefined;
-
+    // Single API call to fetch both daily and weekly reward status
+    const refreshAllRewardStatus = async (): Promise<{ streak?: StreakStatus; weekly?: WeeklyStatus }> => {
         try {
-            const rewardsContract = createRewardsContract(provider);
-            const dailyRewardId = ethers.id("daily_login");
-            const status = await rewardsContract.getStreakStatus(dailyRewardId, address);
-            const newStatus: StreakStatus = {
-                streakDays: Number(status.currentStreak),
-                canClaimToday: status.canClaim,
-                bestStreak: Number(status.bestStreak),
-                nextClaimTime: Number(status.nextClaimTime),
-                isProtected: status.isProtected,
-                protectionExpiry: Number(status.protectionExpiry)
+            console.log('[GameContext] Fetching reward status from API...');
+            const response = await apiClient.getRewardStatus();
+
+            if (!response.success || !response.data) {
+                console.error("[GameContext] Error fetching reward status:", response.error);
+                return {};
+            }
+
+            const { daily, weekly } = response.data;
+            console.log('[GameContext] API response - canClaim:', daily.canClaim, 'streakDays:', daily.streakDays);
+
+            const streakStatus: StreakStatus = {
+                streakDays: daily.streakDays || 0,
+                canClaimToday: daily.canClaim || false,
+                bestStreak: daily.bestStreak || 0,
+                nextClaimTime: daily.nextClaimTime ? new Date(daily.nextClaimTime).getTime() / 1000 : 0,
+                isProtected: daily.isProtected || false,
+                protectionExpiry: daily.protectionExpiry ? new Date(daily.protectionExpiry).getTime() / 1000 : 0
             };
 
+            const weeklyStatus: WeeklyStatus = {
+                weeklyStreak: weekly.weeklyStreak || 0,
+                canClaimWeekly: weekly.canClaim || false,
+                bestWeeklyStreak: weekly.bestStreak || 0,
+                nextClaimTime: weekly.nextClaimTime ? new Date(weekly.nextClaimTime).getTime() / 1000 : 0,
+                isProtected: weekly.isProtected || false,
+                protectionExpiry: weekly.protectionExpiry ? new Date(weekly.protectionExpiry).getTime() / 1000 : 0
+            };
+
+            const hasWeeklyUnlocked = weekly.isUnlocked || false;
+
+            console.log('[GameContext] Updating rewardsState with canClaimToday:', streakStatus.canClaimToday);
             setRewardsState(prev => ({
                 ...prev,
-                streakStatus: newStatus
+                streakStatus,
+                weeklyStatus,
+                hasWeeklyUnlocked
             }));
 
-            return newStatus;
+            return { streak: streakStatus, weekly: weeklyStatus };
         } catch (error) {
-            console.error("Error fetching streak data:", error);
-            return undefined;
+            console.error("[GameContext] Error fetching reward status:", error);
+            return {};
         }
     };
 
     const getUserStreak = async (): Promise<StreakStatus | undefined> => {
-        return rewardsState.streakStatus || await updateStreakStatus();
+        if (rewardsState.streakStatus) return rewardsState.streakStatus;
+        const result = await refreshAllRewardStatus();
+        return result.streak;
     };
 
-    const getWeeklyStatus = async (): Promise<WeeklyStatus | undefined> => {
-        return rewardsState.weeklyStatus || await updateWeeklyStatus();
+    const _getWeeklyStatus = async (): Promise<WeeklyStatus | undefined> => {
+        if (rewardsState.weeklyStatus) return rewardsState.weeklyStatus;
+        const result = await refreshAllRewardStatus();
+        return result.weekly;
     };
 
     const claimDailyReward = async () => {
-        if (!provider || !signer || !address) return false;
-
         setRewardsState(prev => ({ ...prev, isClaimLoading: true }));
 
         try {
-            if (!txService) throw new Error('Transaction service not initialized');
+            const response = await apiClient.claimDailyReward();
 
-            // Check if claiming is allowed first
-            const dailyRewardId = ethers.id("daily_login");
-            const rewardsContract = createRewardsContract(provider);
-            const canClaim = await rewardsContract.isClaimingAllowed(dailyRewardId, address);
-            if (!canClaim) return false;
+            if (!response.success) {
+                console.error("Error claiming daily reward:", response.error);
+                return false;
+            }
 
-            // Attempt to claim
-            const result = await txService.claimDailyReward();
+            // Show notification
+            if (response.data?.reward) {
+                notificationService.showRewardClaimed({
+                    rewardType: 'daily',
+                    amount: response.data.reward.amount || 0,
+                    streakDays: response.data.reward.streakDays,
+                    streakBonus: response.data.reward.streakBonus || 0,
+                });
+            }
+            notificationService.processAchievementsFromResponse((response.data as any)?.achievements);
 
-            // Update balances and streak status after successful claim
+            // Single call updates both daily and weekly status
             await Promise.all([
                 updateBalances(),
-                updateStreakStatus()
+                refreshAllRewardStatus()
             ]);
 
             return true;
@@ -648,61 +805,37 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    // Keep updateWeeklyStatus for backward compat (now delegates to single call)
     const updateWeeklyStatus = async (): Promise<WeeklyStatus | undefined> => {
-        if (!provider || !address) return undefined;
+        const result = await refreshAllRewardStatus();
+        return result.weekly;
+    };
 
-        try {
-            const rewardsContract = createRewardsContract(provider);
-            const weeklyRewardId = ethers.id("weekly_bonus");
-
-            // Get streak status from contract
-            const status = await rewardsContract.getStreakStatus(weeklyRewardId, address);
-
-            // Get user info for additional details
-            const userInfo = await rewardsContract.getUserInfo(weeklyRewardId, address);
-
-            const newStatus: WeeklyStatus = {
-                weeklyStreak: Number(status.currentStreak),
-                canClaimWeekly: status.canClaim,
-                bestWeeklyStreak: Number(status.bestStreak),
-                nextClaimTime: Number(status.nextClaimTime),
-                isProtected: status.isProtected,
-                protectionExpiry: Number(status.protectionExpiry)
-            };
-
-            // Check for Week Warrior achievement
-            const achievementsContract = createAchievementsContract(provider);
-            const loginProgressionId = ethers.id("login_progression");
-            const progress = await achievementsContract.getDetailedProgress(loginProgressionId, address);
-            const hasWeeklyUnlocked = progress.count >= 7;
-
-            setRewardsState(prev => ({
-                ...prev,
-                weeklyStatus: newStatus,
-                hasWeeklyUnlocked
-            }));
-
-            return newStatus;
-        }
-        catch (error) {
-            console.error("Error fetching weekly streak data:", error);
-            return undefined;
-        }
+    // Keep updateStreakStatus for backward compat
+    const updateStreakStatus = async (): Promise<StreakStatus | undefined> => {
+        const result = await refreshAllRewardStatus();
+        return result.streak;
     };
 
     const claimWeeklyReward = async () => {
-        if (!provider || !signer || !address) return false;
-        if (!txService) throw new Error('Transaction service not initialized');
-
+        // Web2: Use REST API instead of smart contracts
         try {
-            // Check if claiming is allowed
-            const weeklyRewardId = ethers.id("weekly_bonus");
-            const rewardsContract = createRewardsContract(provider);
-            const canClaim = await rewardsContract.isClaimingAllowed(weeklyRewardId, address);
-            if (!canClaim) return false;
+            // Call REST API to claim weekly reward
+            const response = await apiClient.claimWeeklyReward();
 
-            // Attempt to claim
-            const result = await txService.claimWeeklyReward();
+            if (!response.success) {
+                console.error("Error claiming weekly reward:", response.error);
+                return false;
+            }
+
+            // Show notification
+            if (response.data?.reward) {
+                notificationService.showRewardClaimed({
+                    rewardType: 'weekly',
+                    amount: (response.data.reward as any).essence || response.data.reward.amount || 0,
+                });
+            }
+            notificationService.processAchievementsFromResponse((response.data as any)?.achievements);
 
             // Update balances and status
             await Promise.all([
@@ -719,133 +852,94 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const purchaseProtection = async (type: 'daily' | 'weekly', tier: number) => {
-        if (!provider || !signer || !address) return false;
-        if (!txService) throw new Error('Transaction service not initialized');
-
-        // Check streak requirements
-        const requiredStreak = type === 'daily'
-            ? (tier === 0 ? 7 : 14)   // Daily: Tier 1 = 7 days, Tier 2 = 14 days
-            : 28;                     // Weekly: 4 weeks required
-
-        const currentStreak = type === 'daily'
-            ? rewardsState.streakStatus?.streakDays || 0
-            : rewardsState.weeklyStatus?.weeklyStreak || 0;
-
-        if (currentStreak < requiredStreak) {
-            throw new Error(`Insufficient streak. Required: ${requiredStreak}`);
-        }
-
         try {
-            const rewardsContract = createRewardsContract(provider);
-            const rewardId = type === 'daily' ? ethers.id("daily_login") : ethers.id("weekly_bonus");
+            const response = await apiClient.purchaseProtection(type, tier);
 
-            // Check if protection is already active
-            const status = await rewardsContract.getStreakStatus(rewardId, address);
-            if (status.isProtected) {
-                throw new Error('Protection is already active');
+            if (!response.success) {
+                console.error("Error purchasing protection:", response.error);
+                throw new Error((response.error as any)?.message || 'Failed to purchase protection');
             }
 
-            const result = await txService.purchaseProtection(rewardId, tier);
-
-            // Update status
+            // Refresh balances and streak status to reflect protection
             await Promise.all([
-                updateStreakStatus(),
-                updateWeeklyStatus()
+                updateBalances(),
+                type === 'daily' ? updateStreakStatus() : updateWeeklyStatus()
             ]);
 
             return true;
-        }
-        catch (error) {
+        } catch (error) {
             console.error("Error purchasing protection:", error);
             throw error;
         }
     };
 
-    const setDisplayName = async (tokenId: bigint, newName: string) => {
-        if (!provider || !signer) throw new Error('Not connected');
-        if (!txService) throw new Error('Transaction service not initialized');
+    const setNickname = async (totemId: string, newName: string) => {
+        // Web2: Call REST API to set nickname
+        if (!apiClient.isAuthenticated()) {
+            throw new Error('Not authenticated');
+        }
 
-        try {
-            const result = await txService.setDisplayName(tokenId, newName);
+        const response = await apiClient.setNickname(totemId, newName.trim() || null);
+
+        if (!response.success) {
+            throw new Error(response.error?.message || 'Failed to set nickname');
         }
-        catch (error: any) {
-            console.error('Name update failed:', error);
-            throw new Error(error.message.includes('user rejected') 
-                ? 'User rejected transaction' 
-                : 'Failed to update name');
-        }
+
+        // Update the nickname immediately in local state
+        const newNickname = response.data?.nickname ?? null;
+        updateTotemNickname(totemId, newNickname);
     };
 
     const getUserRuneBalances = useCallback(async () => {
-        if (!provider || !address) return;
-        
         try {
-          const gameContract = createGameContract(provider);
-          const balances = await gameContract.getUserRuneBalances(address);
-          
-          setRuneBalances({
-            lesser: Number(balances[0]),
-            greater: Number(balances[1]),
-            ancient: Number(balances[2])
-          });
+            if (!apiClient.isAuthenticated()) return;
+            const response = await apiClient.getProfile();
+            if (response.success && response.data?.currencies?.runes) {
+                const runes = response.data.currencies.runes;
+                setRuneBalances({
+                    lesser: runes.lesser || 0,
+                    greater: runes.greater || 0,
+                    ancient: runes.ancient || 0,
+                });
+            }
         }
         catch (err) {
-          console.error('Error fetching rune balances:', err);
+            console.error('Error loading rune balances:', err);
         }
-    }, [provider, address]);
+    }, []);
       
     const refreshExpeditions = useCallback(async () => {
-        if (!provider || !address) return;
-        
+        // Only fetch active (dynamic) expeditions from API.
+        // Static expedition definitions come from components/data/expeditions.json
+        if (!apiClient.isAuthenticated()) return;
+
         try {
-          console.log('loading expeditions');
           setExpeditionState(prev => ({ ...prev, loading: true, error: null }));
-          const expeditionsContract = createExpeditionsContract(provider);
-          
-          // Get all expedition configurations
-          const expeditionIds = await expeditionsContract.getExpeditions();
-          
-          // Fetch expedition config for each ID
-          const configs = await Promise.all(expeditionIds.map(async (id) => {
-            const config = await expeditionsContract.getExpeditionConfig(id);
-            return {
-              id,
-              name: config.name,
-              domain: config.domain,
-              duration: Number(config.duration),
-              totemCost: config.totemCost.toString(),
-              happinessCost: Number(config.happinessCost),
-              baseExperience: Number(config.baseExperience),
-              affinityWeights: config.affinityWeights as [number, number, number],
-              runeDropChances: config.runeDropChances as [number, number, number],
-              enabled: config.enabled
-            };
-          }));
-          
-          // Get user's expeditions
-          const userExpData = await expeditionsContract.getUserActiveExpeditions(address);
-          
-          const userExpeditions = userExpData.ids.map((id, index) => ({
-            expeditionId: id,
-            captainId: userExpData.totemIds[index][0],
-            totemIds: userExpData.totemIds[index],
-            endTime: Number(userExpData.endTimes[index]),
+
+          const response = await apiClient.getActiveExpeditions();
+
+          if (!response.success || !response.data) {
+            throw new Error(response.error?.message || 'Failed to load expeditions');
+          }
+
+          const { expeditions } = response.data;
+
+          // Transform active expeditions
+          const userExpeditions = (expeditions || []).map((exp: any) => ({
+            expeditionId: exp.expeditionId,
+            captainId: exp.totemIds?.[0] || exp.totemId,
+            totemIds: exp.totemIds || [exp.totemId],
+            endTime: exp.endsAt ? new Date(exp.endsAt).getTime() / 1000 : (exp.endTime || 0),
             completed: false,
-            canClaim: userExpData.canClaim[index]
+            canClaim: exp.canClaim || false
           }));
-          
-          // Build expeditions record
-          const expeditionsRecord = configs.reduce((acc, config) => {
-            acc[config.id] = config;
-            return acc;
-          }, {} as Record<string, any>);
-          
-          setExpeditionState({
-            expeditions: expeditionsRecord,
+
+          setExpeditionState(prev => ({
+            ...prev,
             userExpeditions,
             loading: false,
             error: null
-          });
+          }));
         }
         catch (err) {
           console.error('Error loading expeditions:', err);
@@ -855,91 +949,151 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             error: 'Failed to load expeditions'
           }));
         }
-    }, [provider, address]);
+    }, []);
       
     const startExpedition = useCallback(async (
-        expeditionId: string, 
+        expeditionId: string,
         totemIds: string[]
       ) => {
-        if (!provider || !signer || !address) return false;
-        if (!txService) throw new Error('Transaction service not initialized');
-        
+        // Web2: Use REST API instead of smart contracts
         try {
-          const bigIntIds = totemIds.map(id => BigInt(id));
+          const response = await apiClient.startExpedition(expeditionId, totemIds);
 
-          // Ensure we have exactly 3 totems
-          if (bigIntIds.length !== 3) {
-            throw new Error('Expedition requires exactly 3 totems');
+          if (!response.success) {
+            throw new Error(response.error?.message || 'Failed to start expedition');
           }
-            
-          // Verify totem availability
-          const expeditionsContract = createExpeditionsContract(provider);
-          for (const tokenId of bigIntIds) {
-            const [isOnExpedition, endTime] = await expeditionsContract.isTotemOnExpedition(tokenId);
-            if (isOnExpedition) {
-                const now = Math.floor(Date.now() / 1000);
-                if (endTime > now) {
-                    throw new Error(`Totem ${tokenId.toString()} is already on an expedition`);
-                }
-            }
-          }
-          
-          // Start expedition via transaction service
-          const result = await txService.startExpedition(
-            expeditionId, 
-            [bigIntIds[0], bigIntIds[1], bigIntIds[2]] as [bigint, bigint, bigint]
-          );
-          
+
           // Refresh data
           await Promise.all([
             refreshExpeditions(),
-            updateBalances(),
-            Promise.all(bigIntIds.map(id => updateTotem(id, ActionType.None)))
+            updateBalances()
           ]);
-          
+
           return true;
         }
         catch (error) {
           console.error('Error starting expedition:', error);
           return false;
         }
-      }, [provider, signer, address, txService, updateBalances, updateTotem, refreshExpeditions]);
+      }, [updateBalances, refreshExpeditions]);
       
     const claimExpeditionRewards = useCallback(async (expeditionId: string) => {
-        if (!provider || !signer || !address) return false;
-        if (!txService) throw new Error('Transaction service not initialized');
-        
+        // Web2: Use REST API instead of smart contracts
         try {
-          // Find the expedition to get totem IDs
-          const expedition = expeditionState.userExpeditions.find(
-            exp => exp.expeditionId === expeditionId
-          );
+          const response = await apiClient.claimExpeditionRewards(expeditionId);
 
-          // Claim rewards via transaction service
-          const result = await txService.claimExpeditionRewards(expeditionId);
+          if (!response.success) {
+            throw new Error(response.error?.message || 'Failed to claim expedition rewards');
+          }
+
+          // Show expedition rewards notification
+          const rewards = response.data?.rewards;
+          const expedition = response.data?.expedition;
+          if (rewards) {
+            notificationService.showExpeditionRewards({
+              expeditionId,
+              expeditionName: expedition?.name || expedition?.expeditionId,
+              totemIds: expedition?.totemIds || (response.data?.totem?.id ? [response.data.totem.id] : []),
+              experienceGained: rewards.experience,
+              essenceGained: rewards.essence,
+              runesGained: rewards.runes,
+              score: rewards.score ?? 0,
+            });
+
+            // Show the full-screen celebration modal
+            setActiveExpeditionEffect({
+              expeditionId,
+              experienceGained: rewards.experience,
+              runesGained: rewards.runes || { lesser: 0, greater: 0, ancient: 0 },
+              score: rewards.score ?? 0,
+            });
+          }
+
+          // Process any achievements earned from the claim
+          notificationService.processAchievementsFromResponse(response.data?.achievements);
+
+          // Update rune balances — use authoritative balance from API if available, else accumulate
+          if (rewards?.newRuneBalances) {
+            setRuneBalances({
+              lesser: rewards.newRuneBalances.lesser || 0,
+              greater: rewards.newRuneBalances.greater || 0,
+              ancient: rewards.newRuneBalances.ancient || 0,
+            });
+          } else if (rewards?.runes) {
+            setRuneBalances(prev => ({
+              lesser: prev.lesser + (rewards.runes.lesser || 0),
+              greater: prev.greater + (rewards.runes.greater || 0),
+              ancient: prev.ancient + (rewards.runes.ancient || 0),
+            }));
+          }
 
           // Refresh data
           await Promise.all([
             refreshExpeditions(),
-            getUserRuneBalances(),
-            updateBalances(),
-            expedition && Promise.all(expedition.totemIds.map(id => updateTotem(id, ActionType.None)))
+            updateBalances()
           ]);
-          
+
           return true;
         }
         catch (error) {
           console.error('Error claiming expedition rewards:', error);
           return false;
         }
-    }, [provider, signer, address, txService, refreshExpeditions, getUserRuneBalances, updateBalances]);
+    }, [refreshExpeditions, updateBalances]);
+
+    const fetchLootItems = useCallback(async () => {
+        if (!apiClient.isAuthenticated()) return;
+        // Dedup: return in-flight promise (prevents StrictMode double-fire)
+        if (lootFetchPromise) return lootFetchPromise;
+        lootFetchPromise = (async () => {
+            try {
+                const response = await apiClient.getLootItems();
+                if (response.success && response.data) {
+                    setLootItems(response.data.items || []);
+                }
+            } catch (err) {
+                console.error('Error fetching loot items:', err);
+            } finally {
+                lootFetchPromise = null;
+            }
+        })();
+        return lootFetchPromise;
+    }, []);
+
+    const claimLootItemAction = useCallback(async (lootItemId: string, options?: { speciesId?: number }) => {
+        if (!apiClient.isAuthenticated()) return;
+        try {
+            const response = await apiClient.claimLootItem(lootItemId, options);
+            if (!response.success) {
+                throw new Error(response.error?.message || 'Failed to claim loot item');
+            }
+            const lootResult = response.data?.result;
+            // Remove claimed item from local state
+            setLootItems(prev => prev.filter(item => item.id !== lootItemId));
+            // If totem box was claimed, refresh totems + balances (achievements may award Essence)
+            if (lootResult?.type === 'totem') {
+                await Promise.all([fetchTotems(), updateBalances()]);
+            }
+            // If essence box, refresh balances
+            if (lootResult?.type === 'essence') {
+                await updateBalances();
+            }
+            // Process achievements from loot claim
+            notificationService.processAchievementsFromResponse((lootResult as any)?.achievements);
+            return response.data;
+        } catch (err) {
+            console.error('Error claiming loot item:', err);
+            throw err;
+        }
+    }, [fetchTotems, updateBalances]);
 
     const isTotemAvailable = useCallback((totemId: string): boolean => {
         if (!expeditionState.userExpeditions) return true;
         
         // Check if totem is on an active expedition
-        return !expeditionState.userExpeditions.some(exp => 
-          !exp.completed && exp.totemIds.some(id => id === BigInt(totemId))
+        // Web2: Compare string IDs directly
+        return !expeditionState.userExpeditions.some(exp =>
+          !exp.completed && exp.totemIds.some(id => id === totemId)
         );
       }, [expeditionState.userExpeditions]);
 
@@ -952,32 +1106,45 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     useEffect(() => {
-        // Set up periodic refresh (every 30 seconds)
-        const refreshStates = async () => {
+        // Initial load of game state (no polling - state updates after user actions)
+        const loadInitialState = async () => {
+            if (!apiClient.isAuthenticated()) return;
+
             try {
-                console.log('refreshing game state');
-                await Promise.all([
-                    updateStreakStatus(),
-                    updateWeeklyStatus()
-                ]);
+                // Single API call for both daily + weekly status
+                await refreshAllRewardStatus();
+                refreshExpeditions();
+                getUserRuneBalances();
             } catch (error) {
-                console.error('Error refreshing states:', error);
+                console.error('Error loading initial game state:', error);
             }
         };
 
-        // Call immediately
-        refreshStates();
-        refreshExpeditions();
+        loadInitialState();
+    }, [address]);
 
-        // Set up refresh interval
-        const refreshInterval = setInterval(refreshStates, 30000); // 30 seconds
-    
-        // Cleanup function
-        return () => {
-            if (refreshInterval) clearInterval(refreshInterval);
-        };
-
-    }, [provider, address]);
+    // Clear user-specific state when user logs out or changes
+    useEffect(() => {
+        if (!address || !apiClient.isAuthenticated()) {
+            // Reset user-specific game state
+            setChallengeState(prev => ({
+                ...prev,
+                userStatus: {}
+            }));
+            setRewardsState({
+                streakStatus: null,
+                isClaimLoading: false,
+                weeklyStatus: null,
+                hasWeeklyUnlocked: false,
+                hasStakingUnlocked: false
+            });
+            setRuneBalances({ lesser: 0, greater: 0, ancient: 0 });
+            setExpeditionState(prev => ({
+                ...prev,
+                userExpeditions: []
+            }));
+        }
+    }, [address]);
     
     return (
         <GameContext.Provider value={{
@@ -1003,7 +1170,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             claimDailyReward,
             claimWeeklyReward,
             purchaseProtection,
-            setDisplayName,
+            refreshRewardStatus: async () => {
+                console.log('[GameContext] refreshRewardStatus called - single API call');
+                const result = await refreshAllRewardStatus();
+                console.log('[GameContext] refreshRewardStatus complete - canClaimToday:', result.streak?.canClaimToday);
+            },
+            setNickname,
             runeBalances,
             getUserRuneBalances,
             expeditionState,
@@ -1013,7 +1185,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             isTotemAvailable,
             activeExpeditionEffect,
             showExpeditionEffect,
-            hideExpeditionEffect
+            hideExpeditionEffect,
+            lootItems,
+            fetchLootItems,
+            claimLootItem: claimLootItemAction,
+            getTotemCooldowns,
+            setTotemCooldowns,
+            fetchTotemCooldowns,
         }}>
             {children}
         </GameContext.Provider>

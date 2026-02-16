@@ -1,20 +1,23 @@
 import React from 'react';
-import { NFTMetadata, Rarity } from '../types/types';
-import { Heart, Sparkles } from 'lucide-react';
+import { TotemData, Rarity } from '../types/types';
+import { Heart, MapPin, Sparkles } from 'lucide-react';
 import { AFFINITY_ICONS, DOMAIN_ICONS, getRarityBadgeColor, getRarityBorderColor } from '../utils/totems';
 import { IPFS_GATEWAY_URL, STAGE_THRESHOLDS } from '../config/constants';
+import { formatTimeRemaining } from '../utils/formats';
 
 interface TotemViewProps {
-    nft: NFTMetadata;
+    nft: TotemData;
     onClick: () => void;
     isSelected: boolean;
     isLoading?: boolean;
+    isOnExpedition?: boolean;
+    expeditionEndTime?: number;
 }
 
-export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelected, isLoading }) => {
+export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelected, isLoading, isOnExpedition = false, expeditionEndTime = 0 }) => {
     const nextThreshold = STAGE_THRESHOLDS[nft.attributes.stage + 1] || STAGE_THRESHOLDS[nft.attributes.stage];
     const currentStageThreshold = STAGE_THRESHOLDS[nft.attributes.stage];
-    const progressToNext = Math.min(100, 
+    const _progressToNext = Math.min(100,
         ((nft.attributes.experience - currentStageThreshold) / 
         (nextThreshold - currentStageThreshold)) * 100);
 
@@ -36,6 +39,16 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
                 relative hover:z-10 h-full flex flex-col
             `}
         >
+            {/* Expedition Badge - top left */}
+            {isOnExpedition && (
+                <div className="absolute top-2 left-2 z-20">
+                    <span className="bg-blue-600 text-white text-[9px] sm:text-xs font-medium px-1.5 py-0.5 rounded-full shadow-md flex items-center gap-0.5">
+                        <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                        <span className="hidden sm:inline">On Expedition</span>
+                    </span>
+                </div>
+            )}
+
             {/* Rarity Badge - Absolute positioned over image */}
             <div className="absolute top-2 right-2 z-10 hidden sm:block">
                 <span className={`
@@ -46,15 +59,25 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
                     {Rarity[nft.attributes.rarity]}
                 </span>
             </div>
-            
+
             {/* Image Section */}
             <div className="aspect-square relative overflow-hidden rounded-t-lg flex-shrink-0 mt-2">
-                <img 
+                <img
                     src={nft.image.replace('ipfs://', IPFS_GATEWAY_URL)}
                     alt={nft.name}
                     className="w-full h-full object-cover"
                     loading="lazy"
                 />
+                {/* Expedition time overlay */}
+                {isOnExpedition && (
+                    <div className="absolute bottom-0 left-0 right-0 text-center pb-1.5">
+                        <span className="bg-blue-600/80 dark:bg-blue-800/90 text-white text-[9px] sm:text-xs font-medium px-2 py-0.5 rounded-full backdrop-blur-sm shadow-lg">
+                            {expeditionEndTime > 0 && expeditionEndTime > Math.floor(Date.now() / 1000)
+                                ? formatTimeRemaining(expeditionEndTime)
+                                : 'Expedition complete'}
+                        </span>
+                    </div>
+                )}
             </div>
             
             {/* Content Section */}
@@ -62,7 +85,7 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
                 {/* Name Section */}
                 <div className="mb-2">
                     <h3 className="font-semibold text-xs sm:text-sm text-gray-800 dark:text-gray-100 truncate">
-                        {nft.name} {nft.attributes.displayName && (<span className="font-italic font-normal">"{nft.attributes.displayName}"</span>)}
+                        {nft.displayName || nft.name} {nft.attributes.nickname && (<span className="font-italic font-normal">"{nft.attributes.nickname}"</span>)}
                     </h3>
                 </div>
 
@@ -127,7 +150,7 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
     );
 };
 
-export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelected, isLoading }) => {
+export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelected, isLoading, isOnExpedition = false, expeditionEndTime = 0 }) => {
     const rarityBorderColors = getRarityBorderColor(nft.attributes.rarity);
 
     return (
@@ -160,7 +183,7 @@ export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelecte
                 <div className="flex-grow min-w-0">
                     <div className="flex items-center justify-between">
                         <h3 className="font-semibold text-sm sm:text-lg text-gray-900 dark:text-gray-100 truncate">
-                            {nft.name} {nft.attributes.displayName && (<span className="font-italic font-normal">"{nft.attributes.displayName}"</span>)}
+                            {nft.displayName || nft.name} {nft.attributes.nickname && (<span className="font-italic font-normal">"{nft.attributes.nickname}"</span>)}
                         </h3>
                         <span className={`
                             text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full border w-fit mr-auto ml-2
@@ -168,6 +191,17 @@ export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelecte
                         `}>
                             {Rarity[nft.attributes.rarity]}
                         </span>
+                        {isOnExpedition && (
+                            <span className="bg-blue-600 text-white text-[10px] sm:text-xs font-medium px-1.5 py-0.5 rounded-full flex items-center gap-0.5 ml-1 flex-shrink-0">
+                                <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                <span className="hidden sm:inline">On Expedition</span>
+                                <span className="sm:hidden">
+                                    {expeditionEndTime > 0 && expeditionEndTime > Math.floor(Date.now() / 1000)
+                                        ? formatTimeRemaining(expeditionEndTime).replace(' remaining', '')
+                                        : 'Done'}
+                                </span>
+                            </span>
+                        )}
                     </div>
                     <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1 mt-1">
                         {React.createElement(AFFINITY_ICONS[nft.affinity as keyof typeof AFFINITY_ICONS], {
@@ -185,7 +219,7 @@ export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelecte
                 </div>
 
                 {/* Stats - Simplified for mobile */}
-                <div className="flex gap-1.5 sm:gap-2 md:gap-4 flex-shrink-0">
+                <div className="flex gap-1.5 sm:gap-2 md:gap-4 flex-shrink-0 items-center">
                     <div className="flex flex-col items-center">
                         <div className="flex items-center gap-0.5 sm:gap-1">
                             <Sparkles size={12} className="text-blue-500" />
@@ -198,6 +232,15 @@ export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelecte
                             <span className="font-semibold text-xs sm:text-lg text-gray-700 dark:text-gray-300">{nft.attributes.happiness}</span>
                         </div>
                     </div>
+                    {isOnExpedition && (
+                        <div className="hidden sm:flex flex-col items-center">
+                            <span className="text-xs text-blue-500 dark:text-blue-400 font-medium">
+                                {expeditionEndTime > 0 && expeditionEndTime > Math.floor(Date.now() / 1000)
+                                    ? formatTimeRemaining(expeditionEndTime)
+                                    : 'Expedition complete'}
+                            </span>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

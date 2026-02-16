@@ -1,114 +1,306 @@
-import { useState } from 'react';
-import { Lock, Coins } from 'lucide-react';
-import { ethers } from 'ethers';
+import { useState, useEffect } from 'react';
+import { Lock, Loader2, Sparkles, Gem, CreditCard } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
-import { useTotemGame } from '../../hooks/useTotemGame';
-import { createTotemNFTContract } from '../../config/contracts';
+import { useAchievements } from '../../contexts/AchievementsContext';
 import CelebrationModal from '../CelebrationModal';
-import ApprovalStatus from '../ApprovalStatus';
 import TokensDisplay from '../TokensDisplay';
 import SellTotems from '../shop/SellTotems';
 import UnboundTotems from '../shop/UnboundTotems';
+import MarketToggle from '../shop/MarketToggle';
+import MessageDialog from '../MessageDialog';
 import { AFFINITY_ICONS, DOMAIN_ICONS, getSpeciesEmoji } from '../../utils/totems';
 import React from 'react';
 import SpecialOffers from '../shop/SpecialOffers';
-import { useTransactionService } from '../../hooks/useTransactionService';
-import { AVAILABLE_SPECIES, IPFS_GATEWAY_URL, TOTEM_COST } from '../../config/constants';
-import { RateLimitError } from '../../types/types';
+import { AVAILABLE_SPECIES, CURRENCY_NAMES, IPFS_GATEWAY_URL, ESSENCE_COST } from '../../config/constants';
+import apiClient from '../../services/ApiClient';
+import { Species, Rarity } from '../../types/types';
+import { notificationService } from '../../services/NotificationService';
+import { NotificationType } from '../../types/notifications';
+import { getSpeciesName, getStageName, getTotemImageUrl } from '../../utils/species';
 
-const tokenPackages = [
-  { amount: 100, cost: 1, popular: false },
-  { amount: 500, cost: 5, popular: true },
-  { amount: 1000, cost: 10, popular: false },
-  { amount: 10000, cost: 100, popular: false }
-];
+// Type for species from AVAILABLE_SPECIES
+interface AvailableSpecies {
+  id: number;
+  name: string;
+  species: Species;
+  title: string;
+  desc: string;
+  locationId: number;
+  affinity: string;
+  domain: string;
+  available: boolean;
+  image: string;
+}
+
+// Exchange bundle type (from static config)
+interface ExchangeBundle {
+  id: string;
+  name: string;
+  gemCost: number;
+  essenceAmount: number;
+  bonus: number;
+  bonusNote: string | null;
+  popular?: boolean;
+}
+
+// Gem package type (from backend) - for real money purchases
+interface GemPackage {
+  id: string;
+  name: string;
+  price: number;
+  priceFormatted: string;
+  gems: number;
+  essence: number;
+  bonus: number;
+  bonusFormatted: string | null;
+}
+
+// Module-level cache + dedup promise — shop config is static, no need to re-fetch on every mount
+let shopConfigCache: { exchangeBundles: ExchangeBundle[]; gemPackages: GemPackage[] } | null = null;
+let shopConfigPromise: Promise<{ exchangeBundles: ExchangeBundle[]; gemPackages: GemPackage[] }> | null = null;
 
 const ShopInterface = () => {
-  const [activeTab, setActiveTab] = useState('totems');
-  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('specials');
+  const [marketMode, setMarketMode] = useState<'browse' | 'sell'>('browse');
+  const [_loading, _setLoading] = useState(false);
+  const [exchangeLoading, setExchangeLoading] = useState<string | null>(null);
+  const [purchasingGems, setPurchasingGems] = useState<string | null>(null);
   const [purchasingTotems, setPurchasingTotems] = useState<{[key: number]: boolean}>({});
   const [error, setError] = useState('');
-  const { provider, updateBalances, addTotem, showError, handleRateLimitError, isGaslessEnabled, canSpendTotem, canSpendCurrency } = useUser();
-  const { buyTokens } = useTotemGame();
+  const { updateBalances, showError, showSuccess, canSpendEssence, canSpendGems, fetchTotems } = useUser();
+  const { refreshAchievements } = useAchievements();
   const [purchasedTotem, setPurchasedTotem] = useState<any>(null);
   const availableSpecies = AVAILABLE_SPECIES;
-  const canBuyTotem = canSpendTotem(TOTEM_COST);
+  const canBuyTotem = canSpendEssence(ESSENCE_COST);
 
-  const txService = useTransactionService({
-      gaslessEnabled: isGaslessEnabled,
-      waitForConfirmation: true
-  });
+  // Exchange bundles and gem packages (from static config)
+  const [exchangeBundles, setExchangeBundles] = useState<ExchangeBundle[]>([]);
+  const [gemPackages, setGemPackages] = useState<GemPackage[]>([]);
+  const [packagesLoading, setPackagesLoading] = useState(true);
 
-  const handleBuyTokens = async (polAmount: number) => {
-      setLoading(true);
-      setError('');
+  // Handle Stripe redirect return (Layer 1: belt — guaranteed sync on redirect)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const purchaseStatus = params.get('purchase');
+
+    if (purchaseStatus === 'success') {
+      // Stripe checkout completed — refresh balance and show notification
+      updateBalances();
+      notificationService.showNotification(
+        NotificationType.REWARD_CLAIMED,
+        'Payment received! Your Gems have been added.',
+        { source: 'stripe_redirect' }
+      );
+      showSuccess?.('Purchase Complete', 'Your Gems have been added to your account!');
+      // Switch to currency tab so user sees their updated balance
+      setActiveTab('currency');
+      // Clean URL params
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (purchaseStatus === 'cancelled') {
+      showError('Purchase Cancelled', 'Your checkout was cancelled. No payment was made.');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Load from static config (cached at module level — no re-fetch on navigation)
+  useEffect(() => {
+    if (shopConfigCache) {
+      setExchangeBundles(shopConfigCache.exchangeBundles);
+      setGemPackages(shopConfigCache.gemPackages);
+      setPackagesLoading(false);
+      return;
+    }
+
+    const loadShopConfig = async () => {
+      setPackagesLoading(true);
       try {
-          const amount = BigInt(ethers.parseEther(polAmount.toString()));
-          const receipt = await buyTokens(amount);
-          console.log('Token purchase complete:', receipt);
-          await updateBalances();
+        // Dedup: reuse in-flight promise if StrictMode double-mounts
+        if (!shopConfigPromise) {
+          shopConfigPromise = (async () => {
+            const response = await fetch('/config/shop-config.json');
+            const config = await response.json();
+
+            const bundles = config.essenceExchange
+              ? config.essenceExchange.map((item: any) => ({
+                  id: item.id,
+                  name: item.label,
+                  gemCost: item.gems,
+                  essenceAmount: item.essence,
+                  bonus: item.bonus,
+                  bonusNote: item.bonusNote,
+                  popular: item.popular || false,
+                }))
+              : [];
+
+            const packages = config.gemPackages
+              ? config.gemPackages.filter((pkg: any) => pkg.enabled)
+              : [];
+
+            shopConfigCache = { exchangeBundles: bundles, gemPackages: packages };
+            return shopConfigCache;
+          })();
+        }
+
+        const cached = await shopConfigPromise;
+        setExchangeBundles(cached.exchangeBundles);
+        setGemPackages(cached.gemPackages);
+      } catch (err) {
+        shopConfigPromise = null;
+        console.error('Failed to load shop config:', err);
+      } finally {
+        setPackagesLoading(false);
       }
-      catch (err) {
-          showError("Error", "Failed to purchase totem. Try again shortly.");
-          console.error(err);
-      }
-      finally {
-          setLoading(false);
-      }
+    };
+    loadShopConfig();
+  }, []);
+
+  // Confirmation modal state for totem purchase
+  const [selectedSpecies, setSelectedSpecies] = useState<AvailableSpecies | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
+  // Confirmation modal state for essence exchange
+  const [pendingExchange, setPendingExchange] = useState<ExchangeBundle | null>(null);
+
+  // Request exchange (shows confirmation modal)
+  const handleRequestExchange = (bundle: ExchangeBundle) => {
+    setPendingExchange(bundle);
   };
 
-  const handlePurchaseTotem = async (speciesId: number) => {
+  // Cancel exchange confirmation
+  const handleCancelExchange = () => {
+    setPendingExchange(null);
+  };
+
+  // Confirm and execute exchange
+  const handleConfirmExchange = async () => {
+    if (!pendingExchange) return;
+
+    const bundleId = pendingExchange.id;
+    setPendingExchange(null);
+    setExchangeLoading(bundleId);
+    setError('');
+
+    try {
+      const response = await apiClient.exchangeGemsForEssence(bundleId);
+      if (response.success && response.data) {
+        await updateBalances();
+        notificationService.showNotification(
+          NotificationType.REWARD_CLAIMED,
+          `Exchanged gems for ${response.data.essenceReceived.toLocaleString()} ${CURRENCY_NAMES.SOFT}!`,
+          { gemsSpent: response.data.gemsSpent, essenceReceived: response.data.essenceReceived }
+        );
+        showSuccess?.("Exchange Complete", response.message || `Received ${response.data.essenceReceived.toLocaleString()} ${CURRENCY_NAMES.SOFT}!`);
+      } else {
+        const errorMsg = response.error?.message || 'Exchange failed';
+        showError("Exchange Failed", errorMsg);
+      }
+    } catch (err: any) {
+      showError("Error", err?.message || "Failed to exchange. Try again shortly.");
+      console.error(err);
+    } finally {
+      setExchangeLoading(null);
+    }
+  };
+
+  // Purchase Gems with real money via Stripe
+  const handleBuyGems = async (packageId: string) => {
+    setPurchasingGems(packageId);
+    setError('');
+    try {
+      const response = await apiClient.purchaseGems(packageId);
+      if (response.success && response.data) {
+        if (response.data.sessionUrl) {
+          // Redirect to Stripe checkout
+          window.location.href = response.data.sessionUrl;
+        } else if (response.data.isDev) {
+          // Dev mode: direct fulfillment
+          await updateBalances();
+          notificationService.showNotification(
+            NotificationType.REWARD_CLAIMED,
+            `Purchased ${response.data.gemsAdded?.toLocaleString()} ${CURRENCY_NAMES.PREMIUM}!`,
+            { gemsAdded: response.data.gemsAdded }
+          );
+          showSuccess?.("Purchase Complete", response.message || `Added ${response.data.gemsAdded?.toLocaleString()} Gems!`);
+        }
+      } else {
+        const errorMsg = response.error?.message || 'Purchase failed';
+        showError("Purchase Failed", errorMsg);
+      }
+    } catch (err: any) {
+      showError("Error", err?.message || "Failed to purchase. Try again shortly.");
+      console.error(err);
+    } finally {
+      setPurchasingGems(null);
+    }
+  };
+
+  // Open confirmation modal for buying a totem
+  const handleBuyClick = (species: AvailableSpecies) => {
+      if (!species.available) return;
+      setSelectedSpecies(species);
+      setIsConfirmOpen(true);
+  };
+
+  // Web2: Purchase a new totem directly via REST API
+  const handleConfirmPurchase = async () => {
+      if (!selectedSpecies) return;
+
+      const speciesId = selectedSpecies.id;
       setPurchasingTotems(prev => ({ ...prev, [speciesId]: true }));
       setError('');
+
       try {
-          if (!txService) throw new Error('Transaction service not initialized');
+          const response = await apiClient.purchaseNewTotem({ speciesId });
 
-          const result = await txService.purchaseTotem(speciesId);
-          const tokenId = result.data.tokenId;
-          console.log(`Purchased totem ${speciesId}:`, tokenId);
+          if (response.success && response.data) {
+              // Close confirmation modal
+              setIsConfirmOpen(false);
 
-          // Wait for transaction confirmation and get the token ID
-          if (provider) {
-              const nftContract = createTotemNFTContract(provider);
-              // Get the NFT metadata from contract
-              const [attributes, tokenURI] = await Promise.all([
-                nftContract.attributes(tokenId),
-                nftContract.tokenURI(tokenId)
-              ]);
+              // Update balances, totems list, and achievements after purchase
+              await updateBalances();
+              await fetchTotems();
+              await refreshAchievements();
 
-              console.log('Token URI:', tokenURI);
-              console.log('Attributes:', attributes);
-              
-              // Fetch IPFS metadata
-              const response = await fetch(tokenURI.replace('ipfs://', IPFS_GATEWAY_URL));
-              const metadata = await response.json();
-              
-              // Set the purchased NFT data for the celebration modal
-              setPurchasedTotem({
-                  id: tokenId.toString(),
-                  name: metadata.name,
-                  image: metadata.image,
-                  attributes: {
-                    rarity: Number(attributes.rarity),
-                    displayName: attributes.displayName || metadata.name,
-                    species: Number(attributes.species)
-                  }
+              // Show notification for totem purchase
+              const rarityName = Rarity[response.data.totem.rarityId] || 'Unknown';
+              const speciesName = getSpeciesName(response.data.totem.speciesId);
+              notificationService.showTotemPurchased({
+                  tokenId: response.data.totem.id,
+                  rarity: rarityName,
+                  species: speciesName.charAt(0).toUpperCase() + speciesName.slice(1),
+                  amount: response.data.cost?.toString(),
               });
-          }
+              notificationService.processAchievementsFromResponse((response.data as any).achievements);
 
-          await updateBalances();
-          addTotem(tokenId);
-      }
-      catch (err) {
-          if (err instanceof RateLimitError) {
-              handleRateLimitError(err);
+              // Show celebration modal with purchased totem
+              const totemData = response.data.totem;
+              setPurchasedTotem({
+                  id: totemData.id,
+                  name: totemData.speciesName || 'Totem',
+                  image: getTotemImageUrl(totemData.speciesId, totemData.colorId, totemData.stage || 0),
+                  attributes: {
+                      species: totemData.speciesId,
+                      color: totemData.colorId,
+                      rarity: totemData.rarityId,
+                      displayName: getStageName(totemData.speciesId, totemData.colorId, totemData.stage || 0),
+                      stage: totemData.stage,
+                      domain: availableSpecies.find((s: any) => s.id === totemData.speciesId)?.domain || '',
+                      ...totemData.stats,
+                  },
+              });
           } else {
-              showError("Error", "Failed to purchase totem. Try again shortly.");
+              const errorMsg = response.error?.message || 'Failed to purchase totem';
+              showError("Purchase Failed", errorMsg);
           }
+      }
+      catch (err: any) {
+          const errorMsg = err?.message || "Failed to purchase totem. Try again shortly.";
+          showError("Error", errorMsg);
           console.error(err);
       }
       finally {
           setPurchasingTotems(prev => ({ ...prev, [speciesId]: false }));
+          setSelectedSpecies(null);
       }
   };
 
@@ -135,32 +327,22 @@ const ShopInterface = () => {
           </div>
       </div>
         
-      {/* Approval Status */}
-      <div className="mb-6">
-          <ApprovalStatus />
-      </div>
-
-      {/* Special Offers Section */}
-      <div className="mb-6">
-          <SpecialOffers onPurchased={setPurchasedTotem} />
-      </div>
-
       {/* Shop Container */}
       <div className="mt-6">
 
         {/* Tab Navigation */}
         <div className="flex border-b border-gray-200 dark:border-gray-700">
+          <button onClick={() => setActiveTab('specials')} className={getTabStyle('specials')}>
+            Specials
+          </button>
           <button onClick={() => setActiveTab('totems')} className={getTabStyle('totems')}>
             Totems
           </button>
-          <button onClick={() => setActiveTab('tokens')} className={getTabStyle('tokens')}>
-            TOTEM Tokens
+          <button onClick={() => setActiveTab('currency')} className={getTabStyle('currency')}>
+            Currency
           </button>
-          <button onClick={() => setActiveTab('sell')} className={getTabStyle('sell')}>
-            Sell Totems
-          </button>
-          <button onClick={() => setActiveTab('unbound')} className={getTabStyle('unbound')}>
-            Unbound Totems
+          <button onClick={() => setActiveTab('market')} className={getTabStyle('market')}>
+            Market
           </button>
         </div>
 
@@ -170,9 +352,9 @@ const ShopInterface = () => {
           {activeTab === 'totems' && (
             <div className="space-y-6">
               <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-gray-100">Totem Marketplace</h3>
+                <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-gray-100">Totem Sanctuary</h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Discover young spirit companions waiting for a new keeper. 
+                  Discover young mystical companions waiting for a new keeper. 
                   These totems range in color and rarity, from common to legendary, based on achievement progression, and is determined randomly. 
                   Your new totem will begin their journey at stage 1, and requires dedicated care, training, and love to unlock their full potential.
                 </p>
@@ -216,7 +398,7 @@ const ShopInterface = () => {
                       <div className="flex justify-between items-start mb-2">
                         <h3 className="font-bold text-lg dark:text-gray-200">{species.name}</h3>
                         <span className="text-sm bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 px-2 py-1 rounded">
-                          {TOTEM_COST} TOTEM
+                          {ESSENCE_COST} {CURRENCY_NAMES.SOFT}
                         </span>
                       </div>
 
@@ -260,7 +442,7 @@ const ShopInterface = () => {
                         </div>
                         
                         <button
-                          onClick={() => species.available && handlePurchaseTotem(species.id)}
+                          onClick={() => handleBuyClick(species)}
                           disabled={disabledBuyButton}
                           className={`w-full py-2 px-4 rounded font-semibold
                             ${species.available
@@ -268,105 +450,370 @@ const ShopInterface = () => {
                               : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                             } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
-                          {purchasingTotems[species.id] ? 'Purchasing...' : 
+                          {purchasingTotems[species.id] ? 'Purchasing...' :
                           (species.available ? 'Buy Totem' : 'Coming Soon')}
                         </button>
                       </div>
                     </div>
                   </div>
                 )})}
-                {/* Celebration Modal */}
-                {purchasedTotem && (
-                  <CelebrationModal
-                    type="purchase"
-                    totem={purchasedTotem}
-                    onClose={() => setPurchasedTotem(null)}
-                  />
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Unbound Totems Shop */}
-          {activeTab === 'unbound' && (
-            <UnboundTotems />
-          )}
-
-          {/* Token Shop */}
-          {activeTab === 'tokens' && (
-              <div className="space-y-6">
-                <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                  <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-gray-100">Token Vault</h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Fuel the spirit realm and support our gasless infrastructure by purchasing TOTEM tokens. 
-                    Your contributions directly support the game's ecosystem, enabling smooth, 
-                    fee-free transactions and supporting the continued evolution of our mystical world. 
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {tokenPackages.map((pkg) =>  {
-                  const disabledBuyButton = loading || !canSpendCurrency(pkg.cost)
-                  return (
-                  <div 
-                    key={pkg.amount}
-                    className={`bg-white dark:bg-gray-800 rounded-lg border shadow-sm 
-                      ${pkg.popular 
-                        ? 'border-purple-500 dark:border-purple-700 border-2 dark:bg-gray-800/70' 
-                        : 'border-gray-200 dark:border-gray-700'}`}
-                  >
-                    <div className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h3 className="font-bold text-2xl text-gray-900 dark:text-gray-100">{Number(pkg.amount).toLocaleString()} TOTEM</h3>
-                          <p className="text-gray-600 dark:text-gray-400">Cost: {pkg.cost} POL</p>
+                {/* Purchase Confirmation Modal */}
+                <MessageDialog
+                    title="Confirm Purchase"
+                    isOpen={isConfirmOpen}
+                    showDismiss={false}
+                    onClose={() => {
+                        setIsConfirmOpen(false);
+                        setSelectedSpecies(null);
+                    }}
+                >
+                    <div className="space-y-4">
+                        <div className="text-gray-600 dark:text-gray-300">
+                            <p className="mb-4">
+                                Are you sure you want to purchase a new{' '}
+                                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                                    {selectedSpecies?.name}
+                                </span>{' '}
+                                totem?
+                            </p>
+                            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 mb-4">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 dark:text-gray-400">Cost:</span>
+                                    <span className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                                        {ESSENCE_COST.toLocaleString()} {CURRENCY_NAMES.SOFT}
+                                    </span>
+                                </div>
+                            </div>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                Your new totem will have a random color and rarity based on your achievements.
+                                It will start at Stage 1 and can be evolved through care and training.
+                            </p>
                         </div>
-                        {pkg.popular && (
-                          <span className="bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300 px-2 py-1 rounded text-sm">
-                            Popular
-                          </span>
-                        )}
-                      </div>
-                      <button 
-                        onClick={() => handleBuyTokens(pkg.cost)}
-                        disabled={disabledBuyButton}
-                        className="w-full bg-purple-600 text-white py-2 px-4 rounded font-semibold 
-                          hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 
-                          disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                      >
-                        <Coins className="w-4 h-4 mr-2" />
-                        {loading ? 'Processing...' : 'Buy Tokens'}
-                      </button>
+
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => {
+                                    setIsConfirmOpen(false);
+                                    setSelectedSpecies(null);
+                                }}
+                                disabled={selectedSpecies ? purchasingTotems[selectedSpecies.id] : false}
+                                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100
+                                    hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600
+                                    rounded font-medium transition-colors disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleConfirmPurchase}
+                                disabled={selectedSpecies ? purchasingTotems[selectedSpecies.id] : true}
+                                className="px-4 py-2 bg-purple-600 text-white rounded font-medium
+                                    hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600
+                                    transition-colors disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {selectedSpecies && purchasingTotems[selectedSpecies.id] ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Purchasing...
+                                    </>
+                                ) : (
+                                    'Confirm Purchase'
+                                )}
+                            </button>
+                        </div>
                     </div>
-                  </div>
-                )})}
+                </MessageDialog>
               </div>
-                
-                {error && (
-                  <div className="mt-4 p-4 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 rounded">
-                    {error}
-                  </div>
-                )}
             </div>
           )}
 
-          {/* Sell Interface */}
-          {activeTab === 'sell' && (
+          {/* Specials Tab */}
+          {activeTab === 'specials' && (
+            <SpecialOffers onPurchased={setPurchasedTotem} />
+          )}
+
+          {/* Currency Tab — Gems + Essence stacked */}
+          {activeTab === 'currency' && (
             <div className="space-y-6">
-              <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-gray-100">Sell Your Totems</h3>
-                <div className="space-y-3 text-gray-600 dark:text-gray-400">
-                  <p>
-                    When you sell a totem, it becomes <span className="font-medium text-gray-900 dark:text-gray-300">unbound</span> and 
-                    enters the marketplace. You'll receive TOTEM tokens based on the totem's stage and rarity.
-                  </p>
+              {/* Buy Gems with Real Money (Stripe) */}
+              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <CreditCard className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">Buy {CURRENCY_NAMES.PREMIUM}</h3>
                 </div>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Purchase {CURRENCY_NAMES.PREMIUM} with your credit card. {CURRENCY_NAMES.PREMIUM} can be exchanged for {CURRENCY_NAMES.SOFT} or used to buy special bundles. Payments are processed securely via Stripe.
+                </p>
               </div>
-              <SellTotems />
+
+              {packagesLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {gemPackages.map((pkg) => {
+                    const isPopular = pkg.name.toLowerCase().includes('popular');
+                    const isBestValue = pkg.name.toLowerCase().includes('best');
+                    return (
+                      <div
+                        key={pkg.id}
+                        className={`bg-white dark:bg-gray-800 rounded-lg border shadow-sm relative flex flex-col
+                          ${isPopular || isBestValue
+                            ? 'border-purple-500 dark:border-purple-700 border-2'
+                            : 'border-gray-200 dark:border-gray-700'}`}
+                      >
+                        {(isPopular || isBestValue) && (
+                          <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                            <span className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full font-medium">
+                              {isBestValue ? 'Best Value' : 'Popular'}
+                            </span>
+                          </div>
+                        )}
+                        <div className="p-6 flex flex-col flex-1">
+                          <div className="text-center mb-4 flex-1">
+                            <div className="flex items-center justify-center gap-2 mb-1">
+                              <Gem className="w-6 h-6 text-purple-500" />
+                              <h3 className="font-bold text-2xl text-gray-900 dark:text-gray-100">
+                                {pkg.gems.toLocaleString()}
+                              </h3>
+                            </div>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">{pkg.name}</p>
+                            {pkg.bonusFormatted && (
+                              <span className="inline-block mt-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs px-2 py-0.5 rounded">
+                                {pkg.bonusFormatted}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-center mb-4">
+                            <span className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                              {pkg.priceFormatted}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => handleBuyGems(pkg.id)}
+                            disabled={purchasingGems === pkg.id}
+                            className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-semibold
+                              hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600
+                              disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-auto"
+                          >
+                            {purchasingGems === pkg.id ? (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Processing...
+                              </>
+                            ) : (
+                              <>
+                                <CreditCard className="w-4 h-4" />
+                                Buy Now
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Divider between Gems and Essence */}
+              <div className="border-t border-gray-200 dark:border-gray-700" />
+
+              {/* Essence Exchange (Gems → Essence) */}
+              <div className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                  <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">{CURRENCY_NAMES.SOFT} Vault</h3>
+                </div>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Exchange your {CURRENCY_NAMES.PREMIUM} for {CURRENCY_NAMES.SOFT}. Larger exchanges include bonus {CURRENCY_NAMES.SOFT}!
+                  This is an instant digital exchange - no additional charges apply.
+                </p>
+              </div>
+
+              {packagesLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-yellow-600" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {exchangeBundles.map((bundle, index) => {
+                    const isPopular = bundle.popular || index === 1;
+                    const canAfford = canSpendGems(bundle.gemCost);
+                    return (
+                      <div
+                        key={bundle.id}
+                        className={`bg-white dark:bg-gray-800 rounded-lg border shadow-sm relative flex flex-col
+                          ${isPopular
+                            ? 'border-yellow-500 dark:border-yellow-700 border-2'
+                            : 'border-gray-200 dark:border-gray-700'}`}
+                      >
+                        {isPopular && (
+                          <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                            <span className="bg-yellow-500 text-white text-xs px-3 py-1 rounded-full font-medium">
+                              Popular
+                            </span>
+                          </div>
+                        )}
+                        <div className="p-6 flex flex-col flex-1">
+                          <div className="text-center mb-4 flex-1">
+                            <div className="flex items-center justify-center gap-2 mb-1">
+                              <Sparkles className="w-6 h-6 text-yellow-500" />
+                              <h3 className="font-bold text-2xl text-gray-900 dark:text-gray-100">
+                                {bundle.essenceAmount.toLocaleString()}
+                              </h3>
+                            </div>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">{bundle.name}</p>
+                            {bundle.bonusNote && (
+                              <span className="inline-block mt-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs px-2 py-0.5 rounded">
+                                {bundle.bonusNote}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-center mb-4">
+                            <div className="flex items-center justify-center gap-1">
+                              <Gem className="w-5 h-5 text-purple-500" />
+                              <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                {bundle.gemCost.toLocaleString()}
+                              </span>
+                            </div>
+                            <span className="text-sm text-gray-500 dark:text-gray-400">{CURRENCY_NAMES.PREMIUM}</span>
+                          </div>
+                          <button
+                            onClick={() => handleRequestExchange(bundle)}
+                            disabled={exchangeLoading === bundle.id || !canAfford}
+                            className={`w-full py-3 px-4 rounded-lg font-semibold
+                              flex items-center justify-center gap-2 mt-auto
+                              ${canAfford
+                                ? 'bg-yellow-500 text-white hover:bg-yellow-600 dark:bg-yellow-600 dark:hover:bg-yellow-500'
+                                : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'}
+                              disabled:opacity-50`}
+                          >
+                            {exchangeLoading === bundle.id ? (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Exchanging...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="w-4 h-4" />
+                                {canAfford ? 'Exchange' : 'Not Enough Gems'}
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {error && (
+                <div className="mt-4 p-4 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 rounded">
+                  {error}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Market Tab — Browse/Sell toggle */}
+          {activeTab === 'market' && (
+            <div className="space-y-6">
+              <MarketToggle mode={marketMode} onModeChange={setMarketMode} />
+              {marketMode === 'browse' ? (
+                <UnboundTotems />
+              ) : (
+                <SellTotems />
+              )}
             </div>
           )}
         </div>
 
       </div>
+
+      {/* Celebration Modal (top-level so it works from any tab/section) */}
+      {purchasedTotem && (
+        <CelebrationModal
+          type="purchase"
+          totem={purchasedTotem}
+          onClose={() => setPurchasedTotem(null)}
+        />
+      )}
+
+      {/* Exchange Confirmation Modal */}
+      {pendingExchange && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                Confirm Exchange
+              </h3>
+              <button
+                onClick={handleCancelExchange}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              >
+                <span className="sr-only">Close</span>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-gray-700 dark:text-gray-300">
+                Exchange <strong>{pendingExchange.gemCost.toLocaleString()} {CURRENCY_NAMES.PREMIUM}</strong> for{' '}
+                <strong>{pendingExchange.essenceAmount.toLocaleString()} {CURRENCY_NAMES.SOFT}</strong>?
+              </p>
+
+              <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">You spend:</span>
+                  <span className="font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-1">
+                    <Gem className="w-4 h-4" />
+                    {pendingExchange.gemCost.toLocaleString()} {CURRENCY_NAMES.PREMIUM}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">You receive:</span>
+                  <span className="font-semibold text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
+                    <Sparkles className="w-4 h-4" />
+                    {pendingExchange.essenceAmount.toLocaleString()} {CURRENCY_NAMES.SOFT}
+                  </span>
+                </div>
+                {pendingExchange.bonusNote && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Bonus:</span>
+                    <span className="font-semibold text-green-600 dark:text-green-400">
+                      {pendingExchange.bonusNote}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                This exchange is instant and cannot be reversed.
+              </p>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={handleCancelExchange}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
+                  text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700
+                  font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmExchange}
+                className="flex-1 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white
+                  rounded-lg font-medium transition-colors dark:bg-yellow-600 dark:hover:bg-yellow-500"
+              >
+                Confirm Exchange
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

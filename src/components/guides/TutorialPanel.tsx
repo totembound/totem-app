@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useUser } from '../../contexts/UserContext';
 import { useState } from 'react';
 import { Step } from '../../types/types';
+import { CURRENCY_NAMES } from '../../config/constants';
 
 interface TutorialPanelProps {
   title: string;
@@ -59,8 +60,9 @@ export default function TutorialPanel({
       setLoading(true);
       try {
           // For rewards that require totem, use first totem ID, otherwise use "0"
-          const totemId = requiresTotem && totems && totems.length > 0 ? totems[0].tokenId : "0";
-          await onClaimReward(rewardId, totemId as string);
+          // Web2: Use string id instead of tokenId
+          const totemId = requiresTotem && totems && totems.length > 0 ? totems[0].id : "0";
+          await onClaimReward(rewardId, totemId);
       } catch (error) {
           // Error is already handled in parent component, just reset loading here
           console.error('Claim failed:', error);
@@ -97,7 +99,8 @@ export default function TutorialPanel({
 
           const linkState = step.linkState || {};
           if (step.actionType === 'link' && step.isSelectedTotem) {
-            linkState.selectedTokenId = totems[0]?.tokenId;
+            // Web2: Use string id instead of tokenId
+            linkState.selectedTotemId = totems[0]?.id;
           }
 
           return (
@@ -164,7 +167,7 @@ export default function TutorialPanel({
                   <div className="flex items-center space-x-2">
                       <Gift className="w-5 h-5 text-purple-500" />
                       <span className="text-sm font-medium">
-                          Reward: {tokenReward} TOTEM
+                          Reward: {tokenReward} {CURRENCY_NAMES.SOFT}
                           {experienceReward > 0 && ` + ${experienceReward} XP`}
                       </span>
                   </div>

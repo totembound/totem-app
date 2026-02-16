@@ -1,0 +1,26 @@
+{
+  "id": 6,
+  "name": "Woodpecker",
+  "fullName": "Nimble Woodpecker",
+  "title": "The Relentless Worker",
+  "description": "The Woodpecker represents persistence, rhythm, and focus. It never tires in its pursuit, chiseling away at obstacles until success.",
+  "affinity": "Agility",
+  "domain": "Air",
+  "locationId": 15,
+  "available": false,
+  "placeholderImage": "/totems/woodpeckerplacecard.png",
+  "baseStats": {
+    "strength": 5,
+    "agility": 12,
+    "wisdom": 7
+  },
+  "stages": [
+    "Hatchling",
+    "Chick",
+    "Drummer",
+    "Tapper",
+    "Wise Elder"
+  ],
+  "colors": {
+  }
+}

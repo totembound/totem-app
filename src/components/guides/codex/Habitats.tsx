@@ -22,7 +22,7 @@ interface HabitatCard {
 
 const Habitats: React.FC = () => {
   const [selectedHabitat, setSelectedHabitat] = useState<HabitatCard | null>(null);
-  const [showUnavailable, setShowUnavailable] = useState(false);
+  const [_showUnavailable, _setShowUnavailable] = useState(false);
 
   // Handle ESC key to close modal
   useEffect(() => {

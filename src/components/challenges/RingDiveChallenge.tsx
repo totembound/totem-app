@@ -21,7 +21,6 @@ const RingDiveChallenge: React.FC<RingDiveChallengeProps> = ({
   agility = 10,
   difficulty = 2,
   onComplete = (score: number) => console.log('Challenge complete:', score),
-  onFail = () => console.log('Challenge failed')
 }) => {
   // Game state
   const [gameState, setGameState] = useState<GameState>('ready');

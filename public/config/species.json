@@ -1,0 +1,103 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-02-01T00:00:00.000Z",
+  "species": [
+    {
+      "id": 0,
+      "name": "Goose",
+      "affinity": "wisdom",
+      "domain": "water",
+      "baseStats": { "strength": 8, "agility": 6, "wisdom": 10 },
+      "available": true
+    },
+    {
+      "id": 1,
+      "name": "Otter",
+      "affinity": "agility",
+      "domain": "water",
+      "baseStats": { "strength": 8, "agility": 10, "wisdom": 6 },
+      "available": true
+    },
+    {
+      "id": 2,
+      "name": "Wolf",
+      "affinity": "strength",
+      "domain": "earth",
+      "baseStats": { "strength": 11, "agility": 8, "wisdom": 5 },
+      "available": true
+    },
+    {
+      "id": 3,
+      "name": "Falcon",
+      "affinity": "agility",
+      "domain": "air",
+      "baseStats": { "strength": 5, "agility": 12, "wisdom": 7 },
+      "available": true
+    },
+    {
+      "id": 4,
+      "name": "Beaver",
+      "affinity": "strength",
+      "domain": "water",
+      "baseStats": { "strength": 10, "agility": 5, "wisdom": 9 },
+      "available": true
+    },
+    {
+      "id": 5,
+      "name": "Deer",
+      "affinity": "agility",
+      "domain": "earth",
+      "baseStats": { "strength": 5, "agility": 11, "wisdom": 8 },
+      "available": true
+    },
+    {
+      "id": 6,
+      "name": "Woodpecker",
+      "affinity": "agility",
+      "domain": "air",
+      "baseStats": { "strength": 7, "agility": 11, "wisdom": 6 },
+      "available": false
+    },
+    {
+      "id": 7,
+      "name": "Turtle",
+      "affinity": "strength",
+      "domain": "water",
+      "baseStats": { "strength": 10, "agility": 8, "wisdom": 6 },
+      "available": false
+    },
+    {
+      "id": 8,
+      "name": "Bear",
+      "affinity": "strength",
+      "domain": "earth",
+      "baseStats": { "strength": 12, "agility": 5, "wisdom": 7 },
+      "available": false
+    },
+    {
+      "id": 9,
+      "name": "Raven",
+      "affinity": "wisdom",
+      "domain": "air",
+      "baseStats": { "strength": 5, "agility": 8, "wisdom": 11 },
+      "available": false
+    },
+    {
+      "id": 10,
+      "name": "Snake",
+      "affinity": "wisdom",
+      "domain": "earth",
+      "baseStats": { "strength": 7, "agility": 6, "wisdom": 11 },
+      "available": false
+    },
+    {
+      "id": 11,
+      "name": "Owl",
+      "affinity": "wisdom",
+      "domain": "air",
+      "baseStats": { "strength": 5, "agility": 7, "wisdom": 12 },
+      "available": true
+    }
+  ],
+  "availableSpeciesIds": [0, 1, 2, 3, 4, 5, 11]
+}

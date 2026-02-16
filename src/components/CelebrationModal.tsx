@@ -8,13 +8,14 @@ interface CelebrationModalProps {
   totem: { 
     name: string;
     image: string;
-    attributes: { 
+    attributes: {
       rarity: Rarity;
       displayName: string;
       stage?: number;
+      domain?: string;
     }
   }; 
-  type: 'purchase' | 'evolution';
+  type: 'purchase' | 'evolution' | 'loot_claim';
   onClose: () => void;
 }
 
@@ -39,6 +40,8 @@ const CelebrationModal = ({
   const getModalTitle = () => {
     if (type === 'purchase') {
       return "Congratulations!";
+    } else if (type === 'loot_claim') {
+      return "New Totem Claimed!";
     } else {
       return "Evolution Complete!";
     }
@@ -46,19 +49,21 @@ const CelebrationModal = ({
   
   const getModalSubtitle = () => {
     if (type === 'purchase') {
-      return "You've successfully summoned a new spirit totem!";
+      return "You've successfully summoned a new totem!";
+    } else if (type === 'loot_claim') {
+      return "You opened your loot box and found a new totem!";
     } else {
       return `Your totem has evolved to Stage ${(totem.attributes.stage || 0) + 1}!`;
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center pt-4 sm:pt-0 overflow-y-auto">
       <div className={`
         relative w-full max-w-lg transform transition-all
         bg-gradient-to-br ${getRarityColor(totem.attributes.rarity)}
         rounded-xl border-2 p-1
-        animate-fade-in scale-100 mx-4
+        animate-fade-in scale-100 mx-4 mb-4
       `}>
         <div className="absolute -inset-1">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur opacity-30 animate-pulse"></div>
@@ -121,7 +126,7 @@ const CelebrationModal = ({
               'text-gray-600 dark:text-gray-400'
             }`}>
               {type === 'evolution' ? `Stage ${(totem.attributes.stage || 0) + 1} ` : ''}
-              {Rarity[totem.attributes.rarity]} Spirit Totem
+              {Rarity[totem.attributes.rarity]} {totem.attributes.domain || ''} Totem
             </p>
           </div>
         </div>

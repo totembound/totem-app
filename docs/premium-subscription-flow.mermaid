@@ -1,22 +1,22 @@
 sequenceDiagram
     participant User
     participant Frontend
-    participant API
+    participant API as API Gateway
+    participant Lambda
     participant Stripe
-    participant Webhook
-    participant DB
-    participant Email
+    participant DB as DynamoDB
+    participant Email as SES
 
     User->>Frontend: Select Premium Plan
-    Frontend->>API: Request checkout (Email + Wallet)
-    API->>Stripe: Create checkout session
-    Stripe-->>API: Checkout session URL
-    API-->>Frontend: Redirect URL
+    Frontend->>API: POST /v1/shop/gems/checkout (JWT)
+    API->>Lambda: Forward request
+    Lambda->>Stripe: Create checkout session
+    Stripe-->>Lambda: Checkout session URL
+    Lambda-->>Frontend: Redirect URL
     Frontend->>User: Redirect to Stripe checkout
     User->>Stripe: Complete payment
     Stripe->>User: Redirect to success page
-    Stripe->>Webhook: checkout.session.completed event
-    Webhook->>DB: Update user to Premium
-    Webhook->>DB: Generate Premium API key
-    Webhook->>Email: Send Premium confirmation
-    Email-->>User: Premium API Key
+    Stripe->>Lambda: checkout.session.completed webhook
+    Lambda->>DB: Credit gems to user account
+    Lambda->>Email: Send purchase confirmation
+    Email-->>User: Confirmation email

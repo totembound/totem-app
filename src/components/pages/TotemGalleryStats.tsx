@@ -4,11 +4,11 @@ import {
     Star,
     Layers
 } from 'lucide-react';
-import { NFTMetadata, Rarity, Species, Color } from '../../types/types';
+import { TotemData, Rarity, Species } from '../../types/types';
 import _ from 'lodash';
 import { getRarityBadgeColor } from '../../utils/totems';
 
-const TotemGalleryStats: React.FC<{ nfts: NFTMetadata[] }> = ({ nfts }) => {
+const TotemGalleryStats: React.FC<{ nfts: TotemData[] }> = ({ nfts }) => {
     // Species Distribution
     const speciesDistribution = useMemo(() => {
         const grouped = _.groupBy(nfts, nft => Species[nft.attributes.species]);

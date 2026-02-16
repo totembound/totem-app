@@ -32,7 +32,7 @@ interface ConstellationChallengeProps {
 }
 
 // Calculate direction between two points (for glow direction)
-const calculateDirection = (fromX: number, fromY: number, toX: number, toY: number): number => {
+const _calculateDirection = (fromX: number, fromY: number, toX: number, toY: number): number => {
   const dx = toX - fromX;
   const dy = toY - fromY;
   const angle = Math.atan2(dy, dx);
@@ -270,11 +270,11 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
   // Game state management
   const [gameState, setGameState] = useState<GameState>('ready');
   const [currentConstellation, setCurrentConstellation] = useState<Constellation | null>(null);
-  const [availableConstellations, setAvailableConstellations] = useState<Constellation[]>(
+  const [availableConstellations, _setAvailableConstellations] = useState<Constellation[]>(
     CONSTELLATIONS.filter(c => c.difficulty === difficulty)
   );
   const [selectedStars, setSelectedStars] = useState<string[]>([]);
-  const [distractorStars, setDistractorStars] = useState<Star[]>([]);
+  const [_distractorStars, setDistractorStars] = useState<Star[]>([]);
   const [allStars, setAllStars] = useState<Star[]>([]);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [showAlert, setShowAlert] = useState<boolean>(false);

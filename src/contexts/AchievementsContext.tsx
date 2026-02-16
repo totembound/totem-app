@@ -1,18 +1,18 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Achievement, AchievementCategory, AchievementProgress, AchievementType, AchievementView, Milestone, ONETIME_REQUIREMENT } from '../types/types';
-import { createAchievementsContract, createRewardsContract } from '../config/contracts';
-import { useUser } from './UserContext';
-import { ethers } from 'ethers';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { AchievementCategory, AchievementProgress, AchievementType, AchievementView, ONETIME_REQUIREMENT } from '../types/types';
+import { useAuth } from './AuthContext';
+import apiClient from '../services/ApiClient';
 
 interface AchievementsContextType {
     achievements: Record<AchievementCategory, AchievementView[]>;
-    achievementsById: Record<string, AchievementView>; 
+    achievementsById: Record<string, AchievementView>;
     progress: Record<string, AchievementProgress>;
     isLoading: boolean;
     error: string | null;
     refreshAchievements: () => Promise<void>;
     getAchievementById: (id: string) => AchievementView | undefined;
     hasAchievement: (id: string) => boolean;
+    incrementAchievementProgress: (achievementId: string) => void;
     showAchievementEffect: (achievementId: string) => void;
     hideAchievementEffect: () => void;
     checkSpecificAchievement: (id: string) => Promise<boolean>;
@@ -21,114 +21,185 @@ interface AchievementsContextType {
 
 const AchievementsContext = createContext<AchievementsContextType | null>(null);
 
+// Static config cache + dedup promise
+let achievementConfigCache: AchievementConfig | null = null;
+let achievementConfigPromise: Promise<AchievementConfig> | null = null;
+
+interface AchievementConfig {
+    version: string;
+    categories: Array<{ id: number; name: string }>;
+    types: Array<{ id: number; name: string }>;
+    achievements: Array<{
+        id: string;
+        name: string;
+        description: string;
+        category: number;
+        type: number;
+        badgeUri: string;
+        milestones?: Array<{
+            index: number;
+            name: string;
+            description: string;
+            requirement: number;
+            badgeUri: string;
+        }>;
+        requires?: string[];
+    }>;
+}
+
 export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { provider, address, isConnected } = useUser();
+    const { isAuthenticated } = useAuth();
     const [achievements, setAchievements] = useState<Record<AchievementCategory, AchievementView[]>>({} as Record<AchievementCategory, AchievementView[]>);
     const [achievementsById, setAchievementsById] = useState<Record<string, AchievementView>>({});
     const [progress, setProgress] = useState<Record<string, AchievementProgress>>({});
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeAchievementEffect, setActiveAchievementEffect] = useState<string | null>(null);
+    const loadingRef = useRef(false);
+    const lastAuthStateRef = useRef<boolean | null>(null);
 
-    const checkAchievementRequirements = useCallback((
-        achievement: Achievement, 
-        progressMap: Record<string, AchievementProgress>
-    ): boolean => {
-        if (!achievement.requirements.length) return true;
+    // Load static achievement config (cached at module level with dedup)
+    const loadAchievementConfig = useCallback(async (): Promise<AchievementConfig> => {
+        if (achievementConfigCache) {
+            return achievementConfigCache;
+        }
+        if (achievementConfigPromise) {
+            return achievementConfigPromise;
+        }
 
-        return achievement.requirements.every(req => {
-            const requiredProgress = progressMap[req.achievementId];
-            if (!requiredProgress) return false;
+        achievementConfigPromise = (async () => {
+            const response = await fetch('/config/achievements.json');
+            if (!response.ok) {
+                achievementConfigPromise = null;
+                throw new Error('Failed to load achievements config');
+            }
+            achievementConfigCache = await response.json();
+            return achievementConfigCache!;
+        })();
 
-            const requiredAchievement = achievementsById[req.achievementId];
-            if (!requiredAchievement) return false;
+        return achievementConfigPromise;
+    }, []);
 
-            // For one-time achievements
-            if (requiredAchievement.achievementType === AchievementType.OneTime) {
-                if (req.milestoneIndex !== ONETIME_REQUIREMENT) {
-                    console.warn('Invalid milestone index for one-time achievement:', req);
-                    return false;
+    // Load user progress from API
+    const loadUserProgress = useCallback(async (): Promise<Record<string, AchievementProgress>> => {
+        if (!isAuthenticated) {
+            return {};
+        }
+
+        try {
+            const result = await apiClient.getAchievements();
+            if (result.success && result.data?.achievements) {
+                // API returns: { "ach_id": [{ unlocked: bool, progress: num }, ...] }
+                // Convert to progress map
+                const progressMap: Record<string, AchievementProgress> = {};
+
+                for (const [achievementId, milestones] of Object.entries(result.data.achievements)) {
+                    const milestoneArray = milestones as Array<{ unlocked: boolean; progress: number }>;
+
+                    // Get progress value from first milestone (all milestones have same progress)
+                    const currentCount = milestoneArray[0]?.progress || 0;
+
+                    // Check if any milestone is unlocked (for one-time achievements, this means completed)
+                    const unlockedMilestones = milestoneArray.map(m => m.unlocked);
+                    const hasAnyUnlocked = unlockedMilestones.some(u => u);
+
+                    // For one-time achievements (single milestone), achieved = that milestone unlocked
+                    // For progression achievements, achieved = all milestones unlocked
+                    const achieved = milestoneArray.length === 1
+                        ? milestoneArray[0].unlocked
+                        : milestoneArray.every(m => m.unlocked);
+
+                    progressMap[achievementId] = {
+                        startTime: 0,
+                        lastUpdate: Date.now(),
+                        achieved,
+                        count: currentCount,
+                        requirementsMet: hasAnyUnlocked || currentCount > 0,
+                        unlockedMilestones,
+                    };
                 }
-                return requiredProgress.achieved;
+                return progressMap;
             }
+        } catch (err) {
+            console.error('Failed to load achievement progress from API:', err);
+        }
 
-            // For progression achievements
-            const milestoneIndex = Number(req.milestoneIndex);
-            if (milestoneIndex >= requiredAchievement.milestones.length) {
-                console.warn('Invalid milestone index:', req);
-                return false;
-            }
-
-            return requiredProgress.unlockedMilestones[milestoneIndex];
-        });
-    }, [achievementsById]);
+        return {};
+    }, [isAuthenticated]);
 
     const loadAchievements = useCallback(async () => {
-        if (!provider || !address) return;
         console.log('loading achievements');
 
         try {
             setIsLoading(true);
             setError(null);
-            const contract = createAchievementsContract(provider);
 
-            // Load achievements for each category
-            const categories = [
-                AchievementCategory.Evolution,
-                AchievementCategory.Collection,
-                AchievementCategory.Streak,
-                AchievementCategory.Action,
-                AchievementCategory.Challenge,
-                AchievementCategory.Expedition
-            ];
+            // Load static config and user progress in parallel
+            const [config, userProgress] = await Promise.all([
+                loadAchievementConfig(),
+                loadUserProgress(),
+            ]);
 
-            const achievementsByCategory: Record<AchievementCategory, AchievementView[]> = {} as Record<AchievementCategory, AchievementView[]>;
+            const achievementsByCategory: Record<AchievementCategory, AchievementView[]> = {
+                [AchievementCategory.Evolution]: [],
+                [AchievementCategory.Collection]: [],
+                [AchievementCategory.Streak]: [],
+                [AchievementCategory.Action]: [],
+                [AchievementCategory.Challenge]: [],
+                [AchievementCategory.Expedition]: [],
+            };
             const byId: Record<string, AchievementView> = {};
-            const progressMap: Record<string, AchievementProgress> = {};
 
-            await Promise.all(categories.map(async (category) => {
-                const categoryAchievements = await contract.getAchievementsByCategory(category);
+            // Process each achievement from static config
+            for (const ach of config.achievements) {
+                const category = ach.category as AchievementCategory;
+                const achievementType = ach.type as AchievementType;
+                const progress = userProgress[ach.id] || {
+                    startTime: 0,
+                    lastUpdate: 0,
+                    achieved: false,
+                    count: 0,
+                    requirementsMet: !ach.requires?.length,
+                    unlockedMilestones: ach.milestones?.map(() => false) || [],
+                };
 
-                // First, get all progress data
-                await Promise.all(categoryAchievements.map(async (achievement) => {
-                    const progress = await contract.getDetailedProgress(achievement.id, address);
-                    progressMap[achievement.id] = progress;
-                }));
+                // Check if requirements are met (based on other achievements)
+                const requirementsMet = !ach.requires?.length || ach.requires.every(reqId => {
+                    const reqProgress = userProgress[reqId];
+                    return reqProgress?.achieved;
+                });
 
-                // Then process achievements with the complete progress map
-                const achievementViews = await Promise.all(categoryAchievements.map(async (achievement) => {
-                    const progress = progressMap[achievement.id];
+                const view: AchievementView = {
+                    id: ach.id,
+                    name: ach.name,
+                    description: ach.description,
+                    category,
+                    achievementType,
+                    subType: ach.id.replace('ach_', ''),
+                    enabled: true,
+                    badgeUri: ach.badgeUri,
+                    milestones: ach.milestones?.map(m => ({
+                        name: m.name,
+                        description: m.description || m.name,
+                        requirement: m.requirement,
+                        badgeUri: m.badgeUri,
+                    })) || [],
+                    requirements: ach.requires?.map(reqId => ({
+                        achievementId: reqId,
+                        milestoneIndex: ONETIME_REQUIREMENT,
+                    })) || [],
+                    requirementsMet,
+                    isCompleted: progress.achieved,
+                    currentCount: progress.count,
+                };
 
-                    const view: AchievementView = {
-                        id: achievement.id,
-                        name: achievement.name,
-                        description: achievement.description,
-                        category: achievement.category,
-                        achievementType: achievement.achievementType,
-                        subType: achievement.subType,
-                        enabled: achievement.enabled,
-                        badgeUri: achievement.badgeUri,
-                        milestones: achievement.milestones,
-                        requirements: achievement.requirements.map(req => ({
-                            achievementId: req.achievementId.toString(),
-                            milestoneIndex: BigInt(req.milestoneIndex)
-                        })),
-                        requirementsMet: progress.requirementsMet,
-                        isCompleted: progress.achieved,
-                        currentCount: progress.count
-                    };
-                    
-                    byId[achievement.id] = view;
-                    return view;
-                }));
-                
-                achievementsByCategory[category] = achievementViews;
-
-            }));
+                byId[ach.id] = view;
+                achievementsByCategory[category].push(view);
+            }
 
             setAchievements(achievementsByCategory);
             setAchievementsById(byId);
-            setProgress(progressMap);
+            setProgress(userProgress);
         }
         catch (err) {
             console.error('Error loading achievements:', err);
@@ -137,21 +208,20 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         finally {
             setIsLoading(false);
         }
-    }, [provider, address]);
+    }, [loadAchievementConfig, loadUserProgress]);
 
     // Helper function to check if specific achievement requirements are met
     const checkSpecificAchievement = useCallback(async (id: string): Promise<boolean> => {
-        if (!provider || !address) return false;
+        if (!isAuthenticated) return false;
 
         try {
-            const contract = createAchievementsContract(provider);
-            const progress = await contract.getDetailedProgress(id, address);
-            return progress.requirementsMet;
+            const result = await apiClient.checkAchievement(id);
+            return result.success && (result.data?.unlocked || false);
         } catch (error) {
             console.error(`Error checking achievement ${id}:`, error);
             return false;
         }
-    }, [provider, address]);
+    }, [isAuthenticated]);
 
     const refreshAchievements = useCallback(async () => {
         await loadAchievements();
@@ -170,6 +240,29 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         return achievement?.isCompleted || false;
     }, [getAchievementById]);
 
+    // Optimistic SPA update: increment achievement progress locally (no API call)
+    // Used after game actions so tutorial checks see updated state immediately
+    const incrementAchievementProgress = useCallback((achievementId: string) => {
+        setAchievementsById(prev => {
+            const existing = prev[achievementId];
+            if (!existing) return prev;
+            return {
+                ...prev,
+                [achievementId]: { ...existing, currentCount: existing.currentCount + 1 },
+            };
+        });
+        // Also update the categorized achievements list
+        setAchievements(prev => {
+            const updated = { ...prev };
+            for (const cat of Object.keys(updated) as unknown as AchievementCategory[]) {
+                updated[cat] = updated[cat].map(a =>
+                    a.id === achievementId ? { ...a, currentCount: a.currentCount + 1 } : a
+                );
+            }
+            return updated;
+        });
+    }, []);
+
     const showAchievementEffect = useCallback((achievementId: string) => {
         setActiveAchievementEffect(achievementId);
     }, []);
@@ -178,78 +271,22 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         setActiveAchievementEffect(null);
     }, []);
 
+    // Single useEffect: load on mount, reload when auth changes
     useEffect(() => {
-        if (isConnected && provider && address) {
-            loadAchievements();
+        // Skip if already loading (prevents StrictMode double-fire)
+        if (loadingRef.current) return;
+
+        // On logout: clear progress and reload with empty state
+        if (lastAuthStateRef.current === true && !isAuthenticated) {
+            setProgress({});
         }
-        if (!isConnected) {
-            setAchievements({} as Record<AchievementCategory, AchievementView[]>);
-        }
-    }, [isConnected, provider, address, loadAchievements]);
+        lastAuthStateRef.current = isAuthenticated;
 
-    const setupAchievementListeners = useCallback(() => {
-        if (!provider || !address) return;
-      
-        const contract = createAchievementsContract(provider);
-        const rewardsContract = createRewardsContract(provider);
-        
-        const userUnlockedFilter = contract.filters.AchievementUnlocked(null, address);
-        const userMilestoneFilter = contract.filters.MilestoneUnlocked(null, null, address);
-        const userRewardFilter = rewardsContract.filters.RewardClaimed();
-
-        const handleAchievementUnlocked = async (id: string, user: string) => {
-          if (user.toLowerCase() !== address.toLowerCase()) return;
-      
-          // Refresh the specific achievement
-          const achievement = getAchievementById(id);
-          if (achievement) {
-            showAchievementEffect(id);
-            await refreshAchievements();
-          }
-        };
-      
-        const handleMilestoneUnlocked = async (id: string, milestone: number, user: string) => {
-          if (user.toLowerCase() !== address.toLowerCase()) return;
-      
-          // Refresh the specific achievement
-          const achievement = getAchievementById(id);
-          if (achievement && achievement.milestones[milestone]) {
-            showAchievementEffect(id);
-            await refreshAchievements();
-          }
-        };
-      
-        const handleRewardClaimed = async (rewardId: string, user: string, amount: bigint, streak: bigint) => {
-            if (user.toLowerCase() !== address.toLowerCase()) return;
-            
-            // Only handle daily login rewards
-            const loginRewardId = ethers.id("daily_login");
-            console.log(loginRewardId, rewardId);
-            if (rewardId === loginRewardId) {
-                await refreshAchievements();
-            }
-        };
-        
-        // Subscribe to events
-        contract.on("AchievementUnlocked", handleAchievementUnlocked);
-        contract.on("MilestoneUnlocked", handleMilestoneUnlocked);
-        rewardsContract.on("RewardClaimed", handleRewardClaimed);
-
-        // Cleanup function
-        return () => {
-          contract.off("AchievementUnlocked", handleAchievementUnlocked);
-          contract.off("MilestoneUnlocked", handleMilestoneUnlocked);
-          rewardsContract.off("RewardClaimed", handleRewardClaimed);
-        };
-      }, [provider, address, getAchievementById, showAchievementEffect, refreshAchievements]);
-      
-      // Add to useEffect in AchievementsProvider
-      useEffect(() => {
-        const cleanup = setupAchievementListeners();
-        return () => {
-          if (cleanup) cleanup();
-        };
-      }, [setupAchievementListeners]);
+        loadingRef.current = true;
+        loadAchievements().finally(() => {
+            loadingRef.current = false;
+        });
+    }, [isAuthenticated, loadAchievements]);
 
     return (
         <AchievementsContext.Provider value={{
@@ -261,6 +298,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
             refreshAchievements,
             getAchievementById,
             hasAchievement,
+            incrementAchievementProgress,
             showAchievementEffect,
             hideAchievementEffect,
             activeAchievementEffect,

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useUser } from '../contexts/UserContext';
 import { Shield, AlertCircle, X } from 'lucide-react';
 import { useGame } from '../contexts/GameContext';
+import { CURRENCY_NAMES } from '../config/constants';
 
 interface ProtectionDialogProps {
   type: 'daily' | 'weekly';
@@ -15,7 +15,6 @@ interface ProtectionTier {
 }
 
 const ProtectionDialog: React.FC<ProtectionDialogProps> = ({ type, children }) => {
-  const { isTokenApproved } = useUser();
   const { rewardsState, purchaseProtection } = useGame();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedTier, setSelectedTier] = useState<number | null>(null);
@@ -110,7 +109,7 @@ const ProtectionDialog: React.FC<ProtectionDialogProps> = ({ type, children }) =
                       </span>
                     </div>
                     <span className="text-sm font-medium text-gray-900 dark:text-white">
-                      {tier.cost} TOTEM
+                      {tier.cost} {CURRENCY_NAMES.SOFT}
                     </span>
                   </div>
                   
@@ -131,7 +130,7 @@ const ProtectionDialog: React.FC<ProtectionDialogProps> = ({ type, children }) =
             <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => handlePurchase(selectedTier || 0)}
-                disabled={selectedTier === null || isProcessing || !isTokenApproved}
+                disabled={selectedTier === null || isProcessing}
                 className="w-full py-2 px-4 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isProcessing ? 'Processing...' : 'Purchase Protection'}

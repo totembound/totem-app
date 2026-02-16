@@ -98,7 +98,7 @@ const ExpeditionRewardsEffect: React.FC<ExpeditionRewardsEffectProps> = ({
                 +{experienceGained} XP
               </p>
             </div>
-            
+
             <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
               <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 text-center mb-2">Runes Gained</h3>
               

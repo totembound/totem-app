@@ -1,5 +1,5 @@
 import React from "react";
-import { BookOpenText, Hammer, PawPrint, Award, Scroll } from "lucide-react";
+
 import { Link } from "react-router-dom";
 
 const About: React.FC = () => {

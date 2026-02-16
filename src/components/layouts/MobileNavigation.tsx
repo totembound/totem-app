@@ -2,17 +2,20 @@ import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Home, ShoppingBag, Trophy, Swords, Gift, PawPrint,
-  MoreHorizontal, Settings, LogOut, Coins, Map, BookOpenText,
-  LucideIcon, FileText, ShieldCheck
+  MoreHorizontal, Settings, LogOut, Sparkles, Gem, Map, BookOpenText,
+  LucideIcon, FileText, ShieldCheck, GraduationCap
 } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
+import { CURRENCY_NAMES } from '../../config/constants';
 
 const MobileNavigation: React.FC = () => {
   const {
     disconnect,
     isSignedUp,
-    totemBalance,
-    polBalance
+    essenceBalance,
+    gemsBalance,
+    tutorialWizardVisible,
+    setTutorialWizardVisible
   } = useUser();
   const navigate = useNavigate();
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
@@ -114,20 +117,20 @@ const MobileNavigation: React.FC = () => {
                     </div>
                     <div className="flex items-center justify-between py-1">
                       <div className="flex items-center gap-2">
-                        <Coins size={16} className="text-yellow-500" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">TOTEM</span>
+                        <Sparkles size={16} className="text-yellow-500" />
+                        <span className="text-sm text-gray-600 dark:text-gray-400">{CURRENCY_NAMES.SOFT}</span>
                       </div>
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {Number(totemBalance).toLocaleString()}
+                        {Number(essenceBalance).toLocaleString()}
                       </span>
                     </div>
                     <div className="flex items-center justify-between py-1">
                       <div className="flex items-center gap-2">
-                        <img src="/polygon-icon.png" alt="POL" className="w-4 h-4" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">POL</span>
+                        <Gem size={16} className="text-purple-500" />
+                        <span className="text-sm text-gray-600 dark:text-gray-400">{CURRENCY_NAMES.PREMIUM}</span>
                       </div>
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {Number(polBalance).toLocaleString()}
+                        {Number(gemsBalance).toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -148,6 +151,16 @@ const MobileNavigation: React.FC = () => {
                 />
               ))}
 
+              {isSignedUp && !tutorialWizardVisible && (
+                <MoreMenuItem
+                  label="Show Tutorial"
+                  icon={GraduationCap}
+                  onClick={() => {
+                    setTutorialWizardVisible(true);
+                    setIsMoreMenuOpen(false);
+                  }}
+                />
+              )}
               <MoreMenuItem
                 label="Settings"
                 icon={Settings}

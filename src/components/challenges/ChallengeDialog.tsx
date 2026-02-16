@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { ChevronLeft, X } from 'lucide-react';
-import { NFTMetadata } from '../../types/types';
+import { TotemData } from '../../types/types';
 import { useGame } from '../../contexts/GameContext';
+import { useUser } from '../../contexts/UserContext';
 import { getGameDifficulty, getTotemStage } from '../../utils/totems';
 import ChallengeGame from './ChallengeGame';
 import { IPFS_GATEWAY_URL } from '../../config/constants';
@@ -21,7 +22,7 @@ interface ChallengeDialogProps {
 }
 
 const TotemSelectionCard: React.FC<{
-    totem: NFTMetadata;
+    totem: TotemData;
     challengeType: string;
     isSelected: boolean;
     isAvailable: boolean; // Add this new prop
@@ -39,7 +40,7 @@ const TotemSelectionCard: React.FC<{
             <div className={`w-full h-full transition-all duration-200 ${!isAvailable ? 'opacity-50 grayscale brightness-75' : ''}`}>
                 <img
                     src={totem.image.replace('ipfs://', IPFS_GATEWAY_URL)}
-                    alt={totem.attributes.displayName || totem.name}
+                    alt={totem.displayName || totem.name}
                     className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
@@ -62,7 +63,7 @@ const TotemSelectionCard: React.FC<{
             )}
             
             <div className="absolute bottom-0 left-0 right-0 p-2">
-                <h3 className="text-white truncate">{totem.attributes.displayName || totem.name}</h3>
+                <h3 className="text-white truncate">{totem.displayName || totem.name}</h3>
             </div>
         </div>
         <div className="p-2 bg-white dark:bg-gray-700">
@@ -93,26 +94,27 @@ export const ChallengeDialog: React.FC<ChallengeDialogProps> = ({
     requirements
 }) => {
     const { getEligibleTotems, isTotemAvailable } = useGame();
-    const [selectedTotem, setSelectedTotem] = useState<NFTMetadata | null>(null);
+    const { tutorialWizardVisible } = useUser();
+    const [selectedTotem, setSelectedTotem] = useState<TotemData | null>(null);
     const [showSelection, setShowSelection] = useState(true);
     const stage = requirements.stage;
-    const name = selectedTotem?.attributes.displayName || selectedTotem?.name;
+    const name = selectedTotem?.displayName || selectedTotem?.name;
     const difficulty = getGameDifficulty(selectedTotem!, requirements.stage);
 
     if (!isOpen) return null;
 
     const eligibleTotems = getEligibleTotems(challengeId);
 
-    const handleTotemSelect = (totem: NFTMetadata) => {
+    const handleTotemSelect = (totem: TotemData) => {
         setSelectedTotem(totem);
         setShowSelection(false);
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center sm:p-4">
+            <div className="hidden sm:block fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative w-full max-w-2xl bg-white dark:bg-gray-800 rounded-lg shadow-xl flex flex-col">
+            <div className={`relative w-full sm:max-w-2xl ${tutorialWizardVisible ? 'h-[calc(100vh-8rem)]' : 'h-[calc(100vh-3.5rem)]'} sm:h-auto sm:max-h-[calc(100vh-2rem)] bg-white dark:bg-gray-800 sm:rounded-lg shadow-xl flex flex-col overflow-hidden`}>
                 {/* Header Section - Always Visible */}
                 <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
@@ -183,7 +185,7 @@ export const ChallengeDialog: React.FC<ChallengeDialogProps> = ({
                         </div>
 
                         {/* Challenge Game Area */}
-                        <div className="flex-1 overflow-hidden p-4">
+                        <div className="flex-1 overflow-y-auto p-4">
                             {selectedTotem && (
                                 <ChallengeGame
                                     challengeId={challengeId}

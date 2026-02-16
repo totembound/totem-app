@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { ethers } from 'ethers';
 import { useUser } from '../../contexts/UserContext';
 import { useGame } from '../../contexts/GameContext';
-import RunesDisplay from '../RunesDisplay';
+import { useAchievements } from '../../contexts/AchievementsContext';
+import { RunesDisplayPouch } from '../RunesDisplay';
 import TokensDisplay from '../TokensDisplay';
 import ExpeditionPanel from '../expeditions/ExpeditionPanel';
 import ActiveExpeditionPanel from '../expeditions/ActiveExpeditionPanel';
 import ExpeditionSelectionDialog from '../expeditions/ExpeditionSelectionDialog';
-import { Filter, Database, RefreshCw, Shapes } from 'lucide-react';
+import { Database, RefreshCw } from 'lucide-react';
 import { Affinity } from '../../types/types';
 
 // Import expedition data
@@ -32,8 +32,10 @@ const durations = [
 ];
 
 const Expeditions: React.FC = () => {
-    const { isSignedUp, totems, totemBalance, provider } = useUser();
-    const { getUserRuneBalances, runeBalances, expeditionState, refreshExpeditions, startExpedition, claimExpeditionRewards } = useGame();
+    // Web2: No provider needed - use REST API
+    const { isSignedUp, totems, essenceBalance } = useUser();
+    const { getUserRuneBalances, expeditionState, refreshExpeditions, startExpedition, claimExpeditionRewards } = useGame();
+    const { refreshAchievements } = useAchievements();
     
     // State for expedition filters
     const [domainFilter, setDomainFilter] = useState(-1);
@@ -58,10 +60,10 @@ const Expeditions: React.FC = () => {
 
         if (!expedition) return false;
 
-        // Check TOTEM balance
-        const requiredTokens = BigInt(expedition.totemCost);
-        const userBalance = ethers.parseEther(totemBalance);
-        
+        // Check Essence balance
+        const requiredTokens = Number(expedition.essenceCost);
+        const userBalance = Number(essenceBalance);
+
         if (userBalance < requiredTokens) return false;
 
         // Check if user has 3 eligible totems
@@ -83,15 +85,14 @@ const Expeditions: React.FC = () => {
 
     // Handle expedition start
     const handleStartExpedition = async (expeditionId: string, totemIds: string[]) => {
-        const bigIntTokenIds = totemIds.map(id => BigInt(id));
-        const id = ethers.id(expeditionId);
-        const result = await startExpedition(id, bigIntTokenIds as any);
-        
+        // Web2: Use plain IDs instead of BigInt/hashed IDs
+        const result = await startExpedition(expeditionId, totemIds as any);
+
         if (result) {
             setIsDialogOpen(false);
             refreshExpeditions();
         }
-        
+
         return result;
     };
 
@@ -102,6 +103,7 @@ const Expeditions: React.FC = () => {
                 // Refresh data after claiming
                 refreshExpeditions();
                 getUserRuneBalances();
+                refreshAchievements();
             }
         }
         catch (error) {
@@ -124,89 +126,68 @@ const Expeditions: React.FC = () => {
       
     // Find active expedition by ID (if it exists)
     const findActiveExpedition = (expeditionId: string) => {
-        const id = ethers.id(expeditionId);
-        return expeditionState.userExpeditions.find(exp => 
-            exp.expeditionId === id && !exp.completed
+        // Web2: Use plain expedition IDs
+        return expeditionState.userExpeditions.find(exp =>
+            exp.expeditionId === expeditionId && !exp.completed
         );
     };
 
     return (
         <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg">
-            {/* Header Section */}
-            <div className="border-gray-200 dark:border-gray-700 space-y-4">
-                {/* Welcome & Balance Area */}
-                <div className="mb-4 space-y-4 sm:space-y-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-4">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Expeditions</h1>
-                            <p className="text-gray-600 dark:text-gray-400">
-                                Send your Totems on expeditions to earn experience and runes.
-                            </p>
-                        </div>
-                        
-                        <TokensDisplay/>
-                    </div>
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">Expeditions</h1>
                     <p className="text-gray-600 dark:text-gray-400">
-                        Different domains and affinities provide better results for specific expeditions.
+                        Send your Totems to earn XP and runes. Match domains and affinities for better results.
                     </p>
                 </div>
+                <TokensDisplay />
+            </div>
 
-                <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
-                    {/* Resources Section */}
-                    <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-1">
-                            <Shapes className="w-5 h-5 text-gray-500 fill-gray-500"/>
-                            <h2 className="font-semibold text-gray-600 dark:text-gray-400">
-                                Rune Collection
-                            </h2>
-                        </div>
-                        <RunesDisplay />
-                    </div>
+            {/* Runes & Filters Row */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4">
+                {/* Rune Collection - Monster Hunter Style */}
+                <RunesDisplayPouch />
 
-                    {/* Expedition Filters */}
-                    <div className="flex flex-wrap items-center gap-4 mt-auto">
-                        <div className="flex items-center gap-2">
-                            <Filter className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Filters:
-                            </span>
-                        </div>
-                        
-                        <div className="flex flex-wrap gap-2">
-                            <select
-                                value={domainFilter}
-                                onChange={(e) => setDomainFilter(Number(e.target.value))}
-                                className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            >
-                                {domains.map(domain => (
-                                    <option key={domain.id} value={domain.id}>
-                                        {domain.name}
-                                    </option>
-                                ))}
-                            </select>
-                            
-                            <select
-                                value={durationFilter}
-                                onChange={(e) => setDurationFilter(Number(e.target.value))}
-                                className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            >
-                                {durations.map(duration => (
-                                    <option key={duration.id} value={duration.id}>
-                                        {duration.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                {/* Filters */}
+                <div className="flex flex-wrap items-center gap-2">
+                    <select
+                        value={domainFilter}
+                        onChange={(e) => setDomainFilter(Number(e.target.value))}
+                        className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    >
+                        {domains.map(domain => (
+                            <option key={domain.id} value={domain.id}>
+                                {domain.id === -1 ? 'All Domains' : domain.name}
+                            </option>
+                        ))}
+                    </select>
 
-                        <button 
-                            onClick={handleRefresh}
-                            className="flex items-center gap-2 p-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg transition-colors"
-                        >
-                            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                            <span className="hidden sm:text-sm md:inline">Refresh</span>
-                        </button>
-                    </div>
+                    <select
+                        value={durationFilter}
+                        onChange={(e) => setDurationFilter(Number(e.target.value))}
+                        className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    >
+                        {durations.map(duration => (
+                            <option key={duration.id} value={duration.id}>
+                                {duration.id === -1 ? 'All Durations' : duration.name}
+                            </option>
+                        ))}
+                    </select>
+
+                    <button
+                        onClick={handleRefresh}
+                        className="p-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg transition-colors"
+                        title="Refresh"
+                    >
+                        <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    </button>
                 </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="space-y-4">
 
                 {/* Expeditions Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
@@ -220,7 +201,7 @@ const Expeditions: React.FC = () => {
                                 key={expedition.id}
                                 expedition={activeExpedition}
                                 expeditionConfig={expedition}
-                                onClaim={() => handleClaimExpedition(expedition.id)}
+                                onClaim={() => handleClaimExpedition(activeExpedition.totemIds[0])}
                             />
                         ) : (
                         <ExpeditionPanel
@@ -233,7 +214,7 @@ const Expeditions: React.FC = () => {
                             domainName={expedition.domainName}
                             duration={expedition.duration}
                             durationHours={expedition.durationHours}
-                            totemCost={expedition.totemCost}
+                            essenceCost={expedition.essenceCost}
                             happinessCost={expedition.happinessCost}
                             baseExperience={expedition.baseExperience}
                             primaryAffinity={Affinity[expedition.primaryAffinity as keyof typeof Affinity]}

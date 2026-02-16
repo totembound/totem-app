@@ -411,19 +411,27 @@ const Toolbar: React.FC<ToolbarProps> = ({
                                         <span className="font-medium">{option.label}</span>
                                     </div>
                                     {sortConfig.key === option.key && (
-                                        <button
+                                        <span
+                                            role="button"
+                                            tabIndex={0}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleSortChange(option.key); // This will toggle direction
+                                                handleSortChange(option.key);
                                             }}
-                                            className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.stopPropagation();
+                                                    handleSortChange(option.key);
+                                                }
+                                            }}
+                                            className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer"
                                         >
                                             {sortConfig.direction === 'asc' ? (
                                                 <ArrowUpDown className="transform rotate-0" />
                                             ) : (
                                                 <ArrowUpDown className="transform rotate-180" />
                                             )}
-                                        </button>
+                                        </span>
                                     )}
                                 </button>
                             ))}

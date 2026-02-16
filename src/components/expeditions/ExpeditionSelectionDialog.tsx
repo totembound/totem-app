@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useUser } from "../../contexts/UserContext";
 import { useGame } from "../../contexts/GameContext";
-import { ethers } from "ethers";
 import { X, MapPin, Heart, AlertCircle, Zap, Sparkles } from "lucide-react";
 import { Domain } from "../../types/types";
 import { formatTokenAmount, formatHoursDuration } from "../../utils/formats";
 import { getRarityBorderColor, getTotemStage } from "../../utils/totems";
 import expeditions from "../data/expeditions.json";
-import { IPFS_GATEWAY_URL } from "../../config/constants";
+import { IPFS_GATEWAY_URL, CURRENCY_NAMES } from "../../config/constants";
 
 interface ExpeditionSelectionDialogProps {
   isOpen: boolean;
@@ -22,7 +21,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
   expeditionId,
   onStart,
 }) => {
-  const { totems, totemBalance } = useUser();
+  const { totems, essenceBalance } = useUser();
   const { expeditionState } = useGame();
   const [selectedTotems, setSelectedTotems] = useState<string[]>([]);
   const [captain, setCaptain] = useState<string | null>(null);
@@ -44,11 +43,11 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
   );
 
   // Filter eligible totems
-  const eligibleTotems = totems.filter(
+  const _eligibleTotems = totems.filter(
     (totem) =>
       expedition &&
       totem.attributes.happiness >= expedition.happinessCost &&
-      !totemsOnExpedition.has(BigInt(totem.id)) &&
+      !totemsOnExpedition.has(totem.id) &&
       getTotemStage(totem) >= expedition.minStage
   );
 
@@ -155,12 +154,13 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
   }, [selectedTotems, expedition, totems, captain]);
 
   // Check if totem is already on an expedition
+  // Web2: totemIds are strings, not bigints
   const isTotemOnExpedition = (totemId: string) => {
     // Check all incomplete expeditions
     return expeditionState.userExpeditions?.some(
-      (exp) => !exp.completed 
-        && (exp.totemIds[0] === BigInt(totemId) 
-            || exp.totemIds?.includes(BigInt(totemId)))
+      (exp) => !exp.completed
+        && (exp.totemIds[0] === totemId
+            || exp.totemIds?.includes(totemId))
     );
   };
 
@@ -196,8 +196,8 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
 
   // Check if user can afford the expedition
   const canAffordExpedition = () => {
-    const cost = BigInt(expedition.totemCost);
-    const balance = ethers.parseEther(totemBalance);
+    const cost = Number(expedition.essenceCost);
+    const balance = Number(essenceBalance);
 
     return balance >= cost;
   };
@@ -490,7 +490,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                           </div>
                           <div className="flex flex-col">
                             <div className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
-                              {totem.attributes.displayName || `#${totem.id}`}
+                              {totem.displayName || `#${totem.id}`}
                             </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">
                                 {totem.affinity} • {totem.domain}
@@ -602,7 +602,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                 >
                   {isSubmitting
                     ? "Starting..."
-                    : `Start Expedition (${formatTokenAmount(expedition.totemCost)} TOTEM)`}
+                    : `Start Expedition (${formatTokenAmount(expedition.essenceCost)} ${CURRENCY_NAMES.SOFT})`}
                 </button>
               </div>
             </div>

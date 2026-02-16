@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import GuidesHeader from "./GuidesHeader";
 import { ChevronDown, Search } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { CURRENCY_NAMES } from '../../config/constants';
 
 interface Guide {
   title: string;
@@ -11,46 +12,16 @@ interface Guide {
 
 const howToGuides: Guide[] = [
   {
-    title: "How to Connect Your Wallet",
-    searchableText: 'wallet connect metamask walletconnect browser extension approve connection address',
+    title: "How to Create Your Account",
+    searchableText: 'signup create account email password register login sign up',
     content: (
       <div>
-        <p>To get started, you'll need to connect your crypto wallet:</p>
+        <p>To get started, create your TotemBound account:</p>
         <ol className="list-decimal list-inside mt-2 space-y-1">
-          <li>Click the <strong>“Connect Wallet”</strong> button in the top right corner.</li>
-          <li>Select your wallet provider (e.g., MetaMask).</li>
-          <li>Approve the connection in your wallet popup.</li>
-          <li>Once connected, your wallet address will display on the site.</li>
-        </ol>
-      </div>
-    )
-  },
-  {
-    title: "How to Claim Your Spiritkeeper Reward",
-    searchableText: "claim totem reward signup spiritkeeper tokens api key free premium advanced plan",
-    content: (
-      <div>
-        <p>Begin your journey by unlocking your Spiritkeeper reward:</p>
-        <ol className="list-decimal list-inside mt-2 space-y-1">
-          <li>Go to the <Link to="/signup" className="text-purple-500 underline font-medium">Signup</Link> page.</li>
-          <li>Select a plan: <strong>Free</strong>, <strong>Premium</strong>, or <strong>Advanced</strong>.</li>
-          <li>If choosing Free or Premium, enter your <strong>API key</strong> during registration.</li>
-          <li>Once registered, you will automatically receive your gifted <strong>TOTEM</strong> tokens.</li>
-        </ol>
-      </div>
-    )
-  },
-  {
-    title: "How to Approve TOTEM Tokens",
-    searchableText: "approve totem token shop rewards use in game transaction",
-    content: (
-      <div>
-        <p>Before using your TOTEM tokens in-game, you'll need to approve them for transactions:</p>
-        <ol className="list-decimal list-inside mt-2 space-y-1">
-          <li>Visit either the <Link to="/shop" className="text-purple-500 underline font-medium">Shop</Link> or the <Link to="/rewards" className="text-purple-500 underline font-medium">Rewards</Link> page.</li>
-          <li>Click the <strong>“Approve TOTEM”</strong> button.</li>
-          <li>Confirm the approval in your wallet when prompted.</li>
-          <li>Once approved, your TOTEM can be used across the game (buying, feeding, training, more).</li>
+          <li>Go to the <Link to="/signup" className="text-purple-500 underline font-medium">Sign Up</Link> page.</li>
+          <li>Enter your email address and choose a password.</li>
+          <li>Pick a display name for your Spiritkeeper profile.</li>
+          <li>Once registered, you'll receive a starter Totem and {CURRENCY_NAMES.SOFT} to begin your journey!</li>
         </ol>
       </div>
     )
@@ -63,23 +34,24 @@ const howToGuides: Guide[] = [
         <p>Daily rewards are gifted to active Spiritkeepers. Here's how to claim yours:</p>
         <ol className="list-decimal list-inside mt-2 space-y-1">
           <li>Go to the <Link to="/rewards" className="text-purple-500 underline font-medium">Rewards</Link> page.</li>
-          <li>Click the <strong>“Claim Daily Reward”</strong> button.</li>
-          <li>Confirm the transaction in your wallet if prompted.</li>
-          <li>Rewards may vary and reset every 24 hours at midnight UTC, check back daily!</li>
+          <li>Click the <strong>"Claim Daily"</strong> button.</li>
+          <li>Your {CURRENCY_NAMES.SOFT} will be added to your account instantly.</li>
+          <li>Build your streak by claiming daily - bonuses increase with consistency!</li>
         </ol>
       </div>
     )
   },
   {
-    title: "How to Purchase Your First Totem",
-    searchableText: 'purchase buy shop totem first species tokens claim navigate browse select transaction approve collection',
+    title: "How to Get More Totems",
+    searchableText: 'purchase buy shop totem species tokens navigate browse select collection',
     content: (
       <div>
-        <p>After claiming and approving your TOTEM tokens:</p>
+        <p>Expand your collection with new Totems:</p>
         <ol className="list-decimal list-inside mt-2 space-y-1">
           <li>Go to the <Link to="/shop" className="text-purple-500 underline font-medium">Shop</Link> page.</li>
-          <li>Select a species and click <strong>“Buy Totem”</strong>.</li>
-          <li>Sign the request or approve the transaction using your wallet.</li>
+          <li>Browse available Totems and select one you'd like.</li>
+          <li>Click <strong>"Buy Totem"</strong> to add it to your collection.</li>
+          <li>Your new Totem will appear on your <Link to="/totems" className="text-purple-500 underline font-medium">Totems</Link> page.</li>
         </ol>
       </div>
     )
@@ -137,9 +109,9 @@ const howToGuides: Guide[] = [
         <p>Send your totems on expeditions to earn EXP, runes, and other valuable items:</p>
         <ol className="list-decimal list-inside mt-2 space-y-1">
           <li>Go to the <Link to="/expeditions" className="text-purple-500 underline font-medium">Expeditions</Link> page.</li>
-          <li>Select a mission that fits your totem’s stats and available time window.</li>
-          <li>Choose 3 totems, including 1 captain, to form your expedition team.</li>
-          <li>Click <strong>“Start Expedition”</strong> and confirm in your wallet.</li>
+          <li>Select a mission that fits your totem's stats and available time window.</li>
+          <li>Choose up to 3 totems, including 1 captain, to form your expedition team.</li>
+          <li>Click <strong>"Start Expedition"</strong> to begin the journey.</li>
           <li>Return later to collect rewards once the expedition is complete.</li>
         </ol>
       </div>

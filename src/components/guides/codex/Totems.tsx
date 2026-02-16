@@ -103,6 +103,7 @@ const TotemCodex: React.FC = () => {
                 <th className="px-1 py-2">Stage</th>
                 <th className="px-1 py-2">Name</th>
                 <th className="px-1 py-2 text-nowrap">EXP Req.</th>
+                <th className="px-1 py-2 text-nowrap">Stat Bonus</th>
                 <th className="px-1 py-2">Description</th>
               </tr>
             </thead>
@@ -114,6 +115,7 @@ const TotemCodex: React.FC = () => {
                 <td className="px-1 py-2 pl-4">1</td>
                 <td className="px-1 py-2">Newborn</td>
                 <td className="px-1 py-2">0</td>
+                <td className="px-1 py-2 text-gray-500">—</td>
                 <td className="px-1 py-2">
                   Just born, requires care, feeding, and early bonding.
                 </td>
@@ -125,6 +127,7 @@ const TotemCodex: React.FC = () => {
                 <td className="px-1 py-2 pl-4">2</td>
                 <td className="px-1 py-2">Youngling</td>
                 <td className="px-1 py-2">500</td>
+                <td className="px-1 py-2 text-green-600 dark:text-green-400">+1 all stats</td>
                 <td className="px-1 py-2">
                   Begins to show personality. Unlocks basic Challenges.
                 </td>
@@ -136,6 +139,7 @@ const TotemCodex: React.FC = () => {
                 <td className="px-1 py-2 pl-4">3</td>
                 <td className="px-1 py-2">Juvenile</td>
                 <td className="px-1 py-2">1,500</td>
+                <td className="px-1 py-2 text-green-600 dark:text-green-400">+2 all stats</td>
                 <td className="px-1 py-2">
                   Learns tactics. Can participate in long Expeditions.
                 </td>
@@ -147,6 +151,7 @@ const TotemCodex: React.FC = () => {
                 <td className="px-1 py-2 pl-4">4</td>
                 <td className="px-1 py-2">Adult</td>
                 <td className="px-1 py-2">3,500</td>
+                <td className="px-1 py-2 text-green-600 dark:text-green-400">+3 all stats</td>
                 <td className="px-1 py-2">
                   Fully developed form. Can equip Gear and evolve aesthetics.
                 </td>
@@ -158,6 +163,7 @@ const TotemCodex: React.FC = () => {
                 <td className="px-1 py-2 pl-4">5</td>
                 <td className="px-1 py-2">Elder</td>
                 <td className="px-1 py-2">7,500</td>
+                <td className="px-1 py-2 text-green-600 dark:text-green-400">+4 all stats</td>
                 <td className="px-1 py-2">
                   Spirit-matured Totem. Unlocks passive abilities and prestige
                   traits.
@@ -170,12 +176,16 @@ const TotemCodex: React.FC = () => {
                 <td className="px-1 py-2 pl-4">*</td>
                 <td className="px-1 py-2">Prestige</td>
                 <td className="px-1 py-2">+2,500/ea</td>
+                <td className="px-1 py-2 text-gray-500">—</td>
                 <td className="px-1 py-2">
                   Starts a new legacy path and Codex recognition.
                 </td>
               </tr>
             </tbody>
           </table>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            * Each evolution grants +(stage-1) all stats and +10 Happiness. Total from base to Elder: +10 all stats.
+          </p>
 
           <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-500 mt-6">
             Rarity
@@ -206,7 +216,7 @@ const TotemCodex: React.FC = () => {
                 </td>
                 <td className="px-1 py-2">75%</td>
                 <td className="px-1 py-2">Standard</td>
-                <td className="px-1 py-2">None</td>
+                <td className="px-1 py-2 text-gray-500">—</td>
                 <td className="px-1 py-2">None</td>
               </tr>
               <tr
@@ -224,7 +234,7 @@ const TotemCodex: React.FC = () => {
                 </td>
                 <td className="px-1 py-2">15%</td>
                 <td className="px-1 py-2">Standard</td>
-                <td className="px-1 py-2">None</td>
+                <td className="px-1 py-2 text-gray-500">—</td>
                 <td className="px-1 py-2">Slightly rarer palette</td>
               </tr>
               <tr
@@ -240,7 +250,7 @@ const TotemCodex: React.FC = () => {
                 </td>
                 <td className="px-1 py-2">7%</td>
                 <td className="px-1 py-2">Unique full name</td>
-                <td className="px-1 py-2">None</td>
+                <td className="px-1 py-2 text-green-600 dark:text-green-400">+1 all stats</td>
                 <td className="px-1 py-2">Unique color scheme</td>
               </tr>
               <tr
@@ -256,7 +266,7 @@ const TotemCodex: React.FC = () => {
                 </td>
                 <td className="px-1 py-2">2.5%</td>
                 <td className="px-1 py-2">Unique full name</td>
-                <td className="px-1 py-2">+1 to all</td>
+                <td className="px-1 py-2 text-green-600 dark:text-green-400">+2 all stats</td>
                 <td className="px-1 py-2">Unique color scheme</td>
               </tr>
               <tr
@@ -274,7 +284,7 @@ const TotemCodex: React.FC = () => {
                 </td>
                 <td className="px-1 py-2">0.5%</td>
                 <td className="px-1 py-2">Mythical names</td>
-                <td className="px-1 py-2">+2 to all</td>
+                <td className="px-1 py-2 text-green-600 dark:text-green-400">+4 all stats</td>
                 <td className="px-1 py-2">Visual aura, unlockable lore</td>
               </tr>
               <tr
@@ -292,7 +302,7 @@ const TotemCodex: React.FC = () => {
                 </td>
                 <td className="px-1 py-2">*</td>
                 <td className="px-1 py-2">Seasonal names</td>
-                <td className="px-1 py-2">+1 to all</td>
+                <td className="px-1 py-2 text-green-600 dark:text-green-400">+2 all stats</td>
                 <td className="px-1 py-2">
                   Limited edition colors (season-tied), rarest cosmetics
                 </td>

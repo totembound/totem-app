@@ -1,5 +1,5 @@
 import { AVAILABLE_SPECIES, LOCATIONS } from '../config/constants';
-import { Affinity, Domain, NFTMetadata, Rarity, Species } from '../types/types';
+import { Affinity, Domain, TotemData, Rarity, Species } from '../types/types';
 import { 
     Dumbbell, // Strength
     Brain, // Wisdom
@@ -161,14 +161,17 @@ export const getRarityColor = (rarity: Rarity) => {
 };
 
 export function getRarityBonusStat(rarity: Rarity): number {
-    if (rarity === Rarity.Common || rarity === Rarity.Uncommon || rarity === Rarity.Rare) {
+    if (rarity === Rarity.Common || rarity === Rarity.Uncommon) {
         return 0;
     }
-    if (rarity === Rarity.Epic || rarity === Rarity.Limited) {
+    if (rarity === Rarity.Rare) {
         return 1;
     }
-    if (rarity === Rarity.Legendary) {
+    if (rarity === Rarity.Epic || rarity === Rarity.Limited) {
         return 2;
+    }
+    if (rarity === Rarity.Legendary) {
+        return 4;
     }
     return 0;
 }
@@ -282,7 +285,7 @@ export function getSpeciesEmoji(species: Species): string {
     return emojiMap[species] || emojiMap[Species.None];
 }
 
-export const getTotemStage = (totem: NFTMetadata) => {
+export const getTotemStage = (totem: TotemData) => {
     if (!totem) return 0;
     return totem.attributes.stage+1;
 }
@@ -299,7 +302,7 @@ export function getCurrentMonth() {
     return months[monthIndex];
 }
 
-export const getGameDifficulty = (totem: NFTMetadata, reqStage: number) => {
+export const getGameDifficulty = (totem: TotemData, reqStage: number) => {
     if (!totem) return 0;
     const totemStage = totem.attributes.stage + 1;
     const prestigeLevel = Number(totem.attributes.prestigeLevel);

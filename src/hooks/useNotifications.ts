@@ -1,11 +1,11 @@
+/**
+ * useNotifications - Notification Hook
+ *
+ * Manages notification queue, display, and persistence.
+ * Works with NotificationService for REST API response-based notifications.
+ */
+
 import { useEffect, useState, useCallback, useRef } from "react";
-import { ethers } from "ethers";
-import {
-  CONTRACT_ADDRESSES,
-  createAchievementsContract,
-  createChallengesContract,
-  createTotemNFTContract,
-} from "../config/contracts";
 import {
   Notification,
   NotificationType,
@@ -13,38 +13,16 @@ import {
   NotificationPriority,
   NOTIFICATION_CONFIG,
 } from "../types/notifications";
-import gameABI from "../contracts/TotemGame.abi.json";
-import nftABI from "../contracts/TotemNFT.abi.json";
-import shopABI from "../contracts/TotemShop.abi.json";
-import rewardsABI from "../contracts/TotemRewards.abi.json";
-import achievementsABI from "../contracts/TotemAchievements.abi.json";
-import challengesABI from "../contracts/TotemChallenges.abi.json";
-import expeditionsABI from "../contracts/TotemExpeditions.abi.json";
 import { getUserStorage, setUserStorage } from "../utils/localStorage";
 import { STORAGE_KEYS } from "../config/constants";
-import { useUser } from "../contexts/UserContext";
-import { useGame } from '../contexts/GameContext';
-import { useAchievements } from "../contexts/AchievementsContext";
-import { Rarity, Species } from "../types/types";
-import { formatTokenAmount } from "../utils/formats";
-
-const gameAddress = CONTRACT_ADDRESSES.game;
-const nftAddress = CONTRACT_ADDRESSES.nft;
-const shopAddress = CONTRACT_ADDRESSES.shop;
-const rewardsAddress = CONTRACT_ADDRESSES.rewards;
-const achievementsAddress = CONTRACT_ADDRESSES.achievements;
-const challengesAddress = CONTRACT_ADDRESSES.challenges;
-const expeditionsAddress = CONTRACT_ADDRESSES.expeditions;
-
-const getEnumKeyByValue = (enumObj: any, value: number): string => {
-  return Object.keys(enumObj).find((key) => enumObj[key] === value) || "";
-};
+import { useAuth } from "../contexts/AuthContext";
+import { notificationService } from "../services/NotificationService";
 
 // Create a hash for deduplication
 const hashMessage = async (
   message: string,
   type: string,
-  data?: any
+  data?: unknown
 ): Promise<string> => {
   const dataStr = data ? JSON.stringify(data) : "";
   const combined = `${message}_${type}_${dataStr}`;
@@ -56,21 +34,14 @@ const hashMessage = async (
     .join("");
 };
 
-// Format addresses for display
-const formatAddress = (address: string, length = 6) => {
-  if (!address || address.length < 10) return address;
-  return `${address.slice(0, length)}...${address.slice(-4)}`;
-};
-
 export function useNotifications() {
-  const { address: userAddress, isConnected, getTotem } = useUser();
-  const { showExpeditionEffect } = useGame();
-  const { refreshAchievements } = useAchievements();
+  const { isAuthenticated, user } = useAuth();
+  const userId = user?.id || '';
   const [notifications, setNotifications] = useState<Notification[]>(() => {
     // Load saved notifications from localStorage on startup
     return getUserStorage<Notification[]>(
       STORAGE_KEYS.notifications,
-      userAddress,
+      userId,
       []
     );
   });
@@ -78,7 +49,7 @@ export function useNotifications() {
     // Load sound setting from localStorage, default to true
     return getUserStorage<boolean>(
       STORAGE_KEYS.notificationSound,
-      userAddress,
+      userId,
       true
     );
   });
@@ -88,6 +59,7 @@ export function useNotifications() {
   );
   const eventHashes = eventHashesRef.current;
   const soundEnabledRef = useRef(soundEnabled);
+
   useEffect(() => {
     soundEnabledRef.current = soundEnabled;
   }, [soundEnabled]);
@@ -97,7 +69,7 @@ export function useNotifications() {
     // Load max notifications setting from localStorage, default to 100
     return getUserStorage<number>(
       STORAGE_KEYS.maxNotifications,
-      userAddress,
+      userId,
       100
     );
   });
@@ -105,27 +77,27 @@ export function useNotifications() {
   // Save notifications to localStorage
   const saveNotifications = useCallback(
     (notifs: Notification[]) => {
-      if (!userAddress) return;
+      if (!userId) return;
 
       // Sort by timestamp (newest first) and limit to max number
       const sorted = [...notifs].sort((a, b) => b.timestamp - a.timestamp);
       const limited = sorted.slice(0, maxNotifications);
 
-      setUserStorage(STORAGE_KEYS.notifications, userAddress, limited);
+      setUserStorage(STORAGE_KEYS.notifications, userId, limited);
     },
-    [userAddress, maxNotifications]
+    [userId, maxNotifications]
   );
 
   // Toggle sound setting
   const toggleSound = useCallback(() => {
     setSoundEnabled((prev) => {
       const newValue = !prev;
-      if (userAddress) {
-        setUserStorage(STORAGE_KEYS.notificationSound, userAddress, newValue);
+      if (userId) {
+        setUserStorage(STORAGE_KEYS.notificationSound, userId, newValue);
       }
       return newValue;
     });
-  }, [userAddress]);
+  }, [userId]);
 
   // Play notification sound
   const playSound = useCallback((soundType = "default") => {
@@ -156,10 +128,10 @@ export function useNotifications() {
 
       setMaxNotifications(validatedMax);
 
-      if (userAddress) {
+      if (userId) {
         setUserStorage(
           STORAGE_KEYS.maxNotifications,
-          userAddress,
+          userId,
           validatedMax
         );
       }
@@ -173,7 +145,7 @@ export function useNotifications() {
         updateNotifications(limited);
       }
     },
-    [userAddress, notifications, updateNotifications]
+    [userId, notifications, updateNotifications]
   );
 
   const addNotification = useCallback(
@@ -182,8 +154,8 @@ export function useNotifications() {
       message: string,
       scope: NotificationScope = NotificationScope.PERSONAL,
       priority: NotificationPriority = NotificationPriority.MEDIUM,
-      data?: any,
-      address?: string
+      data?: unknown,
+      notifUserId?: string
     ) => {
       const hash = await hashMessage(message, type, data);
       // Use setNotifications to get the latest state
@@ -223,7 +195,7 @@ export function useNotifications() {
           // Add new notification
           eventHashes.add(hash);
 
-          const newNotification = {
+          const newNotification: Notification = {
             id: hash,
             type,
             message,
@@ -232,7 +204,7 @@ export function useNotifications() {
             scope,
             priority,
             data,
-            userAddress: address,
+            userId: notifUserId,
           };
 
           const newNotifications = [newNotification, ...currentNotifications];
@@ -363,449 +335,14 @@ export function useNotifications() {
     [notifications]
   );
 
-  // Listen to contract events
+  // Initialize notification service with addNotification callback
   useEffect(() => {
-    if (!window.ethereum || !isConnected || !userAddress) {
-      return;
+    if (isAuthenticated && userId) {
+      notificationService.initialize(addNotification, userId);
+    } else {
+      notificationService.setUserId(null);
     }
-    console.log("Setting up contract event listeners...");
-
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const gameContract = new ethers.Contract(gameAddress, gameABI, provider);
-    const nftContract = new ethers.Contract(nftAddress, nftABI, provider);
-    const shopContract = new ethers.Contract(shopAddress, shopABI, provider);
-    const rewardsContract = new ethers.Contract(
-      rewardsAddress,
-      rewardsABI,
-      provider
-    );
-    const achievementsContract = new ethers.Contract(
-      achievementsAddress,
-      achievementsABI,
-      provider
-    );
-    const challengesContract = new ethers.Contract(
-      challengesAddress,
-      challengesABI,
-      provider
-    );
-    const expeditionsContract = new ethers.Contract(
-      expeditionsAddress,
-      expeditionsABI,
-      provider
-    );
-
-    // Events from TotemGame
-    const handleUserSignedUp = (user: string) => {
-      addNotification(
-        NotificationType.USER_SIGNUP,
-        `New player joined: ${formatAddress(user)}`,
-        NotificationScope.GLOBAL,
-        NotificationPriority.LOW,
-        { user }
-      );
-    };
-
-    const handleActionPerformed = (tokenId: any, actionType: any) => {
-      // Only show for user's own actions
-      const actionNames = ["Fed", "Trained", "Treated"];
-      const actionName = actionNames[Number(actionType)] || "Interacted with";
-
-      addNotification(
-        NotificationType.ACTION_PERFORMED,
-        `You ${actionName.toLowerCase()} your Totem #${tokenId.toString()}`,
-        NotificationScope.PERSONAL,
-        NotificationPriority.LOW,
-        { tokenId: tokenId.toString(), actionType: Number(actionType) },
-        userAddress
-      );
-    };
-
-    const handleTotemPurchased = async (
-      user: any,
-      tokenId: any,
-      amount: any
-    ) => {
-      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
-
-      if (isOwner) {
-        const contract = createTotemNFTContract(provider);
-        const attributes = await contract.attributes(tokenId);
-        const rarity = getEnumKeyByValue(Rarity, Number(attributes.rarity));
-        const species = getEnumKeyByValue(Species, Number(attributes.species));
-
-        addNotification(
-          NotificationType.TOTEM_PURCHASE,
-          `You purchased Totem #${tokenId.toString()}, ${rarity} ${species}`,
-          NotificationScope.PERSONAL,
-          NotificationPriority.MEDIUM,
-          { tokenId: tokenId.toString(), amount: amount.toString() },
-          userAddress
-        );
-      } else {
-        addNotification(
-          NotificationType.TOTEM_PURCHASE,
-          `${formatAddress(user)} purchased a new Totem`,
-          NotificationScope.GLOBAL,
-          NotificationPriority.LOW,
-          { user, tokenId: tokenId.toString() }
-        );
-      }
-    };
-
-    const handleBundlePurchased = async (
-      user: any,
-      bundleId: any,
-      tokenId: any,
-      amount: any
-    ) => {
-      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
-
-      if (isOwner) {
-        const contract = createTotemNFTContract(provider);
-        const attributes = await contract.attributes(tokenId);
-        const rarity = getEnumKeyByValue(Rarity, Number(attributes.rarity));
-        const species = getEnumKeyByValue(Species, Number(attributes.species));
-
-        addNotification(
-          NotificationType.BUNDLE_PURCHASED,
-          `You purchased bundle, Totem #${tokenId.toString()}, ${rarity} ${species}`,
-          NotificationScope.PERSONAL,
-          NotificationPriority.MEDIUM,
-          {
-            bundleId: bundleId.toString(),
-            tokenId: tokenId.toString(),
-            amount: amount.toString(),
-          },
-          userAddress
-        );
-      } else {
-        addNotification(
-          NotificationType.BUNDLE_PURCHASED,
-          `${formatAddress(user)} purchased a new bundle`,
-          NotificationScope.GLOBAL,
-          NotificationPriority.LOW,
-          { bundleId: bundleId.toString(), user, tokenId: tokenId.toString() }
-        );
-      }
-    };
-
-    // Events from TotemNFT
-    const handleTotemEvolved = async (
-      tokenId: any,
-      newStage: any,
-      species: any,
-      rarity: any
-    ) => {
-      const contract = createTotemNFTContract(provider);
-      const tokenOwner = await contract.ownerOf(tokenId);
-      const isOwner = tokenOwner.toLowerCase() === userAddress.toLowerCase();
-
-      if (isOwner) {
-        addNotification(
-          NotificationType.TOTEM_EVOLVED,
-          `Your Totem #${tokenId.toString()} evolved to stage ${
-            Number(newStage) + 1
-          }!`,
-          NotificationScope.PERSONAL,
-          NotificationPriority.HIGH,
-          {
-            tokenId: tokenId.toString(),
-            newStage: Number(newStage) + 1,
-            species: Number(species),
-            rarity: Number(rarity),
-          },
-          userAddress
-        );
-      }
-    };
-
-    const handleAttributesUpdated = (
-      tokenId: any,
-      happiness: any,
-      experience: any
-    ) => {
-      // Low priority update - only show for significant changes
-      if (Number(experience) % 500 === 0 || Number(experience) >= 7500) {
-        addNotification(
-          NotificationType.ATTRIBUTE_UPDATED,
-          `Totem #${tokenId.toString()} reached ${experience.toString()} experience!`,
-          NotificationScope.PERSONAL,
-          NotificationPriority.LOW,
-          {
-            tokenId: tokenId.toString(),
-            happiness: Number(happiness),
-            experience: Number(experience),
-          },
-          userAddress
-        );
-      }
-    };
-
-    const handlePrestigeLevelReached = (tokenId: any, prestigeLevel: any) => {
-      const totem = getTotem(tokenId);
-      // only show for my totems
-      if (totem) {
-        addNotification(
-          NotificationType.PRESTIGE_REACHED,
-          `Totem #${tokenId.toString()} reached prestige level ${prestigeLevel.toString()}!`,
-          NotificationScope.PERSONAL,
-          NotificationPriority.HIGH,
-          { tokenId: tokenId.toString(), prestigeLevel: Number(prestigeLevel) },
-          userAddress
-        );
-      }
-    };
-
-    // Events from TotemAchievements
-    const handleAchievementUnlocked = async (id: any, user: any, badgeUri: any) => {
-      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
-      if (isOwner) {
-        const contract = createAchievementsContract(provider);
-        const achievement = await contract.getAchievement(id);
-        const achievementName = achievement?.name;
-
-        addNotification(
-          NotificationType.ACHIEVEMENT_UNLOCKED,
-          `You unlocked the "${achievementName}" achievement!`,
-          NotificationScope.PERSONAL,
-          NotificationPriority.HIGH,
-          { achievementId: id, badgeUri },
-          userAddress
-        );
-      }
-    };
-
-    const handleMilestoneUnlocked = async (
-      id: any,
-      milestone: any,
-      user: any,
-      badgeUri: any
-    ) => {
-      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
-      if (isOwner) {
-        const contract = createAchievementsContract(provider);
-        const achievement = await contract.getAchievement(id);
-        const name = achievement?.name ? ` of "${achievement?.name}"` : "";
-        const milestoneName = `Milestone ${Number(milestone) + 1}${name}`;
-
-        addNotification(
-          NotificationType.MILESTONE_UNLOCKED,
-          `You reached ${milestoneName}!`,
-          NotificationScope.PERSONAL,
-          NotificationPriority.MEDIUM,
-          { achievementId: id, milestone: Number(milestone), badgeUri },
-          userAddress
-        );
-      }
-    };
-
-    // Rewards Events
-    const handleRewardClaimed = (rewardId: any, user: any, amount: any) => {
-      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
-      if (isOwner) {
-        const formattedAmount = formatTokenAmount(amount);
-        addNotification(
-          NotificationType.REWARD_CLAIMED,
-          `You claimed ${formattedAmount} TOTEM tokens!`,
-          NotificationScope.PERSONAL,
-          NotificationPriority.MEDIUM,
-          { rewardId, amount: amount.toString() },
-          userAddress
-        );
-      }
-    };
-
-    const handleOneTimeRewardClaimed = (rewardId: any, user: any, tokenReward: any, experienceReward: any, totemId: any) => {
-      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
-      if (isOwner) {
-        const tokenRewardAmount = formatTokenAmount(tokenReward);
-        addNotification(
-          NotificationType.REWARD_CLAIMED,
-          `You claimed ${tokenRewardAmount} TOTEM tokens!`,
-          NotificationScope.PERSONAL,
-          NotificationPriority.MEDIUM,
-          { 
-            rewardId: rewardId.toString(),
-            tokenReward: tokenRewardAmount.toString(),
-            experienceReward: experienceReward.toString(),
-            totemId: totemId.toString()
-          },
-          userAddress
-        );
-      }
-    };
-
-    // Challenge Events
-    const handleChallengeCompleted = async (
-      challengeId: any,
-      user: any,
-      tokenId: any,
-      score: any
-    ) => {
-      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
-      if (isOwner) {
-        const contract = createChallengesContract(provider);
-        const info = await contract.getChallengeInfo(challengeId);
-
-        addNotification(
-          NotificationType.CHALLENGE_COMPLETED,
-          `Your Totem #${tokenId.toString()} completed ${
-            info.name
-          } challenge with score ${score.toString()}!`,
-          NotificationScope.PERSONAL,
-          NotificationPriority.MEDIUM,
-          { challengeId, tokenId: tokenId.toString(), score: Number(score) },
-          userAddress
-        );
-      }
-    };
-
-    const handleHighScoreSet = async (
-      challengeId: any,
-      user: any,
-      score: any
-    ) => {
-      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
-
-      const contract = createChallengesContract(provider);
-      const info = await contract.getChallengeInfo(challengeId);
-
-      const message = isOwner
-        ? `You set a new high score of ${score.toString()} on ${
-            info.name
-          } challenge!`
-        : `${formatAddress(user)} set a high score of ${score.toString()} on ${
-            info.name
-          } challenge!`;
-
-      addNotification(
-        NotificationType.HIGH_SCORE_SET,
-        message,
-        isOwner ? NotificationScope.PERSONAL : NotificationScope.GLOBAL,
-        NotificationPriority.MEDIUM,
-        { challengeId, score: Number(score) },
-        isOwner ? userAddress : undefined
-      );
-    };
-
-    // Expedition events
-    const handleExpeditionStarted = (user: any, expeditionId: any, totemIds: any[], endTime: any) => {
-      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
-      if (isOwner) {
-        addNotification(
-          NotificationType.EXPEDITION_STARTED,
-          `You started an expedition with ${totemIds.length} totems.`,
-          NotificationScope.PERSONAL,
-          NotificationPriority.MEDIUM,
-          { expeditionId, totemIds: totemIds.map(id => id.toString()), endTime: Number(endTime) },
-          userAddress
-        );
-      }
-    };
-
-    const handleExpeditionCompleted = async (user: any, expeditionId: any, totemIds: any[]) => {
-      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
-      if (isOwner) {
-        addNotification(
-          NotificationType.EXPEDITION_COMPLETED,
-          `Your expedition team has returned! Claim your rewards.`,
-          NotificationScope.PERSONAL,
-          NotificationPriority.MEDIUM,
-          { expeditionId, totemIds: totemIds.map(id => id.toString()) },
-          userAddress
-        );
-      }
-    };
-
-    const handleExpeditionRewardsClaimed = (
-      user: any, 
-      expeditionId: any, 
-      experienceGain: any, 
-      totemIds: any, 
-      runeRewards: any, 
-      score: any
-    ) => {
-      const isOwner = user.toLowerCase() === userAddress.toLowerCase();
-      if (isOwner) {
-        const formattedTotemIds = Array.isArray(totemIds) ? 
-          totemIds.map((id: any) => id.toString()) : 
-          [totemIds.toString()];
-          
-        // Format rune rewards for display
-        const runesGained = {
-          lesser: Number(runeRewards[0]) || 0,
-          greater: Number(runeRewards[1]) || 0,
-          ancient: Number(runeRewards[2]) || 0
-        };
-        
-        const totalRunes = runesGained.lesser + runesGained.greater + runesGained.ancient;
-        // Create reward data object
-        const rewardData = { 
-          expeditionId, 
-          totemIds: formattedTotemIds,
-          experienceGained: Number(experienceGain),
-          runesGained,
-          score: Number(score)
-        };
-        
-        const isGreatSuccess = score >= 90;
-        const isSuccess = score >= 70;
-        const statusText = isGreatSuccess ? 'Great Success!' : isSuccess ? 'Success!' : 'Completed.';
-        
-        addNotification(
-          NotificationType.EXPEDITION_REWARDS,
-          `Your expedition team has returned! ${statusText} Rewards: ${Number(experienceGain)} XP each, ${totalRunes} rune${totalRunes > 1 ? 's' : ''}`,
-          NotificationScope.PERSONAL,
-          NotificationPriority.MEDIUM,
-          rewardData,
-          userAddress
-        );
-        
-        showExpeditionEffect(rewardData);
-        refreshAchievements();
-      }
-    };
-
-    gameContract.on("UserSignedUp", handleUserSignedUp);
-    //gameContract.on("ActionPerformed", handleActionPerformed); // Disable until filter
-    shopContract.on("TotemPurchased", handleTotemPurchased);
-    shopContract.on("BundlePurchased", handleBundlePurchased);
-    nftContract.on("TotemEvolved", handleTotemEvolved);
-    //nftContract.on("AttributesUpdated", handleAttributesUpdated); // Disable until filter
-    nftContract.on("PrestigeLevelReached", handlePrestigeLevelReached);
-    achievementsContract.on("AchievementUnlocked", handleAchievementUnlocked);
-    achievementsContract.on("MilestoneUnlocked", handleMilestoneUnlocked);
-    rewardsContract.on("RewardClaimed", handleRewardClaimed);
-    rewardsContract.on("OneTimeRewardClaimed", handleOneTimeRewardClaimed);
-    challengesContract.on("ChallengeCompleted", handleChallengeCompleted);
-    challengesContract.on("HighScoreSet", handleHighScoreSet);
-    //expeditionsContract.on("ExpeditionStarted", handleExpeditionStarted);
-    //expeditionsContract.on("ExpeditionCompleted", handleExpeditionCompleted);
-    gameContract.on("ExpeditionRewardsClaimed", handleExpeditionRewardsClaimed);
-
-    // Cleanup: remove all listeners
-    return () => {
-      console.log("Removing contract event listeners...");
-
-      gameContract.off("UserSignedUp", handleUserSignedUp);
-      //gameContract.off("ActionPerformed", handleActionPerformed);
-      shopContract.off("TotemPurchased", handleTotemPurchased);
-      shopContract.off("BundlePurchased", handleBundlePurchased);
-      nftContract.off("TotemEvolved", handleTotemEvolved);
-      //nftContract.off("AttributesUpdated", handleAttributesUpdated);
-      nftContract.off("PrestigeLevelReached", handlePrestigeLevelReached);
-      achievementsContract.off("AchievementUnlocked", handleAchievementUnlocked);
-      achievementsContract.off("MilestoneUnlocked", handleMilestoneUnlocked);
-      rewardsContract.off("RewardClaimed", handleRewardClaimed);
-      rewardsContract.off("OneTimeRewardClaimed", handleOneTimeRewardClaimed);
-      challengesContract.off("ChallengeCompleted", handleChallengeCompleted);
-      challengesContract.off("HighScoreSet", handleHighScoreSet);
-      //expeditionsContract.off("ExpeditionStarted", handleExpeditionStarted);
-      //expeditionsContract.off("ExpeditionCompleted", handleExpeditionCompleted);
-      gameContract.off("ExpeditionRewardsClaimed", handleExpeditionRewardsClaimed);
-    };
-  }, [userAddress, isConnected]);
+  }, [isAuthenticated, userId, addNotification]);
 
   // Clean up expired notifications
   useEffect(() => {

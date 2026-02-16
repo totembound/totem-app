@@ -1,17 +1,18 @@
 import React from 'react';
 import { useGame } from '../../contexts/GameContext';
 import ExpeditionRewardsEffect from './ExpeditionRewardsEffect';
+import expeditionData from '../data/expeditions.json';
 
 const ExpeditionEffectManager: React.FC = () => {
-  const { activeExpeditionEffect, hideExpeditionEffect, expeditionState } = useGame();
+  const { activeExpeditionEffect, hideExpeditionEffect } = useGame();
 
   if (!activeExpeditionEffect) return null;
 
-  // Find expedition name from the state
-  const expedition = Object.values(expeditionState.expeditions).find(
+  // Look up expedition name from static config (not API)
+  const expedition = expeditionData.find(
     exp => exp.id === activeExpeditionEffect.expeditionId
   );
-  
+
   const expeditionName = expedition?.name || 'Expedition';
 
   return (

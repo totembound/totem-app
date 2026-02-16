@@ -1,4 +1,11 @@
+/**
+ * Main Layout
+ *
+ * App layout wrapper with authentication.
+ */
+
 import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { useUser } from '../../contexts/UserContext';
 import Header from './Header';
 import Footer from './Footer';
@@ -11,7 +18,8 @@ import DesktopNavigation from './DesktopNavigation';
 import MobileNavigation from './MobileNavigation';
 
 export const MainLayout: React.FC = () => {
-  const { isConnected, isSignedUp, messageDialog, hideError } = useUser();
+  const { isAuthenticated } = useAuth();
+  const { messageDialog, hideError, tutorialWizardVisible } = useUser();
   const [isHeaderVisible, setIsHeaderVisible] = useState<boolean>(true);
   const [lastScrollY, setLastScrollY] = useState<number>(0);
 
@@ -20,7 +28,7 @@ export const MainLayout: React.FC = () => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       const scrollThreshold = 10;
-      
+
       // Only apply scroll behavior on mobile (below sm breakpoint = 640px)
       if (window.innerWidth < 640) {
         if (currentScrollY > lastScrollY && currentScrollY > scrollThreshold) {
@@ -34,7 +42,7 @@ export const MainLayout: React.FC = () => {
         // Always visible on desktop
         setIsHeaderVisible(true);
       }
-      
+
       setLastScrollY(currentScrollY);
     };
 
@@ -51,14 +59,14 @@ export const MainLayout: React.FC = () => {
     };
 
     window.addEventListener('scroll', throttledHandleScroll, { passive: true });
-    
+
     // Handle resize to ensure proper visibility on screen size changes
     const handleResize = () => {
       if (window.innerWidth >= 640) {
         setIsHeaderVisible(true);
       }
     };
-    
+
     window.addEventListener('resize', handleResize);
 
     return () => {
@@ -66,45 +74,55 @@ export const MainLayout: React.FC = () => {
       window.removeEventListener('resize', handleResize);
     };
   }, [lastScrollY]);
-  
+
   return (
     <div className="min-h-screen flex flex-col relative">
-        <GameBackground />
-        
-        {/* Header + Desktop Navigation Container - Slides on Mobile */}
-        <div className={`header-nav-sticky-container sticky top-0 z-40 bg-gray-50 dark:bg-gray-900 relative transition-transform duration-300 ease-in-out sm:translate-y-0 ${
+      <GameBackground />
+
+      {/* Header + Desktop Navigation Container - Slides on Mobile */}
+      <div
+        className={`header-nav-sticky-container sticky top-0 z-40 bg-gray-50 dark:bg-gray-900 relative transition-transform duration-300 ease-in-out sm:translate-y-0 ${
           !isHeaderVisible ? '-translate-y-full' : 'translate-y-0'
-        }`}>
-            <Header />
-            {isConnected && isSignedUp && <DesktopNavigation />}
+        }`}
+      >
+        <Header />
+        {/* Game navigation - only shown when authenticated */}
+        {isAuthenticated && (
+          <div className="hidden sm:block">
+            <DesktopNavigation />
+          </div>
+        )}
+      </div>
+
+      <main className={`w-full ${tutorialWizardVisible ? 'pb-72' : 'pb-16'} sm:pb-0 overflow-x-hidden flex-grow relative`}>
+        <div className="max-w-screen-xl w-full mx-auto px-2 sm:px-4 py-2 sm:py-3">
+          <Outlet />
         </div>
+      </main>
 
-        <main className="w-full pb-16 sm:pb-0 overflow-x-hidden flex-grow relative">
-            <div className="max-w-screen-xl w-full mx-auto px-2 sm:px-4 py-2 sm:py-3">
-                <Outlet />
-            </div>
-        </main>
+      <div className="relative">
+        <Footer />
+      </div>
 
-        <div className="relative">
-            <Footer />
-        </div>
+      {/* Mobile Navigation - Fixed at Bottom */}
+      {isAuthenticated && <MobileNavigation />}
 
-        {/* Mobile Navigation - Fixed at Bottom */}
-        {isConnected && isSignedUp && <MobileNavigation />}
-
-        <div className="z-50 relative">
-            <MessageDialog
-                isOpen={messageDialog.isOpen}
-                title={messageDialog.title}
-                isRateLimit={messageDialog.isRateLimit}
-                showDismiss={true}
-                onClose={hideError}
-            >
-                {messageDialog.message}
-            </MessageDialog>
-            <AchievementEffectManager />
-            <ExpeditionEffectManager />
-        </div>
+      <div className="z-50 relative">
+        <MessageDialog
+          isOpen={messageDialog.isOpen}
+          title={messageDialog.title}
+          isRateLimit={messageDialog.isRateLimit}
+          isSuccess={messageDialog.isSuccess}
+          showDismiss={true}
+          onClose={hideError}
+        >
+          {messageDialog.message}
+        </MessageDialog>
+        <AchievementEffectManager />
+        <ExpeditionEffectManager />
+      </div>
     </div>
   );
 };
+
+export default MainLayout;

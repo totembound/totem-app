@@ -1,6 +1,7 @@
 import React from 'react';
 import { useGame } from '../../contexts/GameContext';
-import { ArrowRight, Clock, GaugeCircle, Heart, Trophy } from 'lucide-react';
+import { ArrowRight, Clock, GaugeCircle, Heart, Trophy, Sparkles } from 'lucide-react';
+import { CURRENCY_NAMES } from '../../config/constants';
 
 type AffinityType = 'strength' | 'agility' | 'wisdom' | 'balance';
 
@@ -37,8 +38,9 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
     const eligibleTotems = getEligibleTotems(id);
     const meetsRequirements = eligibleTotems.length > 0;
     const maxExpReward = Math.max(10, stage * 10 - 10);
+    const essenceReward = stage * 5; // Stage 1=5, Stage 2=10, Stage 3=15, Stage 4=20
 
-    const getAffinityColor = () => {
+    const _getAffinityColor = () => {
         switch(affinityType) {
             case 'strength':
                 return "bg-red-500/10 text-red-700 dark:text-red-400";
@@ -78,6 +80,17 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
                 </div>
                 <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                     Up to {maxExpReward} XP
+                </span>
+            </div>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-yellow-500" />
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                        {CURRENCY_NAMES.SOFT}:
+                    </span>
+                </div>
+                <span className="font-semibold text-yellow-600 dark:text-yellow-400">
+                    +{essenceReward}
                 </span>
             </div>
             <div className="flex items-center justify-between">

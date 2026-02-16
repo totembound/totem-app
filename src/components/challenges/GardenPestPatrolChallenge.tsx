@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { AlertCircle } from 'lucide-react';
+// AlertCircle removed - unused import
+import { useUser } from '../../contexts/UserContext';
 
 type GameState = 'ready' | 'playing' | 'success' | 'failed';
 
@@ -24,18 +25,19 @@ interface GardenPestControlChallengeProps {
 }
 
 const GardenPestControlChallenge: React.FC<GardenPestControlChallengeProps> = ({
-  strength = 0,
-  difficulty = 2,
+  strength: _strength = 0,
+  difficulty: _difficulty = 2,
   onComplete = (score: number) => console.log('Challenge complete:', score),
-  onFail = () => console.log('Challenge failed')
+  onFail: _onFail = () => console.log('Challenge failed')
 }) => {
+  const { tutorialWizardVisible } = useUser();
   const [gameState, setGameState] = useState<GameState>('ready');
   const [holes, setHoles] = useState<Hole[]>([]);
   const [score, setScore] = useState<number>(0);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  const [showAlert, setShowAlert] = useState<boolean>(false);
+  const [_showAlert, _setShowAlert] = useState<boolean>(false);
   const [showPulse, setShowPulse] = useState(false);
-  const [activeMoles, setActiveMoles] = useState<Set<number>>(new Set());
+  const [_activeMoles, setActiveMoles] = useState<Set<number>>(new Set());
 
   const gameRef = useRef<HTMLDivElement>(null);
   const moleTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -209,8 +211,8 @@ const GardenPestControlChallenge: React.FC<GardenPestControlChallengeProps> = ({
 
   // Define hole positions with perspective scaling and positioning
   const getHolePosition = (index: number) => {
-    const row = Math.floor(index / 3);
-    const col = index % 3;
+    const _row = Math.floor(index / 3);
+    const _col = index % 3;
     
     // Base positions for perspective effect
     const basePositions = [
@@ -240,7 +242,7 @@ const GardenPestControlChallenge: React.FC<GardenPestControlChallengeProps> = ({
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="bg-slate-800 rounded-lg mb-4">
-        <div className="relative w-full h-96 bg-slate-700 rounded-lg overflow-hidden">
+        <div className={`relative w-full ${tutorialWizardVisible ? 'h-56' : 'h-80'} sm:h-96 bg-slate-700 rounded-lg overflow-hidden`}>
           {/* Background terrain */}
           <div className="absolute inset-0">
             <img

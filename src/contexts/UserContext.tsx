@@ -1,36 +1,39 @@
+/**
+ * UserContext - Web2 REST API version
+ *
+ * Manages user state including totems, balances, and game preferences.
+ * This version uses REST API calls via ApiClient instead of smart contracts.
+ */
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { ethers } from 'ethers';
-import { UserContextType, UserContextState, ActionType, ActionTracking, NFTMetadata, TokenActionTrackings, Attribute, AccountType, RateLimitState, RateLimitError } from '../types/types';
-import { CONTRACT_ADDRESSES, createGameContract, createTokenContract, createTotemNFTContract, TotemTokenContract, createAchievementsContract } from '../config/contracts';
-import { IPFS_GATEWAY_URL, STORAGE_KEYS } from '../config/constants';
-import { getSpeciesBaseStats } from '../utils/totems';
+import { UserContextType, UserContextState, ActionType, TotemData, AccountType, RateLimitError } from '../types/types';
+import { STORAGE_KEYS } from '../config/constants';
 import { getUserStorage, setUserStorage } from '../utils/localStorage';
+import apiClient from '../services/ApiClient';
+import { useAuth } from './AuthContext';
+import { getTotemImageUrl, getStageName } from '../utils/species';
 
 export const UserContext = createContext<UserContextType | null>(null);
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { isAuthenticated, user } = useAuth();
+
     const [state, setState] = useState<UserContextState>({
         isConnected: false,
         isSignedUp: false,
-        isTokenApproved: false,
         address: '',
-        provider: null,
-        signer: null,
-        totemBalance: '0',
-        polBalance: '0',
+        essenceBalance: '0',
+        gemsBalance: '0',
         totems: [],
         totemLoading: false,
         totemError: null,
         tutorialWizardVisible: true,
-        isApprovalMessageDismissed: getUserStorage(STORAGE_KEYS.tokenApprovalMessageDismissed, '', false),
         messageDialog: {
             isOpen: false,
             title: '',
             message: ''
         },
-        isGaslessEnabled: getUserStorage(STORAGE_KEYS.isGaslessEnabled, '', false),
-        gaslessApiKey: getUserStorage(STORAGE_KEYS.gaslessApiKey, '', ''),
-        accountType: initialAccountType(''),
-        comingSoon: true,
+        accountType: 'Free',
+        comingSoon: false,
         linkTracking: {},
         rateLimitState: {
             isExceeded: false,
@@ -39,20 +42,17 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             dailyLimit: 0
         }
     });
-    const normalizeAddress = (addr: string) => addr.toLowerCase();
-    const comingSoon = false;
+
     const [midnightTimeout, setMidnightTimeout] = useState<NodeJS.Timeout | null>(null);
-    const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
-    const [totems, setTotems] = useState<NFTMetadata[]>([]);
+    const [totems, setTotems] = useState<TotemData[]>([]);
     const [totemLoading, setTotemLoading] = useState(false);
     const [totemError, setTotemError] = useState<string | null>(null);
-    const [totemCache, setTotemCache] = useState<Map<string, NFTMetadata>>(new Map());
-    const SECONDS_PER_DAY = 86400;
+    const [_totemCache, setTotemCache] = useState<Map<string, TotemData>>(new Map());
     const [linkTracking, setLinkTracking] = useState<Record<string, any>>(
-        getUserStorage(STORAGE_KEYS.linkTracking, state.address || '', {})
+        getUserStorage(STORAGE_KEYS.linkTracking, user?.id || '', {})
     );
 
-    // Rate limit callback for TransactionService
+    // Rate limit callback
     const handleRateLimitUpdate = useCallback((resetTime: string | null, currentUsage: number, dailyLimit: number, isExceeded: boolean) => {
         setState(prev => ({
             ...prev,
@@ -72,21 +72,34 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 isOpen: true,
                 title,
                 message,
-                isRateLimit
+                isRateLimit,
+                isSuccess: false
             }
         }));
     };
 
-    // Helper function to handle rate limit errors consistently
+    const showSuccess = (title: string, message: string) => {
+        setState(prev => ({
+            ...prev,
+            messageDialog: {
+                isOpen: true,
+                title,
+                message,
+                isRateLimit: false,
+                isSuccess: true
+            }
+        }));
+    };
+
     const handleRateLimitError = (error: RateLimitError) => {
         handleRateLimitUpdate(error.resetTime, error.currentUsage, error.dailyLimit, true);
         showError(
-            'API Limit Reached', 
-            'You have reached your daily API usage limit. Your quota will reset at midnight UTC.', 
+            'API Limit Reached',
+            'You have reached your daily API usage limit. Your quota will reset at midnight UTC.',
             true
         );
     };
-    
+
     const hideError = () => {
         setState(prev => ({
             ...prev,
@@ -97,583 +110,405 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }));
     };
 
-    const canSpendTotem = (amount: number) => {
-        if (!state.isTokenApproved) {
-            return false;
-        }
-
-        if (state.totemBalance) {
-            const balance = Number(state.totemBalance);
-            if (Number(balance) > amount) {
-                return true;
-            }
-        }
-
-        return false;
+    const canSpendEssence = (amount: number) => {
+        const balance = Number(state.essenceBalance);
+        return balance >= amount;
     };
 
-    const canSpendCurrency = (amount: number) => {
-        if (!state.isTokenApproved) {
-            return false;
-        }
+    const canSpendGems = (amount: number) => {
+        const balance = Number(state.gemsBalance);
+        return balance >= amount;
+    };
 
-        if (state.polBalance) {
-            const balance = Number(state.polBalance);
-            if (balance > amount) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    const trackLink = useCallback((linkId: string, metadata?: Record<string, any>) => {
-
+    const trackLink = useCallback((linkId: string, _metadata?: Record<string, any>) => {
         setLinkTracking(prev => {
             const updated = {
                 ...prev,
                 [linkId]: true
             };
 
-            // Save to localStorage
-            if (state.address) {
-                setUserStorage(STORAGE_KEYS.linkTracking, state.address, updated);
+            if (user?.id) {
+                setUserStorage(STORAGE_KEYS.linkTracking, user.id, updated);
             }
 
             return updated;
         });
-    }, [state.address]);
+    }, [user?.id]);
 
     const hasClickedLink = useCallback((linkId: string) => {
         return linkTracking[linkId];
     }, [linkTracking]);
 
+    // Web2: Fetch totems via REST API
     const fetchTotems = useCallback(async () => {
-        if (!state.provider || !state.address || !state.isConnected || !state.isSignedUp) return;
+        if (!apiClient.isAuthenticated()) return;
 
         setTotemLoading(true);
         setTotemError(null);
 
-        console.log('loading totems');
         try {
-            const contract = createTotemNFTContract(state.provider);
-            const tokenIds = await contract.tokensOfOwner(state.address);
-            const gameContract = createGameContract(state.provider);
+            const response = await apiClient.getTotems();
 
-            // Batch fetch trackings
-            const trackings = await Promise.all(tokenIds.map(async (tokenId) => {
-                const tokenTrackings: {[key in ActionType]?: ActionTracking} = {};
-                    
-                // Fetch tracking for each action type
-                for (const actionType of [ActionType.Feed, ActionType.Train, ActionType.Treat]) {
-                    try {
-                        const tracking = await gameContract.getActionTracking(tokenId, actionType);
-                        tokenTrackings[actionType] = {
-                            lastUsed: Math.min(Number(tracking.lastUsed), Math.floor(Date.now() / 1000)),
-                            dailyUses: Number(tracking.dailyUses),
-                            dayStartTime: Math.min(Number(tracking.dayStartTime), Math.floor(Date.now() / 1000) + SECONDS_PER_DAY)
-                        };
-                    } catch (err) {
-                        console.error(`Error fetching tracking for token ${tokenId}, action ${actionType}:`, err);
-                        // Provide default tracking
-                        tokenTrackings[actionType] = {
-                            lastUsed: 0,
-                            dailyUses: 0,
-                            dayStartTime: 0
-                        };
-                    }
-                }
-
-                return { 
-                    tokenId: tokenId.toString(), 
-                    tracking: tokenTrackings 
-                };
-            }));
-
-            // Convert to a more accessible object with explicit typing
-            const trackingMap: TokenActionTrackings = trackings.reduce((acc, item) => {
-                acc[item.tokenId] = item.tracking;
-                return acc;
-            }, {} as TokenActionTrackings);
-
-            // Process totems with cache
-            const updatedTotems = await Promise.all(tokenIds.map(async (tokenId) => {
-                const cachedTotem = totemCache.get(tokenId.toString());
-
-                // Check if we need to fetch new metadata
-                if (cachedTotem) {
-                    const attrs = await contract.attributes(tokenId);
-                    if (Number(attrs.stage) === cachedTotem.attributes.stage) {
-                        // Update only attributes and trackings
-                        return {
-                            ...cachedTotem,
-                            attributes: {
-                                ...cachedTotem.attributes,
-                                happiness: Number(attrs.happiness),
-                                experience: Number(attrs.experience),
-                                displayName: attrs.displayName
-                            },
-                            trackings: trackingMap[tokenId.toString()] || {}
-                        };
-                    }
-                }
-
-                // Fetch full metadata if needed
-                const uri = await contract.tokenURI(tokenId);
-                const ipfsMetadata = await fetch(uri.replace('ipfs://', IPFS_GATEWAY_URL)).then(res => res.json());
-                const attrs = await contract.attributes(tokenId);
-                const affinity = ipfsMetadata.attributes.find((a: Attribute) => a.trait_type === 'Affinity')?.value;
-                const domain = ipfsMetadata.attributes.find((a: Attribute) => a.trait_type === 'Domain')?.value;
-                const stats = getSpeciesBaseStats(Number(attrs.species), Number(attrs.rarity));
-
-                const newTotem = {
-                    id: tokenId.toString(),
-                    tokenId,
-                    affinity,
-                    domain,
-                    ...ipfsMetadata,
+            if (response.success && response.data) {
+                // Transform API response to TotemData format
+                const totemList: TotemData[] = response.data.map((totem: any) => ({
+                    id: totem.id,
+                    name: totem.name,
+                    displayName: getStageName(totem.attributes?.species || 0, totem.attributes?.color || 0, totem.attributes?.stage || 0),
+                    description: totem.description,
+                    image: getTotemImageUrl(totem.attributes?.species || 0, totem.attributes?.color || 0, totem.attributes?.stage || 0) || totem.image,
+                    affinity: totem.affinity,
+                    domain: totem.domain,
                     attributes: {
-                        species: Number(attrs.species),
-                        color: Number(attrs.color),
-                        rarity: Number(attrs.rarity),
-                        happiness: Number(attrs.happiness),
-                        experience: Number(attrs.experience),
-                        stage: Number(attrs.stage),
-                        strength: stats.strength,
-                        agility: stats.agility,
-                        wisdom: stats.wisdom,
-                        isStaked: Boolean(attrs.isStaked),
-                        displayName: attrs.displayName,
-                        prestigeLevel: attrs.prestigeLevel
+                        species: totem.attributes?.species || 0,
+                        color: totem.attributes?.color || 0,
+                        rarity: totem.attributes?.rarity || 0,
+                        happiness: totem.attributes?.happiness || 50,
+                        experience: totem.attributes?.experience || 0,
+                        stage: totem.attributes?.stage || 0,
+                        strength: totem.attributes?.strength || 10,
+                        agility: totem.attributes?.agility || 10,
+                        wisdom: totem.attributes?.wisdom || 10,
+                        isStaked: false,
+                        nickname: totem.attributes?.nickname || null,
+                        prestigeLevel: totem.attributes?.prestigeLevel || 0
                     },
-                    trackings: trackingMap[tokenId.toString()] || {}
-                };
+                    trackings: totem.trackings || {}
+                }));
+
+                setTotems(totemList);
 
                 // Update cache
-                setTotemCache(prev => new Map(prev.set(tokenId.toString(), newTotem)));
-                return newTotem;
-            }));
-
-            setTotems(updatedTotems);
-        }
-        catch (err) {
+                const newCache = new Map<string, TotemData>();
+                totemList.forEach(totem => {
+                    newCache.set(totem.id, totem);
+                });
+                setTotemCache(newCache);
+            } else {
+                setTotems([]);
+            }
+        } catch (err) {
             console.error('Error fetching totems:', err);
             setTotemError('Failed to load your Totems. Please try again.');
-        }
-        finally {
+        } finally {
             setTotemLoading(false);
         }
-    }, [state.provider, state.address, state.isConnected, state.isSignedUp, totemCache]);
+    }, []);
 
-    const updateTotemEvolved = async (tokenId: bigint) => {
-        if (!state.provider || !state.address) return;
+    // Web2: Update totem after evolution
+    const updateTotemEvolved = async (totemId: string) => {
+        if (!apiClient.isAuthenticated()) return;
 
         try {
-            const contract = createTotemNFTContract(state.provider);
-            const [attrs, gameContract] = await Promise.all([
-                contract.attributes(tokenId),
-                createGameContract(state.provider)
-            ]);
-                        
-            // Check if evolution occurred
-            const currentTotem = totems.find(t => t.tokenId === tokenId);
-            if (currentTotem && Number(attrs.stage) !== currentTotem.attributes.stage) {
-                // Fetch new metadata after evolution
-                const uri = await contract.tokenURI(tokenId);
-                const ipfsMetadata = await fetch(uri.replace('ipfs://', IPFS_GATEWAY_URL)).then(res => res.json());
+            const response = await apiClient.getTotem(totemId);
 
-                setTotems(prev => prev.map(totem =>
-                    totem.tokenId === tokenId ? {
+            if (response.success && response.data) {
+                const totemData = response.data as any;
+
+                setTotems(prev => prev.map(totem => {
+                    if (totem.id !== totemId) return totem;
+                    const newStage = totemData.attributes?.stage || totem.attributes.stage;
+                    const speciesId = totemData.attributes?.species || totem.attributes.species;
+                    const colorId = totemData.attributes?.color || totem.attributes.color;
+                    return {
                         ...totem,
-                        ...ipfsMetadata,
+                        name: totemData.name,
+                        displayName: getStageName(speciesId, colorId, newStage),
+                        image: getTotemImageUrl(speciesId, colorId, newStage) || totemData.image,
                         attributes: {
                             ...totem.attributes,
-                            happiness: Number(attrs.happiness),
-                            experience: Number(attrs.experience),
-                            stage: Number(attrs.stage),
-                            isStaked: Boolean(attrs.isStaked),
-                            displayName: attrs.displayName,
-                            prestigeLevel: attrs.prestigeLevel
+                            happiness: totemData.attributes?.happiness || totem.attributes.happiness,
+                            experience: totemData.attributes?.experience || totem.attributes.experience,
+                            stage: newStage,
+                            nickname: totemData.attributes?.nickname || totem.attributes.nickname,
+                            prestigeLevel: totemData.attributes?.prestigeLevel || 0
                         },
-                    } : totem
-                ));
-
-                // Update cache
-                setTotemCache(prev => {
-                    const updated = new Map(prev);
-                    updated.delete(tokenId.toString()); // Force fresh metadata next fetch
-                    return updated;
-                });
-            }
-            await updateBalances();
-        } catch (error) {
-            console.error('Error updating totem:', error);
-            throw error;
-        }
-    };
-
-    const updateTotem = async (tokenId: bigint, type: ActionType) => {
-        if (!state.provider || !state.address) return;
-        
-        try {
-            const contract = createTotemNFTContract(state.provider);
-            const [attrs, gameContract] = await Promise.all([
-                contract.attributes(tokenId),
-                createGameContract(state.provider)
-            ]);
-
-            if (type === ActionType.None) {
-                // Update single totem in min state, no tracking 
-                setTotems(prev => prev.map(totem => 
-                    totem.tokenId === tokenId ? {
-                    ...totem,
-                    attributes: {
-                        ...totem.attributes,
-                        happiness: Number(attrs.happiness),
-                        experience: Number(attrs.experience),
-                        stage: Number(attrs.stage),
-                        isStaked: Boolean(attrs.isStaked),
-                        displayName: attrs.displayName,
-                        prestigeLevel: attrs.prestigeLevel
-                    }
-                    } : totem
-                ));
-            }
-            else {
-                // Get new tracking data
-                const tracking = await gameContract.getActionTracking(tokenId, type);
-
-                // Update single totem in state
-                setTotems(prev => prev.map(totem => 
-                    totem.tokenId === tokenId ? {
-                    ...totem,
-                    attributes: {
-                        ...totem.attributes,
-                        happiness: Number(attrs.happiness),
-                        experience: Number(attrs.experience),
-                        stage: Number(attrs.stage),
-                        isStaked: Boolean(attrs.isStaked),
-                        displayName: attrs.displayName,
-                        prestigeLevel: attrs.prestigeLevel
-                    },
-                    trackings: {
-                        ...totem.trackings,
-                        [type]: {
-                            lastUsed: Math.min(Number(tracking.lastUsed), Math.floor(Date.now() / 1000)),
-                            dailyUses: Number(tracking.dailyUses),
-                            dayStartTime: Math.min(Number(tracking.dayStartTime), Math.floor(Date.now() / 1000) + 86400)
-                        }
-                    }
-                    } : totem
-                ));
-            }
-
-            // Check if evolution occurred
-            const currentTotem = totems.find(t => t.tokenId === tokenId);
-            if (currentTotem && Number(attrs.stage) !== currentTotem.attributes.stage) {
-                // Fetch new metadata after evolution
-                const uri = await contract.tokenURI(tokenId);
-                const ipfsMetadata = await fetch(uri.replace('ipfs://', IPFS_GATEWAY_URL)).then(res => res.json());
-
-                setTotems(prev => prev.map(totem =>
-                    totem.tokenId === tokenId ? {
-                        ...totem,
-                        ...ipfsMetadata,
-                        attributes: {
-                            ...totem.attributes,
-                            ...attrs
-                        }
-                    } : totem
-                ));
-
-                // Update cache
-                setTotemCache(prev => {
-                    const updated = new Map(prev);
-                    updated.delete(tokenId.toString()); // Force fresh metadata next fetch
-                    return updated;
-                });
-            }
-
-            await updateBalances();
-        } catch (error) {
-            console.error('Error updating totem:', error);
-            throw error;
-        }
-    };
-
-    const getTotem = (tokenId: bigint) => {
-        return totems?.find(t => t.tokenId === tokenId);
-    }
-
-    const addTotem = async (tokenId: bigint) => {
-        if (!state.provider || !state.address) return;
-
-        try {
-            const contract = createTotemNFTContract(state.provider);
-            const gameContract = createGameContract(state.provider);
-
-            // Get token tracking
-            const tokenTrackings: {[key in ActionType]?: ActionTracking} = {};
-            for (const actionType of [ActionType.Feed, ActionType.Train, ActionType.Treat]) {
-                try {
-                    const actionTracking = await gameContract.getActionTracking(tokenId, actionType);
-                    tokenTrackings[actionType] = {
-                        lastUsed: Math.min(Number(actionTracking.lastUsed), Math.floor(Date.now() / 1000)),
-                        dailyUses: Number(actionTracking.dailyUses),
-                        dayStartTime: Math.min(Number(actionTracking.dayStartTime), Math.floor(Date.now() / 1000) + 86400)
                     };
+                }));
+
+                // Update cache
+                setTotemCache(prev => {
+                    const updated = new Map(prev);
+                    updated.delete(totemId);
+                    return updated;
+                });
+            }
+
+            await updateBalances();
+        } catch (error) {
+            console.error('Error updating totem:', error);
+            throw error;
+        }
+    };
+
+    // Web2: Update single totem after action
+    const updateTotem = async (totemId: string, type: ActionType) => {
+        if (!apiClient.isAuthenticated()) return;
+
+        try {
+            const response = await apiClient.getTotem(totemId);
+
+            if (response.success && response.data) {
+                const totemData = response.data as any;
+
+                if (type === ActionType.None) {
+                    // Update single totem in minimal state, no tracking
+                    setTotems(prev => prev.map(totem =>
+                        totem.id === totemId ? {
+                            ...totem,
+                            attributes: {
+                                ...totem.attributes,
+                                happiness: totemData.attributes?.happiness || totem.attributes.happiness,
+                                experience: totemData.attributes?.experience || totem.attributes.experience,
+                                stage: totemData.attributes?.stage || totem.attributes.stage,
+                                nickname: totemData.attributes?.nickname || totem.attributes.nickname,
+                                prestigeLevel: totemData.attributes?.prestigeLevel || 0
+                            }
+                        } : totem
+                    ));
+                } else {
+                    // Update totem with tracking data
+                    setTotems(prev => prev.map(totem =>
+                        totem.id === totemId ? {
+                            ...totem,
+                            attributes: {
+                                ...totem.attributes,
+                                happiness: totemData.attributes?.happiness || totem.attributes.happiness,
+                                experience: totemData.attributes?.experience || totem.attributes.experience,
+                                stage: totemData.attributes?.stage || totem.attributes.stage,
+                                nickname: totemData.attributes?.nickname || totem.attributes.nickname,
+                                prestigeLevel: totemData.attributes?.prestigeLevel || 0
+                            },
+                            trackings: totemData.trackings || totem.trackings
+                        } : totem
+                    ));
                 }
-                catch (err) {
-                    console.warn(`Error fetching tracking for token ${tokenId}, action ${actionType}:`, err);
+
+                // Check if evolution occurred
+                const currentTotem = totems.find(t => t.id === totemId);
+                if (currentTotem && totemData.attributes?.stage !== currentTotem.attributes.stage) {
+                    // Refresh totem data after evolution
+                    await fetchTotems();
                 }
             }
 
-            // Get metadata and attributes
-            const [uri, attrs] = await Promise.all([
-                contract.tokenURI(tokenId),
-                contract.attributes(tokenId)
-            ]);
-
-            const ipfsMetadata = await fetch(uri.replace('ipfs://', IPFS_GATEWAY_URL)).then(res => res.json());
-            const affinity = ipfsMetadata.attributes.find((a: Attribute) => a.trait_type === 'Affinity')?.value;
-            const domain = ipfsMetadata.attributes.find((a: Attribute) => a.trait_type === 'Domain')?.value;
-            const stats = getSpeciesBaseStats(Number(attrs.species), Number(attrs.rarity));
-
-            const newTotem = {
-                id: tokenId.toString(),
-                tokenId,
-                affinity,
-                domain,
-                ...ipfsMetadata,
-                attributes: {
-                    species: Number(attrs.species),
-                    color: Number(attrs.color),
-                    rarity: Number(attrs.rarity),
-                    happiness: Number(attrs.happiness),
-                    experience: Number(attrs.experience),
-                    stage: Number(attrs.stage),
-                    strength: stats.strength,
-                    agility: stats.agility,
-                    wisdom: stats.wisdom,
-                    isStaked: Boolean(attrs.isStaked),
-                    displayName: attrs.displayName
-                },
-                trackings: tokenTrackings
-            };
-
-            // Update cache and totems list
-            setTotemCache(prev => new Map(prev.set(tokenId.toString(), newTotem)));
-            setTotems(prev => [...prev, newTotem]);
+            await updateBalances();
+        } catch (error) {
+            console.error('Error updating totem:', error);
+            throw error;
         }
-        catch (err) {
+    };
+
+    const getTotem = (totemId: string) => {
+        return totems?.find(t => t.id === totemId);
+    };
+
+    // Web2: Add new totem to local state (after purchase)
+    const addTotem = async (totemId: string) => {
+        if (!apiClient.isAuthenticated()) return;
+
+        try {
+            const response = await apiClient.getTotem(totemId);
+
+            if (response.success && response.data) {
+                const totemData = response.data as any;
+
+                const speciesId = totemData.attributes?.species || 0;
+                const colorId = totemData.attributes?.color || 0;
+                const stage = totemData.attributes?.stage || 0;
+                const newTotem: TotemData = {
+                    id: totemId,
+                    name: totemData.name,
+                    displayName: getStageName(speciesId, colorId, stage),
+                    description: totemData.description,
+                    image: getTotemImageUrl(speciesId, colorId, stage) || totemData.image,
+                    affinity: totemData.affinity,
+                    domain: totemData.domain,
+                    attributes: {
+                        species: speciesId,
+                        color: colorId,
+                        rarity: totemData.attributes?.rarity || 0,
+                        happiness: totemData.attributes?.happiness || 50,
+                        experience: totemData.attributes?.experience || 0,
+                        stage,
+                        strength: totemData.attributes?.strength || 10,
+                        agility: totemData.attributes?.agility || 10,
+                        wisdom: totemData.attributes?.wisdom || 10,
+                        isStaked: false,
+                        nickname: totemData.attributes?.nickname || null,
+                        prestigeLevel: totemData.attributes?.prestigeLevel || 0
+                    },
+                    trackings: totemData.trackings || {}
+                };
+
+                setTotemCache(prev => new Map(prev.set(totemId, newTotem)));
+                setTotems(prev => [...prev, newTotem]);
+            }
+        } catch (err) {
             console.error('Error adding new totem:', err);
             throw err;
         }
     };
 
-    const removeTotem = (tokenId: bigint) => {
-        setTotems(prev => prev.filter(totem => totem.tokenId !== tokenId));
+    const removeTotem = (totemId: string) => {
+        setTotems(prev => prev.filter(totem => totem.id !== totemId));
         setTotemCache(prev => {
             const updated = new Map(prev);
-            updated.delete(tokenId.toString());
+            updated.delete(totemId);
             return updated;
         });
     };
 
-    const checkTokenApproval = useCallback(async () => {
-        if (!state.provider || !state.address) return false;
+    // Update a totem's nickname directly in state
+    const updateTotemNickname = (totemId: string, nickname: string | null) => {
+        setTotems(prev => prev.map(totem =>
+            totem.id === totemId ? {
+                ...totem,
+                attributes: {
+                    ...totem.attributes,
+                    nickname
+                }
+            } : totem
+        ));
+    };
 
-        try {
-            const tokenContract = createTokenContract(state.provider);
-            const allowance = await tokenContract.allowance(state.address, CONTRACT_ADDRESSES.game);
-            const isApproved = allowance > 0n;
-
-            // Update state if approval status has changed
-            setState(prev => ({
-                ...prev,
-                isTokenApproved: isApproved
-            }));
-
-            return isApproved;
+    // Update totem attributes locally (no API call) - used for immediate UI updates after actions
+    const updateTotemAttributes = useCallback((
+        totemId: string,
+        updates: {
+            experience?: number;
+            happiness?: number;
+            stage?: number;
+            nickname?: string | null;
+            displayName?: string;
+            strength?: number;
+            agility?: number;
+            wisdom?: number;
         }
-        catch (error) {
-            console.error('Error checking token approval:', error);
-            return false;
-        }
-    }, [state.provider, state.address]);
-
-    const approveTokens = useCallback(async () => {
-        console.log(state);
-        if (!state.provider || !state.signer) throw new Error('Not connected');
-
-        try {
-            const tokenContract = createTokenContract(state.provider);
-            const connectedToken = tokenContract.connect(state.signer) as TotemTokenContract;
-
-            const tx = await connectedToken.approve(CONTRACT_ADDRESSES.game, ethers.MaxUint256);
-
-            console.log('Approval tx:', tx.hash);
-            await tx.wait();
-            return true;
-        }
-        catch (error) {
-            console.error('Error approving tokens:', error);
-            return false;
-        }
-    }, [state.provider, state.signer]);
-
-    const setApprovalMessageDismissed = useCallback((dismissed: boolean) => {
-        setState(prev => ({ ...prev, isApprovalMessageDismissed: dismissed }));
-        setUserStorage(STORAGE_KEYS.tokenApprovalMessageDismissed, state.address, dismissed);
-    }, [state.address]);
-    
-    const handleAccountsChanged = useCallback(async (accounts: any) => {
-        if (!window.ethereum) return;
-        try {
-            if (!accounts || accounts.length === 0) {
-                setState(prev => ({
-                    ...prev,
-                    isSignedUp: false,
-                    address: '',
-                    signer: null,
-                    isConnected: false
-                }));
-                return;
-            }
-    
-            const provider = new ethers.BrowserProvider(window.ethereum);
-            const signer = await provider.getSigner();
-            const gameContract = createGameContract(provider);
-            const normalizedAddress = normalizeAddress(accounts[0]?.address || '');
-            const hasSignedUp = await gameContract.hasSignedUp(normalizedAddress);
-
-            setState(prev => ({
-                ...prev,
-                isSignedUp: hasSignedUp,
-                address: normalizedAddress,
-                signer,
-                isConnected: true,
-                isApprovalMessageDismissed: getUserStorage(STORAGE_KEYS.tokenApprovalMessageDismissed, normalizedAddress, false),
-                isGaslessEnabled: getUserStorage(STORAGE_KEYS.isGaslessEnabled, normalizedAddress, false),
-                gaslessApiKey: getUserStorage(STORAGE_KEYS.gaslessApiKey, normalizedAddress, ''),
-                accountType: initialAccountType(normalizedAddress),
-                tutorialWizardVisible: getUserStorage(STORAGE_KEYS.tutorialWizardVisible, normalizedAddress, true)
-            }));
-        }
-        catch (err) {
-            console.error('Error getting signer:', err);
-        }
+    ) => {
+        setTotems(prev => prev.map(totem => {
+            if (totem.id !== totemId) return totem;
+            const newStage = updates.stage !== undefined ? updates.stage : totem.attributes.stage;
+            // Recalculate image URL and display name when stage changes
+            const newImage = updates.stage !== undefined
+                ? getTotemImageUrl(totem.attributes.species, totem.attributes.color, newStage)
+                : totem.image;
+            const newDisplayName = updates.stage !== undefined
+                ? getStageName(totem.attributes.species, totem.attributes.color, newStage)
+                : (updates.displayName !== undefined ? updates.displayName : totem.displayName);
+            return {
+                ...totem,
+                image: newImage,
+                displayName: newDisplayName,
+                attributes: {
+                    ...totem.attributes,
+                    ...(updates.experience !== undefined && { experience: updates.experience }),
+                    ...(updates.happiness !== undefined && { happiness: updates.happiness }),
+                    ...(updates.stage !== undefined && { stage: updates.stage }),
+                    ...(updates.nickname !== undefined && { nickname: updates.nickname }),
+                    ...(updates.strength !== undefined && { strength: updates.strength }),
+                    ...(updates.agility !== undefined && { agility: updates.agility }),
+                    ...(updates.wisdom !== undefined && { wisdom: updates.wisdom }),
+                }
+            };
+        }));
     }, []);
 
-    // Initialize provider on mount
-    const initializeProvider = useCallback(async () => {
-        if (!window.ethereum) return;
-        
-        try {
-            const provider = new ethers.BrowserProvider(window.ethereum);
-            setState(prev => ({ ...prev, provider }));
-            
-            // Check if already connected without prompting
-            const accounts = await provider.listAccounts();
-            if (accounts.length > 0) {
-                // User already has an account connected, get signer and set up state
-                const signer = await provider.getSigner();
-                setState(prev => ({ ...prev, signer }));
-                await handleAccountsChanged(accounts);
-                console.log("Auto-connected to previously connected wallet");
-            }
-            else {
-                console.log("No previously connected wallet found");
-                // Don't prompt - let user click connect button
-            }
-        }
-        catch (error) {
-            console.error('Error initializing provider:', error);
-        }
-    }, [handleAccountsChanged]);
-
+    // Web2: Update balances from user profile
     const updateBalances = useCallback(async () => {
-        if (!state.provider || !state.address) return;
-    
+        if (!apiClient.isAuthenticated()) return;
+
         try {
-            const tokenContract = createTokenContract(state.provider);
-    
-            const [totemBal, polBal] = await Promise.all([
-                tokenContract.balanceOf(state.address),
-                state.provider.getBalance(state.address)
-            ]);
-    
-            setState(prev => ({
-                ...prev,
-                totemBalance: ethers.formatEther(totemBal),
-                polBalance: ethers.formatEther(polBal)
-            }));
+            const response = await apiClient.getProfile();
+
+            if (response.success && response.data) {
+                const { currencies } = response.data;
+                setState(prev => ({
+                    ...prev,
+                    essenceBalance: String(currencies?.essence || 0),
+                    gemsBalance: String(currencies?.gems || 0)
+                }));
+            }
         } catch (error) {
             console.error('Error updating balances:', error);
         }
-    }, [state.provider, state.address]);
+    }, []);
 
+    // Set essence balance directly from inline response data (no API call)
+    const setEssenceBalance = useCallback((balance: number) => {
+        setState(prev => ({
+            ...prev,
+            essenceBalance: String(balance)
+        }));
+    }, []);
+
+    // Web2: Update achievement status via REST API
     const updateAchievementStatus = async () => {
-        if (!state.provider || !state.address) return;
+        if (!apiClient.isAuthenticated()) return;
 
         try {
-            const achievementsContract = createAchievementsContract(state.provider);
-            
-            // Check Week Warrior achievement
-            const loginProgressionId = ethers.id("login_progression");
-            const progress = await achievementsContract.getDetailedProgress(loginProgressionId, state.address);
-            const hasWeeklyUnlocked = progress.count >= 7;
+            const response = await apiClient.getAchievements();
 
-            // Check Elder Evolution achievement
-            const elderEvolutionId = ethers.id("evolution_progression");
-            const elderStatus = await achievementsContract.getDetailedProgress(elderEvolutionId, state.address);
-    
-            // Check if all evolution milestones are completed
-            const hasElderEvolution = elderStatus.unlockedMilestones.length === 4 && 
-                elderStatus.unlockedMilestones.every(milestone => milestone === true);
+            if (response.success && response.data) {
+                // Web2: Check for specific achievements that unlock features
+                // API format: { "ach_id": [{ unlocked: bool, progress: number }, ...] }
+                const achievements = response.data.achievements || {};
 
-            setState(prev => ({
-                ...prev,
-                hasWeeklyUnlocked: hasWeeklyUnlocked,
-                hasStakingUnlocked: hasElderEvolution
-            }));
+                // Check login progression - first milestone's progress is the login count
+                const loginMilestones = achievements['ach_login_progression'] || [];
+                const loginProgress = loginMilestones[0]?.progress ?? 0;
+
+                // Check evolution progression - check if first milestone is unlocked
+                const evolutionMilestones = achievements['ach_evolution_progression'] || [];
+                const hasEvolved = evolutionMilestones[0]?.unlocked ?? false;
+
+                setState(prev => ({
+                    ...prev,
+                    hasWeeklyUnlocked: loginProgress >= 7,
+                    hasStakingUnlocked: hasEvolved
+                }));
+            }
         } catch (error) {
             console.error("Error checking achievement status:", error);
         }
     };
-    
+
     const setTutorialWizardVisible = (visible: boolean) => {
-        setUserStorage(STORAGE_KEYS.tutorialWizardVisible, state.address, visible);
+        if (user?.id) {
+            setUserStorage(STORAGE_KEYS.tutorialWizardVisible, user.id, visible);
+        }
         setState(prev => ({ ...prev, tutorialWizardVisible: visible }));
     };
 
-    // Load link tracking data when address changes
+    // Load link tracking data when user changes
     useEffect(() => {
-        if (state.address) {
-            const userLinkTracking = getUserStorage(STORAGE_KEYS.linkTracking, state.address, {});
+        if (user?.id) {
+            const userLinkTracking = getUserStorage(STORAGE_KEYS.linkTracking, user.id, {});
             setLinkTracking(userLinkTracking);
         } else {
             setLinkTracking({});
         }
-    }, [state.address]);
+    }, [user?.id]);
 
-    // Setup listeners only once on mount
+    // Sync isConnected/isSignedUp with AuthContext
     useEffect(() => {
-        if (window.ethereum) {
-            initializeProvider();
-            
-            window.ethereum.on('accountsChanged', handleAccountsChanged);
-            window.ethereum.on('chainChanged', () => window.location.reload());
+        setState(prev => ({
+            ...prev,
+            isConnected: isAuthenticated,
+            isSignedUp: isAuthenticated,
+            address: user?.id || '',
+            essenceBalance: String(user?.currencies?.essence ?? 0),
+            gemsBalance: String(user?.currencies?.gems || 0),
+            tutorialWizardVisible: user?.id
+                ? getUserStorage(STORAGE_KEYS.tutorialWizardVisible, user.id, window.innerWidth >= 640)
+                : window.innerWidth >= 640
+        }));
+    }, [isAuthenticated, user]);
 
-            return () => {
-                window?.ethereum?.removeListener('accountsChanged', handleAccountsChanged);
-            };
-        }
-    }, [handleAccountsChanged, initializeProvider]);
-
+    // Setup refresh timers when authenticated
     useEffect(() => {
-        if (!state.isConnected || !state.isSignedUp) return;
-    
+        if (!isAuthenticated) return;
+
         // Calculate time until next UTC midnight
         const getTimeUntilMidnight = () => {
             const now = new Date();
@@ -685,230 +520,128 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ));
             return tomorrow.getTime() - now.getTime();
         };
-    
+
         // Handle midnight rollover
         const handleMidnightRollover = async () => {
             try {
-                // Update all states
                 await Promise.all([
-                    updateAchievementStatus()
+                    updateAchievementStatus(),
+                    updateBalances()
                 ]);
             } catch (error) {
                 console.error('Error handling midnight rollover:', error);
             }
         };
-    
-        // Set up periodic refresh (every 30 seconds)
-        const refreshStates = async () => {
+
+        // Initial load of balances and achievements
+        const initialLoad = async () => {
             try {
-                console.log('refreshing state');
                 await Promise.all([
                     updateBalances(),
                     updateAchievementStatus()
                 ]);
             } catch (error) {
-                console.error('Error refreshing states:', error);
+                console.error('Error loading initial state:', error);
             }
         };
-    
-        // Initial check for midnight + 1 minute window
+
+        // Check for midnight rollover (daily rewards reset)
         const now = new Date();
         if (now.getUTCHours() === 0 && now.getUTCMinutes() === 0) {
             handleMidnightRollover();
         }
-    
-        // Set up midnight timer
+
+        // Set up midnight timer for daily reset
         const timeUntilMidnight = getTimeUntilMidnight();
         const midnight = setTimeout(async () => {
             await handleMidnightRollover();
-            
-            // Set up recurring daily check
             setMidnightTimeout(setInterval(handleMidnightRollover, 24 * 60 * 60 * 1000));
         }, timeUntilMidnight);
-    
-        // Set up refresh interval
-        const refresh = setInterval(refreshStates, 30000); // 30 seconds
-    
-        // Store the timeouts/intervals
-        setMidnightTimeout(midnight);
-        setRefreshInterval(refresh);
-    
-        // Call immediately
-        refreshStates();
 
-        // Cleanup function
+        setMidnightTimeout(midnight);
+
+        // Load initial state (no polling - state updates after user actions)
+        initialLoad();
+
         return () => {
             if (midnightTimeout) clearTimeout(midnightTimeout);
-            if (refreshInterval) clearInterval(refreshInterval);
         };
-    }, [
-        state.isConnected, 
-        state.isSignedUp
-    ]);
+    }, [isAuthenticated, updateBalances]);
 
-    // Watch for signed up users to update balances
+    // Fetch totems when authenticated
     useEffect(() => {
-        if (state.isConnected && state.isSignedUp) {
-            checkTokenApproval();
-            updateBalances();
-        }
-    }, [state.isConnected, state.isSignedUp, checkTokenApproval, updateBalances]);
-
-    useEffect(() => {
-        if (state.isConnected && state.isSignedUp) {
+        if (isAuthenticated) {
             fetchTotems();
         } else {
             setTotems([]);
             setTotemCache(new Map());
         }
-    }, [state.isConnected, state.isSignedUp]);
+    }, [isAuthenticated, fetchTotems]);
 
-    useEffect(() => {
-        updateAccountType();
-    }, []);
-
+    // Web2: connect/disconnect are no-ops (handled by AuthContext)
     const connect = async () => {
-        if (!window.ethereum) {
-          alert('Please install MetaMask!');
-          return;
-        }
-    
-        try {
-            await window.ethereum.request({
-                method: 'eth_requestAccounts'
-            });
-            initializeProvider();
-        }
-        catch (err) {
-            console.error('Error connecting wallet:', err);
-        }
+        // In Web2, authentication is handled by AuthContext
+        console.log('connect() called - use AuthContext.login() instead');
     };
-    
-    const disconnect = () => {
-        localStorage.removeItem(STORAGE_KEYS.notifications);
-        localStorage.removeItem(STORAGE_KEYS.tokenApprovalMessageDismissed);
 
+    const disconnect = () => {
+        // In Web2, logout is handled by AuthContext
+        localStorage.removeItem(STORAGE_KEYS.notifications);
         setState(prev => ({
             ...prev,
             totems: [],
             address: '',
-            signer: null,
             isSignedUp: false,
-            isConnected: false,
-            isTokenApproved: false,
-            isApprovalMessageDismissed: false
+            isConnected: false
         }));
     };
 
-    const setGaslessEnabled = (enabled: boolean) => {
-        setUserStorage(STORAGE_KEYS.isGaslessEnabled, state.address, enabled);
-        setState(prev => ({ ...prev, isGaslessEnabled: enabled }));
-        updateAccountType();
-    };
-    
-    const setGaslessApiKey = (apiKey: string) => {
-        setUserStorage(STORAGE_KEYS.gaslessApiKey, state.address, apiKey);
-        setState(prev => ({ ...prev, gaslessApiKey: apiKey }));
-        updateAccountType();
-    };
-    
-    const updateAccountType = (providedApiKey?: string) => {
-        const isEnabled = getUserStorage(STORAGE_KEYS.isGaslessEnabled, state.address, false);
-        const apiKey = providedApiKey || getUserStorage(STORAGE_KEYS.gaslessApiKey, state.address, '');
-        
-        let accountType: AccountType = 'Free';
-        
-        if (!isEnabled) {
-            accountType = 'Advanced';
-        }
-        else if (apiKey && apiKey.trim() !== '') {
-            // If gasless is enabled and they have an API key, check key type
-            if (apiKey.startsWith('premium_')) {
-                accountType = 'Premium';
-            } else {
-                accountType = 'Free';
-            }
-        }
-        else {
-            // Gasless enabled but no key should be Advanced
-            accountType = 'Advanced';
-        }
-        
-        if (state.address) {
-            setUserStorage<AccountType>(STORAGE_KEYS.accountType, state.address, accountType);
-        }        
+    const updateAccountType = () => {
+        // In Web2, account type is based on user tier from profile
+        const accountType: AccountType = user?.tier === 'premium' ? 'Premium' : 'Free';
         setState(prev => ({ ...prev, accountType }));
-        
         return accountType;
     };
 
-    function initialAccountType(addr: string) {
-        const isEnabled = getUserStorage<boolean>(STORAGE_KEYS.isGaslessEnabled, addr, false);
-        const apiKey = getUserStorage<string>(STORAGE_KEYS.gaslessApiKey, addr, '');
-        
-        if (!isEnabled) return 'Advanced';
-        if (apiKey && apiKey.trim() !== '') {
-            return apiKey.startsWith('premium_') ? 'Premium' : 'Free';
-        }
-        return 'Advanced';
-    }
-
     const checkSignupStatus = useCallback(async () => {
-        if (!state.provider || !state.address) return;
-
-        try {
-            const gameContract = createGameContract(state.provider);
-            const normalizedAddress = normalizeAddress(state.address);
-            const hasSignedUp = await gameContract.hasSignedUp(normalizedAddress);
-
-            setState(prev => ({ ...prev, isSignedUp: hasSignedUp }));
-        }
-        catch (error) {
-            console.error('Error checking signup status:', error);
-            setState(prev => ({ ...prev, isSignedUp: false }));
-        }
-    }, [state.provider, state.address]);
+        // In Web2, signup status is managed by AuthContext
+        setState(prev => ({ ...prev, isSignedUp: isAuthenticated }));
+    }, [isAuthenticated]);
 
     return (
         <UserContext.Provider
             value={{
                 isSignedUp: state.isSignedUp,
-                isTokenApproved: state.isTokenApproved,
-                totemBalance: state.totemBalance,
-                polBalance: state.polBalance,
+                essenceBalance: state.essenceBalance,
+                gemsBalance: state.gemsBalance,
                 isConnected: state.isConnected,
-                provider: state.provider,
-                signer: state.signer,
                 address: state.address,
                 checkSignupStatus,
                 updateBalances,
+                setEssenceBalance,
                 connect,
                 disconnect,
                 totems,
                 totemLoading,
                 totemError,
                 getTotem,
+                fetchTotems,
+                updateTotemNickname,
+                updateTotemAttributes,
                 addTotem,
                 removeTotem,
                 updateTotem,
                 updateTotemEvolved,
-                checkTokenApproval,
-                approveTokens,
-                isApprovalMessageDismissed: state.isApprovalMessageDismissed,
-                setApprovalMessageDismissed,
                 updateAchievementStatus,
                 messageDialog: state.messageDialog,
                 showError,
+                showSuccess,
                 hideError,
-                isGaslessEnabled: state.isGaslessEnabled,
-                setGaslessEnabled,
-                gaslessApiKey: state.gaslessApiKey,
-                setGaslessApiKey,
                 accountType: state.accountType,
                 updateAccountType,
-                comingSoon,
-                canSpendTotem,
-                canSpendCurrency,
+                comingSoon: false,
+                canSpendEssence,
+                canSpendGems,
                 tutorialWizardVisible: state.tutorialWizardVisible,
                 setTutorialWizardVisible,
                 linkTracking,

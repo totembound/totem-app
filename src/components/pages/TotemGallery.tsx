@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ChartBar, ScrollText } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
-import { useUser } from '../../contexts/UserContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useGame } from '../../contexts/GameContext';
-import { NFTMetadata, Rarity, Species } from '../../types/types';
+import { useUser } from '../../contexts/UserContext';
+import { TotemData, Rarity, Species } from '../../types/types';
 import TotemDetailView from '../TotemDetailView';
 import { TotemGridCard, TotemListRow } from '../TotemGridAndListView';
 import Toolbar from '../layouts/GalleryToolbar';
-import _ from 'lodash';
 import TotemGalleryStats from './TotemGalleryStats';
+import { getTotemImageUrl } from '../../utils/species';
 
 type SortDirection = 'asc' | 'desc';
 type SortKey = 'created' | 'experience' | 'happiness' | 'stage';
@@ -20,11 +21,74 @@ interface SortConfig {
 
 const TotemGallery = () => {
     const location = useLocation();
-    const { totems, totemLoading } = useUser();
-    const { canUseAction } = useGame();
+    const { isTotemAvailable, expeditionState } = useGame();
+    const { isAuthenticated } = useAuth();
+    const {
+        totems,
+        totemLoading,
+        totemError,
+        fetchTotems,
+        updateTotemAttributes: contextUpdateTotemAttributes
+    } = useUser();
+
+    // Wrapper to also update selectedTotem when attributes change
+    const updateTotemAttributes = useCallback((
+        totemId: string,
+        updates: {
+            experience?: number;
+            happiness?: number;
+            stage?: number;
+            nickname?: string | null;
+            displayName?: string;
+            strength?: number;
+            agility?: number;
+            wisdom?: number;
+        }
+    ) => {
+        // Update context totems (single source of truth)
+        contextUpdateTotemAttributes(totemId, updates);
+
+        // Also update selectedTotem if it's the same one
+        setSelectedTotem(prev => {
+            if (prev && prev.id === totemId) {
+                // Compute new image URL if stage changed
+                let newImage = prev.image;
+                if (updates.stage !== undefined) {
+                    const speciesId = prev.attributes.species;
+                    const colorId = prev.attributes.color;
+                    newImage = getTotemImageUrl(speciesId, colorId, updates.stage);
+                }
+
+                return {
+                    ...prev,
+                    image: newImage,
+                    ...(updates.displayName !== undefined && { displayName: updates.displayName }),
+                    attributes: {
+                        ...prev.attributes,
+                        ...(updates.experience !== undefined && { experience: updates.experience }),
+                        ...(updates.happiness !== undefined && { happiness: updates.happiness }),
+                        ...(updates.stage !== undefined && { stage: updates.stage }),
+                        ...(updates.nickname !== undefined && { nickname: updates.nickname }),
+                        ...(updates.strength !== undefined && { strength: updates.strength }),
+                        ...(updates.agility !== undefined && { agility: updates.agility }),
+                        ...(updates.wisdom !== undefined && { wisdom: updates.wisdom }),
+                    }
+                };
+            }
+            return prev;
+        });
+    }, [contextUpdateTotemAttributes]);
+
+    // Load totems on mount and when auth changes
+    useEffect(() => {
+        if (isAuthenticated) {
+            fetchTotems();
+        }
+    }, [isAuthenticated, fetchTotems]);
+
     // State Management
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-    const [selectedTotem, setSelectedTotem] = useState<NFTMetadata | null>(null!);
+    const [selectedTotem, setSelectedTotem] = useState<TotemData | null>(null!);
     const [filters, setFilters] = useState({
         species: '',
         rarity: '',
@@ -40,12 +104,13 @@ const TotemGallery = () => {
     const [showStats, setShowStats] = useState(false);
     const itemsPerPage = 8;
 
-    const sortTotems = (totems: NFTMetadata[]) => {
+    const sortTotems = (totems: TotemData[]) => {
         return [...totems].sort((a, b) => {
             const multiplier = sortConfig.direction === 'desc' ? -1 : 1;
             switch (sortConfig.key) {
                 case 'created':
-                    return multiplier * (Number(b.tokenId) - Number(a.tokenId));
+                    // Web2: Sort by string ID (ULID is lexicographically sortable)
+                    return multiplier * b.id.localeCompare(a.id);
                 case 'experience':
                     return multiplier * (b.attributes.experience - a.attributes.experience);
                 case 'happiness':
@@ -63,6 +128,13 @@ const TotemGallery = () => {
             key,
             direction: current.key === key && current.direction === 'desc' ? 'asc' : 'desc'
         }));
+    };
+
+    const getExpeditionEndTime = (totemId: string): number => {
+        const expedition = expeditionState.userExpeditions.find(exp =>
+            !exp.completed && exp.totemIds.some(id => id.toString() === totemId)
+        );
+        return expedition ? expedition.endTime : 0;
     };
 
     // Filter NFTs
@@ -101,16 +173,46 @@ const TotemGallery = () => {
         setCurrentPage(1);
     }, [filters]);
 
+    // Preselect totem from navigation state (e.g., tutorial wizard link) — only once
+    const hasConsumedPreselection = useRef(false);
     useEffect(() => {
-        const preselectedTotem = totems.find((totem) => {
-            return totem.tokenId === location.state?.selectedTokenId;
-        });
+        if (hasConsumedPreselection.current) return;
 
-        if (preselectedTotem) {
-            setSelectedTotem(preselectedTotem);
+        const preselectedTotemId = location.state?.selectedTotemId;
+        if (!preselectedTotemId) {
+            hasConsumedPreselection.current = true;
+            return;
         }
 
-    }, [totems, location.state?.selectedTokenId]);
+        const preselectedTotem = totems.find((totem) => totem.id === preselectedTotemId);
+        if (preselectedTotem) {
+            setSelectedTotem(preselectedTotem);
+            hasConsumedPreselection.current = true;
+        }
+    }, [totems, location.state?.selectedTotemId]);
+
+    // Sync selectedTotem with context totems when they change (e.g., after action success)
+    useEffect(() => {
+        if (selectedTotem && totems.length > 0) {
+            const updatedTotem = totems.find(t => t.id === selectedTotem.id);
+            if (updatedTotem) {
+                // Check if attributes or display data have changed
+                const hasChanged =
+                    updatedTotem.attributes.experience !== selectedTotem.attributes.experience ||
+                    updatedTotem.attributes.happiness !== selectedTotem.attributes.happiness ||
+                    updatedTotem.attributes.stage !== selectedTotem.attributes.stage ||
+                    updatedTotem.displayName !== selectedTotem.displayName ||
+                    updatedTotem.attributes.strength !== selectedTotem.attributes.strength ||
+                    updatedTotem.attributes.agility !== selectedTotem.attributes.agility ||
+                    updatedTotem.attributes.wisdom !== selectedTotem.attributes.wisdom ||
+                    updatedTotem.image !== selectedTotem.image;
+
+                if (hasChanged) {
+                    setSelectedTotem(updatedTotem);
+                }
+            }
+        }
+    }, [totems, selectedTotem]);
 
     return (
         <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg">
@@ -123,7 +225,7 @@ const TotemGallery = () => {
                                 My Totems
                             </h1>
                             <p className="text-gray-600 dark:text-gray-400">
-                                Explore and manage your mystical collection of spirit companions.
+                                Explore and manage your mystical collection of mystical companions.
                             </p>
                         </div>
                         <button
@@ -152,8 +254,37 @@ const TotemGallery = () => {
                     onSortChange={handleSort}
                 />
 
+                {/* Loading State */}
+                {totemLoading && (
+                    <div className="flex flex-col items-center justify-center py-8">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                        <p className="mt-4 text-gray-500 dark:text-gray-400">Loading your totems...</p>
+                    </div>
+                )}
+
+                {/* Error State */}
+                {totemError && !totemLoading && (
+                    <div className="flex flex-col items-center justify-center py-8 px-4">
+                        <div className="text-red-500 dark:text-red-400 mb-4">
+                            <ScrollText size={48} />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                            Failed to Load Totems
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-4">
+                            {totemError}
+                        </p>
+                        <button
+                            onClick={fetchTotems}
+                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                        >
+                            Try Again
+                        </button>
+                    </div>
+                )}
+
                 {/* Main Content */}
-                {sortedAndFilteredNFTs.length === 0 ? (
+                {!totemLoading && !totemError && sortedAndFilteredNFTs.length === 0 ? (
                      <div className="flex flex-col items-center justify-center py-4 sm:py-8 px-2 sm:px-4">
                         <div className="text-gray-400 dark:text-gray-600 mb-2 sm:mb-4">
                             <ScrollText size={32} className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16" />
@@ -162,13 +293,13 @@ const TotemGallery = () => {
                             No Totems Found
                         </h3>
                         <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 text-center max-w-xs">
-                            {Object.values(filters).some(filter => filter !== '') 
+                            {Object.values(filters).some(filter => filter !== '')
                                 ? "Try adjusting your filters to see more results"
                                 : "You don't have any Totems yet. Visit the Shop to get started!"}
                         </p>
                     </div>
-                ) : viewMode === 'grid' ? (
-                    <div className="grid grid-cols-4 gap-1 sm:gap-2 md:gap-3">
+                ) : !totemLoading && !totemError && sortedAndFilteredNFTs.length > 0 && viewMode === 'grid' ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-2 md:gap-3">
                         {sortedAndFilteredNFTs
                             .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                             .map((nft) => (
@@ -178,11 +309,13 @@ const TotemGallery = () => {
                                     onClick={() => setSelectedTotem(nft)}
                                     isSelected={selectedTotem?.id === nft.id}
                                     isLoading={totemLoading}
+                                    isOnExpedition={!isTotemAvailable(nft.id)}
+                                    expeditionEndTime={getExpeditionEndTime(nft.id)}
                                 />
                             ))
                         }
                     </div>
-                ) : (
+                ) : !totemLoading && !totemError && sortedAndFilteredNFTs.length > 0 ? (
                     <div className="flex flex-col gap-1 sm:gap-2 md:gap-3">
                         {sortedAndFilteredNFTs
                             .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
@@ -193,11 +326,13 @@ const TotemGallery = () => {
                                     onClick={() => setSelectedTotem(nft)}
                                     isSelected={selectedTotem?.id === nft.id}
                                     isLoading={totemLoading}
+                                    isOnExpedition={!isTotemAvailable(nft.id)}
+                                    expeditionEndTime={getExpeditionEndTime(nft.id)}
                                 />
                             ))
                         }
                     </div>
-                )}
+                ) : null}
             </div>
 
             {/* Detail View Modal */}
@@ -220,7 +355,7 @@ const TotemGallery = () => {
                             onClose={() => setSelectedTotem(null)}
                             onPrev={handlePrevTotem}
                             onNext={handleNextTotem}
-                            canUseAction={canUseAction}
+                            onUpdateTotemAttributes={updateTotemAttributes}
                         />
                     </div>
                 </div>

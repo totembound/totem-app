@@ -13,10 +13,15 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    // Check localStorage first, then system preference
+    // Check localStorage first, then system preference, then default to dark
     const stored = getUserStorage<Theme | null>(STORAGE_KEYS.theme, '', null);
     if (stored === 'dark' || stored === 'light') return stored;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    // Check system preference, default to dark if neither matches
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const prefersLight = window.matchMedia('(prefers-color-scheme: light)');
+    if (prefersDark.matches) return 'dark';
+    if (prefersLight.matches) return 'light';
+    return 'dark'; // Default to dark if no system preference
   });
 
   useEffect(() => {

@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { NFTMetadata, ActionType, TotemAttributes, ActionTracking, RateLimitError } from '../types/types';
-import { useUser } from '../contexts/UserContext';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { TotemData, ActionType, TotemAttributes, ActionTracking, ActionConfig } from '../types/types';
 import { useGame } from '../contexts/GameContext';
-import { useTransactionService } from '../hooks/useTransactionService';
-import CelebrationModal from './CelebrationModal';
+import { useAuth } from '../contexts/AuthContext';
 import { useAchievements } from '../contexts/AchievementsContext';
-// Import modular components
+import { useTotemGameApi } from '../hooks/useTotemGameApi';
+import CelebrationModal from './CelebrationModal';
 import TotemDetailHeader from './TotemDetailHeader';
 import TotemImageSection from './TotemImageSection';
 import TotemStatsPanel from './TotemStatsPanel';
@@ -14,9 +13,22 @@ import TotemActionBar from './TotemActionBar';
 import TotemNavigation from './TotemNavigation';
 import ExperienceEffect from './effects/ExperienceEffect';
 import { STAGE_THRESHOLDS } from '../config/constants';
+import { getTotemImageUrl, getStageName, getStageDescription, loadSpeciesById, isSpeciesLoaded } from '../utils/species';
+
+// Action configs with Essence costs (Web2 - all numbers, no BigInt)
+const ACTION_CONFIGS: Partial<Record<ActionType, ActionConfig>> = {
+    // Feed: 10 Essence, no cooldown, 3x daily max, +10 happiness, 0 XP, uses time windows
+    [ActionType.Feed]: { cost: 10, cooldown: 0, maxDaily: 3, minHappiness: 0, happinessChange: 10, experienceGain: 0, useTimeWindows: true, increasesHappiness: true, enabled: true },
+    // Train: 20 Essence, no cooldown, unlimited, requires 20 happiness, -10 happiness, +50 XP
+    [ActionType.Train]: { cost: 20, cooldown: 0, maxDaily: 0, minHappiness: 20, happinessChange: 10, experienceGain: 50, useTimeWindows: false, increasesHappiness: false, enabled: true },
+    // Treat: 20 Essence, 4hr cooldown, unlimited, +10 happiness, 0 XP
+    [ActionType.Treat]: { cost: 20, cooldown: 14400, maxDaily: 0, minHappiness: 0, happinessChange: 10, experienceGain: 0, useTimeWindows: false, increasesHappiness: true, enabled: true },
+    // Evolve: Free, requires 30 happiness
+    [ActionType.Evolve]: { cost: 0, cooldown: 0, maxDaily: 0, minHappiness: 30, happinessChange: 0, experienceGain: 0, useTimeWindows: false, increasesHappiness: false, enabled: true },
+};
 
 interface TotemDetailViewProps {
-    totem: NFTMetadata;
+    totem: TotemData;
     onClose: () => void;
     onPrev: () => void;
     onNext: () => void;
@@ -27,6 +39,19 @@ interface TotemDetailViewProps {
         actionType: ActionType,
         tracking: ActionTracking | undefined
     ) => boolean;
+    onUpdateTotemAttributes?: (
+        totemId: string,
+        updates: {
+            experience?: number;
+            happiness?: number;
+            stage?: number;
+            nickname?: string | null;
+            displayName?: string;
+            strength?: number;
+            agility?: number;
+            wisdom?: number;
+        }
+    ) => void; // Update local totem state (SPA pattern)
 }
 
 const TotemDetailView: React.FC<TotemDetailViewProps> = ({
@@ -37,76 +62,318 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     totalTotems,
     currentIndex,
     canUseAction: externalCanUseAction,
+    onUpdateTotemAttributes,
 }) => {
-    const { totems, updateTotem, updateTotemEvolved, totemBalance, isGaslessEnabled, handleRateLimitError } = useUser();
-    const { actionConfigs, canUseAction: gameCanUseAction, getActionStatus, getNextAvailableWindow, isTotemAvailable, expeditionState } = useGame();
+    const { user, updateEssence } = useAuth();
+    const gameApi = useTotemGameApi();
+    const { isTotemAvailable, expeditionState, fetchTotemCooldowns, setTotemCooldowns } = useGame();
+    const { incrementAchievementProgress } = useAchievements();
+
     const [isLoading, setIsLoading] = useState<ActionType | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [showEvolutionCelebration, setShowEvolutionCelebration] = useState(false);
+    const [evolvedTotemData, setEvolvedTotemData] = useState<{
+        image: string;
+        displayName: string;
+        stage: number;
+    } | null>(null);
     const [activeEffect, setActiveEffect] = useState<'treat' | 'feed' | 'train' | null>(null);
     const [activeTab, setActiveTab] = useState<'stats' | 'details'>('stats');
     const [showExpEffect, setShowExpEffect] = useState(false);
+    const [cooldowns, setCooldowns] = useState<Record<string, { onCooldown: boolean; readyAt: Date | null; remainingMs: number }>>({});
+    const [speciesLoaded, setSpeciesLoaded] = useState(false);
     const dialogRef = useRef<HTMLDivElement>(null);
-    const { refreshAchievements } = useAchievements();
 
-    // Use either the externally provided canUseAction function or the one from the game context
-    const canUseAction = externalCanUseAction || gameCanUseAction;
-    
-    const txService = useTransactionService({
-        gaslessEnabled: isGaslessEnabled,
-        waitForConfirmation: true
-    });
-    
-    const currentTotem = useMemo(() => 
-        totems.find(t => t.tokenId === totem.tokenId) ?? totem,
-        [totems, totem.tokenId, totem]
-    );
+
+    // Load species config for stage names/descriptions
+    useEffect(() => {
+        const loadSpecies = async () => {
+            if (!isSpeciesLoaded(totem.attributes.species)) {
+                await loadSpeciesById(totem.attributes.species);
+            }
+            setSpeciesLoaded(true);
+        };
+        loadSpecies();
+    }, [totem.attributes.species]);
+
+    // Get stage-specific name and description (memoized)
+    const stageName = useMemo(() => {
+        if (!speciesLoaded) return '';
+        return getStageName(
+            totem.attributes.species,
+            totem.attributes.color,
+            evolvedTotemData?.stage ?? totem.attributes.stage
+        );
+    }, [speciesLoaded, totem.attributes.species, totem.attributes.color, totem.attributes.stage, evolvedTotemData?.stage]);
+
+    const stageDescription = useMemo(() => {
+        if (!speciesLoaded) return '';
+        return getStageDescription(
+            totem.attributes.species,
+            totem.attributes.color,
+            evolvedTotemData?.stage ?? totem.attributes.stage
+        );
+    }, [speciesLoaded, totem.attributes.species, totem.attributes.color, totem.attributes.stage, evolvedTotemData?.stage]);
+
+    // Action configs and Essence balance
+    const actionConfigs = ACTION_CONFIGS as Record<ActionType, ActionConfig>;
+    const essenceBalance = user?.currencies?.essence ?? 0;
+
+    // Check cooldowns to determine if action can be used
+    const canUseAction = useCallback((
+        attributes: TotemAttributes,
+        actionType: ActionType,
+        tracking: ActionTracking | undefined
+    ): boolean => {
+        if (externalCanUseAction) return externalCanUseAction(attributes, actionType, tracking);
+        const actionName = ActionType[actionType].toLowerCase() as 'feed' | 'train' | 'treat';
+        const cooldown = cooldowns[actionName];
+        if (cooldown?.onCooldown) return false;
+        return true;
+    }, [cooldowns, externalCanUseAction]);
+
+    // Get action status message
+    const getActionStatus = useCallback((
+        actionType: ActionType,
+        _attributes: TotemAttributes,
+        _tracking: ActionTracking,
+        _config: ActionConfig
+    ): string => {
+        const actionName = ActionType[actionType].toLowerCase() as 'feed' | 'train' | 'treat';
+        const cooldown = cooldowns[actionName];
+
+        if (cooldown?.onCooldown && cooldown.remainingMs > 0) {
+            const hours = Math.floor(cooldown.remainingMs / (1000 * 60 * 60));
+            const mins = Math.floor((cooldown.remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+            return `Ready in ${hours}h ${mins}m`;
+        }
+        return 'Available';
+    }, [cooldowns]);
+
+    // Get next available feeding window (shows when next window starts in local time)
+    const getNextFeedWindow = useCallback((): string => {
+        const now = new Date();
+        const utcHour = now.getUTCHours();
+
+        // Calculate next window start time in UTC
+        let nextWindowUTC: number;
+        if (utcHour < 8) {
+            nextWindowUTC = 8; // Next is Window 2 at 08:00 UTC
+        } else if (utcHour < 16) {
+            nextWindowUTC = 16; // Next is Window 3 at 16:00 UTC
+        } else {
+            nextWindowUTC = 24; // Next is Window 1 at 00:00 UTC (tomorrow)
+        }
+
+        // Convert to local time for display
+        const nextWindow = new Date(now);
+        nextWindow.setUTCHours(nextWindowUTC % 24, 0, 0, 0);
+        if (nextWindowUTC === 24) {
+            nextWindow.setUTCDate(nextWindow.getUTCDate() + 1);
+        }
+
+        const localHour = nextWindow.getHours();
+        const ampm = localHour >= 12 ? 'PM' : 'AM';
+        const displayHour = localHour % 12 || 12;
+
+        return `Next window: ${displayHour}:00 ${ampm}`;
+    }, []);
+
+
+    // Load cooldowns from context cache (fetches from API only on first access per totem)
+    useEffect(() => {
+        if (!totem.id) return;
+        let cancelled = false;
+        fetchTotemCooldowns(totem.id).then(result => {
+            if (!cancelled && result) {
+                setCooldowns({ feed: result.feed, train: result.train, treat: result.treat });
+            }
+        });
+        return () => { cancelled = true; };
+    }, [totem.id, fetchTotemCooldowns]);
 
      // Check if totem is on expedition
-     const tokenIsOnExpedition = !isTotemAvailable(currentTotem.id);
+     const tokenIsOnExpedition = !isTotemAvailable(totem.id);
      // Find expedition end time if totem is on expedition
     const expeditionEndTime = useMemo(() => {
         if (!tokenIsOnExpedition) return 0;
         
         // Find which expedition this totem is part of
         const activeExpedition = expeditionState.userExpeditions.find(exp => 
-            !exp.completed && exp.totemIds.some(id => id.toString() === currentTotem.id)
+            !exp.completed && exp.totemIds.some(id => id.toString() === totem.id)
         );
         
         return activeExpedition ? activeExpedition.endTime : 0;
-    }, [tokenIsOnExpedition, expeditionState.userExpeditions, currentTotem.id]);
+    }, [tokenIsOnExpedition, expeditionState.userExpeditions, totem.id]);
 
-    // Action handlers
-    const handleAction = async (action: ActionType, handler: () => Promise<any>) => {
+    // Calculate local cooldown state after an action succeeds (avoids extra API call)
+    const updateCooldownsLocally = useCallback((action: ActionType, _result: any) => {
+        setCooldowns(prev => {
+            const updated = { ...prev };
+            const now = Date.now();
+
+            if (action === ActionType.Treat) {
+                // Treat has 4hr cooldown starting now
+                const TREAT_COOLDOWN_MS = 14400 * 1000;
+                updated.treat = {
+                    onCooldown: true,
+                    readyAt: new Date(now + TREAT_COOLDOWN_MS),
+                    remainingMs: TREAT_COOLDOWN_MS,
+                };
+            } else if (action === ActionType.Feed) {
+                // Feed uses 8hr windows - locked out until next window
+                const utcHour = new Date().getUTCHours();
+                let nextWindowStart: number;
+                if (utcHour < 8) nextWindowStart = 8;
+                else if (utcHour < 16) nextWindowStart = 16;
+                else nextWindowStart = 24;
+
+                const nextWindow = new Date();
+                nextWindow.setUTCHours(nextWindowStart % 24, 0, 0, 0);
+                if (nextWindowStart === 24) nextWindow.setUTCDate(nextWindow.getUTCDate() + 1);
+
+                const remainingMs = nextWindow.getTime() - now;
+                updated.feed = {
+                    onCooldown: true,
+                    readyAt: nextWindow,
+                    remainingMs: Math.max(0, remainingMs),
+                };
+            }
+            // Train has no cooldown - leave unchanged (already false)
+            // Evolve has no cooldown
+
+            // Update context cache (single source of truth)
+            setTotemCooldowns(totem.id, updated as any);
+
+            return updated;
+        });
+    }, [totem.id, setTotemCooldowns]);
+
+    // Action handler - calls REST API and updates local state (SPA pattern)
+    const handleAction = async (action: ActionType, apiMethod: () => Promise<any>) => {
         setIsLoading(action);
         setError(null);
+        setShowExpEffect(false); // Clear any existing animation
         try {
-            const result = await handler();
-            if (!result) {
-                throw new Error('Transaction failed');
+            const result = await apiMethod();
+            if (!result.success) {
+                throw new Error(result.error || 'Action failed');
             }
 
-            if (action == ActionType.Evolve) {
-                await updateTotemEvolved(totem.tokenId);
+            // Update local totem state with API response (SPA pattern)
+            if (onUpdateTotemAttributes) {
+                const updates: {
+                    experience?: number;
+                    happiness?: number;
+                    stage?: number;
+                    displayName?: string;
+                    strength?: number;
+                    agility?: number;
+                    wisdom?: number;
+                } = {};
+
+                // Use newExperience from API response
+                if (result.newExperience !== undefined) {
+                    updates.experience = result.newExperience;
+                }
+
+                // Apply happiness changes from statChanges
+                // statChanges.happiness is the NEW value (already calculated by API)
+                // statChanges.happinessChange is the delta (e.g., -10 for train)
+                if (result.statChanges?.happiness !== undefined) {
+                    updates.happiness = result.statChanges.happiness;
+                }
+
+                // Handle evolution stage change
+                if (action === ActionType.Evolve && result.newStage !== undefined) {
+                    updates.stage = result.newStage;
+                    // Compute display name from species cache (per-color stage name)
+                    updates.displayName = getStageName(
+                        totem.attributes.species,
+                        totem.attributes.color,
+                        result.newStage
+                    );
+                    // Apply stat boosts from evolution
+                    if (result.statBoosts) {
+                        const attrs = totem.attributes;
+                        if (result.statBoosts.strength) {
+                            updates.strength = Math.min(100, (attrs.strength || 5) + result.statBoosts.strength);
+                        }
+                        if (result.statBoosts.agility) {
+                            updates.agility = Math.min(100, (attrs.agility || 5) + result.statBoosts.agility);
+                        }
+                        if (result.statBoosts.wisdom) {
+                            updates.wisdom = Math.min(100, (attrs.wisdom || 5) + result.statBoosts.wisdom);
+                        }
+                        if (result.statBoosts.happiness) {
+                            updates.happiness = Math.min(100, (attrs.happiness || 50) + result.statBoosts.happiness);
+                        }
+                    }
+                }
+
+                onUpdateTotemAttributes(totem.id, updates);
+            }
+
+            // Update cooldowns locally from action configs (no extra API call)
+            updateCooldownsLocally(action, result);
+
+            if (action === ActionType.Evolve && result.newStage !== undefined) {
+                // Compute the new image URL immediately using species config
+                const newImage = getTotemImageUrl(
+                    totem.attributes.species,
+                    totem.attributes.color,
+                    result.newStage
+                );
+                // Store evolved data for celebration modal and immediate display
+                setEvolvedTotemData({
+                    image: newImage,
+                    displayName: getStageName(
+                        totem.attributes.species,
+                        totem.attributes.color,
+                        result.newStage
+                    ),
+                    stage: result.newStage
+                });
                 setShowEvolutionCelebration(true);
             }
-            else {
-                await updateTotem(totem.tokenId, action);
+
+            if (result.xpGained) {
+                setShowExpEffect(true);
+                // Auto-hide XP animation after 2 seconds
+                setTimeout(() => setShowExpEffect(false), 2000);
             }
-            refreshAchievements();
-        }
-        catch (err) {
+
+            // Update Essence balance directly from action response (no extra API call)
+            if (result.newEssenceBalance !== undefined) {
+                updateEssence(result.newEssenceBalance);
+            }
+
+            // Optimistic achievement progress update (no API call)
+            // So tutorial wizard checkmarks appear immediately after actions
+            const ACTION_ACHIEVEMENT_MAP: Partial<Record<ActionType, string>> = {
+                [ActionType.Feed]: 'ach_feed-progression',
+                [ActionType.Train]: 'ach_train-progression',
+                [ActionType.Treat]: 'ach_treat-progression',
+                [ActionType.Evolve]: 'ach_evolution-progression',
+            };
+            const achievementId = ACTION_ACHIEVEMENT_MAP[action];
+            if (achievementId) {
+                incrementAchievementProgress(achievementId);
+            }
+        } catch (err) {
             console.error(`Error with ${ActionType[action]}:`, err);
-            
-            if (err instanceof RateLimitError) {
-                handleRateLimitError(err);
-            } else {
-                setError(`Failed to ${ActionType[action].toLowerCase()}. Please try again.`);
+            const errorMessage = err instanceof Error ? err.message : `Failed to ${ActionType[action].toLowerCase()}. Please try again.`;
+            setError(errorMessage);
+
+            // If the error mentions happiness, update local state so button disables correctly
+            // Backend format: "Need 30 happiness (have 25)"
+            const happinessMatch = errorMessage.match(/have\s+(\d+)/i) || errorMessage.match(/current:\s*(\d+)/i);
+            if (happinessMatch && onUpdateTotemAttributes) {
+                const currentHappiness = parseInt(happinessMatch[1], 10);
+                onUpdateTotemAttributes(totem.id, { happiness: currentHappiness });
             }
-        }
-        finally {
+        } finally {
             setIsLoading(null);
-             // Clear the effect after a delay
             setTimeout(() => {
                 setActiveEffect(null);
             }, 1000);
@@ -114,68 +381,51 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     };
 
     const handleTrain = () => {
-        if (!txService) throw new Error('Transaction service not initialized');
-        handleAction(ActionType.Train, async () => {
-            setActiveEffect('train');
-            const tx = await txService.train(totem.tokenId);
-            setShowExpEffect(true);
-            return tx;
-        });
+        setActiveEffect('train');
+        handleAction(ActionType.Train, () => gameApi.train(totem.id));
     };
 
     const handleFeed = () => {
-        if (!txService) throw new Error('Transaction service not initialized');
-        handleAction(ActionType.Feed, async () => {
-            setActiveEffect('feed');
-            return await txService.feed(totem.tokenId);
-        });
-    }
-
-    const handleTreat = () => {
-        if (!txService) throw new Error('Transaction service not initialized');
-        handleAction(ActionType.Treat, async () => {
-            setActiveEffect('treat');
-            return await txService.treat(totem.tokenId);
-        });
-    }
-
-    const handleEvolve = async () => {
-        if (!txService) throw new Error('Transaction service not initialized');
-        handleAction(ActionType.Evolve, async () => {
-            return await txService.evolveTotem(totem.tokenId);
-        });
+        setActiveEffect('feed');
+        handleAction(ActionType.Feed, () => gameApi.feed(totem.id));
     };
 
-    const currentAttributes = currentTotem?.attributes || totem.attributes;
-    const currentTrackings = currentTotem?.trackings || {};
+    const handleTreat = () => {
+        setActiveEffect('treat');
+        handleAction(ActionType.Treat, () => gameApi.treat(totem.id));
+    };
+
+    const handleEvolve = () => {
+        handleAction(ActionType.Evolve, () => gameApi.evolve(totem.id));
+    };
+
+    const currentAttributes = totem.attributes;
+    const currentTrackings = totem.trackings || {};
 
     const canEvolve = currentAttributes.experience >= STAGE_THRESHOLDS[currentAttributes.stage + 1];
     const trainExp = Number(actionConfigs[ActionType.Train]?.experienceGain);
 
     useEffect(() => {
-        if (!currentTotem) {
+        if (!totem) {
             onClose();
         }
-    }, [currentTotem, onClose]);
+    }, [totem, onClose]);
+
+    // Clear error when totem changes (dialog reopened)
+    useEffect(() => {
+        setError(null);
+    }, [totem.id]);
 
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dialogRef.current && !dialogRef.current.contains(event.target as Node)) {
-                onClose();
-            }
-        };
-
         const handleEscapeKey = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
                 onClose();
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
         document.addEventListener('keydown', handleEscapeKey);
 
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
             document.removeEventListener('keydown', handleEscapeKey);
         };
     }, [onClose]);
@@ -185,26 +435,36 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
             ref={dialogRef} 
             className="flex flex-col h-full bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 w-full"
         >
-            {showEvolutionCelebration && (
+            {showEvolutionCelebration && evolvedTotemData && (
                 <CelebrationModal
                     type="evolution"
                     totem={{
-                        name: currentTotem.name,
-                        image: currentTotem.image,
-                        attributes: currentAttributes
+                        name: totem.name,
+                        image: evolvedTotemData.image,
+                        attributes: {
+                            ...currentAttributes,
+                            displayName: evolvedTotemData.displayName,
+                            stage: evolvedTotemData.stage
+                        }
                     }}
-                    onClose={() => setShowEvolutionCelebration(false)}
+                    onClose={() => {
+                        setShowEvolutionCelebration(false);
+                        setEvolvedTotemData(null);
+                    }}
                 />
             )}
             
-            {/* Header */}
-            <TotemDetailHeader 
-                tokenId={currentTotem.tokenId}
-                name={currentTotem.name || "Unnamed Totem"}
-                displayName={currentAttributes.displayName}
+            {/* Header - Show displayName (e.g., "Brown Pup") as title, nickname below */}
+            <TotemDetailHeader
+                totemId={totem.id}
+                name={evolvedTotemData?.displayName || totem.displayName || stageName || totem.name || "Unnamed Totem"}
+                displayName={currentAttributes.nickname || ''}
                 rarity={currentAttributes.rarity}
                 onClose={onClose}
-                onUpdateTotem={updateTotem}
+                onNicknameUpdate={(nickname) => {
+                    // Update local state so UI reflects change immediately
+                    onUpdateTotemAttributes?.(totem.id, { nickname });
+                }}
             />
 
             {/* Content - Stack on mobile, side-by-side on desktop */}
@@ -213,12 +473,12 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                     {/* Left Column - Image and Actions */}
                     <div className="flex-shrink-0">
                         {/* Habitat Background with Image */}
-                        <TotemImageSection 
+                        <TotemImageSection
                             species={currentAttributes.species}
                             rarity={currentAttributes.rarity}
-                            stage={currentAttributes.stage}
+                            stage={evolvedTotemData?.stage ?? currentAttributes.stage}
                             prestigeLevel={currentAttributes.prestigeLevel}
-                            imageUrl={currentTotem.image}
+                            imageUrl={evolvedTotemData?.image ?? totem.image}
                             activeEffect={activeEffect}
                             onEffectComplete={() => setActiveEffect(null)}
                             isOnExpedition={tokenIsOnExpedition}
@@ -245,14 +505,14 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
 
                         {/* Action Buttons */}
                         <div className="mt-1 md:mt-2 px-2 sm:px-4 py-2">
-                            <TotemActionBar 
+                            <TotemActionBar
                                 attributes={currentAttributes}
                                 actionConfigs={actionConfigs}
                                 actionTracking={currentTrackings}
-                                totemBalance={totemBalance}
+                                essenceBalance={essenceBalance}
                                 canUseAction={canUseAction}
                                 getActionStatus={getActionStatus}
-                                getNextAvailableWindow={getNextAvailableWindow}
+                                getNextFeedWindow={getNextFeedWindow}
                                 isLoading={isLoading}
                                 onTreat={handleTreat}
                                 onFeed={handleFeed}
@@ -260,7 +520,6 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                 onEvolve={handleEvolve}
                                 canEvolve={canEvolve}
                                 isTotemOnExpedition={tokenIsOnExpedition}
-                                expeditionEndTime={expeditionEndTime}
                             />
                             
                             {/* Error Display */}
@@ -274,12 +533,11 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
 
                     {/* Right Column - Details and Statistics */}
                     <div className="px-2 sm:px-4 py-2 border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-700">
-                        {/* Description */}
+                        {/* Brief Intro - Stage-specific description from IPFS metadata */}
                         <div className="mb-2 min-h-10">
                             <p className="text-sm text-gray-600 dark:text-gray-300">
-                                {/* Description from the selected species */}
-                                {currentTotem.description}
-                                {currentAttributes.displayName && ` Known as "${currentAttributes.displayName}" by its companions.`}
+                                {currentAttributes.nickname && <><span className="font-medium">Known as "{currentAttributes.nickname}"</span> by its companions. </>}
+                                {stageDescription || `A ${totem.name} at stage ${currentAttributes.stage + 1}.`}
                             </p>
                         </div>
 
@@ -312,13 +570,13 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                             {activeTab === 'stats' ? (
                                 <TotemStatsPanel attributes={currentAttributes} />
                             ) : (
-                                <TotemDetailsPanel 
+                                <TotemDetailsPanel
                                     stage={currentAttributes.stage}
                                     species={currentAttributes.species}
                                     rarity={currentAttributes.rarity}
                                     color={currentAttributes.color}
-                                    affinity={currentTotem.affinity}
-                                    domain={currentTotem.domain}
+                                    affinity={totem.affinity}
+                                    domain={totem.domain}
                                     isStaked={currentAttributes.isStaked}
                                     isOnExpedition={tokenIsOnExpedition}
                                     expeditionEndTime={expeditionEndTime}

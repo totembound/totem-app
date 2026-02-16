@@ -1,0 +1,54 @@
+{
+  "gateway": "https://ipfs.totembound.com/ipfs/",
+  "generated": "2026-02-04T01:42:32.673Z",
+  "species": [
+    {
+      "name": "bear",
+      "file": "bear.json"
+    },
+    {
+      "name": "beaver",
+      "file": "beaver.json"
+    },
+    {
+      "name": "deer",
+      "file": "deer.json"
+    },
+    {
+      "name": "falcon",
+      "file": "falcon.json"
+    },
+    {
+      "name": "goose",
+      "file": "goose.json"
+    },
+    {
+      "name": "otter",
+      "file": "otter.json"
+    },
+    {
+      "name": "owl",
+      "file": "owl.json"
+    },
+    {
+      "name": "raven",
+      "file": "raven.json"
+    },
+    {
+      "name": "snake",
+      "file": "snake.json"
+    },
+    {
+      "name": "turtle",
+      "file": "turtle.json"
+    },
+    {
+      "name": "wolf",
+      "file": "wolf.json"
+    },
+    {
+      "name": "woodpecker",
+      "file": "woodpecker.json"
+    }
+  ]
+}

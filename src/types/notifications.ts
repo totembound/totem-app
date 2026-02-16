@@ -31,6 +31,9 @@ export enum NotificationType {
     PROTECTION_PURCHASED = 'protection_purchased',
     PROTECTION_USED = 'protection_used',
     
+    // Loot notifications
+    LOOT_CLAIMED = 'loot_claimed',
+
     // Shop notifications
     BUNDLE_PURCHASED = 'bundle_purchased',
     TOTEM_UNBOUND = 'totem_unbound',
@@ -72,7 +75,7 @@ export enum NotificationType {
     scope: NotificationScope;
     priority: NotificationPriority;
     data?: any;            // Additional data related to the notification
-    userAddress?: string;  // Address related to this notification
+    userId?: string;  // User ID related to this notification
   }
   
   // Configuration for all notification types
@@ -194,6 +197,13 @@ export enum NotificationType {
       priority: NotificationPriority.MEDIUM
     },
     
+    // Loot notifications
+    [NotificationType.LOOT_CLAIMED]: {
+      type: NotificationType.LOOT_CLAIMED,
+      scope: NotificationScope.PERSONAL,
+      priority: NotificationPriority.MEDIUM
+    },
+
     // Shop notifications
     [NotificationType.BUNDLE_PURCHASED]: {
       type: NotificationType.BUNDLE_PURCHASED,

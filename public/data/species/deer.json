@@ -1,0 +1,468 @@
+{
+  "id": 5,
+  "name": "Deer",
+  "fullName": "Graceful Deer",
+  "title": "The Gentle Pathfinder",
+  "description": "The Deer represents grace, awareness, and intuition. It moves with ease through difficult terrain, staying alert to potential dangers.",
+  "affinity": "Agility",
+  "domain": "Earth",
+  "locationId": 14,
+  "available": true,
+  "placeholderImage": "/totems/deerplacecard.png",
+  "baseStats": {
+    "strength": 5,
+    "agility": 11,
+    "wisdom": 8
+  },
+  "stages": [
+    "Fawn",
+    "Yearling",
+    "Stag",
+    "Warden",
+    "Wise Elder"
+  ],
+  "colors": {
+    "brown": {
+      "id": 0,
+      "displayName": "Brown",
+      "rarity": "common",
+      "stageNames": [
+        "Brown Fawn",
+        "Brown Yearling",
+        "Brown Stag",
+        "Brown Warden",
+        "Brown Wise Elder"
+      ],
+      "stageDescriptions": [
+        "A soft brown newborn, hidden in tall grass and blinking up at the trees.",
+        "Skittish but swift, bounding through the forest with growing confidence.",
+        "A sturdy adult, leading the herd with measured grace.",
+        "A silent protector, watching from the woodland edge.",
+        "A respected figure of the forest, holding knowledge of seasons past."
+      ],
+      "images": [
+        "bafybeiaczt2b5ztdmx3kdbixowqchh5aqc536cbzarzuxbuqsdkdgcjv4a",
+        "bafybeicl4ctmqcypvfymnvclqqdsjmzmllxrjzmjiovhvfgkupm4iwpnmq",
+        "bafybeiakonbmcpgcgeo6wo4hpowhrgizta2eodwgixijf6txfu7o6fwsoa",
+        "bafybeiax7x4yljgjpuvx7c57dpxsokkoiaqfobrcedbuuwpje73fneyrdy",
+        "bafybeib3vlx6aottocoggoxp3ruvdcnbvheiwkzigmyohtozwi4xud5lrq"
+      ]
+    },
+    "gray": {
+      "id": 1,
+      "displayName": "Gray",
+      "rarity": "common",
+      "stageNames": [
+        "Gray Fawn",
+        "Gray Yearling",
+        "Gray Stag",
+        "Gray Warden",
+        "Gray Wise Elder"
+      ],
+      "stageDescriptions": [
+        "A pale little fawn, cautious and aware of every sound.",
+        "Moves like mist between the trees, avoiding danger with ease.",
+        "A vigilant sentinel, swift and focused.",
+        "Guards ancient trails and guides the lost.",
+        "A revered forest sage, quiet and ever-present."
+      ],
+      "images": [
+        "bafybeifcyzwyjx5q7y55jfvcaktrkua2zrpqya4xs2kslrv2embjnq53ge",
+        "bafybeihevkt6kds44tejyqhfwwxkjijj77kcdudqcw6ky3b447ztg7j6ti",
+        "bafybeibt5ddt7vghwztqpbtqtm4tfx4auu2nttay4ykyrcru76dnzy7shy",
+        "bafybeifiqnjkovnnocwyf3ol7ymbi6zicfk6dtvn6wamkvfgngc363abjq",
+        "bafybeigweuyzlwuhact4t6352zufzelyjkiafdty7pzg6iztffq6ppdjmq"
+      ]
+    },
+    "white": {
+      "id": 2,
+      "displayName": "White",
+      "rarity": "common",
+      "stageNames": [
+        "White Fawn",
+        "White Yearling",
+        "White Stag",
+        "White Warden",
+        "White Wise Elder"
+      ],
+      "stageDescriptions": [
+        "A rare, radiant newborn, shining like moonlight in the dark.",
+        "Light on its feet, almost ghostlike in its movements.",
+        "A noble guardian, often mistaken for a spirit of the woods.",
+        "Revered as a sign of peace and protection.",
+        "A legendary deer whose presence is tied to fate."
+      ],
+      "images": [
+        "bafybeicxlh3nt4r77calcfksdktciki2jah3lnii6r7co6avp2rabh5ule",
+        "bafybeibs3xzni2jww6yvschcj66yxzezjkm6ij52xasydaiem5lncwqsou",
+        "bafybeicqrxumctlzqfyj4j3wkvr6j6dygb6fbeqpgabgtq34tweual3d6a",
+        "bafybeifxkpak33kuesmx2dd4g424pfzxoeifqht6fjnqd5b3u3yppkz4cu",
+        "bafybeigcacikokdlwgupvudmtt7fla7k5fqdsmuny543cyc2re7si6s5si"
+      ]
+    },
+    "tawny": {
+      "id": 3,
+      "displayName": "Tawny",
+      "rarity": "common",
+      "stageNames": [
+        "Tawny Fawn",
+        "Tawny Yearling",
+        "Tawny Stag",
+        "Tawny Warden",
+        "Tawny Wise Elder"
+      ],
+      "stageDescriptions": [
+        "A golden-hued youngster, energetic and wide-eyed.",
+        "Dashes through autumn leaves with graceful joy.",
+        "Balanced and agile, navigating forest paths with ease.",
+        "Stands watch over groves and rivers alike.",
+        "A keeper of stories, passed from wind to root."
+      ],
+      "images": [
+        "bafybeiczqymbrbtaxi6kirluxoxpl3ysbe5zfv2aeamansgouxb3jvq66e",
+        "bafybeieg3icjctjlmmctwixpdfzrn4vrdrj223iylxltae25gxf64vpxnq",
+        "bafybeihjfjhvivyxqrup3iq74bjsvw7xa2pubxyusugzpmhoroq6muzwqe",
+        "bafybeihg3bm36mktixc7qcgt7crfquscpevdcfnrf2y4yfja6plini6bgu",
+        "bafybeibfvocjr4inkd42mdbvervrcbrvk3ciqkzunyairfhzndaeff4f2q"
+      ]
+    },
+    "slate": {
+      "id": 4,
+      "displayName": "Slate",
+      "rarity": "uncommon",
+      "stageNames": [
+        "Slate Fawn",
+        "Slate Yearling",
+        "Slate Stag",
+        "Slate Warden",
+        "Slate Mystic Elder"
+      ],
+      "stageDescriptions": [
+        "A smoky-colored fawn, nearly invisible at twilight.",
+        "Moves through dusk like a shadow with antlers.",
+        "Watchful and poised, unseen until too late.",
+        "Protects hidden valleys and glens.",
+        "A guardian of secret paths and forest lore."
+      ],
+      "images": [
+        "bafybeiezmaptquplvizvbggyqxk6waajys5tp5y2sgcavfjaivwfkgp5rm",
+        "bafybeid6uhnznh2rybmy4vtnqmhg6rhvnj7bxizh76r3p2z3wcgp3vntta",
+        "bafybeihygmwoinejl6e2bmnvagdazmmxfmc6smweygjahp4nyzdjkvr3va",
+        "bafybeiely5ix6x2ukkyb3fqatsdk5vpepwuxtpq5q57r7mehhxnqav3esy",
+        "bafybeihpbrvc3tws4gatqv3zjlwy4lpopyxdo36lnbm3l45oouwwnrw7yu"
+      ]
+    },
+    "copper": {
+      "id": 5,
+      "displayName": "Copper",
+      "rarity": "uncommon",
+      "stageNames": [
+        "Copper Fawn",
+        "Copper Yearling",
+        "Copper Stag",
+        "Copper Warden",
+        "Copper Mystic Elder"
+      ],
+      "stageDescriptions": [
+        "A reddish, gleaming fawn bounding with joy.",
+        "Flashes through the brush like flickering flame.",
+        "Sturdy and fast, blazing trails wherever it runs.",
+        "Stands proud under the sunrise sky.",
+        "A timeless spirit of warmth and transformation."
+      ],
+      "images": [
+        "bafybeibz3peyfx6u4t5fpahyecnm6lvryxupz5lwwpqvjmqesiltlkcb2q",
+        "bafybeihd2rlgypzsktzhl552weynshhakof6ycpgywiilx2ohkkqp5hx2a",
+        "bafybeihgq7alhhrlvkoctzx2jt7x4ti6c2rlg23j2hnxua2itx4txjx2ly",
+        "bafybeie2tieqcaj6fgoito6pmhprc5cv3obsjqx3jlexdkclpyftgge6ki",
+        "bafybeidbmsxtazlkzscw2b2becu4de4g3wcbghffjqjd65wxqm3a5xetiq"
+      ]
+    },
+    "cream": {
+      "id": 6,
+      "displayName": "Cream",
+      "rarity": "uncommon",
+      "stageNames": [
+        "Cream Fawn",
+        "Cream Yearling",
+        "Cream Stag",
+        "Cream Warden",
+        "Cream Mystic Elder"
+      ],
+      "stageDescriptions": [
+        "A soft, pale fawn napping beside flower beds.",
+        "Glides like a breeze, delicate but swift.",
+        "Brings harmony to its surroundings.",
+        "Known for resolving conflict with quiet presence.",
+        "A serene force, connected to wind and wisdom."
+      ],
+      "images": [
+        "bafybeier7rhh6nelzkhforwbayymqh5io3f2fpmis34vuqv4x7ixlkdaxe",
+        "bafybeiasjbwzgenp4tgq4kw4gq2djj2qg34toxkkp32tfmdyhibq2vwo7u",
+        "bafybeibdg6pnelhmvrbxenrdi4n6eibhg4mzfe6zecwjo477zfmg6l2yjy",
+        "bafybeigogatdkpend3b3t4amujbeeoultqebz6jaouijmzxbvo6zwl5opu",
+        "bafybeib2qednadovosu5myfvsyfspbavyp3ubuzfcj2loec7mpm727ch5q"
+      ]
+    },
+    "dappled": {
+      "id": 7,
+      "displayName": "Dappled",
+      "rarity": "uncommon",
+      "stageNames": [
+        "Dappled Fawn",
+        "Dappled Yearling",
+        "Dappled Stag",
+        "Dappled Warden",
+        "Dappled Mystic Elder"
+      ],
+      "stageDescriptions": [
+        "A spotted little deer blending into sunlight and shadow.",
+        "Dashes unpredictably, hard to track.",
+        "Agile and intuitive, skilled at vanishing in seconds.",
+        "A roaming defender of glades and groves.",
+        "A legend of the forest, said to shift shape and space."
+      ],
+      "images": [
+        "bafybeid244wamd4rcigcy4tvcsfzefkc2ifqehfdbtt3ncptd3wxclhnvq",
+        "bafybeiekjc3enxwnbbhbavx5xclovczzg3x7ttt54kjz7os2qilcufcusu",
+        "bafybeihzeodf32bwaxrpu7m2pdxig34b543qgyx3iwr5i4ez6n5kr6vs64",
+        "bafybeihsdmaa2t6tay3leucwjwihlhlbh6s52gcptdjrdc5mcbt4keyxfu",
+        "bafybeibbn2a43bi255tilinx4d2ryoyf27bcttndz6mnfl3pnlg5liqaua"
+      ]
+    },
+    "golden": {
+      "id": 8,
+      "displayName": "Golden",
+      "rarity": "rare",
+      "stageNames": [
+        "Dawnsight Fawn",
+        "Dawnsight Yearling",
+        "Dawnsight Stag",
+        "Dawnsight Phantom",
+        "Dawnsight Veiled Elder"
+      ],
+      "stageDescriptions": [
+        "A golden fawn glowing with morning light.",
+        "Races the sunrise with radiant joy.",
+        "Herald of hope and clarity.",
+        "Appears at first light, leading the way.",
+        "A sacred beacon of foresight and destiny."
+      ],
+      "images": [
+        "bafybeifofafnivd5sns4qpnko3dcxmig2yyrg5743glmg5n5yvmporst44",
+        "bafybeidp7zstl7xylm7ricr2yczykored5wqis5b7npbnafkdl37cxw4du",
+        "bafybeigeoflupdjuumxm2uydx7jsfrmzhtqqtzxo35no73tjhlhxpx6d6m",
+        "bafybeifxnvdjifkwhyv65mjv62omu3c5mc2gw74wil3x4ma63rtjipjzlm",
+        "bafybeifkjepvrn7agmlxqdzaf2ugz7gtdnnvfopkq73l7o5zlzus4vuozm"
+      ]
+    },
+    "purple": {
+      "id": 9,
+      "displayName": "DarkPurple",
+      "rarity": "rare",
+      "stageNames": [
+        "Umbravale Fawn",
+        "Umbravale Yearling",
+        "Umbravale Stag",
+        "Umbravale Phantom",
+        "Umbravale Veiled Elder"
+      ],
+      "stageDescriptions": [
+        "A shadow-born fawn with eyes like stars.",
+        "Moves in silence, rarely seen.",
+        "Walks between realms and memory.",
+        "Defender of dreams and night travelers.",
+        "A spectral watcher, guarding sacred woods."
+      ],
+      "images": [
+        "bafybeigqwire2xr2lqhwhshol4pkgjkcuiqs27nao2ox4rp65wftjholky",
+        "bafybeiejw36bfjwqwynj3rfoqwat5zrnle5jwqyl6gkaykmcsdtywj6uba",
+        "bafybeicnbuhylcgg2sjxu5d3svaoh4y74y3mtf5yx35x46kxsj24k5l45q",
+        "bafybeibblnwgn6efkcaoejcnen4s4kpo3ngrsrlyspgfksazcetylgahny",
+        "bafybeigizxnjhqwrsov5cyok7elcbrpgiyrd7yqr267sfuuk7mhwgsjltu"
+      ]
+    },
+    "charcoal": {
+      "id": 10,
+      "displayName": "Charcoal",
+      "rarity": "rare",
+      "stageNames": [
+        "Emberhide Fawn",
+        "Emberhide Yearling",
+        "Emberhide Stag",
+        "Emberhide Phantom",
+        "Emberhide Veiled Elder"
+      ],
+      "stageDescriptions": [
+        "A dark-furred fawn, warm to the touch.",
+        "Quick and alert, streaked with smoky grace.",
+        "Stands unshaken through wind and flame.",
+        "Blends with firelight and fading dusk.",
+        "A flame-forged soul, reborn each season."
+      ],
+      "images": [
+        "bafybeic4d6i6p6l2xa7oqi3zvckwpdij6ie63wam6xktkxuelgjxnzz2gq",
+        "bafybeih6amlrdrdlzxjf5ugxmgsy5aqdaypywbvc4sjxp2v2plq3xxhfyi",
+        "bafybeifdpyuz4hazlfguuiwpyibujzrjslpbepcoibp4dlnmdtegzdgof4",
+        "bafybeib7destxdwz3zbl7kb2skzuf5zlqxamhzmxzhidxozptys4n2whja",
+        "bafybeihpymlnm4u32hde6w6xgwm3cnwa6pxmnrs37tntfkaqkhqgtq2oym"
+      ]
+    },
+    "emerald": {
+      "id": 11,
+      "displayName": "EmeraldGreen",
+      "rarity": "epic",
+      "stageNames": [
+        "Verdantstride Fawn",
+        "Verdantstride Yearling",
+        "Verdantstride Stag",
+        "Verdantstride Sage",
+        "Verdantstride Eternal Sage"
+      ],
+      "stageDescriptions": [
+        "A green-tinged fawn blooming with life.",
+        "Glides between vines and roots.",
+        "A living symbol of the wild.",
+        "Restores what is broken in the natural world.",
+        "A spirit entwined with the forest’s eternal rhythm."
+      ],
+      "images": [
+        "bafybeiak5s3ptuhnyjtewtvf44o55w3mygx4ape6resrmpjebodte53aki",
+        "bafybeiczvdyiqoq4d2u22qojfbwbzinuvcoyzsm6jsui7ioez4un6jqnsq",
+        "bafybeieonj4ru5jnjz7b7v3xq64tegfkvaty5t6bc4f7nwwqorx5oed2pm",
+        "bafybeihitcwvynvkw4zqptf5jt3q56bm5x3mvxip2pzw75x6y7vnzpg4tq",
+        "bafybeibnuqtc3qqgnozsbm5u2ef6smwzl45l4uil545iea72tqpnl6brwi"
+      ]
+    },
+    "crimson": {
+      "id": 12,
+      "displayName": "CrimsonRed",
+      "rarity": "epic",
+      "stageNames": [
+        "Bloodleaf Fawn",
+        "Bloodleaf Yearling",
+        "Bloodleaf Stag",
+        "Bloodleaf Sage",
+        "Bloodleaf Eternal Sage"
+      ],
+      "stageDescriptions": [
+        "A deep red fawn, pulsing with instinct.",
+        "Dashes like a flame through the trees.",
+        "Protects with passion and fearless loyalty.",
+        "A warrior spirit of the grove.",
+        "A force of primal purpose and sacred flame."
+      ],
+      "images": [
+        "bafybeicivbb6xwtpezmgygsg73hoyohxdkjy7ipyjtu4aegjrwgy2o2zve",
+        "bafybeib5fyoypgz2gs57kot2opx55d22ygvz2sm65emgb7urjkoy24smuy",
+        "bafybeih4chmk7vjgtlqufsjld2daw5rhgjpizvjb5yde4w3fve7nz3gs3e",
+        "bafybeiga5bsw6wdcagmk4r3y475sjya37dtyorqkc7t5puvzqw5g5b4t6y",
+        "bafybeigu7rhyygtyylodxd4ofvshirxps43p55ucxzyrxkeieslxz4bdfa"
+      ]
+    },
+    "sapphire": {
+      "id": 13,
+      "displayName": "DeepSapphire",
+      "rarity": "epic",
+      "stageNames": [
+        "Abyssroot Fawn",
+        "Abyssroot Yearling",
+        "Abyssroot Stag",
+        "Abyssroot Sage",
+        "Abyssroot Eternal Sage"
+      ],
+      "stageDescriptions": [
+        "A blue-toned fawn, calm as a moonlit lake.",
+        "Dances through shadows and still pools.",
+        "Wears silence like a cloak.",
+        "Brings balance where others fear to tread.",
+        "An ageless walker of deep forest paths."
+      ],
+      "images": [
+        "bafybeid7437rbvwinnw454e52yv4avdddbo2vx4py6hras2winscfrwydq",
+        "bafybeie3ufeu2qwcdmcafqtwhqburiktzvzfi2fmxhwr2zp4zridn4re4y",
+        "bafybeie37sesj4whz3nx5awxanxabqkxgv2hgc3irbxmosfnn7pftsf7ra",
+        "bafybeicmfkjzlf7nnku2k3mfsjjpfxwdeecoeq7b5oux76h7rz3fu5weuq",
+        "bafybeicaibmzn4smz6ydyfghdyyue7fqjtqtfpwoeifvjqevsnq5sxkpxu"
+      ]
+    },
+    "silver": {
+      "id": 14,
+      "displayName": "EtherealSilver",
+      "rarity": "legendary",
+      "stageNames": [
+        "Moonshade Fawn",
+        "Moonshade Yearling",
+        "Moonshade Stag",
+        "Moonshade Oracle",
+        "Moonshade Ascendant Oracle"
+      ],
+      "stageDescriptions": [
+        "A silvery creature, quiet as snowfall.",
+        "Appears beneath moonlight and fog.",
+        "A guardian of dream-walkers and hidden places.",
+        "Speaks in prophecy, guards the veil between worlds.",
+        "A cosmic soul, timeless and transcendent."
+      ],
+      "images": [
+        "bafybeibnm4t5veyztx3ccu6qylkpeahs2udc24skudyywc5cxu7q3j3sf4",
+        "bafybeiceo4baoflmv63fpkppwc5musytsjdjpdtim7nqldk7jpvvbwoxqe",
+        "bafybeihe5lz27e7uikczn5sicjvivz5wql6i4hfk7hjnxwvuxxnkzwxqoi",
+        "bafybeiblj3hzckuexi3nr3qm2kg7miq3cbqdhqoz6kpimlqy63vtcg6kwi",
+        "bafybeig6w2jnongfjhh63lif5v6ybimad4cmrqdkklxswzy35nltpscr7i"
+      ]
+    },
+    "gold": {
+      "id": 15,
+      "displayName": "RadiantGold",
+      "rarity": "legendary",
+      "stageNames": [
+        "Celestag Fawn",
+        "Celestag Yearling",
+        "Celestag Stag",
+        "Celestag Oracle",
+        "Celestag Ascendant Oracle"
+      ],
+      "stageDescriptions": [
+        "A glowing newborn whose steps leave light behind.",
+        "Moves like the sun itself, regal and proud.",
+        "A heavenly guardian of all wild places.",
+        "Guides with radiant vision beyond the stars.",
+        "A divine being, whispering fate from the heavens."
+      ],
+      "images": [
+        "bafybeiekiuti5evqspr2rge7s4nhcrdbiidqy2udhozhusazffdcewrzda",
+        "bafybeiggu7eozzyss3xkxe2gu7ka2af4flxriu4exvsa7hzp5k4lsisgi4",
+        "bafybeibgq5cv62oo26rfnunpmkgs65dlzv46cp2chqdyayesk7pcgherpi",
+        "bafybeidfx5ernj4wsycethlx5kx7o5r7o7klybgxqv5ytimhwc6gxhdq2y",
+        "bafybeicjsbnj5ketjeyhhuvbyivpcanemlmms6owdm3ouanhybmrmvvci4"
+      ]
+    },
+    "sunset": {
+      "id": 21,
+      "displayName": "SunsetOrange",
+      "rarity": "limited",
+      "stageNames": [
+        "Solstride Fawn",
+        "Solstride Yearling",
+        "Solstride Stag",
+        "Solstride Sage",
+        "Solstride Oracle"
+      ],
+      "stageDescriptions": [
+        "A sunset-colored fawn, glowing softly as day turns to dusk.",
+        "Trails golden light as it runs through open fields.",
+        "Embodies the warmth and joy of the longest days.",
+        "A radiant guardian of growth and celebration.",
+        "A solar spirit, forever dancing between dusk and dawn."
+      ],
+      "images": [
+        "bafybeifocx5phnjridwieygwzjhsnxcw4k67i3y7y3uct3veuwtyybu3ni",
+        "bafybeidtvf6vspo3hgo4rt2bxytnvtqpkvosrntwfmyezlm2752v6fnd6e",
+        "bafybeigyneuw4fkrubzczwzty52q4k6gah3a5n6fcof4mcabadbfrfg63a",
+        "bafybeif5dzjtfulqs3e4jbvfxvpwestot5i2bvabnqki52s4uolsdyvwvi",
+        "bafybeicdqakp2zpavl6kdi3b4y36vo7phi6srbdtncv5smhexw3dsaekr4"
+      ]
+    }
+  }
+}

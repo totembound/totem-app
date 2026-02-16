@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Clock, CheckCircle, Gift, Droplets, Sparkles, Users, Loader2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Clock, CheckCircle, Droplets, Sparkles, Users, Loader2, Gift } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { getDomainColor, getRarityBorderColor } from "../../utils/totems";
 import CountdownTimer from '../CountdownTimer';
@@ -8,12 +8,12 @@ import { IPFS_GATEWAY_URL } from '../../config/constants';
 interface ActiveExpeditionPanelProps {
     expedition: {
         expeditionId: string;
-        totemIds: bigint[];
+        totemIds: string[];
         endTime: number;
         completed: boolean;
         canClaim: boolean;
     };
-    expeditionConfig: any; 
+    expeditionConfig: any;
     onClaim: () => void;
 }
 
@@ -26,34 +26,20 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
     const { getTotem } = useUser();
     
     // Get all totems in the expedition
-    const captain = getTotem(BigInt(expedition.totemIds[0]));
-    const memberOne = getTotem(BigInt(expedition.totemIds[1]));
-    const memberTwo = getTotem(BigInt(expedition.totemIds[2]));
+    // Web2: totemIds are strings - use directly with getTotem
+    const captain = expedition.totemIds[0] ? getTotem(expedition.totemIds[0]) : undefined;
+    const memberOne = expedition.totemIds[1] ? getTotem(expedition.totemIds[1]) : undefined;
+    const memberTwo = expedition.totemIds[2] ? getTotem(expedition.totemIds[2]) : undefined;
 
-    const captainRarityColors = getRarityBorderColor(captain?.attributes.rarity!);
-    const memberOneRarityColors = getRarityBorderColor(memberOne?.attributes.rarity!);
-    const memberTwoRarityColors = getRarityBorderColor(memberTwo?.attributes.rarity!);
+    const captainRarityColors = getRarityBorderColor(captain?.attributes?.rarity ?? 0);
+    const memberOneRarityColors = memberOne ? getRarityBorderColor(memberOne.attributes?.rarity ?? 0) : { border: 'border-gray-300' };
+    const memberTwoRarityColors = memberTwo ? getRarityBorderColor(memberTwo.attributes?.rarity ?? 0) : { border: 'border-gray-300' };
 
     // Calculate time remaining
     const now = Math.floor(Date.now() / 1000);
     const timeRemaining = expedition.endTime - now;
     const isComplete = timeRemaining <= 0 || expedition.canClaim;
     
-    // Calculate progress percentage
-    const calculateProgress = () => {
-        if (!expeditionConfig) return 100;
-        
-        const total = expeditionConfig.duration;
-        const elapsed = total - timeRemaining;
-        
-        const percent = Math.min(100, Math.max(0, (elapsed / total) * 100));
-
-        if (!isComplete && percent >= 99) {
-            return 99;
-        }
-
-        return percent;
-    };
     
     // Handle claim with loading state
     const handleClaim = async () => {
@@ -67,21 +53,53 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
         }
     };
 
-    if (!expeditionConfig || !captain || !memberOne || !memberTwo) {
-        return <div>Loading...</div>;
+    // Calculate progress percentage - memoized to avoid recalc on every render
+    const progressPercent = useMemo(() => {
+        if (!expeditionConfig) return 100;
+
+        const total = expeditionConfig.duration;
+        const elapsed = total - timeRemaining;
+
+        const percent = Math.min(100, Math.max(0, (elapsed / total) * 100));
+
+        if (!isComplete && percent >= 99) {
+            return 99;
+        }
+
+        return percent;
+    }, [expeditionConfig, timeRemaining, isComplete]);
+
+    // Skeleton loading state with proper dimensions to prevent CLS
+    // Only require captain - backend may store fewer than 3 totems
+    if (!expeditionConfig || !captain) {
+        return (
+            <div className="flex flex-col bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg h-full border border-gray-300 dark:border-gray-700 animate-pulse">
+                <div className="h-40 bg-gray-200 dark:bg-gray-700" />
+                <div className="px-4 py-3 space-y-3">
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+                    <div className="grid grid-cols-3 gap-2">
+                        <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
+                        <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
+                        <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
+                    </div>
+                    <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded" />
+                </div>
+            </div>
+        );
     }
         
     return (
         <div className="flex flex-col bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg h-full border border-gray-300 dark:border-gray-700">
             {/* Header with background image */}
             <div className="relative h-40">
-                {expeditionConfig.image && (
-                    <img 
-                        src={expeditionConfig.image || '/expeditions/placeholder.png'}
-                        alt={`${expeditionConfig.domainName} expedition background`}
-                        className="absolute inset-0 w-full h-full object-cover brightness-50 contrast-50"
-                    />
-                )}
+                <img
+                    src={expeditionConfig.image || '/expeditions/placeholder.png'}
+                    alt={`${expeditionConfig.domainName} expedition background`}
+                    className="absolute inset-0 w-full h-full object-cover brightness-50 contrast-50"
+                    width={400}
+                    height={160}
+                    loading="eager"
+                />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/60" />
                 <div className="absolute inset-0 p-4 flex flex-col justify-between">
                     <div className="flex justify-between items-start">
@@ -89,7 +107,7 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
                             {expeditionConfig.name}
                         </h3>
                         <div className={`
-                            px-2 py-1 rounded-lg text-sm font-semibold shadow-md ml-auto mr-2
+                            px-2 py-1 rounded-lg text-sm font-semibold shadow-md ml-auto text-nowrap mr-2
                             ${isComplete 
                                 ? 'bg-green-500 text-white' 
                                 : 'bg-blue-500 text-white'}
@@ -109,11 +127,11 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
                     </p>
                     {/* Progress bar */}
                     {!isComplete && (
-                        <div>
+                        <div className="mt-1">
                             <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                                 <div 
                                     className="h-full bg-blue-500 dark:bg-blue-400"
-                                    style={{ width: `${calculateProgress()}%` }}
+                                    style={{ width: `${progressPercent}%` }}
                                 ></div>
                             </div>
                             <div className="flex justify-between mt-1">
@@ -125,7 +143,7 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
                                     <span className="ml-1">remaining</span>
                                 </div>
                                 <div className="text-xs text-gray-300 dark:text-gray-400">
-                                    {Math.round(calculateProgress())}%
+                                    {Math.round(progressPercent)}%
                                 </div>
                             </div>
                         </div>
@@ -160,7 +178,7 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
                     <div className="bg-gray-100 dark:bg-gray-700/30 rounded-lg p-2 text-center">
                         <Gift className="w-5 h-5 text-purple-500 mx-auto mb-1" />
                         <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-                            Surprise
+                            Bonus
                         </div>
                     </div>
                 </div>
@@ -177,49 +195,62 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
                     <div className="bg-gray-100 dark:bg-gray-700/30 rounded-lg p-2">
                         <div className="flex flex-col items-center">
                             <div className={`relative w-10 h-10 overflow-hidden rounded-lg border ${captainRarityColors.border}`}>
-                                <img 
-                                    src={captain.image?.replace("ipfs://", IPFS_GATEWAY_URL) || '/images/placeholder.png'} 
-                                    alt={captain.attributes.displayName || `Totem #${captain.id}`}
+                                <img
+                                    src={captain.image?.replace("ipfs://", IPFS_GATEWAY_URL) || '/images/placeholder.png'}
+                                    alt={captain.displayName || `Totem #${captain.id}`}
                                     className="w-full h-full object-cover"
+                                    width={40}
+                                    height={40}
+                                    loading="eager"
                                 />
                             </div>
                             <div className="text-xs font-medium text-center mt-1 text-gray-800 dark:text-gray-200">
-                                {captain.attributes.displayName || `#${captain.id}`}
+                                {captain.displayName || `#${captain.id}`}
                             </div>
                         </div>
                     </div>
                     
                     {/* Member 1 */}
+                    {memberOne ? (
                     <div className="bg-gray-100 dark:bg-gray-700/30 rounded-lg p-2">
                         <div className="flex flex-col items-center">
                             <div className={`relative w-10 h-10 overflow-hidden rounded-lg border ${memberOneRarityColors.border}`}>
-                                <img 
-                                    src={memberOne.image?.replace("ipfs://", IPFS_GATEWAY_URL) || '/images/placeholder.png'} 
-                                    alt={memberOne.attributes.displayName || `Totem #${memberOne.id}`}
+                                <img
+                                    src={memberOne.image?.replace("ipfs://", IPFS_GATEWAY_URL) || '/images/placeholder.png'}
+                                    alt={memberOne.displayName || `Totem #${memberOne.id}`}
                                     className="w-full h-full object-cover"
+                                    width={40}
+                                    height={40}
+                                    loading="eager"
                                 />
                             </div>
                             <div className="text-xs font-medium text-center mt-1 text-gray-800 dark:text-gray-200">
-                                {memberOne.attributes.displayName || `#${memberOne.id}`}
+                                {memberOne.displayName || `#${memberOne.id}`}
                             </div>
                         </div>
                     </div>
-                    
+                    ) : null}
+
                     {/* Member 2 */}
+                    {memberTwo ? (
                     <div className="bg-gray-100 dark:bg-gray-700/30 rounded-lg p-2">
                         <div className="flex flex-col items-center">
                             <div className={`relative w-10 h-10 overflow-hidden rounded-lg border ${memberTwoRarityColors.border}`}>
-                                <img 
-                                    src={memberTwo.image?.replace("ipfs://", IPFS_GATEWAY_URL) || '/images/placeholder.png'} 
-                                    alt={memberTwo.attributes.displayName || `Totem #${memberTwo.id}`}
+                                <img
+                                    src={memberTwo.image?.replace("ipfs://", IPFS_GATEWAY_URL) || '/images/placeholder.png'}
+                                    alt={memberTwo.displayName || `Totem #${memberTwo.id}`}
                                     className="w-full h-full object-cover"
+                                    width={40}
+                                    height={40}
+                                    loading="eager"
                                 />
                             </div>
                             <div className="text-xs font-medium text-center mt-1 text-gray-800 dark:text-gray-200">
-                                {memberTwo.attributes.displayName || `#${memberTwo.id}`}
+                                {memberTwo.displayName || `#${memberTwo.id}`}
                             </div>
                         </div>
                     </div>
+                    ) : null}
                 </div>
             </div>
             
@@ -258,4 +289,4 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
     );
 };
 
-export default ActiveExpeditionPanel;
+export default React.memo(ActiveExpeditionPanel);

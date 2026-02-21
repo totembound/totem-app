@@ -41,10 +41,11 @@ Object.defineProperty(global, 'crypto', {
 
 // Mock Audio
 const mockPlay = vi.fn();
-global.Audio = vi.fn().mockImplementation(() => ({
-  play: mockPlay,
-  volume: 0,
-})) as any;
+global.Audio = class MockAudio {
+  volume = 0;
+  play = mockPlay;
+  constructor() {}
+} as any;
 
 import { useNotifications } from './useNotifications';
 import { NotificationType, NotificationScope, NotificationPriority } from '../types/notifications';
@@ -63,10 +64,6 @@ describe('useNotifications', () => {
     // Re-initialize mocks after clearAllMocks
     mockDigest.mockResolvedValue(new ArrayBuffer(32));
     mockPlay.mockResolvedValue(undefined);
-    (global.Audio as any).mockImplementation(() => ({
-      play: mockPlay,
-      volume: 0,
-    }));
 
     mockUseAuth.mockReturnValue({
       isAuthenticated: true,

@@ -5,7 +5,9 @@
  * and building image URLs from CIDs.
  */
 
-import { IPFS_GATEWAY_URL } from '../config/constants';
+import { useState, useEffect } from 'react';
+import { IPFS_GATEWAY_URL, type TotemCodex } from '../config/constants';
+import { Rarity } from '../types/types';
 
 // Species name mapping by ID
 const SPECIES_NAMES: Record<number, string> = {
@@ -296,6 +298,51 @@ export function getSpeciesColors(speciesId: number): SpeciesColorData[] {
 export function isSpeciesLoaded(speciesId: number): boolean {
   const speciesName = getSpeciesName(speciesId);
   return speciesCache.has(speciesName);
+}
+
+const RARITY_MAP: Record<string, Rarity> = {
+  common: Rarity.Common,
+  uncommon: Rarity.Uncommon,
+  rare: Rarity.Rare,
+  epic: Rarity.Epic,
+  legendary: Rarity.Legendary,
+  limited: Rarity.Limited,
+};
+
+/**
+ * Get Codex variants for a species (stage 0 images for all colors).
+ * Returns empty array if species not yet loaded.
+ */
+export function getCodexVariants(speciesId: number): TotemCodex[] {
+  const speciesName = getSpeciesName(speciesId);
+  const config = speciesCache.get(speciesName);
+  if (!config) return [];
+
+  return Object.values(config.colors).map((color) => ({
+    id: color.id,
+    name: color.stageNames?.[0] || color.displayName,
+    rarity: RARITY_MAP[color.rarity] ?? Rarity.Common,
+    image: color.images?.[0] ? buildImageUrl(color.images[0]) : '',
+  }));
+}
+
+/**
+ * React hook that loads species data and returns Codex variants (stage 0).
+ * Triggers async fetch if not cached, then re-renders with variants.
+ */
+export function useCodexVariants(speciesId: number): TotemCodex[] {
+  const [variants, setVariants] = useState<TotemCodex[]>(() => getCodexVariants(speciesId));
+
+  useEffect(() => {
+    if (variants.length > 0) return;
+    let cancelled = false;
+    loadSpeciesById(speciesId).then(() => {
+      if (!cancelled) setVariants(getCodexVariants(speciesId));
+    }).catch(() => {});
+      return () => { cancelled = true; };
+  }, [speciesId, variants.length]);
+
+  return variants;
 }
 
 /**

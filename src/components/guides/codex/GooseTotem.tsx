@@ -1,12 +1,13 @@
 import React from "react";
 import { TotemView } from "./TotemView";
 import { Species } from "../../../types/types";
-import { GOOSE_TOTEMS } from "../../../config/constants";
+import { useCodexVariants } from "../../../utils/species";
 
 const GooseTotem: React.FC = () => {
+    const variants = useCodexVariants(Species.Goose);
     return <TotemView config={{
       species: Species.Goose,
-      variants: GOOSE_TOTEMS
+      variants
     }}/>
 };
 

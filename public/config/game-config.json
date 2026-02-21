@@ -102,6 +102,16 @@
       "happinessChange": 10,
       "experienceGain": 0,
       "useTimeWindows": false
+    },
+    "evolve": {
+      "id": 3,
+      "essenceCost": 0,
+      "cooldownSeconds": 0,
+      "maxDaily": 0,
+      "minHappiness": 30,
+      "happinessChange": 0,
+      "experienceGain": 0,
+      "useTimeWindows": false
     }
   },
   "shop": {

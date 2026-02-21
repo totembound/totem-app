@@ -15,45 +15,57 @@
       "id": "bundle_newplayer",
       "bundleId": 0,
       "name": "New Player Bundle",
+      "description": "500 Essence and an uncommon spirit totem!",
       "gemCost": 500,
       "priceUsd": "$5",
       "essence": 500,
       "includesTotem": true,
-      "totemRarity": "random",
-      "dailyLimit": 1
+      "totemRarity": "uncommon",
+      "dailyLimit": 1,
+      "category": "special",
+      "enabled": true
     },
     {
       "id": "bundle_rare",
       "bundleId": 1,
       "name": "Daily Rare Special",
+      "description": "750 Essence and guaranteed rare totem!",
       "gemCost": 1000,
       "priceUsd": "$10",
-      "essence": 500,
+      "essence": 750,
       "includesTotem": true,
       "totemRarity": "rare",
-      "dailyLimit": 1
+      "dailyLimit": 1,
+      "category": "special",
+      "enabled": true
     },
     {
       "id": "bundle_epic",
       "bundleId": 2,
       "name": "Daily Epic Special",
+      "description": "1,000 Essence and guaranteed epic totem!",
       "gemCost": 2500,
       "priceUsd": "$25",
       "essence": 1000,
       "includesTotem": true,
       "totemRarity": "epic",
-      "dailyLimit": 1
+      "dailyLimit": 1,
+      "category": "special",
+      "enabled": true
     },
     {
       "id": "bundle_monthly",
       "bundleId": 3,
       "name": "Monthly Collector Series",
+      "description": "2,000 Essence and exclusive limited monthly totem!",
       "gemCost": 5000,
       "priceUsd": "$50",
-      "essence": 2500,
+      "essence": 2000,
       "includesTotem": true,
       "totemRarity": "exclusive",
-      "dailyLimit": 1
+      "dailyLimit": 1,
+      "category": "monthly",
+      "enabled": true
     }
   ],
   "gemPackages": [
@@ -109,7 +121,7 @@
       "description": "Monthly collector bundle with 1 exclusive limited totem",
       "price": 7499,
       "priceFormatted": "$74.99",
-      "polEquivalent": 250,
+
       "gems": 10000,
       "essence": 50000,
       "bonus": 43,
@@ -127,7 +139,7 @@
       "description": "Premium bundle with exclusive Founder title",
       "price": 9999,
       "priceFormatted": "$99.99",
-      "polEquivalent": 333,
+
       "gems": 15000,
       "essence": 75000,
       "bonus": 50,
@@ -145,7 +157,7 @@
       "description": "Ultimate bundle with 2 limited totems, Legend title, and exclusive badge",
       "price": 14999,
       "priceFormatted": "$149.99",
-      "polEquivalent": 500,
+
       "gems": 25000,
       "essence": 125000,
       "bonus": 67,

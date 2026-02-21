@@ -81,11 +81,9 @@ vi.mock('mqtt', () => ({
 // --- AWS SDK mock ---
 const mockSend = vi.fn();
 vi.mock('@aws-sdk/client-cognito-identity', () => ({
-  CognitoIdentityClient: vi.fn().mockImplementation(() => ({
-    send: mockSend,
-  })),
-  GetIdCommand: vi.fn().mockImplementation((input: any) => ({ input, _type: 'GetIdCommand' })),
-  GetCredentialsForIdentityCommand: vi.fn().mockImplementation((input: any) => ({ input, _type: 'GetCredentialsForIdentityCommand' })),
+  CognitoIdentityClient: class { send = mockSend; },
+  GetIdCommand: class { input: any; _type = 'GetIdCommand'; constructor(input: any) { this.input = input; } },
+  GetCredentialsForIdentityCommand: class { input: any; _type = 'GetCredentialsForIdentityCommand'; constructor(input: any) { this.input = input; } },
 }));
 
 import apiClient from './ApiClient';

@@ -106,12 +106,12 @@ describe('useIoTCommands', () => {
   });
 
   describe('event handlers', () => {
-    let handlers: Record<string, Function>;
+    let handlers: Record<string, (...args: any[]) => void>;
 
     beforeEach(() => {
       mockUseAuth.mockReturnValue({ isAuthenticated: true, user: { id: 'user-1' } });
       handlers = {};
-      mockIotService.on.mockImplementation((type: string, handler: Function) => {
+      mockIotService.on.mockImplementation((type: string, handler: (...args: any[]) => void) => {
         handlers[type] = handler;
         return vi.fn();
       });

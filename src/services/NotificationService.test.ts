@@ -15,7 +15,8 @@ import { getAchievementById } from '../config/config-loader';
 import { notificationService } from './NotificationService';
 
 describe('NotificationService', () => {
-  let mockCallback: ReturnType<typeof vi.fn>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockCallback: any;
 
   beforeEach(() => {
     vi.clearAllMocks();

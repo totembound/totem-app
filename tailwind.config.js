@@ -14,7 +14,12 @@ module.exports = {
   content: ["src/**/*.{ts,tsx}"],  
   plugins: [
     require("tailwindcss-animate"),
-    require('tailwindcss-textshadow'),
+    require('tailwindcss/plugin')(function({ matchUtilities, theme }) {
+      matchUtilities(
+        { 'text-shadow': (value) => ({ textShadow: value }) },
+        { values: theme('textShadow') }
+      )
+    }),
     require('@tailwindcss/typography')
   ],
 }

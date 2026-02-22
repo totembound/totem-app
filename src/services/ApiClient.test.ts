@@ -134,8 +134,8 @@ describe('ApiClient', () => {
       expect(mockFetch).toHaveBeenCalledTimes(1);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/totems');
-      expect(options.headers['Authorization']).toBe('Bearer test-access');
+      expect(url).toContain('/totems');
+      expect(options.headers['Authorization']).toBe('test-id');
       expect(options.method).toBe('GET');
     });
 
@@ -150,7 +150,7 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/totems/ttm_1/feed');
+      expect(url).toContain('/totems/ttm_1/feed');
       expect(options.method).toBe('POST');
     });
 
@@ -402,7 +402,7 @@ describe('ApiClient', () => {
       await apiClient.getShopListings();
 
       const url = mockFetch.mock.calls[0][0];
-      expect(url).toContain('/v1/shop/listings');
+      expect(url).toContain('/shop/listings');
       expect(url).not.toContain('?');
     });
   });
@@ -444,7 +444,7 @@ describe('ApiClient', () => {
       await apiClient.setNickname('ttm_1', 'Fluffy');
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/totems/ttm_1/nickname');
+      expect(url).toContain('/totems/ttm_1/nickname');
       expect(JSON.parse(options.body)).toEqual({ nickname: 'Fluffy' });
     });
 
@@ -528,7 +528,7 @@ describe('ApiClient', () => {
       expect(JSON.parse(options.body)).toEqual({ lootItemId: 'loot_1', options: { speciesId: 3 } });
     });
 
-    it('getMe should GET /v1/auth/me', async () => {
+    it('getMe should GET /auth/me', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -539,11 +539,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/auth/me');
+      expect(url).toContain('/auth/me');
       expect(options.method).toBe('GET');
     });
 
-    it('getTotem should GET /v1/totems/:id', async () => {
+    it('getTotem should GET /totems/:id', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -554,11 +554,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/totems/ttm_1');
+      expect(url).toContain('/totems/ttm_1');
       expect(options.method).toBe('GET');
     });
 
-    it('trainTotem should POST /v1/totems/:id/train', async () => {
+    it('trainTotem should POST /totems/:id/train', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -569,11 +569,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/totems/ttm_1/train');
+      expect(url).toContain('/totems/ttm_1/train');
       expect(options.method).toBe('POST');
     });
 
-    it('treatTotem should POST /v1/totems/:id/treat', async () => {
+    it('treatTotem should POST /totems/:id/treat', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -584,11 +584,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/totems/ttm_1/treat');
+      expect(url).toContain('/totems/ttm_1/treat');
       expect(options.method).toBe('POST');
     });
 
-    it('evolveTotem should POST /v1/totems/:id/evolve', async () => {
+    it('evolveTotem should POST /totems/:id/evolve', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -599,11 +599,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/totems/ttm_1/evolve');
+      expect(url).toContain('/totems/ttm_1/evolve');
       expect(options.method).toBe('POST');
     });
 
-    it('getCooldowns should GET /v1/totems/:id/cooldowns', async () => {
+    it('getCooldowns should GET /totems/:id/cooldowns', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -614,11 +614,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/totems/ttm_1/cooldowns');
+      expect(url).toContain('/totems/ttm_1/cooldowns');
       expect(options.method).toBe('GET');
     });
 
-    it('getEvolutionStatus should GET /v1/totems/:id/evolution', async () => {
+    it('getEvolutionStatus should GET /totems/:id/evolution', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -629,11 +629,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/totems/ttm_1/evolution');
+      expect(url).toContain('/totems/ttm_1/evolution');
       expect(options.method).toBe('GET');
     });
 
-    it('getTotemStatus should GET /v1/totems/:id/status', async () => {
+    it('getTotemStatus should GET /totems/:id/status', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -644,11 +644,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/totems/ttm_1/status');
+      expect(url).toContain('/totems/ttm_1/status');
       expect(options.method).toBe('GET');
     });
 
-    it('getProfile should GET /v1/user/profile', async () => {
+    it('getProfile should GET /user/profile', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -659,11 +659,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/user/profile');
+      expect(url).toContain('/user/profile');
       expect(options.method).toBe('GET');
     });
 
-    it('updateProfile should PUT /v1/user/profile with data', async () => {
+    it('updateProfile should PUT /user/profile with data', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -674,12 +674,12 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/user/profile');
+      expect(url).toContain('/user/profile');
       expect(options.method).toBe('PUT');
       expect(JSON.parse(options.body)).toEqual({ displayName: 'NewName' });
     });
 
-    it('getRewardStatus should GET /v1/rewards/status', async () => {
+    it('getRewardStatus should GET /rewards/status', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -690,11 +690,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/rewards/status');
+      expect(url).toContain('/rewards/status');
       expect(options.method).toBe('GET');
     });
 
-    it('claimDailyReward should POST /v1/rewards/daily/claim', async () => {
+    it('claimDailyReward should POST /rewards/daily/claim', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -705,11 +705,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/rewards/daily/claim');
+      expect(url).toContain('/rewards/daily/claim');
       expect(options.method).toBe('POST');
     });
 
-    it('claimWeeklyReward should POST /v1/rewards/weekly/claim', async () => {
+    it('claimWeeklyReward should POST /rewards/weekly/claim', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -720,11 +720,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/rewards/weekly/claim');
+      expect(url).toContain('/rewards/weekly/claim');
       expect(options.method).toBe('POST');
     });
 
-    it('purchaseProtection should POST /v1/rewards/:type/protection with tier', async () => {
+    it('purchaseProtection should POST /rewards/:type/protection with tier', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -735,7 +735,7 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/rewards/daily/protection');
+      expect(url).toContain('/rewards/daily/protection');
       expect(options.method).toBe('POST');
       expect(JSON.parse(options.body)).toEqual({ tier: 1 });
     });
@@ -751,10 +751,10 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/rewards/weekly/protection');
+      expect(url).toContain('/rewards/weekly/protection');
     });
 
-    it('getChallenges should GET /v1/challenges', async () => {
+    it('getChallenges should GET /challenges', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -765,11 +765,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/challenges');
+      expect(url).toContain('/challenges');
       expect(options.method).toBe('GET');
     });
 
-    it('getExpeditions should GET /v1/expeditions', async () => {
+    it('getExpeditions should GET /expeditions', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -780,11 +780,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/expeditions');
+      expect(url).toContain('/expeditions');
       expect(options.method).toBe('GET');
     });
 
-    it('getActiveExpeditions should GET /v1/expeditions/active', async () => {
+    it('getActiveExpeditions should GET /expeditions/active', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -795,11 +795,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/expeditions/active');
+      expect(url).toContain('/expeditions/active');
       expect(options.method).toBe('GET');
     });
 
-    it('claimExpeditionRewards should POST /v1/expeditions/:totemId/claim', async () => {
+    it('claimExpeditionRewards should POST /expeditions/:totemId/claim', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -810,11 +810,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/expeditions/ttm_1/claim');
+      expect(url).toContain('/expeditions/ttm_1/claim');
       expect(options.method).toBe('POST');
     });
 
-    it('getGemPackages should GET /v1/shop/gems/packages', async () => {
+    it('getGemPackages should GET /shop/gems/packages', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -825,11 +825,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/shop/gems/packages');
+      expect(url).toContain('/shop/gems/packages');
       expect(options.method).toBe('GET');
     });
 
-    it('purchaseGems should POST /v1/shop/gems/checkout with packageId', async () => {
+    it('purchaseGems should POST /shop/gems/checkout with packageId', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -840,12 +840,12 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/shop/gems/checkout');
+      expect(url).toContain('/shop/gems/checkout');
       expect(options.method).toBe('POST');
       expect(JSON.parse(options.body)).toEqual({ packageId: 'pkg_starter' });
     });
 
-    it('exchangeGemsForEssence should POST /v1/shop/exchange with bundleId', async () => {
+    it('exchangeGemsForEssence should POST /shop/exchange with bundleId', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -856,12 +856,12 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/shop/exchange');
+      expect(url).toContain('/shop/exchange');
       expect(options.method).toBe('POST');
       expect(JSON.parse(options.body)).toEqual({ bundleId: 'b1' });
     });
 
-    it('getAchievements should GET /v1/achievements', async () => {
+    it('getAchievements should GET /achievements', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -872,11 +872,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/achievements');
+      expect(url).toContain('/achievements');
       expect(options.method).toBe('GET');
     });
 
-    it('checkAchievement should POST /v1/achievements/:id/check', async () => {
+    it('checkAchievement should POST /achievements/:id/check', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -887,11 +887,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/achievements/ach_first_feed/check');
+      expect(url).toContain('/achievements/ach_first_feed/check');
       expect(options.method).toBe('POST');
     });
 
-    it('getTotemPurchaseInfo should GET /v1/totems/purchase/info', async () => {
+    it('getTotemPurchaseInfo should GET /totems/purchase/info', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -902,11 +902,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/totems/purchase/info');
+      expect(url).toContain('/totems/purchase/info');
       expect(options.method).toBe('GET');
     });
 
-    it('listTotemForSale should POST /v1/shop/list with totemId and askingPrice', async () => {
+    it('listTotemForSale should POST /shop/list with totemId and askingPrice', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -917,12 +917,12 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/shop/list');
+      expect(url).toContain('/shop/list');
       expect(options.method).toBe('POST');
       expect(JSON.parse(options.body)).toEqual({ totemId: 'ttm_1', askingPrice: 350 });
     });
 
-    it('purchaseUnboundTotem should POST /v1/shop/purchase with totemId', async () => {
+    it('purchaseUnboundTotem should POST /shop/purchase with totemId', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -933,12 +933,12 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/shop/purchase');
+      expect(url).toContain('/shop/purchase');
       expect(options.method).toBe('POST');
       expect(JSON.parse(options.body)).toEqual({ totemId: 'ttm_2' });
     });
 
-    it('cancelListing should POST /v1/shop/cancel with totemId', async () => {
+    it('cancelListing should POST /shop/cancel with totemId', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -949,12 +949,12 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/shop/cancel');
+      expect(url).toContain('/shop/cancel');
       expect(options.method).toBe('POST');
       expect(JSON.parse(options.body)).toEqual({ totemId: 'ttm_1' });
     });
 
-    it('getShopConfig should GET /v1/shop/config', async () => {
+    it('getShopConfig should GET /shop/config', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -965,11 +965,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/shop/config');
+      expect(url).toContain('/shop/config');
       expect(options.method).toBe('GET');
     });
 
-    it('createSubscriptionCheckout should POST /v1/subscription/checkout with tier', async () => {
+    it('createSubscriptionCheckout should POST /subscription/checkout with tier', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -980,12 +980,12 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/subscription/checkout');
+      expect(url).toContain('/subscription/checkout');
       expect(options.method).toBe('POST');
       expect(JSON.parse(options.body)).toEqual({ tier: 'premium' });
     });
 
-    it('getSubscriptionStatus should GET /v1/subscription/status', async () => {
+    it('getSubscriptionStatus should GET /subscription/status', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -996,11 +996,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/subscription/status');
+      expect(url).toContain('/subscription/status');
       expect(options.method).toBe('GET');
     });
 
-    it('cancelSubscription should POST /v1/subscription/cancel', async () => {
+    it('cancelSubscription should POST /subscription/cancel', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -1011,11 +1011,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/subscription/cancel');
+      expect(url).toContain('/subscription/cancel');
       expect(options.method).toBe('POST');
     });
 
-    it('reactivateSubscription should POST /v1/subscription/reactivate', async () => {
+    it('reactivateSubscription should POST /subscription/reactivate', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -1026,11 +1026,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/subscription/reactivate');
+      expect(url).toContain('/subscription/reactivate');
       expect(options.method).toBe('POST');
     });
 
-    it('getBillingPortalUrl should GET /v1/subscription/portal', async () => {
+    it('getBillingPortalUrl should GET /subscription/portal', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -1041,11 +1041,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/subscription/portal');
+      expect(url).toContain('/subscription/portal');
       expect(options.method).toBe('GET');
     });
 
-    it('getSubscriptionBonusStatus should GET /v1/subscription/bonus-status', async () => {
+    it('getSubscriptionBonusStatus should GET /subscription/bonus-status', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -1056,11 +1056,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/subscription/bonus-status');
+      expect(url).toContain('/subscription/bonus-status');
       expect(options.method).toBe('GET');
     });
 
-    it('claimSubscriptionBonus should POST /v1/subscription/claim-bonus', async () => {
+    it('claimSubscriptionBonus should POST /subscription/claim-bonus', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -1071,11 +1071,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/subscription/claim-bonus');
+      expect(url).toContain('/subscription/claim-bonus');
       expect(options.method).toBe('POST');
     });
 
-    it('getSpecialOfferBundles should GET /v1/shop/bundles', async () => {
+    it('getSpecialOfferBundles should GET /shop/bundles', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -1086,11 +1086,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/shop/bundles');
+      expect(url).toContain('/shop/bundles');
       expect(options.method).toBe('GET');
     });
 
-    it('purchaseBundle should POST /v1/shop/bundles/purchase with bundleId', async () => {
+    it('purchaseBundle should POST /shop/bundles/purchase with bundleId', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -1101,12 +1101,12 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/shop/bundles/purchase');
+      expect(url).toContain('/shop/bundles/purchase');
       expect(options.method).toBe('POST');
       expect(JSON.parse(options.body)).toEqual({ bundleId: 1 });
     });
 
-    it('getLootItems should GET /v1/loot/items', async () => {
+    it('getLootItems should GET /loot/items', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -1117,11 +1117,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/loot/items');
+      expect(url).toContain('/loot/items');
       expect(options.method).toBe('GET');
     });
 
-    it('getIoTConfig should GET /v1/iot/config', async () => {
+    it('getIoTConfig should GET /iot/config', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -1132,11 +1132,11 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/iot/config');
+      expect(url).toContain('/iot/config');
       expect(options.method).toBe('GET');
     });
 
-    it('registerIoT should POST /v1/iot/register with identityId', async () => {
+    it('registerIoT should POST /iot/register with identityId', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -1147,7 +1147,7 @@ describe('ApiClient', () => {
       expect(result.success).toBe(true);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/iot/register');
+      expect(url).toContain('/iot/register');
       expect(options.method).toBe('POST');
       expect(JSON.parse(options.body)).toEqual({ identityId: 'identity-123' });
     });
@@ -1162,7 +1162,7 @@ describe('ApiClient', () => {
       await apiClient.getMyListings();
 
       const url = mockFetch.mock.calls[0][0];
-      expect(url).toContain('/v1/shop/my-listings');
+      expect(url).toContain('/shop/my-listings');
       expect(url).not.toContain('?status=');
     });
 

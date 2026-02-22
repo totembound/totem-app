@@ -64,7 +64,7 @@ function makeApiTotem(overrides: Record<string, unknown> = {}) {
 }
 
 function setAuthToken(token: string) {
-  store['totembound_tokens'] = JSON.stringify({ accessToken: token });
+  store['totembound_tokens'] = JSON.stringify({ accessToken: token, idToken: token });
 }
 
 function _clearAuth() {
@@ -127,8 +127,8 @@ describe('totem service', () => {
 
       // Verify auth header sent
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/totems');
-      expect(options.headers['Authorization']).toBe('Bearer test-access');
+      expect(url).toContain('/totems');
+      expect(options.headers['Authorization']).toBe('test-access');
     });
 
     it('should return empty totems array on API failure', async () => {
@@ -236,7 +236,7 @@ describe('totem service', () => {
       expect(result.totem!.id).toBe('ttm_42');
 
       const url = mockFetch.mock.calls[0][0];
-      expect(url).toContain('/v1/totems/ttm_42');
+      expect(url).toContain('/totems/ttm_42');
     });
 
     it('should return error on API failure', async () => {
@@ -311,7 +311,7 @@ describe('totem service', () => {
       expect(result.totem!.attributes.happiness).toBe(90);
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/totems/ttm_1/feed');
+      expect(url).toContain('/totems/ttm_1/feed');
       expect(options.method).toBe('POST');
     });
 
@@ -325,7 +325,7 @@ describe('totem service', () => {
       });
 
       await performTotemAction('ttm_1', 'train');
-      expect(mockFetch.mock.calls[0][0]).toContain('/v1/totems/ttm_1/train');
+      expect(mockFetch.mock.calls[0][0]).toContain('/totems/ttm_1/train');
     });
 
     it('should POST treat action', async () => {
@@ -338,7 +338,7 @@ describe('totem service', () => {
       });
 
       await performTotemAction('ttm_1', 'treat');
-      expect(mockFetch.mock.calls[0][0]).toContain('/v1/totems/ttm_1/treat');
+      expect(mockFetch.mock.calls[0][0]).toContain('/totems/ttm_1/treat');
     });
 
     it('should POST evolve action', async () => {
@@ -351,7 +351,7 @@ describe('totem service', () => {
       });
 
       await performTotemAction('ttm_1', 'evolve');
-      expect(mockFetch.mock.calls[0][0]).toContain('/v1/totems/ttm_1/evolve');
+      expect(mockFetch.mock.calls[0][0]).toContain('/totems/ttm_1/evolve');
     });
 
     it('should return error on API failure', async () => {

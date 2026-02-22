@@ -35,10 +35,10 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
     const memberOneRarityColors = memberOne ? getRarityBorderColor(memberOne.attributes?.rarity ?? 0) : { border: 'border-gray-300' };
     const memberTwoRarityColors = memberTwo ? getRarityBorderColor(memberTwo.attributes?.rarity ?? 0) : { border: 'border-gray-300' };
 
-    // Calculate time remaining
+    // Calculate time remaining — use state so UI updates when timer fires
     const now = Math.floor(Date.now() / 1000);
     const timeRemaining = expedition.endTime - now;
-    const isComplete = timeRemaining <= 0 || expedition.canClaim;
+    const [isComplete, setIsComplete] = useState(timeRemaining <= 0 || expedition.canClaim);
     
     
     // Handle claim with loading state
@@ -138,7 +138,8 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
                                 <div className="flex items-center text-xs text-gray-300 dark:text-gray-400">
                                     <Clock className="w-3.5 h-3.5 inline mr-1" />
                                     <CountdownTimer
-                                        endTime={expedition.endTime} 
+                                        endTime={expedition.endTime}
+                                        onComplete={() => setIsComplete(true)}
                                     /> 
                                     <span className="ml-1">remaining</span>
                                 </div>

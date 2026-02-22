@@ -99,7 +99,7 @@ describe('AuthService', () => {
   describe('getAuthHeader', () => {
     it('should return auth header when tokens exist', () => {
       store['totembound_tokens'] = JSON.stringify({ accessToken: 'my-token', refreshToken: 'rt', idToken: 'it', expiresIn: 3600, tokenType: 'Bearer' });
-      expect(getAuthHeader()).toEqual({ Authorization: 'Bearer my-token' });
+      expect(getAuthHeader()).toEqual({ Authorization: 'it' });
     });
 
     it('should return empty object when no tokens', () => {
@@ -134,7 +134,7 @@ describe('AuthService', () => {
       expect(localStorageMock.setItem).toHaveBeenCalledWith('totembound_user', expect.any(String));
 
       const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/v1/auth/signup');
+      expect(url).toContain('/auth/signup');
       expect(options.method).toBe('POST');
       expect(JSON.parse(options.body)).toEqual({ email: 'new@test.com', password: 'pass123', displayName: 'New' });
     });
@@ -208,7 +208,7 @@ describe('AuthService', () => {
       expect(result.success).toBe(true);
 
       const url = mockFetch.mock.calls[0][0];
-      expect(url).toContain('/v1/auth/forgot-password');
+      expect(url).toContain('/auth/forgot-password');
     });
   });
 
@@ -333,7 +333,7 @@ describe('AuthService', () => {
       expect(localStorageMock.setItem).toHaveBeenCalledWith('totembound_user', expect.any(String));
 
       const [, options] = mockFetch.mock.calls[0];
-      expect(options.headers['Authorization']).toBe('Bearer at');
+      expect(options.headers['Authorization']).toBe('it');
     });
 
     it('should not store user on failure', async () => {
@@ -357,9 +357,9 @@ describe('AuthService', () => {
         json: () => Promise.resolve({ data: 'ok' }),
       });
 
-      const response = await authFetch('/v1/test');
+      const response = await authFetch('/test');
       expect(response.status).toBe(200);
-      expect(mockFetch.mock.calls[0][1].headers['Authorization']).toBe('Bearer at');
+      expect(mockFetch.mock.calls[0][1].headers['Authorization']).toBe('it');
     });
 
     it('should retry with refreshed token on 401', async () => {
@@ -379,7 +379,7 @@ describe('AuthService', () => {
       // Retry succeeds
       mockFetch.mockResolvedValueOnce({ status: 200, ok: true });
 
-      const response = await authFetch('/v1/test');
+      const response = await authFetch('/test');
       expect(response.status).toBe(200);
       expect(mockFetch).toHaveBeenCalledTimes(3);
     });
@@ -395,7 +395,7 @@ describe('AuthService', () => {
         json: () => Promise.resolve({ success: false }),
       });
 
-      const response = await authFetch('/v1/test');
+      const response = await authFetch('/test');
       expect(response.status).toBe(401);
     });
   });

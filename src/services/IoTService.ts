@@ -188,8 +188,10 @@ class IoTService {
       // Dynamic import to avoid bundling socket.io-client in production
       const { io } = await import('socket.io-client');
 
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const socket = io(apiUrl, {
+      // Strip path (e.g. /v1) — Socket.IO interprets paths as namespaces
+      const raw = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const baseUrl = new URL(raw).origin;
+      const socket = io(baseUrl, {
         transports: ['websocket', 'polling'],
         autoConnect: true,
       });
@@ -296,14 +298,22 @@ class IoTService {
       );
 
       // Step 4: Connect via MQTT over WebSocket
-      const mqtt = await import('mqtt');
+      const mqttModule = await import('mqtt');
+      // Handle both ESM default export and direct named exports
+      const mqtt = mqttModule.default || mqttModule;
       const clientId = `${identityId}-${Date.now()}`;
       const globalTopic = 'global/commands';
+
+      // Disconnect previous transport before creating new one (prevents orphaned timers)
+      if (this.transport) {
+        this.transport.disconnect();
+        this.transport = null;
+      }
 
       const mqttClient = mqtt.connect(signedUrl, {
         clientId,
         clean: true,
-        reconnectPeriod: 5000,
+        reconnectPeriod: 0, // Disable auto-reconnect; we handle it via credential refresh
         connectTimeout: 10000,
       });
 
@@ -335,7 +345,6 @@ class IoTService {
       // Schedule credential refresh (50 minutes into the 1-hour STS token)
       const refreshTimer = setTimeout(() => {
         console.log('[IoT] Refreshing MQTT credentials...');
-        mqttClient.end(true);
         if (this.userId) {
           this.connectIoTCore(this.userId);
         }

@@ -21,7 +21,7 @@ const speciesById = new Map(speciesConfig.species.map(s => [s.id, s]));
 const rarityById = new Map(raritiesConfig.rarities.map(r => [r.id, r]));
 const colorById = colorsConfig.colorById as Record<string, string>;
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/v1';
 
 // ============================================
 // Types
@@ -86,7 +86,7 @@ function getAuthToken(): string | null {
 
   try {
     const tokens = JSON.parse(tokensJson);
-    return tokens.accessToken || null;
+    return tokens.idToken || null;
   } catch {
     return null;
   }
@@ -109,7 +109,7 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      'Authorization': token,
       ...options.headers,
     },
   });
@@ -250,7 +250,7 @@ function transformTotem(apiTotem: ApiTotem): TotemData {
  */
 export async function fetchTotems(): Promise<{ success: boolean; totems: TotemData[]; error?: string }> {
   try {
-    const response = await apiRequest<ApiTotem[]>('/v1/totems');
+    const response = await apiRequest<ApiTotem[]>('/totems');
 
     if (!response.success || !response.data) {
       return {
@@ -281,7 +281,7 @@ export async function fetchTotems(): Promise<{ success: boolean; totems: TotemDa
  */
 export async function fetchTotem(totemId: string): Promise<{ success: boolean; totem?: TotemData; error?: string }> {
   try {
-    const response = await apiRequest<ApiTotem>(`/v1/totems/${totemId}`);
+    const response = await apiRequest<ApiTotem>(`/totems/${totemId}`);
 
     if (!response.success || !response.data) {
       return {
@@ -313,7 +313,7 @@ export async function performTotemAction(
   action: 'feed' | 'train' | 'treat' | 'evolve'
 ): Promise<{ success: boolean; totem?: TotemData; error?: string }> {
   try {
-    const response = await apiRequest<ApiTotem>(`/v1/totems/${totemId}/${action}`, {
+    const response = await apiRequest<ApiTotem>(`/totems/${totemId}/${action}`, {
       method: 'POST',
     });
 

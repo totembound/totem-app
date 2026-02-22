@@ -19,9 +19,9 @@ const LAST_STEP_ID = TUTORIAL_STEPS_CONFIG[TUTORIAL_STEPS_CONFIG.length - 1]?.st
 // Add tutorial methods to apiClient if not already there
 const getTutorialProgress = async () => {
   // Use rewards endpoint for tutorial progress
-  const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/v1/rewards/tutorial/progress`, {
+  const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/v1'}/rewards/tutorial/progress`, {
     headers: {
-      'Authorization': `Bearer ${apiClient.getAccessToken()}`,
+      'Authorization': apiClient.getIdToken() || '',
       'Content-Type': 'application/json'
     }
   });
@@ -33,10 +33,10 @@ const claimTutorialReward = async (rewardId: string, totemId: string) => {
   const stepMatch = rewardId.match(/tutorial_step_(\d+)/);
   const step = stepMatch ? parseInt(stepMatch[1], 10) : null;
 
-  const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/v1/rewards/tutorial`, {
+  const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/v1'}/rewards/tutorial`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${apiClient.getAccessToken()}`,
+      'Authorization': apiClient.getIdToken() || '',
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({ step, totemId })

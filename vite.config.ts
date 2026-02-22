@@ -34,6 +34,7 @@ export default defineConfig(({ mode }) => ({
       filename: 'service-worker.ts',
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json,woff2}'],
+        globIgnores: ['docs/**'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4MB limit
       },
       manifest: {

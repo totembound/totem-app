@@ -1,12 +1,22 @@
 /// <reference types="vite/client" />
 /// <reference lib="webworker" />
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
+import { NavigationRoute, registerRoute } from 'workbox-routing';
+import { NetworkFirst } from 'workbox-strategies';
+import { createHandlerBoundToURL } from 'workbox-precaching';
 
 declare const self: ServiceWorkerGlobalScope & typeof globalThis;
 
 // Workbox will inject the manifest of assets to precache
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
+
+// SPA navigation: serve index.html for all routes EXCEPT /docs
+const navigationRoute = new NavigationRoute(
+  createHandlerBoundToURL('/index.html'),
+  { denylist: [/^\/docs/] }
+);
+registerRoute(navigationRoute);
 
 // Handle push notifications (if needed later)
 self.addEventListener('push', (event: any) => {

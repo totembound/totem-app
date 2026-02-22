@@ -18,6 +18,7 @@ const mockUserContext = vi.hoisted(() => ({
 
 const mockApiClient = vi.hoisted(() => ({
   getAccessToken: vi.fn().mockReturnValue('test-token'),
+  getIdToken: vi.fn().mockReturnValue('test-id-token'),
   isAuthenticated: vi.fn().mockReturnValue(true),
 }));
 

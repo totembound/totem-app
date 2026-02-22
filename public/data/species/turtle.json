@@ -16,9 +16,9 @@
   },
   "stages": [
     "Hatchling",
-    "Paddler",
-    "Voyager",
-    "Ancient",
+    "Youngling",
+    "Wayfarer",
+    "Warden",
     "Wise Elder"
   ],
   "colors": {

@@ -16,9 +16,9 @@
   },
   "stages": [
     "Hatchling",
-    "Fledgling",
-    "Hunter",
-    "Sage",
+    "Chick",
+    "Juvenile",
+    "Adult",
     "Wise Elder"
   ],
   "colors": {

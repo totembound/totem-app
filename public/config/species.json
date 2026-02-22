@@ -56,7 +56,7 @@
       "affinity": "agility",
       "domain": "air",
       "baseStats": { "strength": 7, "agility": 11, "wisdom": 6 },
-      "available": false
+      "available": true
     },
     {
       "id": 7,
@@ -99,5 +99,5 @@
       "available": true
     }
   ],
-  "availableSpeciesIds": [0, 1, 2, 3, 4, 5, 11]
+  "availableSpeciesIds": [0, 1, 2, 3, 4, 5, 6, 11]
 }

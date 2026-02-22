@@ -93,10 +93,10 @@
       "affinity": "Agility",
       "domain": "Air",
       "locationId": 15,
-      "available": false,
+      "available": true,
       "image": "/totems/woodpeckerplacecard.png",
       "baseStats": { "strength": 7, "agility": 11, "wisdom": 6 },
-      "stages": ["Hatchling", "Chick", "Drummer", "Tapper", "Wise Elder"]
+      "stages": ["Hatchling", "Fledgling", "Forager", "Warden", "Wise Elder"]
     },
     {
       "id": 7,
@@ -110,7 +110,7 @@
       "available": false,
       "image": "/totems/turtleplacecard.png",
       "baseStats": { "strength": 10, "agility": 8, "wisdom": 6 },
-      "stages": ["Hatchling", "Swimmer", "Shell", "Guardian", "Wise Elder"]
+      "stages": ["Hatchling", "Youngling", "Wayfarer", "Warden", "Wise Elder"]
     },
     {
       "id": 8,
@@ -138,7 +138,7 @@
       "available": false,
       "image": "/totems/ravenplacecard.png",
       "baseStats": { "strength": 5, "agility": 8, "wisdom": 11 },
-      "stages": ["Hatchling", "Fledgling", "Trickster", "Oracle", "Wise Elder"]
+      "stages": ["Hatchling", "Fledgling", "Messenger", "Warden", "Wise Elder"]
     },
     {
       "id": 10,
@@ -152,7 +152,7 @@
       "available": false,
       "image": "/totems/snakeplacecard.png",
       "baseStats": { "strength": 7, "agility": 6, "wisdom": 11 },
-      "stages": ["Hatchling", "Slider", "Coiler", "Serpent", "Wise Elder"]
+      "stages": ["Hatchling", "Slitherling", "Striker", "Warden", "Wise Elder"]
     },
     {
       "id": 11,

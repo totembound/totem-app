@@ -17,8 +17,8 @@
   "stages": [
     "Hatchling",
     "Fledgling",
-    "Trickster",
-    "Oracle",
+    "Messenger",
+    "Warden",
     "Wise Elder"
   ],
   "colors": {

@@ -70,7 +70,7 @@ const Plans = () => {
       if (response.success && response.data) {
         if (response.data.sessionUrl) {
           window.location.href = response.data.sessionUrl;
-        } else if (response.data.devMode) {
+        } else if (response.data.devMode || response.data.upgraded) {
           setSuccessMessage(response.data.message || `Upgraded to ${plan}!`);
           setCurrentTier(plan);
         }
@@ -121,6 +121,8 @@ const Plans = () => {
     }
   };
 
+  const tierRank: Record<string, number> = { free: 0, premium: 1, vip: 2 };
+
   const getButtonLabel = (plan: string) => {
     if (!isAuthenticated) {
       if (plan === 'free') return 'Get Started Free';
@@ -129,14 +131,17 @@ const Plans = () => {
     }
     if (plan === currentTier) return 'Current Plan';
     if (plan === 'free') return 'Current Plan';
+    if ((tierRank[plan] ?? 0) < (tierRank[currentTier] ?? 0)) return 'Current Plan Includes This';
     if (subscribing === plan) return 'Redirecting...';
-    return plan === 'premium' ? 'Subscribe to Premium' : 'Subscribe to VIP';
+    return currentTier !== 'free'
+      ? `Upgrade to ${plan.charAt(0).toUpperCase() + plan.slice(1)}`
+      : plan === 'premium' ? 'Subscribe to Premium' : 'Subscribe to VIP';
   };
 
   const isButtonDisabled = (plan: string) => {
     if (!isAuthenticated) return false;
     if (plan === currentTier) return true;
-    if (plan === 'free' && currentTier === 'free') return true;
+    if ((tierRank[plan] ?? 0) <= (tierRank[currentTier] ?? 0)) return true; // Block downgrade
     if (subscribing) return true;
     return false;
   };

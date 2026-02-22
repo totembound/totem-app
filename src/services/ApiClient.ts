@@ -5,7 +5,7 @@
  * Replaces Web3 contract calls for the Web2 migration.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/v1';
 
 interface ApiResponse<T = unknown> {
   success: boolean;
@@ -72,7 +72,7 @@ class ApiClient {
 
     this.refreshPromise = (async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/v1/auth/refresh`, {
+        const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refreshToken: this.tokens!.refreshToken }),
@@ -164,7 +164,7 @@ class ApiClient {
           error: { code: 'NOT_AUTHENTICATED', message: 'Not logged in' },
         };
       }
-      headers['Authorization'] = `Bearer ${this.tokens.accessToken}`;
+      headers['Authorization'] = this.tokens.idToken;
     }
 
     try {
@@ -179,7 +179,7 @@ class ApiClient {
         const refreshed = await this.refreshAccessToken();
         if (refreshed) {
           // Retry the request with new token
-          headers['Authorization'] = `Bearer ${this.tokens!.accessToken}`;
+          headers['Authorization'] = this.tokens!.idToken;
           const retryResponse = await fetch(`${API_BASE_URL}${path}`, {
             method,
             headers,
@@ -210,7 +210,7 @@ class ApiClient {
       user: { id: string; email: string; displayName: string };
       tokens: { accessToken: string; refreshToken: string; idToken: string; expiresIn: number };
       lootItem: { id: string; boxId: string; boxName: string; boxDescription: string; boxRarity: string; boxIcon: string };
-    }>('POST', '/v1/auth/signup', { email, password, displayName }, false);
+    }>('POST', '/auth/signup', { email, password, displayName }, false);
 
     if (response.success && response.data?.tokens) {
       this.saveTokens({
@@ -228,7 +228,7 @@ class ApiClient {
     const response = await this.request<{
       user: { id: string; email: string; displayName: string };
       tokens: { accessToken: string; refreshToken: string; idToken: string; expiresIn: number };
-    }>('POST', '/v1/auth/login', { email, password }, false);
+    }>('POST', '/auth/login', { email, password }, false);
 
     if (response.success && response.data?.tokens) {
       this.saveTokens({
@@ -244,7 +244,7 @@ class ApiClient {
 
   async logout() {
     if (this.tokens?.refreshToken) {
-      await this.request('POST', '/v1/auth/logout', { refreshToken: this.tokens.refreshToken });
+      await this.request('POST', '/auth/logout', { refreshToken: this.tokens.refreshToken });
     }
     this.clearTokens();
   }
@@ -257,7 +257,7 @@ class ApiClient {
       tier: string;
       currencies: { essence: number; gems: number };
       stats: { totalTotems: number; loginStreak: number };
-    }>('GET', '/v1/auth/me');
+    }>('GET', '/auth/me');
   }
 
   // ============================================
@@ -286,11 +286,11 @@ class ApiClient {
         wisdom: number;
       };
       trackings: Record<number, { lastUsed: number; dailyUses: number; dayStartTime: number }>;
-    }>>('GET', '/v1/totems');
+    }>>('GET', '/totems');
   }
 
   async getTotem(totemId: string) {
-    return this.request<unknown>('GET', `/v1/totems/${totemId}`);
+    return this.request<unknown>('GET', `/totems/${totemId}`);
   }
 
   // ============================================
@@ -310,7 +310,7 @@ class ApiClient {
       feedsToday: number;
       maxDaily: number;
       newEssenceBalance: number;
-    }>('POST', `/v1/totems/${totemId}/feed`);
+    }>('POST', `/totems/${totemId}/feed`);
   }
 
   async trainTotem(totemId: string) {
@@ -324,7 +324,7 @@ class ApiClient {
       achievements?: Array<{ achievementId: string; milestone?: number; rewards?: { essence?: number; xp?: number } }>;
       message: string;
       newEssenceBalance: number;
-    }>('POST', `/v1/totems/${totemId}/train`);
+    }>('POST', `/totems/${totemId}/train`);
   }
 
   async treatTotem(totemId: string) {
@@ -338,7 +338,7 @@ class ApiClient {
       achievements?: Array<{ achievementId: string; milestone?: number; rewards?: { essence?: number; xp?: number } }>;
       message: string;
       newEssenceBalance: number;
-    }>('POST', `/v1/totems/${totemId}/treat`);
+    }>('POST', `/totems/${totemId}/treat`);
   }
 
   async evolveTotem(totemId: string) {
@@ -355,14 +355,14 @@ class ApiClient {
       statBoosts: Record<string, number>;
       achievements?: Array<{ achievementId: string; milestone?: number; rewards?: { essence?: number; xp?: number } }>;
       message: string;
-    }>('POST', `/v1/totems/${totemId}/evolve`);
+    }>('POST', `/totems/${totemId}/evolve`);
   }
 
   async setNickname(totemId: string, nickname: string | null) {
     return this.request<{
       totemId: string;
       nickname: string | null;
-    }>('POST', `/v1/totems/${totemId}/nickname`, { nickname });
+    }>('POST', `/totems/${totemId}/nickname`, { nickname });
   }
 
   async getCooldowns(totemId: string) {
@@ -373,7 +373,7 @@ class ApiClient {
         train: { onCooldown: boolean; readyAt: string | null; remainingMs: number };
         treat: { onCooldown: boolean; readyAt: string | null; remainingMs: number };
       };
-    }>('GET', `/v1/totems/${totemId}/cooldowns`);
+    }>('GET', `/totems/${totemId}/cooldowns`);
   }
 
   async getEvolutionStatus(totemId: string) {
@@ -388,7 +388,7 @@ class ApiClient {
       };
       nextStage: number | null;
       nextStageName: string | null;
-    }>('GET', `/v1/totems/${totemId}/evolution`);
+    }>('GET', `/totems/${totemId}/evolution`);
   }
 
   async getTotemStatus(totemId: string) {
@@ -413,7 +413,7 @@ class ApiClient {
           happiness: { current: number; required: number; met: boolean };
         };
       } | { maxStageReached: boolean };
-    }>('GET', `/v1/totems/${totemId}/status`);
+    }>('GET', `/totems/${totemId}/status`);
   }
 
   // ============================================
@@ -429,11 +429,11 @@ class ApiClient {
       currencies: { essence: number; gems: number; runes?: { lesser: number; greater: number; ancient: number } };
       stats: { totalTotems: number; loginStreak: number };
       settings: { notifications: boolean; darkMode: string };
-    }>('GET', '/v1/user/profile');
+    }>('GET', '/user/profile');
   }
 
   async updateProfile(data: { displayName?: string; settings?: Record<string, unknown> }) {
-    return this.request('PUT', '/v1/user/profile', data);
+    return this.request('PUT', '/user/profile', data);
   }
 
   // ============================================
@@ -459,7 +459,7 @@ class ApiClient {
         protectionExpiry: string | null;
         isUnlocked: boolean;
       };
-    }>('GET', '/v1/rewards/status');
+    }>('GET', '/rewards/status');
   }
 
   async claimDailyReward() {
@@ -471,7 +471,7 @@ class ApiClient {
         streakBonus: number;
       };
       message: string;
-    }>('POST', '/v1/rewards/daily/claim');
+    }>('POST', '/rewards/daily/claim');
   }
 
   async claimWeeklyReward() {
@@ -482,7 +482,7 @@ class ApiClient {
         weeklyStreak: number;
       };
       message: string;
-    }>('POST', '/v1/rewards/weekly/claim');
+    }>('POST', '/rewards/weekly/claim');
   }
 
   async purchaseProtection(type: 'daily' | 'weekly', tier: number) {
@@ -493,7 +493,7 @@ class ApiClient {
       durationSeconds: number;
       protectionExpiry: string;
       newBalance: number;
-    }>('POST', `/v1/rewards/${type}/protection`, { tier });
+    }>('POST', `/rewards/${type}/protection`, { tier });
   }
 
   // ============================================
@@ -540,7 +540,7 @@ class ApiClient {
         totalCompletions: number;
         totalXpEarned: number;
       };
-    }>('GET', '/v1/challenges');
+    }>('GET', '/challenges');
   }
 
   async completeChallenge(challengeId: string, totemId: string, score: number) {
@@ -569,7 +569,7 @@ class ApiClient {
       };
       achievements?: Array<{ achievementId: string; milestone?: number; rewards?: { essence?: number; xp?: number } }>;
       message: string;
-    }>('POST', `/v1/challenges/${challengeId}/complete`, { totemId, score });
+    }>('POST', `/challenges/${challengeId}/complete`, { totemId, score });
   }
 
   // ============================================
@@ -596,7 +596,7 @@ class ApiClient {
         endTime: string;
         canClaim: boolean;
       }>;
-    }>('GET', '/v1/expeditions');
+    }>('GET', '/expeditions');
   }
 
   async getActiveExpeditions() {
@@ -614,7 +614,7 @@ class ApiClient {
         remainingMs: number;
       }>;
       summary: { total: number; inProgress: number; claimable: number };
-    }>('GET', '/v1/expeditions/active');
+    }>('GET', '/expeditions/active');
   }
 
   async startExpedition(expeditionId: string, totemIds: string[]) {
@@ -626,7 +626,7 @@ class ApiClient {
         endTime: string;
       };
       message: string;
-    }>('POST', `/v1/expeditions/${expeditionId}/start`, { totemId: totemIds[0], totemIds });
+    }>('POST', `/expeditions/${expeditionId}/start`, { totemId: totemIds[0], totemIds });
   }
 
   async claimExpeditionRewards(totemId: string) {
@@ -673,7 +673,7 @@ class ApiClient {
         rewards?: { essence?: number; xp?: number };
       }>;
       message: string;
-    }>('POST', `/v1/expeditions/${totemId}/claim`);
+    }>('POST', `/expeditions/${totemId}/claim`);
   }
 
   // ============================================
@@ -694,7 +694,7 @@ class ApiClient {
       }>;
       conversionRate: number;
       conversionNote: string;
-    }>('GET', '/v1/shop/gems/packages');
+    }>('GET', '/shop/gems/packages');
   }
 
   async purchaseGems(packageId: string) {
@@ -708,7 +708,7 @@ class ApiClient {
       newEssenceBalance?: number;
       isDev?: boolean;
       message?: string;
-    }>('POST', '/v1/shop/gems/checkout', { packageId });
+    }>('POST', '/shop/gems/checkout', { packageId });
   }
 
   // ============================================
@@ -727,7 +727,7 @@ class ApiClient {
       }>;
       conversionRate: number;
       conversionNote: string;
-    }>('GET', '/v1/shop/exchange/bundles', undefined, false);
+    }>('GET', '/shop/exchange/bundles', undefined, false);
   }
 
   async exchangeGemsForEssence(bundleId: string) {
@@ -739,7 +739,7 @@ class ApiClient {
       bonus: number;
       newGemsBalance: number;
       newEssenceBalance: number;
-    }>('POST', '/v1/shop/exchange', { bundleId });
+    }>('POST', '/shop/exchange', { bundleId });
   }
 
   // ============================================
@@ -754,7 +754,7 @@ class ApiClient {
         unlocked: boolean;
         progress: number;
       }>>;
-    }>('GET', '/v1/achievements');
+    }>('GET', '/achievements');
   }
 
   async checkAchievement(achievementId: string) {
@@ -770,7 +770,7 @@ class ApiClient {
         threshold: number;
         reward: number;
       };
-    }>('POST', `/v1/achievements/${achievementId}/check`);
+    }>('POST', `/achievements/${achievementId}/check`);
   }
 
   // ============================================
@@ -790,7 +790,7 @@ class ApiClient {
         baseStats: Record<string, number>;
       }>;
       note: string;
-    }>('GET', '/v1/totems/purchase/info');
+    }>('GET', '/totems/purchase/info');
   }
 
   /**
@@ -823,7 +823,7 @@ class ApiClient {
         milestone?: number;
         rewards?: unknown;
       }>;
-    }>('POST', '/v1/totems/purchase', options || {});
+    }>('POST', '/totems/purchase', options || {});
   }
 
   // ============================================
@@ -880,7 +880,7 @@ class ApiClient {
       }>;
       total: number;
       hasMore: boolean;
-    }>('GET', `/v1/shop/listings${queryString ? '?' + queryString : ''}`);
+    }>('GET', `/shop/listings${queryString ? '?' + queryString : ''}`);
   }
 
   /**
@@ -903,7 +903,7 @@ class ApiClient {
           stage: number;
         };
       }>;
-    }>('GET', `/v1/shop/my-listings${params}`);
+    }>('GET', `/shop/my-listings${params}`);
   }
 
   /**
@@ -920,7 +920,7 @@ class ApiClient {
       };
       feeDeducted: number;
       newBalance: number;
-    }>('POST', '/v1/shop/list', { totemId, askingPrice });
+    }>('POST', '/shop/list', { totemId, askingPrice });
   }
 
   /**
@@ -941,7 +941,7 @@ class ApiClient {
       totalPaid: number;
       purchaseFee: number;
       newBalance: number;
-    }>('POST', '/v1/shop/purchase', { totemId });
+    }>('POST', '/shop/purchase', { totemId });
   }
 
   /**
@@ -954,7 +954,7 @@ class ApiClient {
         name: string;
       };
       message: string;
-    }>('POST', '/v1/shop/cancel', { totemId });
+    }>('POST', '/shop/cancel', { totemId });
   }
 
   /**
@@ -966,7 +966,7 @@ class ApiClient {
       purchaseFee: number;
       minAskingPrice: number;
       maxAskingPrice: number;
-    }>('GET', '/v1/shop/config');
+    }>('GET', '/shop/config');
   }
 
   // ============================================
@@ -980,7 +980,8 @@ class ApiClient {
       tier?: string;
       message?: string;
       devMode?: boolean;
-    }>('POST', '/v1/subscription/checkout', { tier });
+      upgraded?: boolean;
+    }>('POST', '/subscription/checkout', { tier });
   }
 
   async getSubscriptionStatus() {
@@ -994,7 +995,7 @@ class ApiClient {
         cancelAtPeriodEnd: boolean;
         subscriptionId: string | null;
       };
-    }>('GET', '/v1/subscription/status');
+    }>('GET', '/subscription/status');
   }
 
   async cancelSubscription() {
@@ -1003,7 +1004,7 @@ class ApiClient {
       currentPeriodEnd?: string;
       cancelAtPeriodEnd?: boolean;
       tier?: string;
-    }>('POST', '/v1/subscription/cancel');
+    }>('POST', '/subscription/cancel');
   }
 
   async reactivateSubscription() {
@@ -1011,13 +1012,13 @@ class ApiClient {
       message: string;
       currentPeriodEnd?: string;
       cancelAtPeriodEnd?: boolean;
-    }>('POST', '/v1/subscription/reactivate');
+    }>('POST', '/subscription/reactivate');
   }
 
   async getBillingPortalUrl() {
     return this.request<{
       portalUrl: string;
-    }>('GET', '/v1/subscription/portal');
+    }>('GET', '/subscription/portal');
   }
 
   async getSubscriptionBonusStatus() {
@@ -1030,7 +1031,7 @@ class ApiClient {
       currentMonth?: string;
       reason?: string;
       bonus?: { essence: number; gems: number };
-    }>('GET', '/v1/subscription/bonus-status');
+    }>('GET', '/subscription/bonus-status');
   }
 
   async claimSubscriptionBonus() {
@@ -1042,7 +1043,7 @@ class ApiClient {
       newEssenceBalance: number;
       newGemsBalance: number;
       message: string;
-    }>('POST', '/v1/subscription/claim-bonus');
+    }>('POST', '/subscription/claim-bonus');
   }
 
   // ============================================
@@ -1065,7 +1066,7 @@ class ApiClient {
         isMonthly: boolean;
         month?: number;
       }>;
-    }>('GET', '/v1/shop/bundles');
+    }>('GET', '/shop/bundles');
   }
 
   /**
@@ -1079,7 +1080,7 @@ class ApiClient {
       essenceReceived: number;
       newGemsBalance: number;
       newEssenceBalance: number;
-    }>('POST', '/v1/shop/bundles/purchase', { bundleId });
+    }>('POST', '/shop/bundles/purchase', { bundleId });
   }
   // ============================================
   // Loot Box endpoints
@@ -1110,7 +1111,7 @@ class ApiClient {
         };
       }>;
       count: number;
-    }>('GET', '/v1/loot/items');
+    }>('GET', '/loot/items');
   }
 
   async claimLootItem(lootItemId: string, options?: { speciesId?: number }) {
@@ -1141,7 +1142,7 @@ class ApiClient {
         amount?: number;
         newBalance?: number;
       };
-    }>('POST', '/v1/loot/claim', { lootItemId, options });
+    }>('POST', '/loot/claim', { lootItemId, options });
   }
 
   // ============================================
@@ -1157,14 +1158,14 @@ class ApiClient {
       userPoolClientId: string | null;
       registered: boolean;
       topic: string | null;
-    }>('GET', '/v1/iot/config');
+    }>('GET', '/iot/config');
   }
 
   async registerIoT(identityId: string) {
     return this.request<{
       registered: boolean;
       topic: string;
-    }>('POST', '/v1/iot/register', { identityId });
+    }>('POST', '/iot/register', { identityId });
   }
 
   public getIdToken(): string | null {

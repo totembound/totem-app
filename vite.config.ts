@@ -125,6 +125,9 @@ export default defineConfig(({ mode }) => ({
         url: 'http://localhost:3000'
       }
     },
+    env: {
+      VITE_API_URL: 'http://localhost:3001'
+    },
     setupFiles: ['./src/setupTests.ts']
   }
 }))

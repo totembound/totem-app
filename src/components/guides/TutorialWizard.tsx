@@ -235,7 +235,7 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
 
         {/* Reward Section */}
         <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between h-9">
             <div className="flex items-center gap-2">
               <Gift className="w-4 h-4 text-purple-500" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -243,7 +243,7 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
                 {currentTutorialStep.experienceReward > 0 && ` + ${currentTutorialStep.experienceReward} XP`}
               </span>
             </div>
-            
+
             {hasClaimed ? (
               <span className="text-sm text-green-600 dark:text-green-400 font-medium">
                 ✓ Claimed
@@ -252,15 +252,15 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
               <button
                 onClick={handleClaimClick}
                 disabled={isLoading || comingSoon}
-                className="px-3 py-1 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-1.5 text-sm bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isLoading ? "Claiming..." : "Claim"}
               </button>
             ) : (
               <span className="text-xs text-gray-500">
-                {isStepComplete 
-                  ? (currentTutorialStep.requiresTotem && (!totems || totems.length === 0) 
-                    ? "Need Totem" 
+                {isStepComplete
+                  ? (currentTutorialStep.requiresTotem && (!totems || totems.length === 0)
+                    ? "Need Totem"
                     : "Ready to claim")
                   : "Complete steps"
                 }

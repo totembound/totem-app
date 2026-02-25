@@ -80,13 +80,6 @@ const TotemGallery = () => {
         });
     }, [contextUpdateTotemAttributes]);
 
-    // Load totems on mount and when auth changes
-    useEffect(() => {
-        if (isAuthenticated) {
-            fetchTotems();
-        }
-    }, [isAuthenticated, fetchTotems]);
-
     // State Management
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [selectedTotem, setSelectedTotem] = useState<TotemData | null>(null!);

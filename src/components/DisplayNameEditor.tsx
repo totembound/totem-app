@@ -65,7 +65,7 @@ const DisplayNameEditor: React.FC<DisplayNameEditorProps> = ({
     };
 
     return (
-        <div className="flex items-center gap-2 max-w-full w-full">
+        <div className="flex items-center gap-2 max-w-xs w-full">
             <div className="relative flex-1">
                 <input
                     ref={inputRef}

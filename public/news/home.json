@@ -1,14 +1,38 @@
 {
     "items": [
       {
-        "id": "1",
-        "title": "Welcome to TotemBound Beta!",
-        "emoji": "🎉",
-        "content": "Explore the world of spiritual companions and start your journey as a Totem Keeper.",
-        "date": "2025-06-05 00:00:00",
+        "id": "5",
+        "title": "Elder Sanctum & New Species Coming Soon",
+        "emoji": "🏛️",
+        "content": "Seat your stage 4+ totems in the Elder Sanctum for daily passive Essence and solo advisory missions. Plus, 4 new species — Turtle, Bear, Raven & Snake — are on the way!",
+        "date": "2026-02-22 00:00:00",
         "cta": {
-          "text": "Learn More",
-          "link": "/about",
+          "text": "View Roadmap",
+          "link": "/roadmap",
+          "external": false
+        }
+      },
+      {
+        "id": "4",
+        "title": "Expeditions & Challenges Are Live!",
+        "emoji": "⚔️",
+        "content": "Send 3-totem teams on 15 expeditions across Earth, Water & Air domains. Tackle 10 skill-based challenge mini-games to earn XP, happiness, and Essence rewards.",
+        "date": "2026-02-10 00:00:00",
+        "cta": {
+          "text": "Start an Expedition",
+          "link": "/expeditions",
+          "external": false
+        }
+      },
+      {
+        "id": "3",
+        "title": "Guided Tutorial & Achievement System",
+        "emoji": "🎓",
+        "content": "New players can follow a 6-step guided tutorial with reward claims at each milestone. Plus, track your progress across 25+ achievements as you grow your collection.",
+        "date": "2026-01-20 00:00:00",
+        "cta": {
+          "text": "Check Achievements",
+          "link": "/achievements",
           "external": false
         }
       },
@@ -17,7 +41,7 @@
         "title": "Join Our Discord Community",
         "emoji": "💬",
         "content": "Connect with other Totem Keepers, get tips, and participate in exclusive events!",
-        "date": "2025-06-05 00:00:00",
+        "date": "2026-01-06 00:00:00",
         "cta": {
           "text": "Join Discord",
           "link": "https://discord.gg/MhKQC5E6xe",
@@ -25,11 +49,16 @@
         }
       },
       {
-        "id": "3",
-        "title": "Coming Soon: Enhanced Training",
-        "emoji": "🔮",
-        "content": "New training mechanics and rewards system in development! Stay tuned for more powerful ways to strengthen your Totems.",
-        "date": "2025-06-06 00:00:00"
+        "id": "1",
+        "title": "Welcome to TotemBound Beta!",
+        "emoji": "🎉",
+        "content": "Explore the world of spiritual companions and start your journey as a Totem Keeper. Raise, train, and evolve 12 mystical species across 5 stages.",
+        "date": "2026-01-06 00:00:00",
+        "cta": {
+          "text": "Learn More",
+          "link": "/about",
+          "external": false
+        }
       }
     ]
   }

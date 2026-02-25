@@ -138,25 +138,25 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
                     </button>
                 </div>
                 
-                {/* Fixed height message container */}
-                <div className="h-14 flex items-start justify-center mt-2">
+                {/* Status message container - fixed height for alignment across columns */}
+                <div className="h-12 sm:h-14 flex items-start justify-center mt-1 sm:mt-2">
                     {statusMessage && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                            <div className="flex flex-col items-center text-center justify-center gap-1">
+                        <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 text-center leading-tight">
+                            <div className="flex flex-col items-center text-center justify-center gap-0.5">
                                 {!hasEnoughBalance ? (
                                     <>
-                                        <Sparkles size={16} className="text-yellow-500" />
+                                        <Sparkles size={14} className="text-yellow-500 sm:w-4 sm:h-4" />
                                         {statusMessage}
                                     </>
                                 ) : (
                                     <>
-                                        <Clock size={16} className="flex-shrink-0" />
+                                        <Clock size={14} className="flex-shrink-0 sm:w-4 sm:h-4" />
                                         {statusMessage}
                                     </>
                                 )}
                                 {/* Show next feed window for Feed action when on cooldown */}
                                 {type === ActionType.Feed && !canUse && !isTotemOnExpedition && (
-                                    <div className="text-xs opacity-75">{getNextFeedWindow()}</div>
+                                    <div className="opacity-75 whitespace-nowrap">{getNextFeedWindow()}</div>
                                 )}
                             </div>
                         </div>

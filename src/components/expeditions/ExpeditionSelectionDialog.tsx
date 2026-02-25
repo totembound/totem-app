@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useUser } from "../../contexts/UserContext";
 import { useGame } from "../../contexts/GameContext";
 import { X, MapPin, Heart, AlertCircle, Zap, Sparkles } from "lucide-react";
@@ -307,31 +308,33 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
     ? totems.filter(totem => isEligibleTotem(totem.id))
     : totems;
     
-  return (
+  return createPortal(
     <>
       {isOpen && (
-        <div className="fixed inset-0 min-h-screen z-50 overflow-y-auto mt-0">
-          {/* Backdrop */}
+        <div className="fixed inset-0 z-[60] bg-white dark:bg-gray-800 sm:bg-transparent sm:dark:bg-transparent sm:flex sm:items-center sm:justify-center sm:p-4">
+          {/* Backdrop - visible on desktop only */}
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+            className="hidden sm:block fixed inset-0 bg-black bg-opacity-50 transition-opacity"
             onClick={onClose}
           ></div>
 
-          {/* Dialog */}
-          <div className="flex min-h-screen items-center justify-center">
-            <div className="relative w-full max-w-2xl p-2 sm:p-4 md:p-6 transform rounded-lg bg-white dark:bg-gray-800 shadow-xl transition-all">
+          {/* Dialog - full screen on mobile, centered modal on desktop */}
+          <div className="relative w-full h-full sm:h-auto sm:max-w-2xl sm:max-h-[calc(100vh-2rem)] bg-white dark:bg-gray-800 sm:rounded-lg shadow-xl flex flex-col overflow-hidden">
               {/* Header */}
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              <div className="flex-shrink-0 flex items-center justify-between p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
                   Prepare for {expedition.name}
                 </h3>
                 <button
                   onClick={onClose}
-                  className="rounded-full p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="p-1.5 rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
+
+              {/* Scrollable content */}
+              <div className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-6">
               <div className="relative h-64">
                 {expedition.image && (
                     <img 
@@ -581,7 +584,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
               </div>
 
               {/* Actions */}
-              <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4 pb-2">
                 <button
                   onClick={onClose}
                   className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
@@ -592,7 +595,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                 <button
                   onClick={handleStartExpedition}
                   disabled={!canStartExpedition() || isSubmitting}
-                  className={`px-4 py-2 rounded-lg text-white 
+                  className={`px-4 py-2 rounded-lg text-white
                     ${
                       canStartExpedition() && !isSubmitting
                         ? "bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-500"
@@ -605,11 +608,12 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                     : `Start Expedition (${formatTokenAmount(expedition.essenceCost)} ${CURRENCY_NAMES.SOFT})`}
                 </button>
               </div>
-            </div>
-          </div>
+              </div>{/* End scrollable content */}
+          </div>{/* End dialog */}
         </div>
       )}
-    </>
+    </>,
+    document.body
   );
 };
 

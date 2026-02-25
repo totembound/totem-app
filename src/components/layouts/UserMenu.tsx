@@ -13,7 +13,7 @@ import { CURRENCY_NAMES } from '../../config/constants';
 
 export const UserMenu: React.FC = () => {
   const { user, logout } = useAuth();
-  const { essenceBalance, gemsBalance, tutorialWizardVisible, setTutorialWizardVisible } = useUser();
+  const { essenceBalance, gemsBalance, setTutorialWizardVisible } = useUser();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -163,22 +163,20 @@ export const UserMenu: React.FC = () => {
             <span className="text-sm">Settings</span>
           </Link>
 
-          {/* Show Tutorial - only when wizard is hidden */}
-          {!tutorialWizardVisible && (
-            <button
-              onClick={() => {
-                setTutorialWizardVisible(true);
-                setIsOpen(false);
-              }}
-              className="w-full px-4 py-2 text-left flex items-center gap-2
-                text-gray-700 dark:text-gray-300
-                hover:bg-gray-50 dark:hover:bg-gray-700/50
-                transition-colors"
-            >
-              <GraduationCap size={16} className="text-gray-500 dark:text-gray-400" />
-              <span className="text-sm">Show Tutorial</span>
-            </button>
-          )}
+          {/* Show Tutorial */}
+          <button
+            onClick={() => {
+              setTutorialWizardVisible(true);
+              setIsOpen(false);
+            }}
+            className="w-full px-4 py-2 text-left flex items-center gap-2
+              text-gray-700 dark:text-gray-300
+              hover:bg-gray-50 dark:hover:bg-gray-700/50
+              transition-colors"
+          >
+            <GraduationCap size={16} className="text-gray-500 dark:text-gray-400" />
+            <span className="text-sm">Show Tutorial</span>
+          </button>
 
           <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
 

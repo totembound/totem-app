@@ -12,7 +12,7 @@ import { UserMenu } from './UserMenu';
 import NotificationsPanel from '../NotificationsPanel';
 import { Link } from 'react-router-dom';
 import { ThemeToggle } from './ThemeToggle';
-import { BookOpenText, Flame, Info, MapIcon, TagIcon, X } from 'lucide-react';
+import { Flame, X } from 'lucide-react';
 
 const Header: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
@@ -79,7 +79,7 @@ const Header: React.FC = () => {
                 alt="TotemBound"
                 className="h-6 w-6 sm:h-8 sm:w-8"
               />
-              <span className={`font-bold text-lg sm:text-xl dark:text-white ${isAuthenticated ? 'inline' : 'hidden sm:inline'}`}>
+              <span className="font-bold text-lg sm:text-xl dark:text-white">
                 TotemBound
               </span>
             </Link>
@@ -117,39 +117,6 @@ const Header: React.FC = () => {
               </div>
             )}
 
-            {/* Mobile Public Nav - Only shown when not authenticated */}
-            {!isAuthenticated && (
-              <div className="flex md:hidden items-center space-x-2">
-                <Link
-                  to="/about"
-                  className="text-gray-600 dark:text-gray-300 p-2"
-                  aria-label="About"
-                >
-                  <Info size={20} />
-                </Link>
-                <Link
-                  to="/guides"
-                  className="text-gray-600 dark:text-gray-300 p-2"
-                  aria-label="Guides"
-                >
-                  <BookOpenText size={20} />
-                </Link>
-                <Link
-                  to="/plans"
-                  className="text-gray-600 dark:text-gray-300 p-2"
-                  aria-label="Pricing"
-                >
-                  <TagIcon size={20} />
-                </Link>
-                <Link
-                  to="/roadmap"
-                  className="text-gray-600 dark:text-gray-300 p-2"
-                  aria-label="Roadmap"
-                >
-                  <MapIcon size={20} />
-                </Link>
-              </div>
-            )}
 
             {/* Desktop Streak Tracker */}
             {isAuthenticated && showStreakTracker && streakDays > 0 && (

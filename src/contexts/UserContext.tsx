@@ -500,8 +500,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             essenceBalance: String(user?.currencies?.essence ?? 0),
             gemsBalance: String(user?.currencies?.gems || 0),
             tutorialWizardVisible: user?.id
-                ? getUserStorage(STORAGE_KEYS.tutorialWizardVisible, user.id, window.innerWidth >= 640)
-                : window.innerWidth >= 640
+                ? getUserStorage(STORAGE_KEYS.tutorialWizardVisible, user.id, true)
+                : true
         }));
     }, [isAuthenticated, user]);
 

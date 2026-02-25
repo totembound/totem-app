@@ -75,10 +75,12 @@ vi.mock('./CelebrationModal', () => ({
 }));
 
 vi.mock('./TotemDetailHeader', () => ({
-  default: ({ name, displayName: _displayName, onClose }: any) => (
+  default: ({ name, displayName: _displayName, onClose, onPrev, onNext }: any) => (
     <div data-testid="totem-header">
       <h1>{name}</h1>
       <button onClick={onClose}>Close</button>
+      {onPrev && <button onClick={onPrev} aria-label="Previous Totem">Previous Totem</button>}
+      {onNext && <button onClick={onNext} aria-label="Next Totem">Next Totem</button>}
     </div>
   ),
 }));
@@ -426,7 +428,7 @@ describe('TotemDetailView', () => {
 
   it('renders navigation with prev/next', () => {
     render(<TotemDetailView {...defaultProps} />);
-    const prevButtons = screen.getAllByRole('button', { name: 'Prev' });
+    const prevButtons = screen.getAllByRole('button', { name: 'Previous Totem' });
     expect(prevButtons.length).toBeGreaterThan(0);
   });
 });

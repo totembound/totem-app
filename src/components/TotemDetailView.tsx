@@ -10,7 +10,6 @@ import TotemImageSection from './TotemImageSection';
 import TotemStatsPanel from './TotemStatsPanel';
 import TotemDetailsPanel from './TotemDetailsPanel';
 import TotemActionBar from './TotemActionBar';
-import TotemNavigation from './TotemNavigation';
 import ExperienceEffect from './effects/ExperienceEffect';
 import { STAGE_THRESHOLDS } from '../config/constants';
 import { getTotemImageUrl, getStageName, getStageDescription, loadSpeciesById, isSpeciesLoaded } from '../utils/species';
@@ -454,7 +453,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                 />
             )}
             
-            {/* Header - Show displayName (e.g., "Brown Pup") as title, nickname below */}
+            {/* Header - Show displayName (e.g., "Brown Pup") as title, nickname + mobile nav below */}
             <TotemDetailHeader
                 totemId={totem.id}
                 name={evolvedTotemData?.displayName || totem.displayName || stageName || totem.name || "Unnamed Totem"}
@@ -465,6 +464,10 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                     // Update local state so UI reflects change immediately
                     onUpdateTotemAttributes?.(totem.id, { nickname });
                 }}
+                onPrev={onPrev}
+                onNext={onNext}
+                totalTotems={totalTotems}
+                currentIndex={currentIndex}
             />
 
             {/* Content - Stack on mobile, side-by-side on desktop */}
@@ -491,17 +494,6 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                 onComplete={() => setShowExpEffect(false)}
                             />
                         )}
-
-                        {/* Mobile Navigation - Appears only on mobile, scrolls with content */}
-                        <div className="block md:hidden">
-                            <TotemNavigation 
-                                onPrev={onPrev} 
-                                onNext={onNext}
-                                totalTotems={totalTotems}
-                                currentIndex={currentIndex}
-                                mobileView={true}
-                            />
-                        </div>
 
                         {/* Action Buttons */}
                         <div className="mt-1 md:mt-2 px-2 sm:px-4 py-2">
@@ -532,7 +524,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                     </div>
 
                     {/* Right Column - Details and Statistics */}
-                    <div className="px-2 sm:px-4 py-2 border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-700">
+                    <div className="px-2 sm:px-4 py-2 border-t border-gray-200 dark:border-gray-700 md:border-t-0 md:border-l">
                         {/* Brief Intro - Stage-specific description from IPFS metadata */}
                         <div className="mb-2 min-h-10">
                             <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -566,7 +558,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                         </div>
 
                         {/* Tab Content */}
-                        <div className="overflow-y-auto pb-2">
+                        <div className="overflow-y-auto pb-4 sm:pb-2">
                             {activeTab === 'stats' ? (
                                 <TotemStatsPanel attributes={currentAttributes} />
                             ) : (
@@ -587,15 +579,6 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                 </div>
             </div>
 
-             {/* Desktop Navigation - Only visible on desktop, fixed at bottom */}
-            <div className="hidden md:block flex-shrink-0">
-                <TotemNavigation 
-                    onPrev={onPrev} 
-                    onNext={onNext}
-                    totalTotems={totalTotems}
-                    currentIndex={currentIndex}
-                />
-            </div>
         </div>
     );
 };

@@ -18,8 +18,9 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
     const nextThreshold = STAGE_THRESHOLDS[nft.attributes.stage + 1] || STAGE_THRESHOLDS[nft.attributes.stage];
     const currentStageThreshold = STAGE_THRESHOLDS[nft.attributes.stage];
     const _progressToNext = Math.min(100,
-        ((nft.attributes.experience - currentStageThreshold) / 
+        ((nft.attributes.experience - currentStageThreshold) /
         (nextThreshold - currentStageThreshold)) * 100);
+    const canEvolve = nft.attributes.stage < 4 && nft.attributes.experience >= STAGE_THRESHOLDS[nft.attributes.stage + 1];
 
     const rarityBorderColors = getRarityBorderColor(nft.attributes.rarity);
 
@@ -94,11 +95,11 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
                     
                     {/* Stage */}
                     <div className="flex items-center gap-1.5">
-                        <div className="p-1 rounded-md bg-blue-50 dark:bg-blue-900/20">
-                            <Sparkles size={12} className="text-blue-500 dark:text-blue-400" />
+                        <div className={`p-1 rounded-md ${canEvolve ? 'bg-purple-50 dark:bg-purple-900/20' : 'bg-blue-50 dark:bg-blue-900/20'}`}>
+                            <Sparkles size={12} className={canEvolve ? 'text-purple-500 dark:text-purple-400 animate-pulse' : 'text-blue-500 dark:text-blue-400'} />
                         </div>
                         <div className="flex items-center">
-                            <span className="text-[10px] sm:text-xs font-medium text-gray-700 dark:text-gray-300">
+                            <span className={`text-[10px] sm:text-xs font-medium ${canEvolve ? 'text-purple-600 dark:text-purple-400' : 'text-gray-700 dark:text-gray-300'}`}>
                                 {nft.attributes.stage + 1}/5
                             </span>
                         </div>
@@ -151,6 +152,7 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
 };
 
 export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelected, isLoading, isOnExpedition = false, expeditionEndTime = 0 }) => {
+    const canEvolve = nft.attributes.stage < 4 && nft.attributes.experience >= STAGE_THRESHOLDS[nft.attributes.stage + 1];
     const rarityBorderColors = getRarityBorderColor(nft.attributes.rarity);
 
     return (
@@ -186,22 +188,11 @@ export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelecte
                             {nft.displayName || nft.name} {nft.attributes.nickname && (<span className="font-italic font-normal">"{nft.attributes.nickname}"</span>)}
                         </h3>
                         <span className={`
-                            text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full border w-fit mr-auto ml-2
+                            hidden sm:inline text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full border w-fit mr-auto ml-2
                             ${getRarityBadgeColor(nft.attributes.rarity)}
                         `}>
                             {Rarity[nft.attributes.rarity]}
                         </span>
-                        {isOnExpedition && (
-                            <span className="bg-blue-600 text-white text-[10px] sm:text-xs font-medium px-1.5 py-0.5 rounded-full flex items-center gap-0.5 ml-1 flex-shrink-0">
-                                <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                                <span className="hidden sm:inline">On Expedition</span>
-                                <span className="sm:hidden">
-                                    {expeditionEndTime > 0 && expeditionEndTime > Math.floor(Date.now() / 1000)
-                                        ? formatTimeRemaining(expeditionEndTime).replace(' remaining', '')
-                                        : 'Done'}
-                                </span>
-                            </span>
-                        )}
                     </div>
                     <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1 mt-1">
                         {React.createElement(AFFINITY_ICONS[nft.affinity as keyof typeof AFFINITY_ICONS], {
@@ -218,12 +209,29 @@ export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelecte
                     </div>
                 </div>
 
-                {/* Stats - Simplified for mobile */}
+                {/* Stats */}
                 <div className="flex gap-1.5 sm:gap-2 md:gap-4 flex-shrink-0 items-center">
+                    {isOnExpedition && (
+                        <div className="flex flex-col items-center">
+                            <span className="bg-blue-600 text-white text-[10px] sm:text-xs font-medium px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                                <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                <span className="hidden sm:inline">
+                                    {expeditionEndTime > 0 && expeditionEndTime > Math.floor(Date.now() / 1000)
+                                        ? formatTimeRemaining(expeditionEndTime)
+                                        : 'Complete'}
+                                </span>
+                                <span className="sm:hidden">
+                                    {expeditionEndTime > 0 && expeditionEndTime > Math.floor(Date.now() / 1000)
+                                        ? formatTimeRemaining(expeditionEndTime).replace(' remaining', '')
+                                        : 'Done'}
+                                </span>
+                            </span>
+                        </div>
+                    )}
                     <div className="flex flex-col items-center">
                         <div className="flex items-center gap-0.5 sm:gap-1">
-                            <Sparkles size={12} className="text-blue-500" />
-                            <span className="font-semibold text-xs sm:text-lg text-gray-700 dark:text-gray-300">{nft.attributes.stage + 1}/5</span>
+                            <Sparkles size={12} className={canEvolve ? 'text-purple-500 animate-pulse' : 'text-blue-500'} />
+                            <span className={`font-semibold text-xs sm:text-lg ${canEvolve ? 'text-purple-600 dark:text-purple-400' : 'text-gray-700 dark:text-gray-300'}`}>{nft.attributes.stage + 1}/5</span>
                         </div>
                     </div>
                     <div className="flex flex-col items-center">
@@ -232,15 +240,6 @@ export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelecte
                             <span className="font-semibold text-xs sm:text-lg text-gray-700 dark:text-gray-300">{nft.attributes.happiness}</span>
                         </div>
                     </div>
-                    {isOnExpedition && (
-                        <div className="hidden sm:flex flex-col items-center">
-                            <span className="text-xs text-blue-500 dark:text-blue-400 font-medium">
-                                {expeditionEndTime > 0 && expeditionEndTime > Math.floor(Date.now() / 1000)
-                                    ? formatTimeRemaining(expeditionEndTime)
-                                    : 'Expedition complete'}
-                            </span>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

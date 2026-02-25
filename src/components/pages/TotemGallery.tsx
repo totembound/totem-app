@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { ChartBar, ScrollText } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -328,18 +329,18 @@ const TotemGallery = () => {
                 ) : null}
             </div>
 
-            {/* Detail View Modal */}
-            {selectedTotem && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-1 sm:p-2"
+            {/* Detail View Modal - portaled to body to avoid containing block issues */}
+            {selectedTotem && createPortal(
+                <div className="fixed inset-0 bottom-14 sm:bottom-0 z-50 bg-white dark:bg-gray-900 sm:bg-black/50 sm:dark:bg-black/50 sm:flex sm:items-center sm:justify-center sm:p-2"
                     onClick={(e) => {
-                        // Only close if the click was on the background overlay
+                        // Close if the click was on the background overlay (desktop only)
                         if (e.target === e.currentTarget) {
                             setSelectedTotem(null);
                         }
                     }}
                 >
-                    <div 
-                        className="bg-white dark:bg-gray-900 rounded-lg w-full max-w-[98vw] sm:max-w-[95vw] md:max-w-4xl h-[90vh] sm:h-auto sm:max-h-[95vh] overflow-hidden"
+                    <div
+                        className="h-full sm:h-auto sm:max-h-[90vh] sm:max-w-[95vw] md:max-w-4xl sm:w-full bg-white dark:bg-gray-900 sm:rounded-lg overflow-hidden"
                         aria-modal="true"
                         role="dialog"
                     >
@@ -348,10 +349,13 @@ const TotemGallery = () => {
                             onClose={() => setSelectedTotem(null)}
                             onPrev={handlePrevTotem}
                             onNext={handleNextTotem}
+                            totalTotems={sortedAndFilteredNFTs.length}
+                            currentIndex={sortedAndFilteredNFTs.findIndex(t => t.id === selectedTotem.id)}
                             onUpdateTotemAttributes={updateTotemAttributes}
                         />
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

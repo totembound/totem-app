@@ -96,7 +96,7 @@ const quarters: Quarter[] = [
       { label: 'Limited Edition monthly totems — 1 unique species each month', status: 'done' },
       { label: '6-step guided tutorial with sub-tasks, reward claims & completion celebration', status: 'done' },
       { label: 'Elder Sanctum — seat stage 4+ totems for daily passive Essence & solo advisory missions', status: 'in-progress', detail: 'Passive daily rewards, solo advisory expeditions, and sealed loot crates for the upcoming Gear system' },
-      { label: 'Unlock remaining 5 totems (Woodpecker, Turtle, Bear, Raven, Snake)', status: 'in-progress' },
+      { label: 'Unlock remaining 4 totems (Turtle, Bear, Raven, Snake)', status: 'in-progress' },
     ],
   },
   {

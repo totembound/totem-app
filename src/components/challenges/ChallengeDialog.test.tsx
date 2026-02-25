@@ -33,6 +33,7 @@ vi.mock('../../utils/totems', () => ({
     return totem.attributes.stage + 1 <= reqStage ? 1 : 2;
   },
   getTotemStage: (totem: any) => (totem?.attributes?.stage ?? 0) + 1,
+  getRarityBorderColor: () => ({ border: 'border-gray-200', ring: 'ring-gray-400' }),
 }));
 
 vi.mock('../../config/constants', () => ({

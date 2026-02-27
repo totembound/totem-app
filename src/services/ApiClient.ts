@@ -663,6 +663,14 @@ class ApiClient {
         score?: number;
         newTotemExp: number;
       };
+      score?: {
+        value: number;
+        tier: string;
+        tierLabel: string;
+        breakdown: Record<string, number>;
+        totemAffinity: string;
+        multipliers: { xpMultiplier: number; essenceMultiplier: number; runeMultiplier: number };
+      };
       expedition: {
         id: string;
         expeditionId: string;

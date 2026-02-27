@@ -871,7 +871,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (response.data?.reward) {
                 notificationService.showRewardClaimed({
                     rewardType: 'weekly',
-                    amount: (response.data.reward as any).essence || response.data.reward.amount || 0,
+                    amount: response.data.reward.totalAmount || response.data.reward.amount || 0,
                 });
             }
             notificationService.processAchievementsFromResponse((response.data as any)?.achievements);

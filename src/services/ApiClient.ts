@@ -478,9 +478,18 @@ class ApiClient {
     return this.request<{
       success: boolean;
       reward: {
-        amount: number;
-        weeklyStreak: number;
+        type: string;
+        baseAmount: number;
+        streakAtClaim: number;
+        bonusPercent: number;
+        bonusAmount: number;
+        totalAmount: number;
+        amount?: number;
+        weeklyStreak?: number;
       };
+      newStreak: number;
+      newBalance: number;
+      nextClaimTime: string;
       message: string;
     }>('POST', '/rewards/weekly/claim');
   }

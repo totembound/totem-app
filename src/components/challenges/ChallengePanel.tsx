@@ -1,6 +1,7 @@
 import React from 'react';
 import { useGame } from '../../contexts/GameContext';
 import { ArrowRight, Clock, GaugeCircle, Heart, Trophy, Sparkles } from 'lucide-react';
+import { DEFAULT_MAX_DAILY_ATTEMPTS } from '../../config/constants';
 import { CURRENCY_NAMES } from '../../config/constants';
 
 type AffinityType = 'strength' | 'agility' | 'wisdom' | 'balance';
@@ -13,6 +14,7 @@ interface ChallengePanelProps {
     affinityType: AffinityType;
     highScore: number;
     attemptsLeft: number;
+    maxAttempts?: number;
     requirements: {
         stage: number;
         strength: number;
@@ -30,6 +32,7 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
     affinityType,
     highScore,
     attemptsLeft,
+    maxAttempts = DEFAULT_MAX_DAILY_ATTEMPTS,
     requirements,
     onStart
 }) => {
@@ -156,7 +159,7 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
                     </div>
                     <div className="flex items-center gap-1">
                         <span className="font-semibold text-gray-900 dark:text-gray-100">
-                            {attemptsLeft}/5
+                            {attemptsLeft}/{maxAttempts}
                         </span>
                         <span className="text-xs text-gray-500">
                             (Resets 00:00 UTC)

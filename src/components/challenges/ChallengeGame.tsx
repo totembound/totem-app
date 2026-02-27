@@ -5,6 +5,7 @@ import { useAchievements } from '../../contexts/AchievementsContext';
 import BoulderBreakerChallenge from './BoulderBreakerChallenge';
 import TotemWrestlingChallenge from './TotemWrestlingChallenge';
 import { ActionType, ChallengeInfo, TotemAttributes, RateLimitError } from '../../types/types';
+import { DEFAULT_MAX_DAILY_ATTEMPTS } from '../../config/constants';
 import ExperienceEffect from '../effects/ExperienceEffect';
 import RockFallDefenseChallenge from './RockFallDefenseChallenge';
 import SpiritPathChallenge from './SpiritPathChallenge';
@@ -51,10 +52,10 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
     const [error, setError] = useState<string>('');
     const [showScoreEffect, setShowScoreEffect] = useState(false);
 
-    // Get current challenge status (Web2: use plain string IDs)
+    // Get current challenge status
     const userStatus: ChallengeStatus = challengeState.userStatus[challengeId] || {
         dailyAttempts: 0,
-        attemptsRemaining: 5,
+        attemptsRemaining: DEFAULT_MAX_DAILY_ATTEMPTS,
         highScore: 0,
         lastAttemptTime: 0,
         totalAttempts: 0,
@@ -63,7 +64,8 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
 
     const challenge: ChallengeInfo = challengeState.challenges[challengeId];
 
-    const attemptsLeft = 5 - Number(userStatus.dailyAttempts);
+    const maxAttempts = challenge?.maxDailyAttempts || DEFAULT_MAX_DAILY_ATTEMPTS;
+    const attemptsLeft = Number(userStatus.attemptsRemaining);
     const highScore = Number(userStatus.highScore);
 
     const handleScore = (score: number): void => {
@@ -131,7 +133,7 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
             <div className="flex justify-between items-center text-sm bg-gray-50 dark:bg-gray-800/50 
               rounded-lg p-4 border border-gray-100 dark:border-gray-700">
                 <span className="text-gray-600 dark:text-gray-300">
-                    Attempts: {attemptsLeft}/5
+                    Attempts: {attemptsLeft}/{maxAttempts}
                 </span>
                 <span className="text-gray-600 dark:text-gray-300">
                     High: {highScore}

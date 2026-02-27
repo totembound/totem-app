@@ -21,6 +21,9 @@ export const CURRENCY_NAMES = {
   PREMIUM: 'Gems',        // Premium currency (purchased)
 } as const;
 
+// Challenge defaults
+export const DEFAULT_MAX_DAILY_ATTEMPTS = 5;
+
 // Gem to Essence conversion rate
 export const GEM_TO_ESSENCE_RATIO = 5;
 

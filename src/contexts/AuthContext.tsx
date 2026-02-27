@@ -16,6 +16,7 @@ interface AuthUser {
   currencies?: {
     essence: number;
     gems: number;
+    runes?: { lesser: number; greater: number; ancient: number };
   };
   stats?: {
     totalTotems: number;

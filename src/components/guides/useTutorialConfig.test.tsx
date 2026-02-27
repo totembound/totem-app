@@ -408,16 +408,10 @@ describe('useTutorialConfig', () => {
   });
 
   // =========================================================================
-  // refreshAchievements on mount
+  // achievements: no redundant refresh on mount (loaded by AchievementsContext)
   // =========================================================================
 
-  it('refreshes achievements once on mount when signed up', () => {
-    renderHook(() => useTutorialConfig());
-    expect(mockAchievementsContext.refreshAchievements).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not refresh achievements when not signed up', () => {
-    mockUserContext.isSignedUp = false;
+  it('does not refresh achievements on mount (AchievementsContext handles loading)', () => {
     renderHook(() => useTutorialConfig());
     expect(mockAchievementsContext.refreshAchievements).not.toHaveBeenCalled();
   });

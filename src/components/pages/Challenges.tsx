@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ChallengeDialog from '../challenges/ChallengeDialog';
 import ChallengePanel from '../challenges/ChallengePanel';
 import { useGame } from '../../contexts/GameContext';
+import { DEFAULT_MAX_DAILY_ATTEMPTS } from '../../config/constants';
 
 type AffinityType = 'strength' | 'agility' | 'wisdom' | 'balance';
 
@@ -179,9 +180,14 @@ const TabButton: React.FC<TabButtonProps> = ({ isActive, onClick, children }) =>
 );
 
 const Challenges = () => {
-    const { challengeState }  = useGame();
+    const { challengeState, refreshChallenges } = useGame();
     const [activeTab, setActiveTab] = useState('balance');
     const [selectedChallenge, setSelectedChallenge] = useState<string | null>(null);
+
+    // Load challenges on page mount (lazy — not loaded globally)
+    useEffect(() => {
+        refreshChallenges();
+    }, [refreshChallenges]);
 
     const getSelectedChallenge = (): Challenge | undefined => {
         const allChallenges = [...strengthChallenges, ...agilityChallenges, ...wisdomChallenges, ...balanceChallenges];
@@ -264,8 +270,10 @@ const Challenges = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {getCurrentChallenges()?.map(challenge => {
                             // Web2: Use plain string IDs
-                            const highScore = challengeState.userStatus[challenge.id]?.highScore || 0;
-                            const dailyAttempts = challengeState.userStatus[challenge.id]?.dailyAttempts || 0;
+                            const status = challengeState.userStatus[challenge.id];
+                            const highScore = status?.highScore || 0;
+                            const maxAttempts = challengeState.challenges[challenge.id]?.maxDailyAttempts || DEFAULT_MAX_DAILY_ATTEMPTS;
+                            const attemptsLeft = status?.attemptsRemaining ?? maxAttempts;
 
                             return (
                             <ChallengePanel
@@ -276,7 +284,8 @@ const Challenges = () => {
                                 image={challenge.image}
                                 affinityType={challenge.type || 'strength'}
                                 highScore={Number(highScore)}
-                                attemptsLeft={5 - Number(dailyAttempts)}
+                                attemptsLeft={attemptsLeft}
+                                maxAttempts={maxAttempts}
                                 requirements={challenge.requirements}
                                 onStart={() => setSelectedChallenge(challenge.id)}
                             />)

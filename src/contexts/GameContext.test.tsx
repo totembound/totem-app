@@ -7,8 +7,9 @@ import React from 'react';
 import { ActionType } from '../types/types';
 
 // Hoist mock variables so vi.mock factories can reference them
-const { mockUseUser, mockApiClient, mockNotificationService } = vi.hoisted(() => ({
+const { mockUseUser, mockUseAuth, mockApiClient, mockNotificationService } = vi.hoisted(() => ({
   mockUseUser: vi.fn(),
+  mockUseAuth: vi.fn(),
   mockApiClient: {
     isAuthenticated: vi.fn(),
     getChallenges: vi.fn(),
@@ -36,6 +37,11 @@ const { mockUseUser, mockApiClient, mockNotificationService } = vi.hoisted(() =>
 // Mock UserContext
 vi.mock('./UserContext', () => ({
   useUser: () => mockUseUser(),
+}));
+
+// Mock AuthContext
+vi.mock('./AuthContext', () => ({
+  useAuth: () => mockUseAuth(),
 }));
 
 // Mock ApiClient
@@ -95,6 +101,15 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
   <GameProvider>{children}</GameProvider>
 );
 
+// Helpers — challenges & rewards are lazy-loaded, so tests must trigger the fetch explicitly
+const loadChallenges = async (result: { current: ReturnType<typeof useGame> }) => {
+  await act(async () => { await result.current.refreshChallenges(); });
+};
+
+const loadRewards = async (result: { current: ReturnType<typeof useGame> }) => {
+  await act(async () => { await result.current.refreshRewardStatus(); });
+};
+
 describe('GameContext', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -102,6 +117,7 @@ describe('GameContext', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
 
     mockUseUser.mockReturnValue(defaultUserState);
+    mockUseAuth.mockReturnValue({ user: { currencies: { essence: 1000, gems: 0 } }, isAuthenticated: true, isLoading: false });
     mockApiClient.isAuthenticated.mockReturnValue(true);
 
     // Default API responses
@@ -525,7 +541,7 @@ describe('GameContext', () => {
   });
 
   describe('challenges', () => {
-    it('should load challenges on mount when authenticated', async () => {
+    it('should load challenges when refreshChallenges is called', async () => {
       mockApiClient.getChallenges.mockResolvedValue({
         success: true,
         data: {
@@ -549,6 +565,8 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
+      await loadChallenges(result);
+
       await waitFor(() => {
         expect(result.current.challengeState.challenges['ch-1']).toBeDefined();
       });
@@ -562,6 +580,8 @@ describe('GameContext', () => {
       mockApiClient.getChallenges.mockRejectedValue(new Error('Failed'));
 
       const { result } = renderHook(() => useGame(), { wrapper });
+
+      await loadChallenges(result);
 
       await waitFor(() => {
         expect(result.current.challengeState.error).toBe('Failed to load challenges');
@@ -587,6 +607,8 @@ describe('GameContext', () => {
       // Totem doesn't meet requirements (stage 0, stats 10)
       const { result } = renderHook(() => useGame(), { wrapper });
 
+      await loadChallenges(result);
+
       await waitFor(() => {
         expect(result.current.challengeState.challenges['ch-1']).toBeDefined();
       });
@@ -611,6 +633,8 @@ describe('GameContext', () => {
       });
 
       const { result } = renderHook(() => useGame(), { wrapper });
+
+      await loadChallenges(result);
 
       await waitFor(() => {
         expect(result.current.challengeState.challenges['ch-1']).toBeDefined();
@@ -640,6 +664,8 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
+      await loadChallenges(result);
+
       await waitFor(() => {
         expect(result.current.challengeState.challenges['ch-1']).toBeDefined();
       });
@@ -667,8 +693,10 @@ describe('GameContext', () => {
   });
 
   describe('rewards', () => {
-    it('should load reward status on mount', async () => {
+    it('should load reward status when refreshRewardStatus is called', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
+
+      await loadRewards(result);
 
       await waitFor(() => {
         expect(result.current.rewardsState.streakStatus).not.toBeNull();
@@ -689,6 +717,8 @@ describe('GameContext', () => {
       });
 
       const { result } = renderHook(() => useGame(), { wrapper });
+
+      await loadRewards(result);
 
       await waitFor(() => {
         expect(result.current.rewardsState.streakStatus).not.toBeNull();
@@ -1252,6 +1282,8 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
+      await loadChallenges(result);
+
       await waitFor(() => {
         expect(result.current.challengeState.error).toBe('Failed to load challenges');
       });
@@ -1276,6 +1308,8 @@ describe('GameContext', () => {
       });
 
       const { result } = renderHook(() => useGame(), { wrapper });
+
+      await loadChallenges(result);
 
       await waitFor(() => {
         expect(result.current.challengeState.challenges['ch-easy']).toBeDefined();
@@ -1305,6 +1339,8 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
+      await loadChallenges(result);
+
       await waitFor(() => {
         expect(result.current.challengeState.challenges['ch-hard']).toBeDefined();
       });
@@ -1328,6 +1364,8 @@ describe('GameContext', () => {
   describe('getUserStreak', () => {
     it('should return cached streak status if available', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
+
+      await loadRewards(result);
 
       await waitFor(() => {
         expect(result.current.rewardsState.streakStatus).not.toBeNull();
@@ -1377,29 +1415,25 @@ describe('GameContext', () => {
   });
 
   describe('refreshRewardStatus', () => {
-    it('should call API and update rewards state', async () => {
+    it('should skip API call when reward status is already cached', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
+
+      await loadRewards(result);
 
       await waitFor(() => {
         expect(result.current.rewardsState.streakStatus).not.toBeNull();
       });
 
-      // Set up new reward data
-      mockApiClient.getRewardStatus.mockResolvedValue({
-        success: true,
-        data: {
-          daily: { canClaim: false, streakDays: 10, bestStreak: 15 },
-          weekly: { canClaim: true, weeklyStreak: 3, bestStreak: 5, isUnlocked: true },
-        },
-      });
+      const callCountBefore = mockApiClient.getRewardStatus.mock.calls.length;
 
+      // Second call should be a cache hit — no new API call
       await act(async () => {
         await result.current.refreshRewardStatus();
       });
 
-      expect(result.current.rewardsState.streakStatus?.streakDays).toBe(10);
-      expect(result.current.rewardsState.streakStatus?.canClaimToday).toBe(false);
-      expect(result.current.rewardsState.weeklyStatus?.canClaimWeekly).toBe(true);
+      expect(mockApiClient.getRewardStatus.mock.calls.length).toBe(callCountBefore);
+      // Data unchanged (still from first load)
+      expect(result.current.rewardsState.streakStatus?.streakDays).toBe(3);
     });
 
     it('should handle API failure gracefully', async () => {
@@ -1421,20 +1455,17 @@ describe('GameContext', () => {
     });
   });
 
-  describe('getUserRuneBalances', () => {
-    it('should load rune balances from profile API', async () => {
-      mockApiClient.getProfile.mockResolvedValue({
-        success: true,
-        data: { currencies: { essence: 1000, gems: 0, runes: { lesser: 3, greater: 1, ancient: 0 } } },
+  describe('runeBalances from auth user', () => {
+    it('should sync rune balances from auth user currencies', async () => {
+      mockUseAuth.mockReturnValue({
+        user: { currencies: { essence: 1000, gems: 0, runes: { lesser: 3, greater: 1, ancient: 0 } } },
+        isAuthenticated: true,
+        isLoading: false,
       });
       const { result } = renderHook(() => useGame(), { wrapper });
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
-      });
-
-      await act(async () => {
-        await result.current.getUserRuneBalances();
       });
 
       expect(result.current.runeBalances).toEqual({ lesser: 3, greater: 1, ancient: 0 });
@@ -1604,6 +1635,8 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
+      await loadChallenges(result);
+
       await waitFor(() => {
         expect(result.current.challengeState.challenges['ch-1']).toBeDefined();
       });
@@ -1628,6 +1661,8 @@ describe('GameContext', () => {
       });
 
       const { result } = renderHook(() => useGame(), { wrapper });
+
+      await loadChallenges(result);
 
       await waitFor(() => {
         expect(result.current.challengeState.challenges['ch-1']).toBeDefined();
@@ -1664,6 +1699,8 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
+      await loadChallenges(result);
+
       await waitFor(() => {
         expect(result.current.challengeState.challenges['ch-1']).toBeDefined();
       });
@@ -1688,6 +1725,8 @@ describe('GameContext', () => {
       });
 
       const { result } = renderHook(() => useGame(), { wrapper });
+
+      await loadChallenges(result);
 
       await waitFor(() => {
         expect(result.current.challengeState.challenges['ch-disabled']).toBeDefined();
@@ -1716,6 +1755,8 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
+      await loadChallenges(result);
+
       await waitFor(() => {
         expect(result.current.challengeState.challenges['ch-off']).toBeDefined();
       });
@@ -1740,6 +1781,8 @@ describe('GameContext', () => {
       });
 
       const { result } = renderHook(() => useGame(), { wrapper });
+
+      await loadChallenges(result);
 
       await waitFor(() => {
         expect(result.current.challengeState.challenges['ch-exhausted']).toBeDefined();
@@ -1767,6 +1810,8 @@ describe('GameContext', () => {
       });
 
       const { result } = renderHook(() => useGame(), { wrapper });
+
+      await loadChallenges(result);
 
       await waitFor(() => {
         expect(result.current.challengeState.challenges['ch-dis']).toBeDefined();
@@ -1801,6 +1846,8 @@ describe('GameContext', () => {
       });
 
       const { result } = renderHook(() => useGame(), { wrapper });
+
+      await loadChallenges(result);
 
       await waitFor(() => {
         expect(result.current.challengeState.challenges['ch-1']).toBeDefined();
@@ -2101,6 +2148,8 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
+      await loadChallenges(result);
+
       await waitFor(() => {
         expect(result.current.challengeState.challenges['ch-arr']).toBeDefined();
       });
@@ -2128,6 +2177,8 @@ describe('GameContext', () => {
       });
 
       const { result } = renderHook(() => useGame(), { wrapper });
+
+      await loadChallenges(result);
 
       await waitFor(() => {
         expect(result.current.challengeState.challenges['ch-fallback']).toBeDefined();

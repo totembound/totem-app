@@ -1,6 +1,7 @@
 // contexts/GameContext.tsx
 import React, { createContext, useContext, useCallback, useEffect, useState, useRef } from 'react';
 import { useUser } from './UserContext';
+import { useAuth } from './AuthContext';
 import { ActionType, ActionConfig, TimeWindows, GameParameters, TotemAttributes, ActionTracking, ChallengeState, ChallengeInfo, ChallengeStatus, TotemData, StreakStatus, WeeklyStatus, RewardsState, RuneBalances, ExpeditionState, ExpeditionRewardsData } from '../types/types';
 import { CooldownStatus } from '../hooks/useTotemGameApi';
 import { getTotemStage } from '../utils/totems';
@@ -192,7 +193,8 @@ const GameContext = createContext<GameContextType>({
 });
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { address, totems, updateBalances, updateTotem: _updateTotem, fetchTotems, updateTotemNickname } = useUser();
+    const { user } = useAuth();
+    const { address, totems, updateBalances, updateTotem: _updateTotem, fetchTotems, updateTotemNickname, setEssenceBalance } = useUser();
     const [actionConfigs, setActionConfigs] = useState<Record<ActionType, ActionConfig>>({} as Record<ActionType, ActionConfig>);
     const [timeWindows, setTimeWindows] = useState<TimeWindows | null>(null);
     const [gameParams, setGameParams] = useState<GameParameters | null>(null);
@@ -371,9 +373,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, []);
 
+    const challengesLoadedRef = useRef(false);
+
     const loadChallenges = useCallback(async () => {
         // Web2: Use REST API instead of smart contracts
         if (!apiClient.isAuthenticated()) return;
+
+        // SPA cache: only fetch once per session, updates happen client-side.
+        // Set ref BEFORE await to prevent StrictMode / concurrent double-fires.
+        if (challengesLoadedRef.current) return;
+        challengesLoadedRef.current = true;
+
         console.log('loading challenges');
 
         try {
@@ -429,6 +439,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
         } catch (err) {
             console.error('Error loading challenges:', err);
+            challengesLoadedRef.current = false; // allow retry on error
             setChallengeState(prev => ({
                 ...prev,
                 loading: false,
@@ -508,9 +519,31 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             throw new Error(response.error?.message || 'Failed to complete challenge');
         }
 
-        // Refresh challenge state
-        await loadChallenges();
-    }, [challengeState, loadChallenges]);
+        // Update Essence balance inline (no extra /user/profile call)
+        if (response.data?.newEssenceBalance != null) {
+            setEssenceBalance(response.data.newEssenceBalance);
+        }
+
+        // Update client-side challenge state from response (no re-fetch needed)
+        const p = response.data?.progress;
+        if (p) {
+            setChallengeState(prev => ({
+                ...prev,
+                userStatus: {
+                    ...prev.userStatus,
+                    [challengeId]: {
+                        ...prev.userStatus[challengeId],
+                        lastAttemptTime: Date.now() / 1000,
+                        dailyAttempts: p.attemptsToday,
+                        attemptsRemaining: p.attemptsRemaining,
+                        highScore: p.highScore,
+                        totalAttempts: p.totalAttempts,
+                        totalScore: p.totalXpEarned,
+                    },
+                },
+            }));
+        }
+    }, [challengeState]);
 
     // Helper to convert UTC hours to seconds since day start
     function utcHoursToSeconds(hours: number): number {
@@ -558,13 +591,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     useEffect(() => {
-        // Web2: Load configs immediately, no provider needed
+        // Load configs immediately, no provider needed
         loadGameConfigs();
-        // Load challenges when authenticated
-        if (apiClient.isAuthenticated()) {
-            loadChallenges();
-        }
-    }, [address, loadGameConfigs, loadChallenges]);
+    }, [loadGameConfigs]);
 
     function getActionStatus(
         actionType: ActionType,
@@ -754,6 +783,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    // Stable callback for refreshing reward status (used by Rewards page useEffect).
+    // Skips API call if data is already cached (SPA cache-until-action pattern).
+    // Claim actions call refreshAllRewardStatus() directly to force-refresh.
+    const rewardsLoadedRef = useRef(false);
+    const refreshRewardStatus = useCallback(async () => {
+        if (rewardsLoadedRef.current) return;
+        rewardsLoadedRef.current = true;
+        await refreshAllRewardStatus();
+    }, []);
+
     const getUserStreak = async (): Promise<StreakStatus | undefined> => {
         if (rewardsState.streakStatus) return rewardsState.streakStatus;
         const result = await refreshAllRewardStatus();
@@ -890,23 +929,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateTotemNickname(totemId, newNickname);
     };
 
-    const getUserRuneBalances = useCallback(async () => {
-        try {
-            if (!apiClient.isAuthenticated()) return;
-            const response = await apiClient.getProfile();
-            if (response.success && response.data?.currencies?.runes) {
-                const runes = response.data.currencies.runes;
-                setRuneBalances({
-                    lesser: runes.lesser || 0,
-                    greater: runes.greater || 0,
-                    ancient: runes.ancient || 0,
-                });
-            }
+    // Sync rune balances from auth user (already fetched by /auth/me — no extra API call)
+    useEffect(() => {
+        if (user?.currencies?.runes) {
+            const runes = user.currencies.runes;
+            setRuneBalances({
+                lesser: runes.lesser || 0,
+                greater: runes.greater || 0,
+                ancient: runes.ancient || 0,
+            });
         }
-        catch (err) {
-            console.error('Error loading rune balances:', err);
-        }
-    }, []);
+    }, [user?.currencies?.runes]);
+
+    // No-op: rune balances are synced from auth user and updated inline after expedition claims.
+    // Kept for API compatibility with components that call it.
+    const getUserRuneBalances = useCallback(async () => {}, []);
       
     const refreshExpeditions = useCallback(async () => {
         // Only fetch active (dynamic) expeditions from API.
@@ -1106,27 +1143,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     useEffect(() => {
-        // Initial load of game state (no polling - state updates after user actions)
-        const loadInitialState = async () => {
-            if (!apiClient.isAuthenticated()) return;
-
-            try {
-                // Single API call for both daily + weekly status
-                await refreshAllRewardStatus();
-                refreshExpeditions();
-                getUserRuneBalances();
-            } catch (error) {
-                console.error('Error loading initial game state:', error);
-            }
-        };
-
-        loadInitialState();
-    }, [address]);
+        // Initial load: only fetch expeditions (needed by /totems for "on expedition" badge).
+        // Rewards, runes, and challenges are loaded lazily when their pages mount.
+        if (!apiClient.isAuthenticated()) return;
+        refreshExpeditions();
+    }, [address, refreshExpeditions]);
 
     // Clear user-specific state when user logs out or changes
     useEffect(() => {
         if (!address || !apiClient.isAuthenticated()) {
-            // Reset user-specific game state
+            // Reset user-specific game state + cache flags
+            challengesLoadedRef.current = false;
+            rewardsLoadedRef.current = false;
             setChallengeState(prev => ({
                 ...prev,
                 userStatus: {}
@@ -1170,11 +1198,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             claimDailyReward,
             claimWeeklyReward,
             purchaseProtection,
-            refreshRewardStatus: async () => {
-                console.log('[GameContext] refreshRewardStatus called - single API call');
-                const result = await refreshAllRewardStatus();
-                console.log('[GameContext] refreshRewardStatus complete - canClaimToday:', result.streak?.canClaimToday);
-            },
+            refreshRewardStatus,
             setNickname,
             runeBalances,
             getUserRuneBalances,

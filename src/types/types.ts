@@ -14,7 +14,6 @@ export interface UserContextType extends UserContextState {
     removeTotem: (totemId: string) => void;
     updateTotem: (totemId: string, type: ActionType) => Promise<void>;
     updateTotemEvolved: (totemId: string) => Promise<void>;
-    updateAchievementStatus: () => Promise<void>;
     showError: (title: string, message: string, isRateLimit?: boolean) => void;
     showSuccess: (title: string, message: string) => void;
     hideError: () => void;

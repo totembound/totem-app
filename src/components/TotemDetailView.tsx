@@ -82,7 +82,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     const [cooldowns, setCooldowns] = useState<Record<string, { onCooldown: boolean; readyAt: Date | null; remainingMs: number }>>({});
     const [speciesLoaded, setSpeciesLoaded] = useState(false);
     const dialogRef = useRef<HTMLDivElement>(null);
-
+    const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
     // Load species config for stage names/descriptions
     useEffect(() => {
@@ -415,6 +415,27 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
         setError(null);
     }, [totem.id]);
 
+    // Swipe gesture handlers for prev/next navigation
+    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+        touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }, []);
+
+    const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+        if (!touchStartRef.current) return;
+        const deltaX = e.changedTouches[0].clientX - touchStartRef.current.x;
+        const deltaY = e.changedTouches[0].clientY - touchStartRef.current.y;
+        touchStartRef.current = null;
+
+        // Only trigger if horizontal swipe is dominant and exceeds threshold
+        if (Math.abs(deltaX) > 60 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+            if (deltaX > 0) {
+                onPrev();
+            } else {
+                onNext();
+            }
+        }
+    }, [onPrev, onNext]);
+
     useEffect(() => {
         const handleEscapeKey = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
@@ -470,8 +491,12 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                 currentIndex={currentIndex}
             />
 
-            {/* Content - Stack on mobile, side-by-side on desktop */}
-            <div className="flex-1 overflow-y-auto">
+            {/* Content - Stack on mobile, side-by-side on desktop. Swipe left/right to navigate totems. */}
+            <div
+                className="flex-1 overflow-y-auto"
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+            >
                 <div className="flex flex-col md:grid md:grid-cols-2">
                     {/* Left Column - Image and Actions */}
                     <div className="flex-shrink-0">

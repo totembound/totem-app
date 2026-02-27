@@ -155,7 +155,7 @@ export const useRewardsApi = () => {
         // Show notification on success
         notificationService.showRewardClaimed({
           rewardType: 'weekly',
-          amount: response.data.reward.amount,
+          amount: response.data.reward.totalAmount || response.data.reward.amount || 0,
           streakDays: response.data.reward.weeklyStreak,
         });
         notificationService.processAchievementsFromResponse((response.data as any).achievements);
@@ -165,7 +165,7 @@ export const useRewardsApi = () => {
 
         return {
           success: true,
-          amount: response.data.reward.amount,
+          amount: response.data.reward.totalAmount || response.data.reward.amount || 0,
           streakDays: response.data.reward.weeklyStreak,
           message: response.data.message,
         };

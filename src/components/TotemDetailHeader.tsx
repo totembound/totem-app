@@ -69,7 +69,7 @@ const TotemDetailHeader: React.FC<TotemDetailHeaderProps> = ({
             </div>
 
             {/* Second row: nickname + mobile nav */}
-            <div className="flex items-center justify-between px-3 sm:px-4 pb-2 sm:pb-3">
+            <div className="flex items-center justify-between px-3 sm:px-4 pb-1 sm:pb-2">
                 {/* Nickname */}
                 <div className="flex items-center h-7 min-w-0 flex-1">
                     {isEditingName ? (
@@ -86,36 +86,36 @@ const TotemDetailHeader: React.FC<TotemDetailHeaderProps> = ({
                             </p>
                             <button
                                 onClick={() => setIsEditingName(true)}
-                                className="ml-1.5 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors flex-shrink-0"
+                                className="ml-1.5 p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors flex-shrink-0"
                                 aria-label="Edit nickname"
                             >
-                                <Edit2 size={14} />
+                                <Edit2 size={16} />
                             </button>
                         </div>
                     )}
                 </div>
 
-                {/* Mobile nav arrows - only on mobile when nav props exist */}
+                {/* Nav arrows - 44px touch targets for mobile */}
                 {onPrev && onNext && totalTotems !== undefined && currentIndex !== undefined && (
-                    <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                    <div className="flex items-center gap-0.5 ml-2 flex-shrink-0">
                         <button
                             onClick={onPrev}
                             disabled={!hasPrev}
-                            className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-default transition-colors"
+                            className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-gray-300 dark:active:bg-gray-600 active:scale-95 disabled:opacity-30 disabled:cursor-default transition-all"
                             aria-label="Previous Totem"
                         >
-                            <ChevronLeft size={18} />
+                            <ChevronLeft size={20} />
                         </button>
-                        <span className="text-xs text-gray-500 dark:text-gray-400 font-medium tabular-nums min-w-[3ch] text-center">
+                        <span className="text-sm text-gray-600 dark:text-gray-300 font-semibold tabular-nums min-w-[3ch] text-center">
                             {currentIndex + 1}/{totalTotems}
                         </span>
                         <button
                             onClick={onNext}
                             disabled={!hasNext}
-                            className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-default transition-colors"
+                            className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 active:bg-gray-300 dark:active:bg-gray-600 active:scale-95 disabled:opacity-30 disabled:cursor-default transition-all"
                             aria-label="Next Totem"
                         >
-                            <ChevronRight size={18} />
+                            <ChevronRight size={20} />
                         </button>
                     </div>
                 )}

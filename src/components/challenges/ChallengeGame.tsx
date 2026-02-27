@@ -92,7 +92,8 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
                 maxXP = 10; // Default case
         }
         
-        return Math.floor((score * maxXP) / maxScore);
+        const xp = Math.floor((score * maxXP) / maxScore);
+        return score > 0 ? Math.max(1, xp) : 0;
     };
 
     const handleSubmit = async (): Promise<void> => {

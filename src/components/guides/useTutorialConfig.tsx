@@ -1,7 +1,6 @@
 /**
  * Tutorial Configuration
  */
-import { useEffect, useRef } from 'react';
 import { useUser } from '../../contexts/UserContext';
 import { useAchievements } from '../../contexts/AchievementsContext';
 import { Step, TutorialStep, Species } from '../../types/types';
@@ -316,21 +315,9 @@ export const useTutorialConfig = () => {
     comingSoon: _comingSoon,
     hasClickedLink
   } = useUser();
-  const { getAchievementById, refreshAchievements } = useAchievements();
-  const hasRefreshedRef = useRef(false);
-
-  // Reset refresh flag when user changes (logout/login)
-  useEffect(() => {
-    hasRefreshedRef.current = false;
-  }, [isSignedUp]);
-
-  // Refresh achievements when tutorial UI mounts or user changes
-  // Only fires once per user session — no extra DynamoDB queries during normal gameplay
-  useEffect(() => {
-    if (hasRefreshedRef.current || !isSignedUp) return;
-    hasRefreshedRef.current = true;
-    refreshAchievements();
-  }, [isSignedUp]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { getAchievementById } = useAchievements();
+  // AchievementsContext loads achievements on mount — no need to refresh here.
+  // The tutorial reads from the same context so data is always up-to-date.
 
   // Convert achievement ID to format used by AchievementsContext
   const getAchievementKey = (id: string): string => {

@@ -34,7 +34,7 @@ const durations = [
 const Expeditions: React.FC = () => {
     // Web2: No provider needed - use REST API
     const { isSignedUp, totems, essenceBalance } = useUser();
-    const { getUserRuneBalances, expeditionState, refreshExpeditions, startExpedition, claimExpeditionRewards } = useGame();
+    const { expeditionState, refreshExpeditions, startExpedition, claimExpeditionRewards } = useGame();
     const { refreshAchievements } = useAchievements();
     
     // State for expedition filters
@@ -47,12 +47,12 @@ const Expeditions: React.FC = () => {
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     // Load data when component mounts
+    // Rune balances are synced from auth user automatically (no API call needed).
     useEffect(() => {
         if (isSignedUp) {
             refreshExpeditions();
-            getUserRuneBalances();
         }
-    }, [isSignedUp, refreshExpeditions, getUserRuneBalances]);
+    }, [isSignedUp, refreshExpeditions]);
 
     // Helper to check if user can start an expedition
     const canStartExpedition = (expeditionId: string) => {
@@ -101,8 +101,8 @@ const Expeditions: React.FC = () => {
             const result = await claimExpeditionRewards(expeditionId);
             if (result) {
                 // Refresh data after claiming
+                // Rune balances are updated inline by claimExpeditionRewards (no extra call needed).
                 refreshExpeditions();
-                getUserRuneBalances();
                 refreshAchievements();
             }
         }
@@ -113,11 +113,10 @@ const Expeditions: React.FC = () => {
 
     const handleRefresh = () => {
         setIsRefreshing(true);
-        
+
         // Perform the refresh actions
         refreshExpeditions();
-        getUserRuneBalances();
-        
+
         // Reset the animation after a short delay
         setTimeout(() => {
           setIsRefreshing(false);

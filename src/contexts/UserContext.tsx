@@ -442,37 +442,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }));
     }, []);
 
-    // Web2: Update achievement status via REST API
-    const updateAchievementStatus = async () => {
-        if (!apiClient.isAuthenticated()) return;
-
-        try {
-            const response = await apiClient.getAchievements();
-
-            if (response.success && response.data) {
-                // Web2: Check for specific achievements that unlock features
-                // API format: { "ach_id": [{ unlocked: bool, progress: number }, ...] }
-                const achievements = response.data.achievements || {};
-
-                // Check login progression - first milestone's progress is the login count
-                const loginMilestones = achievements['ach_login_progression'] || [];
-                const loginProgress = loginMilestones[0]?.progress ?? 0;
-
-                // Check evolution progression - check if first milestone is unlocked
-                const evolutionMilestones = achievements['ach_evolution_progression'] || [];
-                const hasEvolved = evolutionMilestones[0]?.unlocked ?? false;
-
-                setState(prev => ({
-                    ...prev,
-                    hasWeeklyUnlocked: loginProgress >= 7,
-                    hasStakingUnlocked: hasEvolved
-                }));
-            }
-        } catch (error) {
-            console.error("Error checking achievement status:", error);
-        }
-    };
-
     const setTutorialWizardVisible = (visible: boolean) => {
         if (user?.id) {
             setUserStorage(STORAGE_KEYS.tutorialWizardVisible, user.id, visible);
@@ -521,29 +490,19 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return tomorrow.getTime() - now.getTime();
         };
 
-        // Handle midnight rollover
+        // Handle midnight rollover — only refresh balances
+        // (achievement status is managed by AchievementsContext + GameContext.rewardsState)
         const handleMidnightRollover = async () => {
             try {
-                await Promise.all([
-                    updateAchievementStatus(),
-                    updateBalances()
-                ]);
+                await updateBalances();
             } catch (error) {
                 console.error('Error handling midnight rollover:', error);
             }
         };
 
-        // Initial load of balances and achievements
-        const initialLoad = async () => {
-            try {
-                await Promise.all([
-                    updateBalances(),
-                    updateAchievementStatus()
-                ]);
-            } catch (error) {
-                console.error('Error loading initial state:', error);
-            }
-        };
+        // No initial updateBalances() call — AuthContext already fetches profile
+        // on mount and UserContext syncs from `user.currencies` (see useEffect above).
+        // updateBalances() is called after user actions (purchase, sell, claim, etc.).
 
         // Check for midnight rollover (daily rewards reset)
         const now = new Date();
@@ -559,9 +518,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }, timeUntilMidnight);
 
         setMidnightTimeout(midnight);
-
-        // Load initial state (no polling - state updates after user actions)
-        initialLoad();
 
         return () => {
             if (midnightTimeout) clearTimeout(midnightTimeout);
@@ -632,7 +588,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 removeTotem,
                 updateTotem,
                 updateTotemEvolved,
-                updateAchievementStatus,
                 messageDialog: state.messageDialog,
                 showError,
                 showSuccess,

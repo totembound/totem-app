@@ -39,10 +39,11 @@ const Rewards = () => {
     const navigate = useNavigate();
     const [selectedLootItem, setSelectedLootItem] = useState<LootItem | null>(null);
 
-    // Fetch loot items on page load
+    // Fetch reward status and loot items on page load (lazy — not loaded globally)
     useEffect(() => {
+        refreshRewardStatus();
         fetchLootItems();
-    }, [fetchLootItems]);
+    }, [refreshRewardStatus, fetchLootItems]);
 
     // Callback when countdown timer reaches zero - refresh reward status
     const handleCountdownComplete = async () => {

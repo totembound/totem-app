@@ -102,8 +102,6 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 );
 
 // Helpers — challenges & rewards are lazy-loaded, so tests must trigger the fetch explicitly
-const renderGameHook = () => renderHook(() => useGame(), { wrapper });
-
 const loadChallenges = async (result: { current: ReturnType<typeof useGame> }) => {
   await act(async () => { await result.current.refreshChallenges(); });
 };

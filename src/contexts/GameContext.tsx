@@ -1026,6 +1026,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Show expedition rewards notification
           const rewards = response.data?.rewards;
           const expedition = response.data?.expedition;
+          const scoreValue = response.data?.score?.value ?? 0;
           if (rewards) {
             notificationService.showExpeditionRewards({
               expeditionId,
@@ -1034,7 +1035,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               experienceGained: rewards.experience,
               essenceGained: rewards.essence,
               runesGained: rewards.runes,
-              score: rewards.score ?? 0,
+              score: scoreValue,
             });
 
             // Show the full-screen celebration modal
@@ -1042,7 +1043,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               expeditionId,
               experienceGained: rewards.experience,
               runesGained: rewards.runes || { lesser: 0, greater: 0, ancient: 0 },
-              score: rewards.score ?? 0,
+              score: scoreValue,
             });
           }
 

@@ -7,6 +7,7 @@ import { CooldownStatus } from '../hooks/useTotemGameApi';
 import { getTotemStage } from '../utils/totems';
 import apiClient from '../services/ApiClient';
 import notificationService from '../services/NotificationService';
+import { ACTION_CONFIGS, TIME_WINDOWS, GAME_PARAMS } from '../config/game-config';
 
 export interface GameContextType {
     actionConfigs: Record<ActionType, ActionConfig>;
@@ -14,13 +15,10 @@ export interface GameContextType {
         window1Start: number;
         window2Start: number;
         window3Start: number;
-    } | null;
-    gameParams: any; // Define a more specific type if possible
-    isLoading: boolean;
+    };
+    gameParams: { signupReward: number; mintPrice: number };
     error: string | null;
-    
-    // Existing methods
-    refreshGameConfig: () => Promise<void>;
+
     debugTimeWindow: () => void;
     getFormattedWindowTimes(): { [key: string]: string };
 
@@ -126,12 +124,10 @@ const defaultGetEligibleTotems = () => [];
 const defaultGetChallengeStatus = () => 'Challenge not available';
 
 const GameContext = createContext<GameContextType>({
-    actionConfigs: {} as Record<ActionType, ActionConfig>,
-    timeWindows: null,
-    gameParams: null,
-    isLoading: true,
+    actionConfigs: ACTION_CONFIGS,
+    timeWindows: TIME_WINDOWS,
+    gameParams: GAME_PARAMS,
     error: null,
-    refreshGameConfig: async () => {},
     debugTimeWindow: () => {},
     getFormattedWindowTimes: defaultGetFormattedWindowTimes,
     canUseAction: defaultCanUseAction,
@@ -195,10 +191,9 @@ const GameContext = createContext<GameContextType>({
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user } = useAuth();
     const { address, totems, updateBalances, updateTotem: _updateTotem, fetchTotems, updateTotemNickname, setEssenceBalance } = useUser();
-    const [actionConfigs, setActionConfigs] = useState<Record<ActionType, ActionConfig>>({} as Record<ActionType, ActionConfig>);
-    const [timeWindows, setTimeWindows] = useState<TimeWindows | null>(null);
-    const [gameParams, setGameParams] = useState<GameParameters | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [actionConfigs] = useState<Record<ActionType, ActionConfig>>(ACTION_CONFIGS);
+    const [timeWindows] = useState(TIME_WINDOWS);
+    const [gameParams] = useState(GAME_PARAMS);
     const [error, setError] = useState<string | null>(null);
     const [challengeState, setChallengeState] = useState<ChallengeState>({
         challenges: {},
@@ -281,96 +276,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         cooldownFetchRef.current[totemId] = promise;
         promise.finally(() => { delete cooldownFetchRef.current[totemId]; });
         return promise;
-    }, []);
-
-    const loadGameConfigs = useCallback(async () => {
-        // Web2: Use static game configuration
-        // In Web2, these configs are managed server-side and don't need to be fetched from contracts
-        console.log('loading game config (Web2 static)');
-
-        try {
-            setIsLoading(true);
-            setError(null);
-
-            // Set game parameters (Web2 defaults)
-            setGameParams({
-                signupReward: 2000, // 2000 Essence signup bonus
-                mintPrice: 0 // Free totems in Web2
-            });
-
-            // Set time windows (UTC hours for feeding windows)
-            setTimeWindows({
-                window1Start: 0,    // 00:00 UTC
-                window2Start: 28800, // 08:00 UTC (8 * 3600)
-                window3Start: 57600  // 16:00 UTC (16 * 3600)
-            });
-
-            // Web2 action configs (simplified - backend handles actual logic)
-            const configMap: Record<ActionType, ActionConfig> = {
-                [ActionType.Feed]: {
-                    cost: 0,
-                    cooldown: 0, // Uses time windows instead
-                    maxDaily: 3,
-                    minHappiness: 0,
-                    happinessChange: 10,
-                    experienceGain: 15,
-                    useTimeWindows: true,
-                    increasesHappiness: true,
-                    enabled: true
-                },
-                [ActionType.Train]: {
-                    cost: 10,
-                    cooldown: 3600, // 1 hour
-                    maxDaily: 3,
-                    minHappiness: 20,
-                    happinessChange: -5,
-                    experienceGain: 25,
-                    useTimeWindows: false,
-                    increasesHappiness: false,
-                    enabled: true
-                },
-                [ActionType.Treat]: {
-                    cost: 25,
-                    cooldown: 7200, // 2 hours
-                    maxDaily: 2,
-                    minHappiness: 0,
-                    happinessChange: 30,
-                    experienceGain: 5,
-                    useTimeWindows: false,
-                    increasesHappiness: true,
-                    enabled: true
-                },
-                [ActionType.Evolve]: {
-                    cost: 100,
-                    cooldown: 0,
-                    maxDaily: 0, // No daily limit
-                    minHappiness: 50,
-                    happinessChange: 0,
-                    experienceGain: 0,
-                    useTimeWindows: false,
-                    increasesHappiness: false,
-                    enabled: true
-                },
-                [ActionType.None]: {
-                    cost: 0,
-                    cooldown: 0,
-                    maxDaily: 0,
-                    minHappiness: 0,
-                    happinessChange: 0,
-                    experienceGain: 0,
-                    useTimeWindows: false,
-                    increasesHappiness: false,
-                    enabled: false
-                }
-            };
-
-            setActionConfigs(configMap);
-        } catch (err) {
-            console.error('Error loading game configs:', err);
-            setError('Failed to load game configuration');
-        } finally {
-            setIsLoading(false);
-        }
     }, []);
 
     const challengesLoadedRef = useRef(false);
@@ -586,15 +491,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
     }
 
-    const refreshGameConfig = async () => {
-        await loadGameConfigs();
-    };
-
-    useEffect(() => {
-        // Load configs immediately, no provider needed
-        loadGameConfigs();
-    }, [loadGameConfigs]);
-
     function getActionStatus(
         actionType: ActionType,
         attributes: TotemAttributes,
@@ -784,13 +680,34 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     // Stable callback for refreshing reward status (used by Rewards page useEffect).
-    // Skips API call if data is already cached (SPA cache-until-action pattern).
+    // Skips API call if data is already cached within the same UTC day.
     // Claim actions call refreshAllRewardStatus() directly to force-refresh.
-    const rewardsLoadedRef = useRef(false);
+    // Forces re-fetch when UTC date rolls over (midnight boundary).
+    const rewardsLoadedDateRef = useRef<string | null>(null);
     const refreshRewardStatus = useCallback(async () => {
-        if (rewardsLoadedRef.current) return;
-        rewardsLoadedRef.current = true;
+        const todayUTC = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+        if (rewardsLoadedDateRef.current === todayUTC) return;
+        rewardsLoadedDateRef.current = todayUTC;
         await refreshAllRewardStatus();
+    }, []);
+
+    // PWA visibility change: when app comes back to foreground, check if UTC date
+    // rolled over and invalidate reward cache so next visit to Rewards page re-fetches.
+    // Also invalidates cooldown cache on date change.
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                const todayUTC = new Date().toISOString().slice(0, 10);
+                if (rewardsLoadedDateRef.current && rewardsLoadedDateRef.current !== todayUTC) {
+                    // Date rolled over — clear reward cache so next access re-fetches
+                    rewardsLoadedDateRef.current = null;
+                    // Also clear cooldown cache since day changed
+                    cooldownCacheRef.current = {};
+                }
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, []);
 
     const getUserStreak = async (): Promise<StreakStatus | undefined> => {
@@ -1155,7 +1072,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!address || !apiClient.isAuthenticated()) {
             // Reset user-specific game state + cache flags
             challengesLoadedRef.current = false;
-            rewardsLoadedRef.current = false;
+            rewardsLoadedDateRef.current = null;
             setChallengeState(prev => ({
                 ...prev,
                 userStatus: {}
@@ -1180,11 +1097,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             actionConfigs,
             timeWindows,
             gameParams,
-            isLoading,
             error,
             debugTimeWindow,
             getFormattedWindowTimes,
-            refreshGameConfig,
             canUseAction,
             getActionStatus,
             getNextAvailableWindow,

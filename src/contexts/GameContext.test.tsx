@@ -144,13 +144,6 @@ describe('GameContext', () => {
   });
 
   describe('useGame', () => {
-    it('should throw when used outside GameProvider', () => {
-      // useGame should not throw since GameContext has defaults
-      // But just verify it returns defaults
-      const { result } = renderHook(() => useGame());
-      expect(result.current.isLoading).toBe(true);
-    });
-
     it('should return working default implementations for all context functions', async () => {
       // Render without GameProvider to exercise default context values
       const { result } = renderHook(() => useGame());
@@ -194,9 +187,6 @@ describe('GameContext', () => {
       // Default completeChallenge should throw
       await expect(ctx.completeChallenge('ch-1', 'totem-1', 50))
         .rejects.toThrow('Challenge system not initialized');
-
-      // Default refreshGameConfig (no-op)
-      await ctx.refreshGameConfig();
 
       // Default debugTimeWindow (no-op)
       ctx.debugTimeWindow();
@@ -285,10 +275,6 @@ describe('GameContext', () => {
     it('should load static game configs on mount', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       expect(result.current.gameParams).toEqual({
         signupReward: 2000,
         mintPrice: 0,
@@ -303,23 +289,19 @@ describe('GameContext', () => {
     it('should set action configs for all action types', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       const configs = result.current.actionConfigs;
       expect(configs[ActionType.Feed]).toBeDefined();
       expect(configs[ActionType.Feed].useTimeWindows).toBe(true);
       expect(configs[ActionType.Feed].enabled).toBe(true);
 
       expect(configs[ActionType.Train]).toBeDefined();
-      expect(configs[ActionType.Train].cost).toBe(10);
+      expect(configs[ActionType.Train].cost).toBe(20);
 
       expect(configs[ActionType.Treat]).toBeDefined();
-      expect(configs[ActionType.Treat].cooldown).toBe(7200);
+      expect(configs[ActionType.Treat].cooldown).toBe(14400);
 
       expect(configs[ActionType.Evolve]).toBeDefined();
-      expect(configs[ActionType.Evolve].cost).toBe(100);
+      expect(configs[ActionType.Evolve].cost).toBe(0);
 
       expect(configs[ActionType.None]).toBeDefined();
       expect(configs[ActionType.None].enabled).toBe(false);
@@ -329,10 +311,6 @@ describe('GameContext', () => {
   describe('canUseAction', () => {
     it('should return false for ActionType.None (always disabled)', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       const canUse = result.current.canUseAction(
         { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
@@ -345,10 +323,6 @@ describe('GameContext', () => {
     it('should return false for disabled actions', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       const canUse = result.current.canUseAction(
         { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
         ActionType.None,
@@ -359,10 +333,6 @@ describe('GameContext', () => {
 
     it('should return false when happiness too low', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       // Train requires minHappiness: 20
       const canUse = result.current.canUseAction(
@@ -376,10 +346,6 @@ describe('GameContext', () => {
     it('should return false without tracking data', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       const canUse = result.current.canUseAction(
         { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
         ActionType.Train
@@ -390,16 +356,12 @@ describe('GameContext', () => {
     it('should return false when on cooldown', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       const now = Math.floor(Date.now() / 1000);
 
-      // Train has 1 hour cooldown, last used just now
+      // Treat has 4 hour cooldown (14400s), last used just now
       const canUse = result.current.canUseAction(
         { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
-        ActionType.Train,
+        ActionType.Treat,
         { lastUsed: now, dailyUses: 0, dayStartTime: 0 }
       );
       expect(canUse).toBe(false);
@@ -408,17 +370,13 @@ describe('GameContext', () => {
     it('should return true when cooldown expired', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       const now = Math.floor(Date.now() / 1000);
 
-      // Train has 1 hour cooldown, last used 2 hours ago
+      // Treat has 4 hour cooldown (14400s), last used 5 hours ago
       const canUse = result.current.canUseAction(
         { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
-        ActionType.Train,
-        { lastUsed: now - 7200, dailyUses: 0, dayStartTime: 0 }
+        ActionType.Treat,
+        { lastUsed: now - 18000, dailyUses: 0, dayStartTime: 0 }
       );
       expect(canUse).toBe(true);
     });
@@ -426,17 +384,13 @@ describe('GameContext', () => {
     it('should return false when daily limit reached', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       const now = Math.floor(Date.now() / 1000);
       const today = Math.floor(now / 86400) * 86400;
 
-      // Train has maxDaily: 3
+      // Feed has maxDaily: 3
       const canUse = result.current.canUseAction(
         { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
-        ActionType.Train,
+        ActionType.Feed,
         { lastUsed: now - 7200, dailyUses: 3, dayStartTime: today }
       );
       expect(canUse).toBe(false);
@@ -446,10 +400,6 @@ describe('GameContext', () => {
   describe('getActionStatus', () => {
     it('should return "Action not configured" for null tracking', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       expect(result.current.getActionStatus(
         ActionType.Train,
@@ -461,10 +411,6 @@ describe('GameContext', () => {
 
     it('should return happiness message when too low', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       const status = result.current.getActionStatus(
         ActionType.Train,
@@ -478,16 +424,12 @@ describe('GameContext', () => {
     it('should return cooldown message when on cooldown', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       const now = Math.floor(Date.now() / 1000);
       const status = result.current.getActionStatus(
-        ActionType.Train,
+        ActionType.Treat,
         { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
         { lastUsed: now, dailyUses: 0, dayStartTime: 0 },
-        result.current.actionConfigs[ActionType.Train]
+        result.current.actionConfigs[ActionType.Treat]
       );
       expect(status).toContain('Cooldown');
       expect(status).toContain('minute');
@@ -495,10 +437,6 @@ describe('GameContext', () => {
 
     it('should return Available when action is ready', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       const now = Math.floor(Date.now() / 1000);
       const status = result.current.getActionStatus(
@@ -515,10 +453,6 @@ describe('GameContext', () => {
     it('should return formatted UTC window times', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       const times = result.current.getFormattedWindowTimes();
       expect(times.window1).toBe('UTC 00:00-08:00');
       expect(times.window2).toBe('UTC 08:00-16:00');
@@ -529,10 +463,6 @@ describe('GameContext', () => {
   describe('getNextAvailableWindow', () => {
     it('should return "Available Now" for different day', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       const yesterday = Math.floor(Date.now() / 1000) - 86400;
       expect(result.current.getNextAvailableWindow({ lastUsed: yesterday, dailyUses: 0, dayStartTime: 0 }))
@@ -680,10 +610,6 @@ describe('GameContext', () => {
     it('completeChallenge should throw for unknown challenge', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       await expect(
         act(async () => {
           await result.current.completeChallenge('nonexistent', 'totem-1', 50);
@@ -747,10 +673,6 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       let success = true;
       await act(async () => {
         success = await result.current.claimDailyReward();
@@ -769,10 +691,6 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       let success = false;
       await act(async () => {
         success = await result.current.claimWeeklyReward();
@@ -789,10 +707,6 @@ describe('GameContext', () => {
       mockApiClient.purchaseProtection.mockResolvedValue({ success: true });
 
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       let success = false;
       await act(async () => {
@@ -812,10 +726,6 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       await expect(
         act(async () => {
           await result.current.purchaseProtection('daily', 1);
@@ -833,10 +743,6 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       await act(async () => {
         await result.current.setNickname('totem-1', 'Fluffy');
       });
@@ -849,10 +755,6 @@ describe('GameContext', () => {
       mockApiClient.isAuthenticated.mockReturnValue(false);
 
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       await expect(
         act(async () => {
@@ -868,10 +770,6 @@ describe('GameContext', () => {
       });
 
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       await expect(
         act(async () => {
@@ -912,10 +810,6 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       let success = false;
       await act(async () => {
         success = await result.current.startExpedition('exp-1', ['totem-1']);
@@ -932,10 +826,6 @@ describe('GameContext', () => {
       });
 
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       let success = true;
       await act(async () => {
@@ -955,10 +845,6 @@ describe('GameContext', () => {
       });
 
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       let success = false;
       await act(async () => {
@@ -1157,10 +1043,6 @@ describe('GameContext', () => {
     it('should clear user-specific state when address changes to empty', async () => {
       const { result, rerender } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       // Simulate logout
       mockUseUser.mockReturnValue({ ...defaultUserState, address: '' });
       mockApiClient.isAuthenticated.mockReturnValue(false);
@@ -1175,10 +1057,6 @@ describe('GameContext', () => {
   describe('debugTimeWindow', () => {
     it('should log current UTC time window info', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       // Call debugTimeWindow - it only logs, so just verify it doesn't throw
       act(() => {
@@ -1197,28 +1075,6 @@ describe('GameContext', () => {
     });
   });
 
-  describe('refreshGameConfig', () => {
-    it('should reload game configs when called', async () => {
-      const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // Call refreshGameConfig to re-load configs
-      await act(async () => {
-        await result.current.refreshGameConfig();
-      });
-
-      // Configs should still be present after refresh
-      expect(result.current.gameParams).toEqual({
-        signupReward: 2000,
-        mintPrice: 0,
-      });
-      expect(result.current.actionConfigs[ActionType.Feed]).toBeDefined();
-    });
-  });
-
   describe('refreshChallenges', () => {
     it('should reload challenges from API when called directly', async () => {
       mockApiClient.getChallenges.mockResolvedValue({
@@ -1227,10 +1083,6 @@ describe('GameContext', () => {
       });
 
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       // Now set up a new challenge response
       mockApiClient.getChallenges.mockResolvedValue({
@@ -1260,10 +1112,6 @@ describe('GameContext', () => {
       mockApiClient.isAuthenticated.mockReturnValue(false);
 
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       mockApiClient.getChallenges.mockClear();
 
@@ -1352,10 +1200,6 @@ describe('GameContext', () => {
     it('should return empty array for nonexistent challenge', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       const eligible = result.current.getEligibleTotems('nonexistent');
       expect(eligible).toHaveLength(0);
     });
@@ -1390,10 +1234,6 @@ describe('GameContext', () => {
       });
 
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       // Now set up a successful response for getUserStreak call
       mockApiClient.getRewardStatus.mockResolvedValue({
@@ -1439,10 +1279,6 @@ describe('GameContext', () => {
     it('should handle API failure gracefully', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       mockApiClient.getRewardStatus.mockResolvedValue({
         success: false,
         error: 'Server error',
@@ -1464,10 +1300,6 @@ describe('GameContext', () => {
       });
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       expect(result.current.runeBalances).toEqual({ lesser: 3, greater: 1, ancient: 0 });
     });
   });
@@ -1475,10 +1307,6 @@ describe('GameContext', () => {
   describe('refreshExpeditions', () => {
     it('should reload active expeditions from API when called directly', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       // Set up new expedition data
       mockApiClient.getActiveExpeditions.mockResolvedValue({
@@ -1509,10 +1337,6 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       mockApiClient.getActiveExpeditions.mockClear();
 
       await act(async () => {
@@ -1537,10 +1361,6 @@ describe('GameContext', () => {
     it('should return "Action disabled" for disabled config', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       const status = result.current.getActionStatus(
         ActionType.None,
         { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
@@ -1550,31 +1370,25 @@ describe('GameContext', () => {
       expect(status).toBe('Action disabled');
     });
 
-    it('should return daily limit message when limit reached', async () => {
+    it('should return time window status for Feed when all windows used', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       const now = Math.floor(Date.now() / 1000);
       const today = Math.floor(now / 86400) * 86400;
 
+      // Feed uses time windows, not daily limit — status reflects window availability
       const status = result.current.getActionStatus(
-        ActionType.Train,
+        ActionType.Feed,
         { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
-        { lastUsed: now - 7200, dailyUses: 3, dayStartTime: today },
-        result.current.actionConfigs[ActionType.Train]
+        { lastUsed: now, dailyUses: 3, dayStartTime: today },
+        result.current.actionConfigs[ActionType.Feed]
       );
-      expect(status).toBe('Daily limit (3) reached');
+      // Feed returns time window status, not daily limit
+      expect(status).toMatch(/time window/i);
     });
 
     it('should return time window status for Feed action', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       const _now = Math.floor(Date.now() / 1000);
       const status = result.current.getActionStatus(
@@ -1591,10 +1405,6 @@ describe('GameContext', () => {
   describe('additional getNextAvailableWindow branches', () => {
     it('should return next window time for same-day tracking', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       // Use lastUsed = now (same day, same second), to test non-"Available Now" branches
       const now = Math.floor(Date.now() / 1000);
@@ -1673,10 +1483,6 @@ describe('GameContext', () => {
 
     it('should return false for nonexistent challenge', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       expect(result.current.canAttemptChallenge('nonexistent', 'totem-1')).toBe(false);
     });
@@ -1867,10 +1673,6 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       let success = true;
       await act(async () => {
         success = await result.current.claimDailyReward();
@@ -1886,10 +1688,6 @@ describe('GameContext', () => {
       });
 
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       let success = false;
       await act(async () => {
@@ -1911,10 +1709,6 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       let success = true;
       await act(async () => {
         success = await result.current.claimWeeklyReward();
@@ -1927,10 +1721,6 @@ describe('GameContext', () => {
       mockApiClient.claimWeeklyReward.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       let success = true;
       await act(async () => {
@@ -1950,10 +1740,6 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       let success = true;
       await act(async () => {
         success = await result.current.claimExpeditionRewards('exp-1');
@@ -1966,10 +1752,6 @@ describe('GameContext', () => {
       mockApiClient.claimExpeditionRewards.mockRejectedValue(new Error('Network'));
 
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       let success = true;
       await act(async () => {
@@ -1985,10 +1767,6 @@ describe('GameContext', () => {
       mockApiClient.isAuthenticated.mockReturnValue(false);
 
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       mockApiClient.claimLootItem.mockClear();
 
@@ -2007,10 +1785,6 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       await expect(
         act(async () => {
           await result.current.claimLootItem('loot-1');
@@ -2026,10 +1800,6 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       await act(async () => {
         await result.current.claimLootItem('loot-1', { speciesId: 5 });
       });
@@ -2043,10 +1813,6 @@ describe('GameContext', () => {
       mockApiClient.isAuthenticated.mockReturnValue(false);
 
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       mockApiClient.getLootItems.mockClear();
 
@@ -2062,10 +1828,6 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       // Should not throw
       await act(async () => {
         await result.current.fetchLootItems();
@@ -2079,10 +1841,6 @@ describe('GameContext', () => {
     it('should handle Feed action with time windows', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       // Feed uses time windows; lastUsed = 0 means different day, so should be true
       const canUse = result.current.canUseAction(
         { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
@@ -2094,10 +1852,6 @@ describe('GameContext', () => {
 
     it('should return true for Evolve when happiness meets min requirement', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       // Evolve requires minHappiness: 50, no cooldown, no daily limit
       const canUse = result.current.canUseAction(
@@ -2111,13 +1865,9 @@ describe('GameContext', () => {
     it('should return false for Evolve when happiness below minimum', async () => {
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      // Evolve requires minHappiness: 50
+      // Evolve requires minHappiness: 30
       const canUse = result.current.canUseAction(
-        { species: 0, color: 0, rarity: 0, happiness: 30, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 20, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
         ActionType.Evolve,
         { lastUsed: 0, dailyUses: 0, dayStartTime: 0 }
       );
@@ -2201,10 +1951,6 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       await act(async () => {
         await result.current.setNickname('totem-1', '   ');
       });
@@ -2267,10 +2013,6 @@ describe('GameContext', () => {
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
       let success = false;
       await act(async () => {
         success = await result.current.claimExpeditionRewards('exp-1');
@@ -2286,10 +2028,6 @@ describe('GameContext', () => {
       mockApiClient.purchaseProtection.mockResolvedValue({ success: true });
 
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       let success = false;
       await act(async () => {
@@ -2309,10 +2047,6 @@ describe('GameContext', () => {
       mockApiClient.getCooldowns.mockImplementation(() => firstPromise);
 
       const { result } = renderHook(() => useGame(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
 
       // Start two concurrent fetches for the same totem
       let _cooldowns1: any, _cooldowns2: any;

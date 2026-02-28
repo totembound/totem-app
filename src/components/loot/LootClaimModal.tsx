@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { X, Sparkles, CheckCircle, ChevronDown } from 'lucide-react';
 import { useGame, LootItem } from '../../contexts/GameContext';
-import { CURRENCY_NAMES, speciesConfig, raritiesConfig } from '../../config/constants';
+import { CURRENCY_NAMES, speciesConfig } from '../../config/constants';
+import { RARITIES } from '../../config/game-config';
 import { getRarityFontColor } from '../../utils/totems';
 import { Rarity } from '../../types/types';
 import notificationService from '../../services/NotificationService';
 import CelebrationModal from '../CelebrationModal';
-import { getTotemImageUrl, loadSpeciesById } from '../../utils/species';
+import { getTotemImageUrl } from '../../utils/species';
 
 interface LootClaimModalProps {
   lootItem: LootItem;
@@ -23,7 +24,7 @@ const _RARITY_BG: Record<string, string> = {
 };
 
 const availableSpecies = speciesConfig.species.filter((s: any) => s.available);
-const rarityMap = Object.fromEntries(raritiesConfig.rarities.map((r: any) => [r.id, r]));
+const rarityMap = Object.fromEntries(RARITIES.map(r => [r.id, r]));
 
 const LootClaimModal: React.FC<LootClaimModalProps> = ({ lootItem, onClose, onClaimed }) => {
   const { claimLootItem } = useGame();
@@ -50,14 +51,9 @@ const LootClaimModal: React.FC<LootClaimModalProps> = ({ lootItem, onClose, onCl
       const claimData = await claimLootItem(lootItem.id, options) as any;
       const lootResult = claimData?.result;
 
-      // Load species config to get the real IPFS image
+      // Get the real IPFS image (species data is bundled, no async needed)
       if (lootResult?.type === 'totem') {
         const totemData = lootResult.totem;
-        try {
-          await loadSpeciesById(totemData.speciesId);
-        } catch (e) {
-          // Non-fatal — getTotemImageUrl will fallback to placecard
-        }
         setTotemImageUrl(getTotemImageUrl(totemData.speciesId, totemData.colorId, totemData.stage || 0));
       }
 

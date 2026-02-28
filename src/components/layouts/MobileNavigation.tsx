@@ -35,16 +35,20 @@ const MobileNavigation: React.FC = () => {
     { to: '/guides', label: 'Guides', icon: BookOpenText },
   ];
 
-  // Close menu when clicking outside
+  // Close menu when tapping/clicking outside
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (moreMenuRef.current && !moreMenuRef.current.contains(event.target as Node)) {
         setIsMoreMenuOpen(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   const MoreMenuItem = ({
@@ -69,21 +73,22 @@ const MobileNavigation: React.FC = () => {
   );
 
   return (
-    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
-      <div className="relative flex justify-between items-center h-14 px-1">
+    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-[55] bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <div className="relative flex justify-between items-center h-16 px-1">
         {mainNavItems.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors
+              `flex flex-col items-center justify-center flex-1 h-full min-h-[48px] py-2 transition-colors
               ${isActive
                 ? 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/50'
-                : 'text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/50'
+                : 'text-gray-600 dark:text-gray-300 active:text-purple-600 dark:active:text-purple-400 active:bg-purple-50 dark:active:bg-purple-900/50'
               }`
             }
           >
-            <Icon size={20} />
+            <Icon size={22} />
             <span className="text-xs mt-0.5">{label}</span>
           </NavLink>
         ))}
@@ -92,13 +97,13 @@ const MobileNavigation: React.FC = () => {
         <div className="relative flex items-center h-full" ref={moreMenuRef}>
           <button
             onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
-            className={`flex flex-col items-center justify-center h-full flex-1 px-3 transition-colors h-full
+            className={`flex flex-col items-center justify-center h-full min-h-[48px] flex-1 px-3 py-2 transition-colors
             ${isMoreMenuOpen || moreNavItems.some(item => location.pathname.startsWith(item.to))
                 ? 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/50'
-                : 'text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/50'
+                : 'text-gray-600 dark:text-gray-300 active:text-purple-600 dark:active:text-purple-400 active:bg-purple-50 dark:active:bg-purple-900/50'
               }`}
           >
-            <MoreHorizontal size={20} />
+            <MoreHorizontal size={22} />
             <span className="text-xs mt-0.5">More</span>
           </button>
 

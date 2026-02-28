@@ -12,20 +12,7 @@ import TotemDetailsPanel from './TotemDetailsPanel';
 import TotemActionBar from './TotemActionBar';
 import ExperienceEffect from './effects/ExperienceEffect';
 import { STAGE_THRESHOLDS } from '../config/constants';
-import { getTotemImageUrl, getStageName, getStageDescription, loadSpeciesById, isSpeciesLoaded } from '../utils/species';
-
-// Action configs with Essence costs (Web2 - all numbers, no BigInt)
-const ACTION_CONFIGS: Partial<Record<ActionType, ActionConfig>> = {
-    // Feed: 10 Essence, no cooldown, 3x daily max, +10 happiness, 0 XP, uses time windows
-    [ActionType.Feed]: { cost: 10, cooldown: 0, maxDaily: 3, minHappiness: 0, happinessChange: 10, experienceGain: 0, useTimeWindows: true, increasesHappiness: true, enabled: true },
-    // Train: 20 Essence, no cooldown, unlimited, requires 20 happiness, -10 happiness, +50 XP
-    [ActionType.Train]: { cost: 20, cooldown: 0, maxDaily: 0, minHappiness: 20, happinessChange: 10, experienceGain: 50, useTimeWindows: false, increasesHappiness: false, enabled: true },
-    // Treat: 20 Essence, 4hr cooldown, unlimited, +10 happiness, 0 XP
-    [ActionType.Treat]: { cost: 20, cooldown: 14400, maxDaily: 0, minHappiness: 0, happinessChange: 10, experienceGain: 0, useTimeWindows: false, increasesHappiness: true, enabled: true },
-    // Evolve: Free, requires 30 happiness
-    [ActionType.Evolve]: { cost: 0, cooldown: 0, maxDaily: 0, minHappiness: 30, happinessChange: 0, experienceGain: 0, useTimeWindows: false, increasesHappiness: false, enabled: true },
-};
-
+import { getTotemImageUrl, getStageName, getStageDescription } from '../utils/species';
 interface TotemDetailViewProps {
     totem: TotemData;
     onClose: () => void;
@@ -65,7 +52,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
 }) => {
     const { user, updateEssence } = useAuth();
     const gameApi = useTotemGameApi();
-    const { isTotemAvailable, expeditionState, fetchTotemCooldowns, setTotemCooldowns } = useGame();
+    const { isTotemAvailable, expeditionState, fetchTotemCooldowns, setTotemCooldowns, actionConfigs } = useGame();
     const { incrementAchievementProgress } = useAchievements();
 
     const [isLoading, setIsLoading] = useState<ActionType | null>(null);
@@ -80,45 +67,30 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     const [activeTab, setActiveTab] = useState<'stats' | 'details'>('stats');
     const [showExpEffect, setShowExpEffect] = useState(false);
     const [cooldowns, setCooldowns] = useState<Record<string, { onCooldown: boolean; readyAt: Date | null; remainingMs: number }>>({});
-    const [speciesLoaded, setSpeciesLoaded] = useState(false);
+    const [, setTick] = useState(0); // Force re-render for countdown timer
     const dialogRef = useRef<HTMLDivElement>(null);
     const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
-    // Load species config for stage names/descriptions
-    useEffect(() => {
-        const loadSpecies = async () => {
-            if (!isSpeciesLoaded(totem.attributes.species)) {
-                await loadSpeciesById(totem.attributes.species);
-            }
-            setSpeciesLoaded(true);
-        };
-        loadSpecies();
-    }, [totem.attributes.species]);
-
     // Get stage-specific name and description (memoized)
     const stageName = useMemo(() => {
-        if (!speciesLoaded) return '';
         return getStageName(
             totem.attributes.species,
             totem.attributes.color,
             evolvedTotemData?.stage ?? totem.attributes.stage
         );
-    }, [speciesLoaded, totem.attributes.species, totem.attributes.color, totem.attributes.stage, evolvedTotemData?.stage]);
+    }, [totem.attributes.species, totem.attributes.color, totem.attributes.stage, evolvedTotemData?.stage]);
 
     const stageDescription = useMemo(() => {
-        if (!speciesLoaded) return '';
         return getStageDescription(
             totem.attributes.species,
             totem.attributes.color,
             evolvedTotemData?.stage ?? totem.attributes.stage
         );
-    }, [speciesLoaded, totem.attributes.species, totem.attributes.color, totem.attributes.stage, evolvedTotemData?.stage]);
+    }, [totem.attributes.species, totem.attributes.color, totem.attributes.stage, evolvedTotemData?.stage]);
 
-    // Action configs and Essence balance
-    const actionConfigs = ACTION_CONFIGS as Record<ActionType, ActionConfig>;
     const essenceBalance = user?.currencies?.essence ?? 0;
 
-    // Check cooldowns to determine if action can be used
+    // Check cooldowns to determine if action can be used - dynamically checks readyAt
     const canUseAction = useCallback((
         attributes: TotemAttributes,
         actionType: ActionType,
@@ -127,11 +99,17 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
         if (externalCanUseAction) return externalCanUseAction(attributes, actionType, tracking);
         const actionName = ActionType[actionType].toLowerCase() as 'feed' | 'train' | 'treat';
         const cooldown = cooldowns[actionName];
-        if (cooldown?.onCooldown) return false;
+        if (cooldown?.onCooldown) {
+            // Check if cooldown has actually expired based on readyAt
+            if (cooldown.readyAt && new Date(cooldown.readyAt).getTime() <= Date.now()) {
+                return true; // Cooldown expired, action is available
+            }
+            return false;
+        }
         return true;
     }, [cooldowns, externalCanUseAction]);
 
-    // Get action status message
+    // Get action status message - computes remaining time dynamically from readyAt
     const getActionStatus = useCallback((
         actionType: ActionType,
         _attributes: TotemAttributes,
@@ -141,10 +119,13 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
         const actionName = ActionType[actionType].toLowerCase() as 'feed' | 'train' | 'treat';
         const cooldown = cooldowns[actionName];
 
-        if (cooldown?.onCooldown && cooldown.remainingMs > 0) {
-            const hours = Math.floor(cooldown.remainingMs / (1000 * 60 * 60));
-            const mins = Math.floor((cooldown.remainingMs % (1000 * 60 * 60)) / (1000 * 60));
-            return `Ready in ${hours}h ${mins}m`;
+        if (cooldown?.onCooldown && cooldown.readyAt) {
+            const remainingMs = new Date(cooldown.readyAt).getTime() - Date.now();
+            if (remainingMs > 0) {
+                const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+                const mins = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+                return `Ready in ${hours}h ${mins}m`;
+            }
         }
         return 'Available';
     }, [cooldowns]);
@@ -191,6 +172,18 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
         return () => { cancelled = true; };
     }, [totem.id, fetchTotemCooldowns]);
 
+    // Re-render every 60s so getActionStatus/canUseAction recompute from readyAt.
+    // Only runs while an active cooldown exists. Display is hours+minutes so 60s is sufficient.
+    useEffect(() => {
+        const hasActiveCooldown = Object.values(cooldowns).some(
+            cd => cd.onCooldown && cd.readyAt && new Date(cd.readyAt).getTime() > Date.now()
+        );
+        if (!hasActiveCooldown) return;
+
+        const interval = setInterval(() => setTick(t => t + 1), 60000);
+        return () => clearInterval(interval);
+    }, [cooldowns]);
+
      // Check if totem is on expedition
      const tokenIsOnExpedition = !isTotemAvailable(totem.id);
      // Find expedition end time if totem is on expedition
@@ -212,8 +205,8 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
             const now = Date.now();
 
             if (action === ActionType.Treat) {
-                // Treat has 4hr cooldown starting now
-                const TREAT_COOLDOWN_MS = 14400 * 1000;
+                // Treat cooldown from game config
+                const TREAT_COOLDOWN_MS = actionConfigs[ActionType.Treat].cooldown * 1000;
                 updated.treat = {
                     onCooldown: true,
                     readyAt: new Date(now + TREAT_COOLDOWN_MS),
@@ -246,7 +239,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
 
             return updated;
         });
-    }, [totem.id, setTotemCooldowns]);
+    }, [totem.id, setTotemCooldowns, actionConfigs]);
 
     // Action handler - calls REST API and updates local state (SPA pattern)
     const handleAction = async (action: ActionType, apiMethod: () => Promise<any>) => {
@@ -493,7 +486,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
 
             {/* Content - Stack on mobile, side-by-side on desktop. Swipe left/right to navigate totems. */}
             <div
-                className="flex-1 overflow-y-auto"
+                className="flex-1 overflow-y-auto pb-20 sm:pb-0"
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
             >

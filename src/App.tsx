@@ -1,9 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { UserProvider } from './contexts/UserContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { GameProvider } from './contexts/GameContext';
 import { AchievementsProvider } from './contexts/AchievementsContext';
-import { loadAllSpecies } from './utils/species';
 import TotemGallery from './components/pages/TotemGallery';
 import ShopInterface from './components/pages/ShopInterface';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
@@ -233,13 +232,6 @@ const AppRoutes: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  // Preload all species configs on app startup for instant image URL generation
-  useEffect(() => {
-    loadAllSpecies().catch(err => {
-      console.warn('Failed to preload species data:', err);
-    });
-  }, []);
-
   return (
     <BrowserRouter>
       <ThemeProvider>

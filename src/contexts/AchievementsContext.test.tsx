@@ -6,13 +6,12 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import React from 'react';
 
 // Hoist mock variables so vi.mock factories can reference them
-const { mockUseAuth, mockApiClient, mockFetch } = vi.hoisted(() => ({
+const { mockUseAuth, mockApiClient } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
   mockApiClient: {
     getAchievements: vi.fn(),
     checkAchievement: vi.fn(),
   },
-  mockFetch: vi.fn(),
 }));
 
 // Mock AuthContext
@@ -25,17 +24,9 @@ vi.mock('../services/ApiClient', () => ({
   default: mockApiClient,
 }));
 
-// Mock fetch for achievements config
-global.fetch = mockFetch;
-
-import { AchievementsProvider, useAchievements } from './AchievementsContext';
-
-// Reset module-level caches between tests
-let _achievementConfigModule: any;
-
-const mockAchievementsConfig = {
-  version: '1.0',
-  categories: [
+// Mock bundled achievements config
+vi.mock('../config/achievements', () => ({
+  ACHIEVEMENT_CATEGORIES: [
     { id: 0, name: 'Evolution' },
     { id: 1, name: 'Collection' },
     { id: 2, name: 'Streak' },
@@ -43,46 +34,64 @@ const mockAchievementsConfig = {
     { id: 4, name: 'Challenge' },
     { id: 5, name: 'Expedition' },
   ],
-  types: [
+  ACHIEVEMENT_TYPES: [
     { id: 0, name: 'OneTime' },
     { id: 1, name: 'Progression' },
   ],
-  achievements: [
+  ACHIEVEMENTS: [
     {
       id: 'ach_first_feed',
       name: 'First Feed',
       description: 'Feed a totem for the first time',
-      category: 3, // Action
-      type: 0,     // OneTime
+      category: 3,
+      type: 0,
+      subType: 'first_feed',
       badgeUri: '/badges/first-feed.png',
       milestones: [
-        { index: 0, name: 'First Feed', requirement: 1, badgeUri: '/badges/first-feed-m0.png' },
+        { index: 0, name: 'First Feed', description: 'Feed once', requirement: 1, badgeUri: '/badges/first-feed-m0.png' },
       ],
     },
     {
       id: 'ach_evolution_progression',
       name: 'Evolution Master',
       description: 'Evolve totems multiple times',
-      category: 0, // Evolution
-      type: 1,     // Progression
+      category: 0,
+      type: 1,
+      subType: 'evolution_progression',
       badgeUri: '/badges/evolution.png',
       milestones: [
-        { index: 0, name: 'First Evolution', requirement: 1, badgeUri: '/badges/evo-1.png' },
-        { index: 1, name: 'Evolve 5', requirement: 5, badgeUri: '/badges/evo-5.png' },
-        { index: 2, name: 'Evolve 10', requirement: 10, badgeUri: '/badges/evo-10.png' },
+        { index: 0, name: 'First Evolution', description: 'Evolve once', requirement: 1, badgeUri: '/badges/evo-1.png' },
+        { index: 1, name: 'Evolve 5', description: 'Evolve 5 times', requirement: 5, badgeUri: '/badges/evo-5.png' },
+        { index: 2, name: 'Evolve 10', description: 'Evolve 10 times', requirement: 10, badgeUri: '/badges/evo-10.png' },
       ],
     },
     {
       id: 'ach_requires_evo',
       name: 'Advanced Feeder',
       description: 'Requires evolution achievement first',
-      category: 3, // Action
+      category: 3,
       type: 0,
-      badgeUri: '/badges/adv-feeder.png',
+      subType: 'requires_evo',
+      badgeUri: '/badges/advanced.png',
       requires: ['ach_evolution_progression'],
+      milestones: [
+        { index: 0, name: 'Advanced', description: 'Feed after evolving', requirement: 1, badgeUri: '/badges/advanced-m0.png' },
+      ],
     },
   ],
-};
+  getAchievementById: (id: string) => {
+    const achs = [
+      { id: 'ach_first_feed', name: 'First Feed', subType: 'first_feed' },
+      { id: 'ach_evolution_progression', name: 'Evolution Master', subType: 'evolution_progression' },
+      { id: 'ach_requires_evo', name: 'Advanced Feeder', subType: 'requires_evo' },
+    ];
+    return achs.find(a => a.id === id || a.subType === id);
+  },
+}));
+
+import { AchievementsProvider, useAchievements } from './AchievementsContext';
+
+// Achievement data is now mocked via vi.mock('../config/achievements') above
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <AchievementsProvider>{children}</AchievementsProvider>
@@ -97,12 +106,6 @@ describe('AchievementsContext', () => {
     // Default: authenticated
     mockUseAuth.mockReturnValue({ isAuthenticated: true });
 
-    // Default: config fetch succeeds
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockAchievementsConfig),
-    });
-
     // Default: API returns empty achievements
     mockApiClient.getAchievements.mockResolvedValue({
       success: true,
@@ -112,9 +115,6 @@ describe('AchievementsContext', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-    // Clear module-level cache by resetting the module's internal state
-    // Since we can't easily reset module-level vars, tests that need fresh cache
-    // should use vi.resetModules() + dynamic import. For most tests the cache is fine.
   });
 
   describe('useAchievements', () => {

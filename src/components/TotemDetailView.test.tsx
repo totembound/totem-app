@@ -28,6 +28,13 @@ const mockGameContext = vi.hoisted(() => ({
     treat: { onCooldown: false, readyAt: null, remainingMs: 0 },
   }),
   setTotemCooldowns: vi.fn(),
+  actionConfigs: {
+    1: { cost: 10, cooldown: 0, maxDaily: 3, minHappiness: 0, happinessChange: 10, experienceGain: 0, useTimeWindows: true, increasesHappiness: true, enabled: true },
+    2: { cost: 20, cooldown: 0, maxDaily: 0, minHappiness: 20, happinessChange: -10, experienceGain: 50, useTimeWindows: false, increasesHappiness: false, enabled: true },
+    3: { cost: 20, cooldown: 14400, maxDaily: 0, minHappiness: 0, happinessChange: 10, experienceGain: 0, useTimeWindows: false, increasesHappiness: true, enabled: true },
+    4: { cost: 0, cooldown: 0, maxDaily: 0, minHappiness: 30, happinessChange: 0, experienceGain: 0, useTimeWindows: false, increasesHappiness: false, enabled: true },
+    0: { cost: 0, cooldown: 0, maxDaily: 0, minHappiness: 0, happinessChange: 0, experienceGain: 0, useTimeWindows: false, increasesHappiness: false, enabled: false },
+  },
 }));
 
 const mockAchievementsContext = vi.hoisted(() => ({
@@ -62,7 +69,6 @@ vi.mock('../utils/species', () => ({
   getTotemImageUrl: () => '/test-image.png',
   getStageName: () => 'Gray Pup',
   getStageDescription: () => 'A young wolf.',
-  loadSpeciesById: vi.fn().mockResolvedValue(undefined),
   isSpeciesLoaded: vi.fn().mockReturnValue(true),
 }));
 

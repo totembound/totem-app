@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { AchievementCategory, AchievementProgress, AchievementType, AchievementView, ONETIME_REQUIREMENT } from '../types/types';
 import { useAuth } from './AuthContext';
 import apiClient from '../services/ApiClient';
+import { ACHIEVEMENTS, ACHIEVEMENT_CATEGORIES, ACHIEVEMENT_TYPES } from '../config/achievements';
 
 interface AchievementsContextType {
     achievements: Record<AchievementCategory, AchievementView[]>;
@@ -21,12 +22,8 @@ interface AchievementsContextType {
 
 const AchievementsContext = createContext<AchievementsContextType | null>(null);
 
-// Static config cache + dedup promise
-let achievementConfigCache: AchievementConfig | null = null;
-let achievementConfigPromise: Promise<AchievementConfig> | null = null;
-
+// Static config is now bundled via src/config/achievements.ts
 interface AchievementConfig {
-    version: string;
     categories: Array<{ id: number; name: string }>;
     types: Array<{ id: number; name: string }>;
     achievements: Array<{
@@ -35,7 +32,8 @@ interface AchievementConfig {
         description: string;
         category: number;
         type: number;
-        badgeUri: string;
+        badgeUri?: string;
+        subType?: string;
         milestones?: Array<{
             index: number;
             name: string;
@@ -43,7 +41,7 @@ interface AchievementConfig {
             requirement: number;
             badgeUri: string;
         }>;
-        requires?: string[];
+        requires?: any[];
     }>;
 }
 
@@ -58,27 +56,12 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const loadingRef = useRef(false);
     const lastAuthStateRef = useRef<boolean | null>(null);
 
-    // Load static achievement config (cached at module level with dedup)
-    const loadAchievementConfig = useCallback(async (): Promise<AchievementConfig> => {
-        if (achievementConfigCache) {
-            return achievementConfigCache;
-        }
-        if (achievementConfigPromise) {
-            return achievementConfigPromise;
-        }
-
-        achievementConfigPromise = (async () => {
-            const response = await fetch('/config/achievements.json');
-            if (!response.ok) {
-                achievementConfigPromise = null;
-                throw new Error('Failed to load achievements config');
-            }
-            achievementConfigCache = await response.json();
-            return achievementConfigCache!;
-        })();
-
-        return achievementConfigPromise;
-    }, []);
+    // Static achievement config — bundled at build time, no fetch needed
+    const getAchievementConfig = useCallback((): AchievementConfig => ({
+        categories: ACHIEVEMENT_CATEGORIES,
+        types: ACHIEVEMENT_TYPES,
+        achievements: ACHIEVEMENTS,
+    }), []);
 
     // Load user progress from API
     const loadUserProgress = useCallback(async (): Promise<Record<string, AchievementProgress>> => {
@@ -134,11 +117,9 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
             setIsLoading(true);
             setError(null);
 
-            // Load static config and user progress in parallel
-            const [config, userProgress] = await Promise.all([
-                loadAchievementConfig(),
-                loadUserProgress(),
-            ]);
+            // Config is bundled (synchronous), user progress from API
+            const config = getAchievementConfig();
+            const userProgress = await loadUserProgress();
 
             const achievementsByCategory: Record<AchievementCategory, AchievementView[]> = {
                 [AchievementCategory.Evolution]: [],
@@ -177,7 +158,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
                     achievementType,
                     subType: ach.id.replace('ach_', ''),
                     enabled: true,
-                    badgeUri: ach.badgeUri,
+                    badgeUri: ach.badgeUri || '',
                     milestones: ach.milestones?.map(m => ({
                         name: m.name,
                         description: m.description || m.name,
@@ -208,7 +189,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         finally {
             setIsLoading(false);
         }
-    }, [loadAchievementConfig, loadUserProgress]);
+    }, [getAchievementConfig, loadUserProgress]);
 
     // Helper function to check if specific achievement requirements are met
     const checkSpecificAchievement = useCallback(async (id: string): Promise<boolean> => {

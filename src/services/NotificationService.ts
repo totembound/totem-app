@@ -12,7 +12,7 @@ import {
 } from "../types/notifications";
 import { CURRENCY_NAMES } from "../config/constants";
 import { formatTokenAmount } from "../utils/formats";
-import { getAchievementById } from "../config/config-loader";
+import { getAchievementById } from "../config/achievements";
 
 /**
  * Data interfaces for different notification types

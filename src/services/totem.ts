@@ -11,15 +11,14 @@
 import { TotemData, Species, Color, Rarity, ActionType, ActionTracking } from '../types/types';
 import { getStageName as getPerColorStageName, isSpeciesLoaded, getTotemImageUrl as getSpeciesImageUrl } from '../utils/species';
 
-// Static config loaded from local JSON files (no API calls needed)
+// Static config (bundled at build time)
 import speciesConfig from '../config/species.json';
-import colorsConfig from '../config/colors.json';
-import raritiesConfig from '../config/rarities.json';
+import { RARITIES, COLOR_BY_ID } from '../config/game-config';
 
 // Create lookup maps for fast access
 const speciesById = new Map(speciesConfig.species.map(s => [s.id, s]));
-const rarityById = new Map(raritiesConfig.rarities.map(r => [r.id, r]));
-const colorById = colorsConfig.colorById as Record<string, string>;
+const rarityById = new Map(RARITIES.map(r => [r.id, r]));
+const colorById = COLOR_BY_ID;
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/v1';
 

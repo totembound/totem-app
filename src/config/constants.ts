@@ -1,12 +1,8 @@
 import { Location, Rarity, Species } from "../types/types";
 
-// Import static config from JSON files (single source of truth)
+// Species config (rich data with descriptions, stages, images)
 import speciesConfig from './species.json';
-import raritiesConfig from './rarities.json';
-import colorsConfig from './colors.json';
-
-// Re-export for components that need full config
-export { speciesConfig, raritiesConfig, colorsConfig };
+export { speciesConfig };
 
 // Constants for progression calculations
 export const PRESTIGE_XP_REQUIREMENT = 2500;

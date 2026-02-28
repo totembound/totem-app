@@ -331,7 +331,7 @@ const TotemGallery = () => {
 
             {/* Detail View Modal - portaled to body to avoid containing block issues */}
             {selectedTotem && createPortal(
-                <div className="fixed inset-0 bottom-14 sm:bottom-0 z-50 bg-white dark:bg-gray-900 sm:bg-black/50 sm:dark:bg-black/50 sm:flex sm:items-center sm:justify-center sm:p-2"
+                <div className="fixed inset-0 bottom-0 z-50 bg-white dark:bg-gray-900 sm:bg-black/50 sm:dark:bg-black/50 sm:flex sm:items-center sm:justify-center sm:p-2"
                     onClick={(e) => {
                         // Close if the click was on the background overlay (desktop only)
                         if (e.target === e.currentTarget) {

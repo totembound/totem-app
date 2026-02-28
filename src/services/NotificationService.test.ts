@@ -4,12 +4,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NotificationType, NotificationScope, NotificationPriority } from '../types/notifications';
 
-// Mock config-loader
-vi.mock('../config/config-loader', () => ({
+// Mock achievements config
+vi.mock('../config/achievements', () => ({
   getAchievementById: vi.fn(),
 }));
 
-import { getAchievementById } from '../config/config-loader';
+import { getAchievementById } from '../config/achievements';
 
 // Import after mocks
 import { notificationService } from './NotificationService';

@@ -98,16 +98,6 @@ const originalFetch = global.fetch;
 global.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
   const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
 
-  // Mock achievements config
-  if (url.includes('/config/achievements.json')) {
-    return Promise.resolve(new Response(JSON.stringify({
-      version: '1.0.0',
-      categories: [],
-      types: [],
-      achievements: []
-    }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
-  }
-
   // Mock species index
   if (url.includes('/data/species/index.json')) {
     return Promise.resolve(new Response(JSON.stringify({

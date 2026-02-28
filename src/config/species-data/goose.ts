@@ -1,0 +1,470 @@
+import type { SpeciesConfig } from '../../utils/species';
+
+export const gooseData: SpeciesConfig = {
+  "id": 0,
+  "name": "Goose",
+  "fullName": "Mystic Goose",
+  "title": "The Watchful Guardian",
+  "description": "The Goose represents protection, vigilance, and leadership. Known for its strong instincts and devotion to its flock, it ensures the safety of all who travel under its watchful eye.",
+  "affinity": "Wisdom",
+  "domain": "Water",
+  "locationId": 9,
+  "available": true,
+  "placeholderImage": "/totems/gooseplacecard.png",
+  "baseStats": {
+    "strength": 8,
+    "agility": 6,
+    "wisdom": 10
+  },
+  "stages": [
+    "Hatchling",
+    "Gosling",
+    "Sentinel",
+    "Guardian",
+    "Wise Elder"
+  ],
+  "colors": {
+    "brown": {
+      "id": 0,
+      "displayName": "Brown",
+      "rarity": "common",
+      "stageNames": [
+        "Brown Hatchling",
+        "Brown Gosling",
+        "Brown Sentinel",
+        "Brown Guardian",
+        "Brown Wise Elder"
+      ],
+      "stageDescriptions": [
+        "A fuzzy brown chick, honking curiously and waddling in wide circles.",
+        "A fluffy ball of energy, starting to test its wings and instincts.",
+        "A vigilant guardian, alert to every sound and movement.",
+        "A bold protector, fearless when defending its flock.",
+        "A seasoned leader, guiding others with honks of wisdom."
+      ],
+      "images": [
+        "bafybeih67w6len2bh4iqyezikguccwpmzi656j6sou6bhbezjtmrti2su4",
+        "bafybeiguy3xssl4hxfmzf2fskr6hqmnib4io6qgmrtkylurvpijoj67yl4",
+        "bafybeihbzwdg4sf3t3s4r24p4bezbh2w7tkztut64kyfi6yx46octbfhra",
+        "bafybeicweny35qjksvwqeeluzxsjit36htgkctohkkc6yafg7dywaft7na",
+        "bafybeig6lpw5hqgkmgn3f3mo2xuulgyx6bqngqvwr6itcl3dmxxc3jovny"
+      ]
+    },
+    "gray": {
+      "id": 1,
+      "displayName": "Gray",
+      "rarity": "common",
+      "stageNames": [
+        "Gray Hatchling",
+        "Gray Gosling",
+        "Gray Sentinel",
+        "Gray Guardian",
+        "Gray Wise Elder"
+      ],
+      "stageDescriptions": [
+        "A soft gray chick, already showing signs of calm attentiveness.",
+        "Quiet but observant, waddling close to its companions.",
+        "A watchful presence, standing tall in the open fields.",
+        "A defender of the skies, ever ready to lead and protect.",
+        "A calm strategist, balancing strength with foresight."
+      ],
+      "images": [
+        "bafybeiervdglagz3dqzivn4pbcwxfts2txq45dggnecqjwbhs3p2ufvwqu",
+        "bafybeiffuzibivnbbvcleuw7jn4qvng5k6ewfzas3p43b6d23n4afqbrbm",
+        "bafybeigs6mozgqrekl7cweyhreuc6uyunnx33wimzo7ew4ulzp6glwruti",
+        "bafybeignshywbb6v6jphjgnaqzpc7cyq5tfhfy4s3ksq7a4knerklxj7ye",
+        "bafybeicgtxy6sdc7v3z4zmlar6u36q6twrjnbd5arib27qkseq47d4u3nm"
+      ]
+    },
+    "white": {
+      "id": 2,
+      "displayName": "White",
+      "rarity": "common",
+      "stageNames": [
+        "White Hatchling",
+        "White Gosling",
+        "White Sentinel",
+        "White Guardian",
+        "White Wise Elder"
+      ],
+      "stageDescriptions": [
+        "A brilliant white chick, chirping gently and basking in the morning light.",
+        "A graceful youngster, gliding across ponds with elegance.",
+        "A noble watchguard, keeping peace within the flock.",
+        "A regal force of protection, standing tall at the front.",
+        "A revered presence, its feathers glowing like snow under moonlight."
+      ],
+      "images": [
+        "bafybeigw67q3qc22k5h6hcj6gzb2da6mvtlm6w2jydo6blvqvgts7y3l6u",
+        "bafybeif7wi7qi5cvwuefymfg2nwrutrmve4nrcp6uitjtydajvbl2w4qza",
+        "bafybeidc7x4jb76mpkkar2vfvw2unqmxtgqosajufoht7f7lss6ijtuahy",
+        "bafybeibk4bzndmqrjxk3b4tiaarg37exxuulz5k6u6hsrxxw3gksuivvqy",
+        "bafybeifuxzs3vribchjb3e4n2cmz4u5uewnwt3zofzvvfo67vmgkfnbx7y"
+      ]
+    },
+    "tawny": {
+      "id": 3,
+      "displayName": "Tawny",
+      "rarity": "common",
+      "stageNames": [
+        "Tawny Hatchling",
+        "Tawny Gosling",
+        "Tawny Sentinel",
+        "Tawny Guardian",
+        "Tawny Wise Elder"
+      ],
+      "stageDescriptions": [
+        "A warm-toned chick, waddling through fallen leaves in playful delight.",
+        "Energetic and bold, eager to lead and explore.",
+        "A sharp-eyed protector, swift to sound the alarm.",
+        "A fierce defender of the flock and territory.",
+        "A guiding figure of seasonal change, full of ancient knowledge."
+      ],
+      "images": [
+        "bafybeiakzqtgxtv5a5h5y4bcohwnypa5ucif22fi32wquahyigmo5244nq",
+        "bafybeibirknh6ivahip6dyhpraenxrms5ict34cbydohzfwkod2vivksum",
+        "bafybeiabwotnu4km5aqs7igbpid7dr2w65pv634uhueacbzmkwhdzbgb4e",
+        "bafybeidindogeso7vfszgesnuigfuk4qk5dqgtqdo5bt2nbnovvj6dlfmm",
+        "bafybeidd3qurblgoygrmbze4hwp73zjaksm5c2onvh65usjmwhkrzqmbxe"
+      ]
+    },
+    "slate": {
+      "id": 4,
+      "displayName": "Slate",
+      "rarity": "uncommon",
+      "stageNames": [
+        "Slate Hatchling",
+        "Slate Gosling",
+        "Slate Sentinel",
+        "Slate Guardian",
+        "Slate Mystic Elder"
+      ],
+      "stageDescriptions": [
+        "A deep gray chick, blending into the stone and shadow.",
+        "Cautious and quiet, always watching before acting.",
+        "A strategic guardian, never taken by surprise.",
+        "Moves with calculated purpose, defending its own.",
+        "A spirit of the earth, unwavering and silent in its watch."
+      ],
+      "images": [
+        "bafybeichcdqioyw2xeo3puj6vpth5tet7o6aefrjoiaibsapgwt5d4wkyy",
+        "bafybeieorshezz7nbea4qeysybmpxnfviu7ervqihsx5mp6lcbc2bjhrhy",
+        "bafybeie2keq7o3w2ykvdbqdnv4fn4pho5ox6tioudw3aksj65ijrydp5c4",
+        "bafybeia2yo4b652xlvwgdbd7nz3mshlmztjccxiskpxb4zvovvclijuqwu",
+        "bafybeidnhudwv43chaarpxa6ltiii7js425zreyg347jw7skpuzchlnnbi"
+      ]
+    },
+    "copper": {
+      "id": 5,
+      "displayName": "Copper",
+      "rarity": "uncommon",
+      "stageNames": [
+        "Copper Hatchling",
+        "Copper Gosling",
+        "Copper Sentinel",
+        "Copper Guardian",
+        "Copper Mystic Elder"
+      ],
+      "stageDescriptions": [
+        "A gleaming chick with fiery red-brown fluff and bold spirit.",
+        "Energetic and driven, always leading from the front.",
+        "Radiates confidence, standing guard like a flame in the wind.",
+        "A passionate defender, charging in when needed.",
+        "A totem of power and warmth, glowing with ancient strength."
+      ],
+      "images": [
+        "bafybeibxsgzpsz6lmlobuazo56zrle2wjob6v7ngoedraw2ahjmw4znpfe",
+        "bafybeicm6z7bpfeho3ptm7qriz2eab4pq3vrhhfrejm3djb2oyavxibdgq",
+        "bafybeihbtpqj3aggmliwmv2a7sn62zzs46iymmm6p3mdl75gpyuw5rg33e",
+        "bafybeidm72ywmvt5fgw6umq2ofcoecmfn5a5tmyxrbe25c2qiqwsloyjku",
+        "bafybeif44qtqzmbfypp4u7pm2rjxqy5x2xbc5rpmey2b6xixlid3iuxol4"
+      ]
+    },
+    "cream": {
+      "id": 6,
+      "displayName": "Cream",
+      "rarity": "uncommon",
+      "stageNames": [
+        "Cream Hatchling",
+        "Cream Gosling",
+        "Cream Sentinel",
+        "Cream Guardian",
+        "Cream Mystic Elder"
+      ],
+      "stageDescriptions": [
+        "A soft, golden-beige chick, chirping sweetly by the water’s edge.",
+        "A gentle nurturer, soothing and kind to others.",
+        "Keeps the peace with calm vigilance.",
+        "Brings harmony and safety to its surroundings.",
+        "A wise spirit of balance and serenity."
+      ],
+      "images": [
+        "bafybeie6ewyjuufiflac63v5g6piyqqzxshkbyqqupq3c3tucfgdswtukq",
+        "bafybeibnfo7rt6taycrvhbp3bcpjjfofvakgetbhz56bp6tecxmglduxyu",
+        "bafybeibdfrhqbl5jk2q76g6l3czwk5lt3bf4legqm4pjat3g5mopd2ph2q",
+        "bafybeicf77r5flp3gm3qraxxultygc5rfr37ruxns4f3mfp22yivwrlqbm",
+        "bafybeibbpekxdze4okq2a63js4566rcqefttvyq6unff5ms647xd3yqa74"
+      ]
+    },
+    "dappled": {
+      "id": 7,
+      "displayName": "Dappled",
+      "rarity": "uncommon",
+      "stageNames": [
+        "Dappled Hatchling",
+        "Dappled Gosling",
+        "Dappled Sentinel",
+        "Dappled Guardian",
+        "Dappled Wise Elder"
+      ],
+      "stageDescriptions": [
+        "A mottled chick, blending playfully into tall grass.",
+        "Quick and clever, impossible to track for long.",
+        "A roaming scout, always first to see danger.",
+        "Uses unpredictability to protect its flock.",
+        "A spirit of motion and instinct, always ahead of the wind."
+      ],
+      "images": [
+        "bafybeibzy55d25h6llzhjuxnrrw2kkpp6kcqhes57khfdboslleorkukay",
+        "bafybeifvkc5l6wrqct6ooaahd5wduk3nr2pbzn2xs7ncxnrq2daqt4q26i",
+        "bafybeieuj2xvgewti3c3nqzlowxlrvfoxwoj47lns3pvi7eocsbwkrbcvi",
+        "bafybeihds3ewldz276zf7dhr4njynodidrlgbc6a3y6g3qkykwq2fxmgbq",
+        "bafybeiemgxxn6mm3lke7runjczhsaqvksifg4drdb7ovk7f6434zcszhga"
+      ]
+    },
+    "golden": {
+      "id": 8,
+      "displayName": "Golden",
+      "rarity": "rare",
+      "stageNames": [
+        "Dawnwatch Hatchling",
+        "Dawnwatch Gosling",
+        "Dawnwatch Sentinel",
+        "Dawnwatch Phantom",
+        "Dawnwatch Veiled Elder"
+      ],
+      "stageDescriptions": [
+        "A bright yellow chick, chirping at first light with radiant joy.",
+        "A proud young goose, already taking charge of the group.",
+        "A beacon of leadership, visible across the horizon.",
+        "Glides with effortless grace, watching all.",
+        "A symbol of radiant strength, revered by all beneath its wings."
+      ],
+      "images": [
+        "bafybeihn6kjfldsqbg6j67pcmwia2o7kbvdl76ytkulrttgfjgs5b7xh6q",
+        "bafybeibdtdrybvsqs5kljnvavgyb74qav6xi5deyil5g6myqdzdeohn7rm",
+        "bafybeihegdj2z4q7x365fkepzz4jl6vgkdpjgpocasvzzmk4lqsbkdr3sq",
+        "bafybeiceusepk3p4ukkjbxpzzikrie2x4xedl7j3ejskxzjbetwhkc5iza",
+        "bafybeiggzraxgyvrllvasxaexluj466fchi3wycf26bnig5iprzcgufsxm"
+      ]
+    },
+    "purple": {
+      "id": 9,
+      "displayName": "DarkPurple",
+      "rarity": "rare",
+      "stageNames": [
+        "Veilcrest Hatchling",
+        "Veilcrest Gosling",
+        "Veilcrest Sentinel",
+        "Veilcrest Phantom",
+        "Veilcrest Veiled Elder"
+      ],
+      "stageDescriptions": [
+        "A deep violet chick, calm and quiet even at birth.",
+        "Mysterious and composed, already attuned to deeper forces.",
+        "Appears from shadows to guide or defend.",
+        "Glides silently through mist, seen by few.",
+        "A spectral totem, bridging wisdom between worlds."
+      ],
+      "images": [
+        "bafybeig64vnyiheqxnbsoxulo4lsbbmngl34eayvbwelybfz6astgiya4i",
+        "bafybeiaxbb37lrbfcfimsfvn4pdlngd2kwzktgea2iiqox3aykxujze2t4",
+        "bafybeicmv7gi5z3dfw63kyggtfojdraanfaoxqqop6mumeorg2afgg6eyi",
+        "bafybeigf3dffhtohpmkr3yfze5r6bk2gjollvpwrgaih4pjrqptxzjmg6y",
+        "bafybeigbmgbdwybifu2wulvjpl6syk5fepiamsswbfs6432rppxka7nrca"
+      ]
+    },
+    "charcoal": {
+      "id": 10,
+      "displayName": "Charcoal",
+      "rarity": "rare",
+      "stageNames": [
+        "Ashen Hatchling",
+        "Ashen Gosling",
+        "Ashen Sentinel",
+        "Ashen Phantom",
+        "Ashen Veiled Elder"
+      ],
+      "stageDescriptions": [
+        "A soot-colored chick, resilient from the start.",
+        "Hardened by nature, always pushing forward.",
+        "A hardened guardian, shaped by wind and fire.",
+        "Its flight leaves trails of smoke and whispers.",
+        "A totem of resilience and remembrance, rising from the ashes."
+      ],
+      "images": [
+        "bafybeidbarxnpjyalrtonxq5z3k4e3kbadak44mvyhjgi6joykuyycka2q",
+        "bafybeicqauxnjdes3rc36q2vpwq5bknnfin3c3rgxek6wrxlaq5b7rrx44",
+        "bafybeif2ph23n4m3ysautokjg62ctavhfbgc5sv565fasua7jt3oe2yzyu",
+        "bafybeicu3n7mukuhg4uqo6ztsixs3vf7qkpnklmydrewycqyyjf5uyv3mu",
+        "bafybeid7vdy4exxbs6rogcvd6o6nlu4kb2qmecxsgrvwap2v2osazrvsx4"
+      ]
+    },
+    "emerald": {
+      "id": 11,
+      "displayName": "EmeraldGreen",
+      "rarity": "epic",
+      "stageNames": [
+        "Verdant Hatchling",
+        "Verdant Gosling",
+        "Verdant Sentinel",
+        "Verdant Sage",
+        "Verdant Eternal Sage"
+      ],
+      "stageDescriptions": [
+        "A forest-green chick, glowing with life and purpose.",
+        "Glides through nature like a breeze in the trees.",
+        "Brings harmony to wild places, protecting sacred grounds.",
+        "A living guardian of nature’s law.",
+        "An ageless protector, bound to the seasons."
+      ],
+      "images": [
+        "bafybeibjc4xgp2bzn4bvs4b5f3lubnu4cuqu42jx3cophboizqduetjgb4",
+        "bafybeicnydcl4jchyxlzwyle7r4bkpomuq223f4isvmhbd4s4plgu5tczy",
+        "bafybeidpk5c6x75z367l357htpw3rowhatsc3d75aq4ger5wp62uye2kxm",
+        "bafybeiglvnkpy34o5a7c7rotmbhc5zs7lhgfnyxhti2rcvgmfh3lz2ql7m",
+        "bafybeihdyrq7rru2bsfahjvyzqty3g34m3vurc2btzbckcnjo5elujfasu"
+      ]
+    },
+    "crimson": {
+      "id": 12,
+      "displayName": "CrimsonRed",
+      "rarity": "epic",
+      "stageNames": [
+        "Bloodfeather Hatchling",
+        "Bloodfeather Gosling",
+        "Bloodfeather Sentinel",
+        "Bloodfeather Sage",
+        "Bloodfeather Eternal Sage"
+      ],
+      "stageDescriptions": [
+        "A vibrant red chick, full of fire and strength.",
+        "Bold and proud, challenging the sky itself.",
+        "A fierce flier, defending its own without hesitation.",
+        "Commands attention and respect wherever it soars.",
+        "A legendary force of loyalty and sacrifice."
+      ],
+      "images": [
+        "bafybeigeavfjwbqp7fvmher6hrhpveaavg6h6a3hsv7ccle42bfystfdhu",
+        "bafybeibx5plrwxknsilibfkv3nlb54j2tky7wi5ebdrushmg2lh64lxt7u",
+        "bafybeiad5jlrwai2ecamgjs42ygeu2erxu4skqbxsb2wai2lqgkakzsyam",
+        "bafybeiholbcxiwi7xf4hpam5itujzofczhfrhkvdvls3yn63shc2zob45a",
+        "bafybeicjyadvlshy5u6o3ruv7f3god22lnfg25zsgioxkuo25vhosih7ou"
+      ]
+    },
+    "sapphire": {
+      "id": 13,
+      "displayName": "DeepSapphire",
+      "rarity": "epic",
+      "stageNames": [
+        "Abyssal Hatchling",
+        "Abyssal Gosling",
+        "Abyssal Sentinel",
+        "Abyssal Sage",
+        "Abyssal Eternal Sage"
+      ],
+      "stageDescriptions": [
+        "A midnight-blue chick, calm as the stillest water.",
+        "Gentle but strong, a swimmer and flier alike.",
+        "Guards forgotten places where others fear to go.",
+        "Mysterious and wise, moving through air and water with ease.",
+        "A timeless watcher from the deep skies and rivers alike."
+      ],
+      "images": [
+        "bafybeihfekilzd4nvi7bekhzr7nujtjhm5maniro74fq72jyts3fo7y3a4",
+        "bafybeigfbc4qgyziktyxqh6qgrrdkzpy6oazuqndmo7ja3caygtsh4pcji",
+        "bafybeicjym33bvwtxrs5cjnzlnltke7gcp6ks2m37yxjnsdjh5aiv4bycu",
+        "bafybeide22dmvceoqwesv5ryahjglsigankh54qanbdq3od2hbzbu5bfeu",
+        "bafybeigbtppli6pyk7l7gzcv4hzovem5qd6mwwudo67bly6ukgyebtwbsi"
+      ]
+    },
+    "silver": {
+      "id": 14,
+      "displayName": "EtherealSilver",
+      "rarity": "legendary",
+      "stageNames": [
+        "Moonveil Hatchling",
+        "Moonveil Gosling",
+        "Moonveil Sentinel",
+        "Moonveil Oracle",
+        "Moonveil Ascendant Oracle"
+      ],
+      "stageDescriptions": [
+        "A shimmering silver chick, glowing faintly in the dark.",
+        "Quiet and serene, drifting like moonlight on water.",
+        "Appears in dreams and dusk, guiding without sound.",
+        "Possesses ancient lunar wisdom, calming even storms.",
+        "A mythic guardian of twilight and reflection."
+      ],
+      "images": [
+        "bafybeiftdnk5e3n36k5pvvcpoammj2jik4t2avdzrbrr33xliazlms36li",
+        "bafybeidx7reoqppu7jrhbue5fcnxxgyvv3zs2dvj3gqhay4qmjlqjnlzw4",
+        "bafybeigfq4xgrllsnlgidmokhwuu64qksextyhmqrwylttl336ljsbfxqe",
+        "bafybeidrnrww3hscddjkdfeyper7dsftgyvsxsw6sgrx56r7e3jkcvt7sm",
+        "bafybeibq5valenzqerw2xl5g6c6bxvrt5cpn77a7eliv3ocmpcttkzn6hm"
+      ]
+    },
+    "gold": {
+      "id": 15,
+      "displayName": "RadiantGold",
+      "rarity": "legendary",
+      "stageNames": [
+        "Celestial Hatchling",
+        "Celestial Gosling",
+        "Celestial Sentinel",
+        "Celestial Oracle",
+        "Celestial Ascendant Oracle"
+      ],
+      "stageDescriptions": [
+        "A golden chick, radiant and revered from its first breath.",
+        "Grace in motion, shining brighter with every wingbeat.",
+        "Soars beyond reach, watching over all domains.",
+        "Guides the winds and stars in perfect rhythm.",
+        "A divine protector, known in every sky-bound legend."
+      ],
+      "images": [
+        "bafybeifouhfvea4y3azh3l33kjy2excpliqgwsffqi76gvko6gatv7kuy4",
+        "bafybeihtgdo6mdd5euliuugckaxtqjsf7bp7pqbdjgtd36iqzu7dwrix3q",
+        "bafybeigtfvkeuovawxhlf7wmkobqnnajf3mf765jnzpag6y7chbtfe34za",
+        "bafybeiexg5xpwzikmnoftbppwreuxnhmst6qlsf64hidexn7hosu2mp5gq",
+        "bafybeiacsxj46lsrvloiolo3oigqh5kzqsjjtrcwzkf5k7ubts6vyavozm"
+      ]
+    },
+    "frostbite": {
+      "id": 16,
+      "displayName": "FrostbiteBlue",
+      "rarity": "limited",
+      "stageNames": [
+        "Frostbound Hatchling",
+        "Frostbound Gosling",
+        "Frostbound Sentinel",
+        "Frostbound Sage",
+        "Frostbound Oracle"
+      ],
+      "stageDescriptions": [
+        "A light blue chick, its feathers dusted with glistening frost.",
+        "A chill wind follows it, though its spirit remains warm.",
+        "Glides across frozen lakes, untouched by cold.",
+        "A serene protector, bearing the heart of winter’s stillness.",
+        "A spirit of eternal frost, guiding all through the longest nights."
+      ],
+      "images": [
+        "bafybeidyswpx4qd6q4vu6eqtyqzuc75uh33cczspbvxtq4p2qajjxm6ora",
+        "bafybeihlakbavnkkjxpjfnjuocdhyckupkazekefbtbqyn3v575tnr75ju",
+        "bafybeif5uz32bznqjy4b5yykhplqurqetydspzrj3fczwr4yegmwuqg764",
+        "bafybeiaeba57cn6c2bbblv3zr2y7kxv4kzesi767uwlmv46mskynuouepy",
+        "bafybeic3a77tqkpo7z7wgyqlvhqegly4x7wnhqjgqdy7q3cj75tiwhdmeq"
+      ]
+    }
+  }
+};

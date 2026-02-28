@@ -12,6 +12,7 @@ import { AFFINITY_ICONS, DOMAIN_ICONS, getSpeciesEmoji } from '../../utils/totem
 import React from 'react';
 import SpecialOffers from '../shop/SpecialOffers';
 import { AVAILABLE_SPECIES, CURRENCY_NAMES, IPFS_GATEWAY_URL, ESSENCE_COST } from '../../config/constants';
+import { ESSENCE_EXCHANGE_BUNDLES, GEM_PACKAGES } from '../../config/shop-config';
 import apiClient from '../../services/ApiClient';
 import { Species, Rarity } from '../../types/types';
 import { notificationService } from '../../services/NotificationService';
@@ -43,26 +44,32 @@ interface ExchangeBundle {
   popular?: boolean;
 }
 
-// Gem package type (from backend) - for real money purchases
+// Gem package type - for real money purchases
 interface GemPackage {
   id: string;
   name: string;
   price: number;
   priceFormatted: string;
   gems: number;
-  essence: number;
   bonus: number;
   bonusFormatted: string | null;
 }
 
-// Module-level cache + dedup promise — shop config is static, no need to re-fetch on every mount
-let shopConfigCache: { exchangeBundles: ExchangeBundle[]; gemPackages: GemPackage[] } | null = null;
-let shopConfigPromise: Promise<{ exchangeBundles: ExchangeBundle[]; gemPackages: GemPackage[] }> | null = null;
+// Build exchange bundles from bundled config (mapped to component's ExchangeBundle shape)
+const MAPPED_EXCHANGE_BUNDLES: ExchangeBundle[] = ESSENCE_EXCHANGE_BUNDLES.map(item => ({
+  id: item.id,
+  name: item.label,
+  gemCost: item.gems,
+  essenceAmount: item.essence,
+  bonus: item.bonus,
+  bonusNote: item.bonusNote,
+  popular: item.popular || false,
+}));
+const ENABLED_GEM_PACKAGES = GEM_PACKAGES.filter(pkg => pkg.enabled);
 
 const ShopInterface = () => {
   const [activeTab, setActiveTab] = useState('specials');
   const [marketMode, setMarketMode] = useState<'browse' | 'sell'>('browse');
-  const [_loading, _setLoading] = useState(false);
   const [exchangeLoading, setExchangeLoading] = useState<string | null>(null);
   const [purchasingGems, setPurchasingGems] = useState<string | null>(null);
   const [purchasingTotems, setPurchasingTotems] = useState<{[key: number]: boolean}>({});
@@ -74,9 +81,8 @@ const ShopInterface = () => {
   const canBuyTotem = canSpendEssence(ESSENCE_COST);
 
   // Exchange bundles and gem packages (from static config)
-  const [exchangeBundles, setExchangeBundles] = useState<ExchangeBundle[]>([]);
-  const [gemPackages, setGemPackages] = useState<GemPackage[]>([]);
-  const [packagesLoading, setPackagesLoading] = useState(true);
+  const [exchangeBundles] = useState<ExchangeBundle[]>(MAPPED_EXCHANGE_BUNDLES);
+  const [gemPackages] = useState<GemPackage[]>(ENABLED_GEM_PACKAGES);
 
   // Handle Stripe redirect return (Layer 1: belt — guaranteed sync on redirect)
   useEffect(() => {
@@ -102,57 +108,6 @@ const ShopInterface = () => {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Load from static config (cached at module level — no re-fetch on navigation)
-  useEffect(() => {
-    if (shopConfigCache) {
-      setExchangeBundles(shopConfigCache.exchangeBundles);
-      setGemPackages(shopConfigCache.gemPackages);
-      setPackagesLoading(false);
-      return;
-    }
-
-    const loadShopConfig = async () => {
-      setPackagesLoading(true);
-      try {
-        // Dedup: reuse in-flight promise if StrictMode double-mounts
-        if (!shopConfigPromise) {
-          shopConfigPromise = (async () => {
-            const response = await fetch('/config/shop-config.json');
-            const config = await response.json();
-
-            const bundles = config.essenceExchange
-              ? config.essenceExchange.map((item: any) => ({
-                  id: item.id,
-                  name: item.label,
-                  gemCost: item.gems,
-                  essenceAmount: item.essence,
-                  bonus: item.bonus,
-                  bonusNote: item.bonusNote,
-                  popular: item.popular || false,
-                }))
-              : [];
-
-            const packages = config.gemPackages
-              ? config.gemPackages.filter((pkg: any) => pkg.enabled)
-              : [];
-
-            shopConfigCache = { exchangeBundles: bundles, gemPackages: packages };
-            return shopConfigCache;
-          })();
-        }
-
-        const cached = await shopConfigPromise;
-        setExchangeBundles(cached.exchangeBundles);
-        setGemPackages(cached.gemPackages);
-      } catch (err) {
-        shopConfigPromise = null;
-        console.error('Failed to load shop config:', err);
-      } finally {
-        setPackagesLoading(false);
-      }
-    };
-    loadShopConfig();
-  }, []);
 
   // Confirmation modal state for totem purchase
   const [selectedSpecies, setSelectedSpecies] = useState<AvailableSpecies | null>(null);
@@ -545,12 +500,7 @@ const ShopInterface = () => {
                 </p>
               </div>
 
-              {packagesLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {gemPackages.map((pkg) => {
                     const isPopular = pkg.name.toLowerCase().includes('popular');
                     const isBestValue = pkg.name.toLowerCase().includes('best');
@@ -613,7 +563,6 @@ const ShopInterface = () => {
                     );
                   })}
                 </div>
-              )}
 
               {/* Divider between Gems and Essence */}
               <div className="border-t border-gray-200 dark:border-gray-700" />
@@ -630,12 +579,7 @@ const ShopInterface = () => {
                 </p>
               </div>
 
-              {packagesLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-yellow-600" />
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {exchangeBundles.map((bundle, index) => {
                     const isPopular = bundle.popular || index === 1;
                     const canAfford = canSpendGems(bundle.gemCost);
@@ -705,7 +649,6 @@ const ShopInterface = () => {
                     );
                   })}
                 </div>
-              )}
 
               {error && (
                 <div className="mt-4 p-4 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 rounded">

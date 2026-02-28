@@ -1,0 +1,137 @@
+/** Challenge definitions (bundled at build time). Source of truth for frontend. */
+
+export interface ChallengeDefinition {
+    id: string;
+    name: string;
+    description: string;
+    type: string;
+    affinity: string;
+    requirements: { stage: number; strength: number; agility: number; wisdom: number };
+    maxDailyAttempts: number;
+    maxScore: number;
+    xpReward: { base: number; perPoint: number };
+    enabled: boolean;
+}
+
+export const CHALLENGES: ChallengeDefinition[] = [
+    {
+        id: "chl_garden-pest-patrol",
+        name: "Garden Pest Patrol",
+        description: "Start your totem's journey by protecting the garden. Use your instinct and reflexes to smack down those pesky moles.",
+        type: "balance",
+        affinity: "balance",
+        requirements: { stage: 1, strength: 1, agility: 1, wisdom: 1 },
+        maxDailyAttempts: 5,
+        maxScore: 1000,
+        xpReward: { base: 10, perPoint: 0.01 },
+        enabled: true,
+    },
+    {
+        id: "chl_boulder-breaker",
+        name: "Boulder Breaker",
+        description: "Break a massive rock by timing your strikes correctly. Strength determines power and speed.",
+        type: "strength",
+        affinity: "strength",
+        requirements: { stage: 2, strength: 10, agility: 5, wisdom: 5 },
+        maxDailyAttempts: 5,
+        maxScore: 2000,
+        xpReward: { base: 20, perPoint: 0.01 },
+        enabled: true,
+    },
+    {
+        id: "chl_totem-wrestling",
+        name: "Totem Wrestling",
+        description: "Push against a guardian spirit in a strength duel. Tap rapidly to overpower it.",
+        type: "strength",
+        affinity: "strength",
+        requirements: { stage: 3, strength: 15, agility: 8, wisdom: 8 },
+        maxDailyAttempts: 5,
+        maxScore: 2000,
+        xpReward: { base: 20, perPoint: 0.01 },
+        enabled: true,
+    },
+    {
+        id: "chl_rockfall-defense",
+        name: "Rockfall Defense",
+        description: "Block falling boulders by clicking in the right zones. Strength increases stamina.",
+        type: "strength",
+        affinity: "strength",
+        requirements: { stage: 4, strength: 20, agility: 10, wisdom: 10 },
+        maxDailyAttempts: 5,
+        maxScore: 3000,
+        xpReward: { base: 30, perPoint: 0.01 },
+        enabled: true,
+    },
+    {
+        id: "chl_spirit-path",
+        name: "Spirit Path Navigation",
+        description: "Navigate a magical path of vanishing tiles, racing from start to finish.",
+        type: "agility",
+        affinity: "agility",
+        requirements: { stage: 2, strength: 5, agility: 10, wisdom: 5 },
+        maxDailyAttempts: 5,
+        maxScore: 2000,
+        xpReward: { base: 20, perPoint: 0.01 },
+        enabled: true,
+    },
+    {
+        id: "chl_aerial-ring-dive",
+        name: "Aerial Ring Dive",
+        description: "Fly through shifting rings in the air. Agility improves control.",
+        type: "agility",
+        affinity: "agility",
+        requirements: { stage: 3, strength: 8, agility: 15, wisdom: 8 },
+        maxDailyAttempts: 5,
+        maxScore: 2000,
+        xpReward: { base: 20, perPoint: 0.01 },
+        enabled: true,
+    },
+    {
+        id: "chl_spirit-dance",
+        name: "Totem Spirit Dance",
+        description: "Tap in rhythm with spirit drum beats. Agility determines timing accuracy.",
+        type: "agility",
+        affinity: "agility",
+        requirements: { stage: 4, strength: 10, agility: 20, wisdom: 10 },
+        maxDailyAttempts: 5,
+        maxScore: 3000,
+        xpReward: { base: 30, perPoint: 0.01 },
+        enabled: true,
+    },
+    {
+        id: "chl_ancient-runes",
+        name: "Ancient Runes Decoding",
+        description: "Memorize and repeat glowing rune patterns. Wisdom increases memory retention.",
+        type: "wisdom",
+        affinity: "wisdom",
+        requirements: { stage: 2, strength: 5, agility: 5, wisdom: 10 },
+        maxDailyAttempts: 5,
+        maxScore: 2000,
+        xpReward: { base: 20, perPoint: 0.01 },
+        enabled: true,
+    },
+    {
+        id: "chl_star-mapping",
+        name: "Celestial Star Mapping",
+        description: "Connect stars to form constellations. Wisdom provides hints and reduces errors.",
+        type: "wisdom",
+        affinity: "wisdom",
+        requirements: { stage: 3, strength: 8, agility: 8, wisdom: 15 },
+        maxDailyAttempts: 5,
+        maxScore: 2000,
+        xpReward: { base: 20, perPoint: 0.01 },
+        enabled: true,
+    },
+    {
+        id: "chl_spirit-weaving",
+        name: "Spirit Weaving Runes",
+        description: "Align magical runes in the correct order. Wisdom slows instability.",
+        type: "wisdom",
+        affinity: "wisdom",
+        requirements: { stage: 4, strength: 10, agility: 10, wisdom: 20 },
+        maxDailyAttempts: 5,
+        maxScore: 3000,
+        xpReward: { base: 30, perPoint: 0.01 },
+        enabled: true,
+    },
+];

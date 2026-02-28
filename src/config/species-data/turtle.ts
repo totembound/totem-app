@@ -1,0 +1,27 @@
+import type { SpeciesConfig } from '../../utils/species';
+
+export const turtleData: SpeciesConfig = {
+  "id": 7,
+  "name": "Turtle",
+  "fullName": "Ancient Turtle",
+  "title": "The Unyielding Navigator",
+  "description": "The Turtle symbolizes resilience, grounded strength, and patient resolve. It carries its world while navigating waters with quiet, ancient wisdom.",
+  "affinity": "Agility",
+  "domain": "Air",
+  "locationId": 16,
+  "available": false,
+  "placeholderImage": "/totems/turtleplacecard.png",
+  "baseStats": {
+    "strength": 5,
+    "agility": 12,
+    "wisdom": 7
+  },
+  "stages": [
+    "Hatchling",
+    "Youngling",
+    "Wayfarer",
+    "Warden",
+    "Wise Elder"
+  ],
+  "colors": {}
+};

@@ -35,7 +35,7 @@ const RARITY_BORDER: Record<string, string> = {
 
 const Rewards = () => {
     const { rewardsState, claimDailyReward, claimWeeklyReward, refreshRewardStatus, lootItems, fetchLootItems } = useGame();
-    const { refreshAchievements } = useAchievements();
+    const { refreshAchievements, progress } = useAchievements();
     const navigate = useNavigate();
     const [selectedLootItem, setSelectedLootItem] = useState<LootItem | null>(null);
 
@@ -56,8 +56,9 @@ const Rewards = () => {
     const streakStatus = rewardsState.streakStatus;
     const weeklyStatus = rewardsState.weeklyStatus;
     const isClaimLoading = rewardsState.isClaimLoading;
-    const hasWeeklyUnlocked = rewardsState.hasWeeklyUnlocked;
-    const hasStakingUnlocked = rewardsState.hasStakingUnlocked;
+    // Derive unlock status from achievements context (already loaded, no extra API call)
+    const hasWeeklyUnlocked = progress['ach_login-progression']?.unlockedMilestones[0] || false;
+    const hasStakingUnlocked = progress['ach_evolution-progression']?.unlockedMilestones[3] || false;
 
     // Check streak requirements
     const canPurchaseDailyProtection = (streakStatus?.streakDays || 0) >= 7;

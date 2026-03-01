@@ -121,25 +121,25 @@ const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
                             <Droplets className="w-5 h-5 text-blue-500 mr-2" />
                             <span className="text-sm text-gray-600 dark:text-gray-400">Rune Chances:</span>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex flex-nowrap items-center gap-1">
                             {runeDropChances[0] > 0 && (
                                 <div className="flex items-center gap-1 px-1.5 py-0.5 bg-gradient-to-r from-blue-500 to-blue-600 rounded shadow-sm shadow-blue-500/30">
-                                    <img src="/runes/lesser-rune.png" alt="Lesser" className="w-3.5 h-3.5 drop-shadow" width={14} height={14} />
-                                    <span className="text-[11px] font-bold text-white tabular-nums drop-shadow">
+                                    <img src="/runes/lesser-rune.png" alt="Lesser" className="w-3.5 h-3.5 drop-shadow shrink-0" width={14} height={14} />
+                                    <span className="text-[11px] font-bold text-white tabular-nums drop-shadow whitespace-nowrap">
                                         {runeDropChances[0]}%{durationHours >= 24 ? " ×3" : durationHours >= 12 ? " ×2" : ""}
                                     </span>
                                 </div>
                             )}
                             {runeDropChances[1] > 0 && (
                                 <div className="flex items-center gap-1 px-1.5 py-0.5 bg-gradient-to-r from-amber-500 to-amber-600 rounded shadow-sm shadow-amber-500/30">
-                                    <img src="/runes/greater-rune.png" alt="Greater" className="w-3.5 h-3.5 drop-shadow" width={14} height={14} />
-                                    <span className="text-[11px] font-bold text-white tabular-nums drop-shadow">{runeDropChances[1]}%</span>
+                                    <img src="/runes/greater-rune.png" alt="Greater" className="w-3.5 h-3.5 drop-shadow shrink-0" width={14} height={14} />
+                                    <span className="text-[11px] font-bold text-white tabular-nums drop-shadow whitespace-nowrap">{runeDropChances[1]}%</span>
                                 </div>
                             )}
                             {runeDropChances[2] > 0 && (
                                 <div className="flex items-center gap-1 px-1.5 py-0.5 bg-gradient-to-r from-purple-500 to-purple-600 rounded shadow-sm shadow-purple-500/30">
-                                    <img src="/runes/ancient-rune.png" alt="Ancient" className="w-3.5 h-3.5 drop-shadow" width={14} height={14} />
-                                    <span className="text-[11px] font-bold text-white tabular-nums drop-shadow">{runeDropChances[2]}%</span>
+                                    <img src="/runes/ancient-rune.png" alt="Ancient" className="w-3.5 h-3.5 drop-shadow shrink-0" width={14} height={14} />
+                                    <span className="text-[11px] font-bold text-white tabular-nums drop-shadow whitespace-nowrap">{runeDropChances[2]}%</span>
                                 </div>
                             )}
                         </div>

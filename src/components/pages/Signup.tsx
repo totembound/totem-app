@@ -26,8 +26,6 @@ import { ComingSoon } from '../ComingSoon';
 type SignupStep = 'form' | 'processing' | 'success';
 
 const Signup: React.FC = () => {
-  if (COMING_SOON) return <ComingSoon />;
-
   const { signup, isAuthenticated, isLoading, error, clearError, lootItem } = useAuth();
   const navigate = useNavigate();
 
@@ -53,6 +51,8 @@ const Signup: React.FC = () => {
     if (error) clearError();
     if (localError) setLocalError(null);
   }, [email, password, confirmPassword, displayName]);
+
+  if (COMING_SOON) return <ComingSoon />;
 
   const validateForm = (): boolean => {
     if (!email) {

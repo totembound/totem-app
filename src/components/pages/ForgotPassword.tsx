@@ -14,7 +14,6 @@ import { COMING_SOON } from '../../config/flags';
 import { ComingSoon } from '../ComingSoon';
 
 const ForgotPassword: React.FC = () => {
-  if (COMING_SOON) return <ComingSoon />;
   const navigate = useNavigate();
 
   const [step, setStep] = useState<'email' | 'reset'>('email');
@@ -31,6 +30,8 @@ const ForgotPassword: React.FC = () => {
   useEffect(() => {
     if (error) setError(null);
   }, [email, code, newPassword, confirmPassword]);
+
+  if (COMING_SOON) return <ComingSoon />;
 
   const handleRequestCode = async (e: React.FormEvent) => {
     e.preventDefault();

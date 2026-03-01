@@ -20,6 +20,8 @@ import {
   Package,
 } from 'lucide-react';
 import { CURRENCY_NAMES } from '../../config/constants';
+import { COMING_SOON } from '../../config/flags';
+import { ComingSoon } from '../ComingSoon';
 
 type SignupStep = 'form' | 'processing' | 'success';
 
@@ -49,6 +51,8 @@ const Signup: React.FC = () => {
     if (error) clearError();
     if (localError) setLocalError(null);
   }, [email, password, confirmPassword, displayName]);
+
+  if (COMING_SOON) return <ComingSoon />;
 
   const validateForm = (): boolean => {
     if (!email) {

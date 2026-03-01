@@ -205,7 +205,7 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
                                     loading="eager"
                                 />
                             </div>
-                            <div className="text-xs font-medium text-center mt-1 text-gray-800 dark:text-gray-200">
+                            <div className="text-xs font-medium text-center mt-1 text-gray-800 dark:text-gray-200 w-full truncate">
                                 {captain.displayName || `#${captain.id}`}
                             </div>
                         </div>
@@ -225,7 +225,7 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
                                     loading="eager"
                                 />
                             </div>
-                            <div className="text-xs font-medium text-center mt-1 text-gray-800 dark:text-gray-200">
+                            <div className="text-xs font-medium text-center mt-1 text-gray-800 dark:text-gray-200 w-full truncate">
                                 {memberOne.displayName || `#${memberOne.id}`}
                             </div>
                         </div>
@@ -246,7 +246,7 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
                                     loading="eager"
                                 />
                             </div>
-                            <div className="text-xs font-medium text-center mt-1 text-gray-800 dark:text-gray-200">
+                            <div className="text-xs font-medium text-center mt-1 text-gray-800 dark:text-gray-200 w-full truncate">
                                 {memberTwo.displayName || `#${memberTwo.id}`}
                             </div>
                         </div>

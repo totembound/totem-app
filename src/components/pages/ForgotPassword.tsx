@@ -10,8 +10,11 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, KeyRound, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 import * as AuthService from '../../services/AuthService';
+import { COMING_SOON } from '../../config/flags';
+import { ComingSoon } from '../ComingSoon';
 
 const ForgotPassword: React.FC = () => {
+  if (COMING_SOON) return <ComingSoon />;
   const navigate = useNavigate();
 
   const [step, setStep] = useState<'email' | 'reset'>('email');

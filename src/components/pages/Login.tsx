@@ -8,8 +8,12 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Mail, Lock, Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
+import { COMING_SOON } from '../../config/flags';
+import { ComingSoon } from '../ComingSoon';
 
 const Login: React.FC = () => {
+  if (COMING_SOON) return <ComingSoon />;
+
   const { login, isAuthenticated, isLoading, error, clearError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

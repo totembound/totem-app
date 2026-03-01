@@ -20,10 +20,14 @@ import {
   Package,
 } from 'lucide-react';
 import { CURRENCY_NAMES } from '../../config/constants';
+import { COMING_SOON } from '../../config/flags';
+import { ComingSoon } from '../ComingSoon';
 
 type SignupStep = 'form' | 'processing' | 'success';
 
 const Signup: React.FC = () => {
+  if (COMING_SOON) return <ComingSoon />;
+
   const { signup, isAuthenticated, isLoading, error, clearError, lootItem } = useAuth();
   const navigate = useNavigate();
 

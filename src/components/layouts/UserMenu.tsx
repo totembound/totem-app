@@ -60,15 +60,8 @@ export const UserMenu: React.FC = () => {
     }
   };
 
-  // Calculate menu position
-  const rect = buttonRef.current?.getBoundingClientRect() || { right: 320 };
-  let left = rect.right - 256;
-  if (typeof window !== 'undefined' && window.innerWidth < 420) {
-    left = 28;
-  }
-
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative sm:static" ref={menuRef}>
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
@@ -92,11 +85,10 @@ export const UserMenu: React.FC = () => {
 
       {isOpen && (
         <div
-          className="fixed right-0 mt-2 w-[calc(100vw-2rem)] sm:w-64
+          className="fixed top-12 right-4 left-4 sm:absolute sm:top-full sm:left-auto sm:right-0 mt-2 sm:w-64
             bg-white dark:bg-gray-800 rounded-lg shadow-lg
             border border-gray-200 dark:border-gray-700
             py-2 z-50"
-          style={{ top: '3rem', left: left + 'px' }}
         >
           {/* User Info */}
           <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">

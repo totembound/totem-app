@@ -94,7 +94,7 @@ export const MainLayout: React.FC = () => {
         )}
       </div>
 
-      <main className={`w-full ${tutorialWizardVisible ? 'pb-72' : 'pb-20'} sm:pb-0 overflow-x-hidden flex-grow relative`}>
+      <main className={`w-full ${tutorialWizardVisible ? 'pb-72' : 'pb-24'} sm:pb-0 overflow-x-hidden flex-grow relative`}>
         <div className="max-w-screen-xl w-full mx-auto px-2 sm:px-4 py-2 sm:py-3">
           <Outlet />
         </div>

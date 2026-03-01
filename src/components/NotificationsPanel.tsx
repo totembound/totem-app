@@ -86,18 +86,6 @@ function NotificationsPanel() {
     maxNotifications.toString()
   );
 
-  const rect = (
-    buttonRef?.current || {
-      getBoundingClientRect: () => {
-        return { right: 188 };
-      },
-    }
-  ).getBoundingClientRect();
-  let left = rect.right - 188;
-  if (window.innerWidth < 420) {
-    left = 28;
-  }
-
   // Update filtered notifications when filter changes or notifications update
   useEffect(() => {
     let filtered;
@@ -241,7 +229,7 @@ function NotificationsPanel() {
   };
 
   return (
-    <div className="relative" ref={panelRef}>
+    <div className="relative sm:static" ref={panelRef}>
       {/* Bell Icon Button */}
       <button
         ref={buttonRef}
@@ -267,13 +255,11 @@ function NotificationsPanel() {
       {openPanel && (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="fixed right-0 mt-2 
-            w-[calc(100vw-2rem)] sm:w-80 md:w-96
+          className="fixed top-12 right-4 left-4 sm:absolute sm:top-full sm:left-auto sm:right-0 mt-2
+            sm:w-80 md:w-96
             bg-white dark:bg-gray-800 shadow-lg rounded-lg border
             border-gray-200 dark:border-gray-700 z-40 overflow-hidden"
           style={{
-            top: "3rem",
-            left: left + "px",
             maxHeight: "calc(100vh - 4rem)",
           }}
         >

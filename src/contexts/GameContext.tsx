@@ -190,7 +190,7 @@ const GameContext = createContext<GameContextType>({
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user } = useAuth();
-    const { address, totems, updateBalances, updateTotem: _updateTotem, fetchTotems, updateTotemNickname, setEssenceBalance } = useUser();
+    const { address, totems, updateBalances, updateTotem: _updateTotem, fetchTotems, updateTotemNickname, setEssenceBalance, updateTotemAttributes } = useUser();
     const [actionConfigs] = useState<Record<ActionType, ActionConfig>>(ACTION_CONFIGS);
     const [timeWindows] = useState(TIME_WINDOWS);
     const [gameParams] = useState(GAME_PARAMS);
@@ -917,6 +917,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             throw new Error(response.error?.message || 'Failed to start expedition');
           }
 
+          // Update ALL team totems' happiness locally so UI stays in sync
+          const expData = response.data?.expedition;
+          if (expData?.happinessCost && expData.happinessCost > 0) {
+            for (const tid of totemIds) {
+              const t = totems.find(t => t.id === tid);
+              if (t) {
+                updateTotemAttributes(tid, {
+                  happiness: Math.max(0, t.attributes.happiness - expData.happinessCost),
+                });
+              }
+            }
+          }
+
           // Refresh data
           await Promise.all([
             refreshExpeditions(),
@@ -929,7 +942,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.error('Error starting expedition:', error);
           return false;
         }
-      }, [updateBalances, refreshExpeditions]);
+      }, [updateBalances, refreshExpeditions, totems, updateTotemAttributes]);
       
     const claimExpeditionRewards = useCallback(async (expeditionId: string) => {
         // Web2: Use REST API instead of smart contracts

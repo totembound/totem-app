@@ -631,8 +631,13 @@ class ApiClient {
       success: boolean;
       expedition: {
         id: string;
+        expeditionId: string;
         name: string;
         endTime: string;
+        endsAt: string;
+        essenceCost: number;
+        happinessCost: number;
+        totemId: string;
       };
       message: string;
     }>('POST', `/expeditions/${expeditionId}/start`, { totemId: totemIds[0], totemIds });

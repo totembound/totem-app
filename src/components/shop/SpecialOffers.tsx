@@ -35,7 +35,7 @@ interface PendingPurchase {
 }
 
 const SpecialOffers: React.FC<SpecialOffersViewProps> = ({ onPurchased }) => {
-    const currentMonth = new Date().getMonth() + 1;
+    const currentMonth = new Date().getUTCMonth() + 1;
     const currentMonthlySpecial = specialsData.monthlySpecials.find(special => special.month === currentMonth);
     const [loading, setLoading] = useState<{[key: string]: boolean}>({});
     const [pendingPurchase, setPendingPurchase] = useState<PendingPurchase | null>(null);

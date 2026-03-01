@@ -297,7 +297,7 @@ export function getCurrentMonth() {
     ];
 
     const currentDate = new Date();
-    const monthIndex = currentDate.getMonth();
+    const monthIndex = currentDate.getUTCMonth();
 
     return months[monthIndex];
 }

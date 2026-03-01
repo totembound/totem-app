@@ -106,8 +106,9 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
   return (
     <>
     {tutorialComplete && <TutorialCompleteModal onClose={dismissTutorialComplete} />}
-    <div className={`fixed bottom-16 sm:bottom-6 right-2 w-96 max-w-[calc(100vw-1rem)] bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden transition-all duration-300 ease-in-out z-50 border border-gray-200 dark:border-gray-700 ${
-      isMinimized ? 'h-auto' : ''} ${className}`}>
+    <div className={`fixed sm:bottom-6 right-2 w-96 max-w-[calc(100vw-1rem)] bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden transition-all duration-300 ease-in-out z-50 border border-gray-200 dark:border-gray-700 ${
+      isMinimized ? 'h-auto' : ''} ${className}`}
+      style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}>
       {/* Header */}
       <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
         <div className="flex items-center gap-3">

@@ -34,8 +34,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ config }) => {
 
   return (
     <div>
-        {/* Mobile Menu Button - Fixed at bottom right corner */}
-        <div className="fixed bottom-16 left-2 z-50 md:hidden">
+        {/* Mobile Menu Button - Fixed above bottom nav, accounting for safe area */}
+        <div className="fixed left-2 z-50 md:hidden"
+          style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}>
           <button
             onClick={toggleMobileMenu}
             className="p-3 rounded-full bg-purple-600 text-white shadow-lg hover:bg-purple-700 transition-all"
@@ -47,10 +48,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ config }) => {
         {/* Sidebar Navigation */}
         <aside
           className={`
-          ${isMobileMenuOpen ? "translate-x-0 shadow-lg md:shadow-md" : "-translate-x-full"} 
+          ${isMobileMenuOpen ? "translate-x-0 shadow-lg md:shadow-md" : "-translate-x-full"}
             md:translate-x-0
             fixed md:sticky
-            bottom-24 md:top-0
+            md:top-0
             rounded-lg
             z-40 md:z-0
             w-64
@@ -59,6 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config }) => {
             transition-transform duration-300 ease-in-out
             bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white
           `}
+          style={{ bottom: 'calc(8rem + env(safe-area-inset-bottom, 0px))' }}
         >
           <div className="p-4 font-bold text-xl flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
             <Link

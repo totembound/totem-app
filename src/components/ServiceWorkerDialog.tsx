@@ -73,7 +73,8 @@ const ServiceWorkerDialog: React.FC<ServiceWorkerDialogProps> = ({ className }) 
   }
   
   return (
-    <div className={`fixed bottom-4 right-4 max-w-sm bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden transition-all duration-300 ease-in-out z-50 border border-gray-200 dark:border-gray-700 ${className}`}>
+    <div className={`fixed right-4 max-w-sm bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden transition-all duration-300 ease-in-out z-[60] border border-gray-200 dark:border-gray-700 ${className}`}
+      style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}>
       {/* Header */}
       <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white">

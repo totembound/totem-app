@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../../contexts/GameContext';
 import { useAchievements } from '../../contexts/AchievementsContext';
-import { Calendar, Coins, Flame, Trophy, Lock, Gift, Package, Sparkles } from 'lucide-react';
+import { Calendar, Coins, Flame, Trophy, Lock, Gift, Package, Sparkles, TrendingUp, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Tooltip from '../Tooltip';
 import TokensDisplay from '../TokensDisplay';
@@ -63,6 +63,22 @@ const Rewards = () => {
     const canPurchaseDailyProtection = (streakStatus?.streakDays || 0) >= 7;
     const canPurchaseWeeklyProtection = (weeklyStatus?.weeklyStreak || 0) >= 28;
 
+    // Daily bonus calculation (matches backend: 5% per day from day 2, max 100% at day 21)
+    const dailyStreakDays = streakStatus?.streakDays || 0;
+    const dailyBonusPercent = Math.min(Math.max(0, dailyStreakDays - 1) * 5, 100);
+    const dailyBaseAmount = 10;
+    const dailyNextClaim = Math.round(dailyBaseAmount * (1 + dailyBonusPercent / 100));
+    const dailyMaxDays = 21; // Day 21 = 100% bonus
+    const dailyProgressPercent = Math.min(dailyStreakDays / dailyMaxDays, 1) * 100;
+
+    // Weekly bonus calculation (matches backend: 10% per week from week 2, max 100% at week 11)
+    const weeklyStreakWeeks = weeklyStatus?.weeklyStreak || 0;
+    const weeklyBonusPercent = Math.min(Math.max(0, weeklyStreakWeeks - 1) * 10, 100);
+    const weeklyBaseAmount = 100;
+    const weeklyNextClaim = Math.round(weeklyBaseAmount * (1 + weeklyBonusPercent / 100));
+    const weeklyMaxWeeks = 11; // Week 11 = 100% bonus
+    const weeklyProgressPercent = Math.min(weeklyStreakWeeks / weeklyMaxWeeks, 1) * 100;
+
     const handleDailyClaim = async () => {
         if (!streakStatus?.canClaimToday) return;
         await claimDailyReward();
@@ -84,12 +100,15 @@ const Rewards = () => {
         </div>
     );
 
-    const AchievementIcon: React.FC<AchievementIconProps> = ({ unlocked, name }) => {
+    const AchievementIcon: React.FC<AchievementIconProps & { color?: 'purple' | 'green' }> = ({ unlocked, name, color = 'purple' }) => {
+        const colorClasses = color === 'green'
+            ? 'bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400'
+            : 'bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400';
         const icon = (
             <div className={`
                 flex items-center justify-center w-8 h-8 rounded-full
-                ${unlocked 
-                    ? 'bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400' 
+                ${unlocked
+                    ? colorClasses
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 animate-pulse'
                 }
             `}>
@@ -109,26 +128,53 @@ const Rewards = () => {
     };
 
     const weeklyCardContent = (<>
-        <div className="mb-6">
-            <div className="flex justify-between mb-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Progress</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{streakStatus?.streakDays || 0 % 7}/7 days</span>
-            </div>
-            <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
-                <div 
-                    className="bg-green-500 h-2 rounded-full transition-all duration-300" 
-                    style={{ width: `${(streakStatus?.streakDays || 0 % 7) / 7 * 100}%` }}
-                />
+        {/* Streak + Bonus summary */}
+        <div className="flex items-center justify-between mb-3">
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">Week {weeklyStreakWeeks}</span>
+            <div className="flex items-center gap-1 text-sm font-semibold text-green-600 dark:text-green-400">
+                <TrendingUp className="w-3.5 h-3.5" />
+                +{weeklyBonusPercent}% Bonus
             </div>
         </div>
 
-        <div className="space-y-3">
+        {/* Progress toward max bonus */}
+        <div className="mb-4">
+            <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2.5">
+                <div
+                    className="bg-gradient-to-r from-green-500 to-green-400 h-2.5 rounded-full transition-all duration-500"
+                    style={{ width: `${weeklyProgressPercent}%` }}
+                />
+            </div>
+            <div className="flex justify-between mt-1">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {weeklyStreakWeeks}/{weeklyMaxWeeks} weeks to max
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {weeklyBonusPercent < 100 ? `${100 - weeklyBonusPercent}% to go` : 'MAX!'}
+                </span>
+            </div>
+        </div>
+
+        {/* Next claim amount */}
+        <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 mb-4">
+            <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Next claim</span>
+                <div className="flex items-center gap-1">
+                    <Zap className="w-3.5 h-3.5 text-green-500" />
+                    <span className="font-bold text-gray-900 dark:text-white">{weeklyNextClaim}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{CURRENCY_NAMES.SOFT}</span>
+                </div>
+            </div>
+        </div>
+
+        {/* Buttons */}
+        <div className="space-y-3 mb-4">
             <button
                 onClick={handleWeeklyClaim}
                 disabled={!weeklyStatus?.canClaimWeekly || isClaimLoading}
                 className={`w-full py-2 px-4 rounded-lg transition-colors ${
                     weeklyStatus?.canClaimWeekly
-                        ? 'bg-purple-500 hover:bg-purple-600 text-white'
+                        ? 'bg-green-500 hover:bg-green-600 text-white'
                         : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
@@ -144,27 +190,16 @@ const Rewards = () => {
             </ProtectionDialog>
         </div>
 
-        <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-            <ul className="space-y-1">
-                <li>• Base: 100 {CURRENCY_NAMES.SOFT}</li>
-                <li>• Bonus: Up to 100%</li>
-                <li>• Claim anytime during your week</li>
-            </ul>
-        </div>
-
-        <div className="text-sm flex items-center gap-3 mb-2 mt-2">
-            <h3 className="text-gray-800 dark:text-gray-200">
-                Weekly Protection
-            </h3>
+        {/* Protection info */}
+        <div className="text-sm flex items-center mb-2">
+            <h3 className="text-gray-800 dark:text-gray-200">Weekly Protection</h3>
         </div>
         <div className="text-sm text-gray-600 dark:text-gray-400">
-            <div>
-                <ul className="space-y-1">
-                    <li>• 500 {CURRENCY_NAMES.SOFT} - 14 days
-                        <span className="text-sm ml-2 text-gray-500">* 4-week streak</span>
-                    </li>
-                </ul>
-            </div>
+            <ul className="space-y-1">
+                <li>• 500 {CURRENCY_NAMES.SOFT} - 14 days
+                    <span className="text-sm ml-2 text-gray-500">* 4-week streak</span>
+                </li>
+            </ul>
         </div>
     </>);
 
@@ -300,12 +335,14 @@ const Rewards = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-fr">
                     {/* Daily Rewards */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 h-full">
-                        <div className="flex items-center gap-3 mb-7">
-                            <Flame className="w-6 h-6 text-orange-500" />
-                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Daily Rewards</h2>
-                            
+                        {/* Header */}
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                                <Flame className="w-6 h-6 text-orange-500" />
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Daily Rewards</h2>
+                            </div>
                             { !streakStatus?.canClaimToday &&
-                                <div className="text-xs text-gray-900 dark:text-white ml-auto">
+                                <div className="text-xs text-gray-900 dark:text-white">
                                     <CountdownTimer
                                         option="midnight"
                                         onComplete={handleCountdownComplete}
@@ -313,20 +350,48 @@ const Rewards = () => {
                                 </div>
                             }
                         </div>
-                        <div className="mb-6">
-                            <div className="flex justify-between mb-2">
-                                <span className="text-sm text-gray-800 dark:text-gray-200">Current Streak</span>
-                                <span className="text-sm font-medium text-gray-900 dark:text-white">{streakStatus?.streakDays} days</span>
-                            </div>
-                            <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
-                                <div 
-                                    className="bg-purple-500 h-2 rounded-full transition-all duration-300" 
-                                    style={{ width: `${(streakStatus?.streakDays || 0 % 7) / 7 * 100}%` }}
-                                />
+
+                        {/* Streak + Bonus summary */}
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-2xl font-bold text-gray-900 dark:text-white">Day {dailyStreakDays}</span>
+                            <div className="flex items-center gap-1 text-sm font-semibold text-purple-600 dark:text-purple-400">
+                                <TrendingUp className="w-3.5 h-3.5" />
+                                +{dailyBonusPercent}% Bonus
                             </div>
                         </div>
 
-                        <div className="space-y-3">
+                        {/* Progress toward max bonus */}
+                        <div className="mb-4">
+                            <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2.5">
+                                <div
+                                    className="bg-gradient-to-r from-purple-500 to-purple-400 h-2.5 rounded-full transition-all duration-500"
+                                    style={{ width: `${dailyProgressPercent}%` }}
+                                />
+                            </div>
+                            <div className="flex justify-between mt-1">
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    {dailyStreakDays}/{dailyMaxDays} days to max
+                                </span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    {dailyBonusPercent < 100 ? `${100 - dailyBonusPercent}% to go` : 'MAX!'}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Next claim amount */}
+                        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 mb-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Next claim</span>
+                                <div className="flex items-center gap-1">
+                                    <Zap className="w-3.5 h-3.5 text-purple-500" />
+                                    <span className="font-bold text-gray-900 dark:text-white">{dailyNextClaim}</span>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">{CURRENCY_NAMES.SOFT}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Buttons */}
+                        <div className="space-y-3 mb-4">
                             <button
                                 onClick={handleDailyClaim}
                                 disabled={!streakStatus?.canClaimToday || isClaimLoading}
@@ -348,47 +413,35 @@ const Rewards = () => {
                             </ProtectionDialog>
                         </div>
 
-                        <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                            <ul className="space-y-1">
-                                <li>• Base: 10 {CURRENCY_NAMES.SOFT}</li>
-                                <li>• Bonus: Up to 100%</li>
-                                <li>• Claim anytime during your day</li>
-                            </ul>
-                        </div>
-
-                        <div className="text-sm flex items-center gap-3 mb-2 mt-2">
-                            <h3 className="text-gray-800 dark:text-gray-200">
-                                Streak Protection
-                            </h3>
+                        {/* Protection info */}
+                        <div className="text-sm flex items-center mb-2">
+                            <h3 className="text-gray-800 dark:text-gray-200">Streak Protection</h3>
                         </div>
                         <div className="text-sm text-gray-600 dark:text-gray-400">
-                            <div>
-                                <ul className="space-y-1">
-                                    <li>• Tier 1: 50 {CURRENCY_NAMES.SOFT} - 1 day
-                                        <span className="text-sm ml-2 text-gray-500">* 7-day streak</span>
-                                    </li>
-                                    <li>• Tier 2: 250 {CURRENCY_NAMES.SOFT} - 7 days
-                                        <span className="text-sm ml-2 text-gray-500">* 14-day streak</span>
-                                    </li>
-                                </ul>
-                            </div>
+                            <ul className="space-y-1">
+                                <li>• Tier 1: 50 {CURRENCY_NAMES.SOFT} - 1 day
+                                    <span className="text-sm ml-2 text-gray-500">* 7-day streak</span>
+                                </li>
+                                <li>• Tier 2: 250 {CURRENCY_NAMES.SOFT} - 7 days
+                                    <span className="text-sm ml-2 text-gray-500">* 14-day streak</span>
+                                </li>
+                            </ul>
                         </div>
                     </div>
 
                     {/* Weekly Rewards */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 h-full">
-                        <div className="flex items-center justify-between mb-6">
+                        {/* Header */}
+                        <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
                                 <Calendar className="w-6 h-6 text-green-500" />
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                    Weekly Rewards
-                                </h2>
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Weekly Rewards</h2>
                             </div>
-                            <AchievementIcon unlocked={hasWeeklyUnlocked} name="Week Warrior" />
+                            <AchievementIcon unlocked={hasWeeklyUnlocked} name="Week Warrior" color="green" />
                         </div>
 
-                        {hasWeeklyUnlocked 
-                            ? weeklyCardContent 
+                        {hasWeeklyUnlocked
+                            ? weeklyCardContent
                             : <LockedOverlay achievementName="Week Warrior">
                                 {weeklyCardContent}
                             </LockedOverlay>

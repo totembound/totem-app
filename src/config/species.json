@@ -67,7 +67,7 @@
       "locationId": 13,
       "available": true,
       "image": "/totems/beaverplacecard.png",
-      "baseStats": { "strength": 10, "agility": 5, "wisdom": 9 },
+      "baseStats": { "strength": 10, "agility": 9, "wisdom": 5 },
       "stages": ["Kit", "Youngling", "Builder", "Warden", "Wise Elder"]
     },
     {
@@ -109,7 +109,7 @@
       "locationId": 16,
       "available": false,
       "image": "/totems/turtleplacecard.png",
-      "baseStats": { "strength": 10, "agility": 8, "wisdom": 6 },
+      "baseStats": { "strength": 10, "agility": 6, "wisdom": 8 },
       "stages": ["Hatchling", "Youngling", "Wayfarer", "Warden", "Wise Elder"]
     },
     {

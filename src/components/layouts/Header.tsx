@@ -4,7 +4,7 @@
  * Main navigation header with email/password auth.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useGame } from '../../contexts/GameContext';
 import { LoginButton } from './LoginButton';
@@ -16,10 +16,22 @@ import { Flame, X } from 'lucide-react';
 
 const Header: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
-  const { rewardsState, claimDailyReward } = useGame();
+  const { rewardsState, claimDailyReward, refreshRewardStatus } = useGame();
   const streakStatus = rewardsState.streakStatus;
   const [showStreakTracker, setShowStreakTracker] = useState<boolean>(true);
   const [isClaiming, setIsClaiming] = useState<boolean>(false);
+  const streakFetchedRef = useRef(false);
+
+  // Fetch reward streak once on login — uses same cached callback as Rewards page
+  useEffect(() => {
+    if (isAuthenticated && !streakStatus && !streakFetchedRef.current) {
+      streakFetchedRef.current = true;
+      refreshRewardStatus();
+    }
+    if (!isAuthenticated) {
+      streakFetchedRef.current = false;
+    }
+  }, [isAuthenticated, streakStatus]);
 
   const handleClaimReward = async () => {
     if (isClaiming || !canClaimToday) return;
@@ -31,8 +43,8 @@ const Header: React.FC = () => {
     }
   };
 
-  // Get streak from user stats (use streakStatus if available, fallback to user stats)
-  const streakDays = streakStatus?.streakDays || user?.stats?.loginStreak || 0;
+  // Use reward streak only — loginStreak on user.stats is a separate counter
+  const streakDays = streakStatus?.streakDays || 0;
   const canClaimToday = streakStatus?.canClaimToday || false;
 
   return (

@@ -26,7 +26,7 @@ const ProtectionDialog: React.FC<ProtectionDialogProps> = ({ type, children }) =
   ];
 
   const weeklyTiers: ProtectionTier[] = [
-    { cost: 500, duration: 14, requiredStreak: 28 }
+    { cost: 500, duration: 14, requiredStreak: 4 }
   ];
 
   const tiers = type === 'daily' ? dailyTiers : weeklyTiers;
@@ -80,7 +80,10 @@ const ProtectionDialog: React.FC<ProtectionDialogProps> = ({ type, children }) =
           {/* Content */}
           <div className="p-4 md:p-6 space-y-4">
             {tiers.map((tier, index) => {
-              const isEligible = streakStatus?.streakDays || 0 >= tier.requiredStreak;
+              const currentStreak = type === 'daily'
+                ? (streakStatus?.streakDays ?? 0)
+                : (rewardsState.weeklyStatus?.weeklyStreak ?? 0);
+              const isEligible = currentStreak >= tier.requiredStreak;
               const isSelected = selectedTier === index;
 
               return (
@@ -120,7 +123,7 @@ const ProtectionDialog: React.FC<ProtectionDialogProps> = ({ type, children }) =
                   {!isEligible && (
                     <div className="flex items-center gap-2 mt-2 text-sm text-amber-600 dark:text-amber-400">
                       <AlertCircle className="w-4 h-4" />
-                      <span>Requires {tier.requiredStreak}-day streak</span>
+                      <span>Requires {tier.requiredStreak}-{type === 'daily' ? 'day' : 'week'} streak</span>
                     </div>
                   )}
                 </div>

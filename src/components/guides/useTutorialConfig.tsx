@@ -311,7 +311,6 @@ export const useTutorialConfig = () => {
     isConnected,
     isSignedUp,
     totems,
-    connect: _connect,
     comingSoon: _comingSoon,
     hasClickedLink
   } = useUser();

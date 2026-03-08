@@ -6,17 +6,18 @@ import {
   LucideIcon, FileText, ShieldCheck, GraduationCap
 } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { CURRENCY_NAMES } from '../../config/constants';
 
 const MobileNavigation: React.FC = () => {
   const {
-    disconnect,
     isSignedUp,
     essenceBalance,
     gemsBalance,
     tutorialWizardVisible,
     setTutorialWizardVisible
   } = useUser();
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const moreMenuRef = useRef<HTMLDivElement>(null);
@@ -193,10 +194,10 @@ const MobileNavigation: React.FC = () => {
               />
               <div className="border-t border-gray-200 dark:border-gray-700" />
               <MoreMenuItem
-                label="Disconnect"
+                label="Log Out"
                 icon={LogOut}
                 onClick={() => {
-                  disconnect();
+                  logout();
                   setIsMoreMenuOpen(false);
                 }}
               />

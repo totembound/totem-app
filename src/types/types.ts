@@ -7,8 +7,6 @@ export interface UserContextType extends UserContextState {
     checkSignupStatus: () => Promise<void>;
     updateBalances: () => Promise<void>;
     setEssenceBalance: (balance: number) => void;
-    connect: () => Promise<void>;
-    disconnect: () => void;
     getTotem: (totemId: string) => TotemData | undefined;
     addTotem: (totemId: string) => Promise<void>;
     removeTotem: (totemId: string) => void;

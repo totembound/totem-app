@@ -534,24 +534,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, [isAuthenticated, fetchTotems]);
 
-    // Web2: connect/disconnect are no-ops (handled by AuthContext)
-    const connect = async () => {
-        // In Web2, authentication is handled by AuthContext
-        console.log('connect() called - use AuthContext.login() instead');
-    };
-
-    const disconnect = () => {
-        // In Web2, logout is handled by AuthContext
-        localStorage.removeItem(STORAGE_KEYS.notifications);
-        setState(prev => ({
-            ...prev,
-            totems: [],
-            address: '',
-            isSignedUp: false,
-            isConnected: false
-        }));
-    };
-
     const updateAccountType = () => {
         // In Web2, account type is based on user tier from profile
         const accountType: AccountType = user?.tier === 'premium' ? 'Premium' : 'Free';
@@ -575,8 +557,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 checkSignupStatus,
                 updateBalances,
                 setEssenceBalance,
-                connect,
-                disconnect,
                 totems,
                 totemLoading,
                 totemError,

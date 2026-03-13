@@ -18,8 +18,6 @@ vi.mock('./contexts/UserContext', () => ({
     address: '',
     isConnected: false,
     isSignedUp: false,
-    connect: vi.fn(),
-    disconnect: vi.fn(),
     signup: vi.fn()
   })
 }));

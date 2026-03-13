@@ -995,6 +995,13 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }));
           }
 
+          // Update ALL team totems' XP locally so UI stays in sync
+          if (rewards?.totemExpUpdates) {
+            for (const [tid, newExp] of Object.entries(rewards.totemExpUpdates)) {
+              updateTotemAttributes(tid, { experience: newExp as number });
+            }
+          }
+
           // Refresh data
           await Promise.all([
             refreshExpeditions(),
@@ -1007,7 +1014,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.error('Error claiming expedition rewards:', error);
           return false;
         }
-    }, [refreshExpeditions, updateBalances]);
+    }, [refreshExpeditions, updateBalances, updateTotemAttributes]);
 
     const fetchLootItems = useCallback(async () => {
         if (!apiClient.isAuthenticated()) return;

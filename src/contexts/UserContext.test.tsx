@@ -545,29 +545,6 @@ describe('UserContext', () => {
     });
   });
 
-  describe('web2 compat methods', () => {
-    it('connect should be a no-op', async () => {
-      const { result } = renderHook(() => useUser(), { wrapper });
-
-      await act(async () => {
-        await result.current.connect();
-      });
-      // Should not throw
-    });
-
-    it('disconnect should clear state', async () => {
-      const { result } = renderHook(() => useUser(), { wrapper });
-
-      act(() => {
-        result.current.disconnect();
-      });
-
-      expect(result.current.isConnected).toBe(false);
-      expect(result.current.isSignedUp).toBe(false);
-    });
-
-  });
-
   describe('checkSignupStatus', () => {
     it('should sync with isAuthenticated', async () => {
       const { result } = renderHook(() => useUser(), { wrapper });

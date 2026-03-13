@@ -666,7 +666,7 @@ class ApiClient {
           ancient: number;
         };
         score?: number;
-        newTotemExp: number;
+        totemExpUpdates?: Record<string, number>;
       };
       score?: {
         value: number;

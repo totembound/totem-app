@@ -128,8 +128,8 @@ export interface DomainConfig {
 
 export const DOMAINS: DomainConfig[] = [
     { id: 0, name: 'Air', speciesIds: [3, 6, 9, 11] },
-    { id: 1, name: 'Earth', speciesIds: [2, 5, 7, 8, 10] },
-    { id: 2, name: 'Water', speciesIds: [0, 1, 4] },
+    { id: 1, name: 'Earth', speciesIds: [2, 5, 8, 10] },
+    { id: 2, name: 'Water', speciesIds: [0, 1, 4, 7] },
 ];
 
 // --- Actions ---

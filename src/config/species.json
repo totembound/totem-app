@@ -11,8 +11,18 @@
       "locationId": 9,
       "available": true,
       "image": "/totems/gooseplacecard.png",
-      "baseStats": { "strength": 8, "agility": 6, "wisdom": 10 },
-      "stages": ["Hatchling", "Gosling", "Sentinel", "Guardian", "Wise Elder"]
+      "baseStats": {
+        "strength": 8,
+        "agility": 6,
+        "wisdom": 10
+      },
+      "stages": [
+        "Hatchling",
+        "Gosling",
+        "Sentinel",
+        "Guardian",
+        "Wise Elder"
+      ]
     },
     {
       "id": 1,
@@ -25,8 +35,18 @@
       "locationId": 10,
       "available": true,
       "image": "/totems/otterplacecard.png",
-      "baseStats": { "strength": 8, "agility": 10, "wisdom": 6 },
-      "stages": ["Pup", "Splash", "Glide", "Guardian", "Wise Elder"]
+      "baseStats": {
+        "strength": 8,
+        "agility": 10,
+        "wisdom": 6
+      },
+      "stages": [
+        "Pup",
+        "Splash",
+        "Glide",
+        "Guardian",
+        "Wise Elder"
+      ]
     },
     {
       "id": 2,
@@ -39,8 +59,18 @@
       "locationId": 11,
       "available": true,
       "image": "/totems/wolfplacecard.png",
-      "baseStats": { "strength": 11, "agility": 8, "wisdom": 5 },
-      "stages": ["Pup", "Howler", "Stalker", "Alpha", "Wise Elder"]
+      "baseStats": {
+        "strength": 11,
+        "agility": 8,
+        "wisdom": 5
+      },
+      "stages": [
+        "Pup",
+        "Howler",
+        "Stalker",
+        "Alpha",
+        "Wise Elder"
+      ]
     },
     {
       "id": 3,
@@ -53,8 +83,18 @@
       "locationId": 12,
       "available": true,
       "image": "/totems/falconplacecard.png",
-      "baseStats": { "strength": 5, "agility": 12, "wisdom": 7 },
-      "stages": ["Hatchling", "Fledgling", "Hunter", "Raptor", "Wise Elder"]
+      "baseStats": {
+        "strength": 5,
+        "agility": 12,
+        "wisdom": 7
+      },
+      "stages": [
+        "Hatchling",
+        "Fledgling",
+        "Hunter",
+        "Raptor",
+        "Wise Elder"
+      ]
     },
     {
       "id": 4,
@@ -67,8 +107,18 @@
       "locationId": 13,
       "available": true,
       "image": "/totems/beaverplacecard.png",
-      "baseStats": { "strength": 10, "agility": 5, "wisdom": 9 },
-      "stages": ["Kit", "Youngling", "Builder", "Warden", "Wise Elder"]
+      "baseStats": {
+        "strength": 10,
+        "agility": 5,
+        "wisdom": 9
+      },
+      "stages": [
+        "Kit",
+        "Youngling",
+        "Builder",
+        "Warden",
+        "Wise Elder"
+      ]
     },
     {
       "id": 5,
@@ -81,8 +131,18 @@
       "locationId": 14,
       "available": true,
       "image": "/totems/deerplacecard.png",
-      "baseStats": { "strength": 5, "agility": 11, "wisdom": 8 },
-      "stages": ["Fawn", "Yearling", "Stag", "Warden", "Wise Elder"]
+      "baseStats": {
+        "strength": 5,
+        "agility": 11,
+        "wisdom": 8
+      },
+      "stages": [
+        "Fawn",
+        "Yearling",
+        "Stag",
+        "Warden",
+        "Wise Elder"
+      ]
     },
     {
       "id": 6,
@@ -95,8 +155,18 @@
       "locationId": 15,
       "available": true,
       "image": "/totems/woodpeckerplacecard.png",
-      "baseStats": { "strength": 7, "agility": 11, "wisdom": 6 },
-      "stages": ["Hatchling", "Fledgling", "Forager", "Warden", "Wise Elder"]
+      "baseStats": {
+        "strength": 7,
+        "agility": 11,
+        "wisdom": 6
+      },
+      "stages": [
+        "Hatchling",
+        "Fledgling",
+        "Forager",
+        "Warden",
+        "Wise Elder"
+      ]
     },
     {
       "id": 7,
@@ -107,10 +177,20 @@
       "affinity": "Strength",
       "domain": "Water",
       "locationId": 16,
-      "available": false,
+      "available": true,
       "image": "/totems/turtleplacecard.png",
-      "baseStats": { "strength": 10, "agility": 8, "wisdom": 6 },
-      "stages": ["Hatchling", "Youngling", "Wayfarer", "Warden", "Wise Elder"]
+      "baseStats": {
+        "strength": 10,
+        "agility": 8,
+        "wisdom": 6
+      },
+      "stages": [
+        "Hatchling",
+        "Youngling",
+        "Wayfarer",
+        "Warden",
+        "Wise Elder"
+      ]
     },
     {
       "id": 8,
@@ -123,8 +203,18 @@
       "locationId": 17,
       "available": false,
       "image": "/totems/bearplacecard.png",
-      "baseStats": { "strength": 12, "agility": 5, "wisdom": 7 },
-      "stages": ["Cub", "Yearling", "Forager", "Guardian", "Wise Elder"]
+      "baseStats": {
+        "strength": 12,
+        "agility": 5,
+        "wisdom": 7
+      },
+      "stages": [
+        "Cub",
+        "Yearling",
+        "Forager",
+        "Guardian",
+        "Wise Elder"
+      ]
     },
     {
       "id": 9,
@@ -137,8 +227,18 @@
       "locationId": 18,
       "available": false,
       "image": "/totems/ravenplacecard.png",
-      "baseStats": { "strength": 5, "agility": 8, "wisdom": 11 },
-      "stages": ["Hatchling", "Fledgling", "Messenger", "Warden", "Wise Elder"]
+      "baseStats": {
+        "strength": 5,
+        "agility": 8,
+        "wisdom": 11
+      },
+      "stages": [
+        "Hatchling",
+        "Fledgling",
+        "Messenger",
+        "Warden",
+        "Wise Elder"
+      ]
     },
     {
       "id": 10,
@@ -151,8 +251,18 @@
       "locationId": 19,
       "available": false,
       "image": "/totems/snakeplacecard.png",
-      "baseStats": { "strength": 7, "agility": 6, "wisdom": 11 },
-      "stages": ["Hatchling", "Slitherling", "Striker", "Warden", "Wise Elder"]
+      "baseStats": {
+        "strength": 7,
+        "agility": 6,
+        "wisdom": 11
+      },
+      "stages": [
+        "Hatchling",
+        "Slitherling",
+        "Striker",
+        "Warden",
+        "Wise Elder"
+      ]
     },
     {
       "id": 11,
@@ -165,8 +275,18 @@
       "locationId": 20,
       "available": true,
       "image": "/totems/owlplacecard.png",
-      "baseStats": { "strength": 5, "agility": 7, "wisdom": 12 },
-      "stages": ["Hatchling", "Chick", "Juvenile", "Adult", "Wise Elder"]
+      "baseStats": {
+        "strength": 5,
+        "agility": 7,
+        "wisdom": 12
+      },
+      "stages": [
+        "Hatchling",
+        "Chick",
+        "Juvenile",
+        "Adult",
+        "Wise Elder"
+      ]
     }
   ]
 }

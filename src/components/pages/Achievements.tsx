@@ -394,7 +394,8 @@ const MilestoneProgress: React.FC<{
     badgeUri?: string;
 }> = ({ milestone, currentCount, isUnlocked, badgeUri }) => {
     const requirement = milestone.requirement;
-    const count = currentCount;
+    // Cap display at requirement for completed milestones (show 100/100, not 538/100)
+    const count = isUnlocked ? Math.min(currentCount, requirement) : currentCount;
     const progress = Math.min((count / requirement) * 100, 100);
     const uri = getBadgeUri(badgeUri);
 

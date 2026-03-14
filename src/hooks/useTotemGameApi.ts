@@ -20,6 +20,7 @@ export interface GameActionResult {
   feedsToday?: number;
   maxDaily?: number;
   newEssenceBalance?: number;
+  achievementsUnlocked?: boolean;
 }
 
 export interface EvolutionResult {
@@ -31,6 +32,7 @@ export interface EvolutionResult {
   statBoosts?: Record<string, number>;
   message?: string;
   error?: string;
+  achievementsUnlocked?: boolean;
 }
 
 export interface CooldownStatus {
@@ -69,6 +71,7 @@ export const useTotemGameApi = () => {
           feedsToday: response.data.feedsToday,
           maxDaily: response.data.maxDaily,
           newEssenceBalance: response.data.newEssenceBalance,
+          achievementsUnlocked: !!(response.data.achievements && response.data.achievements.length > 0),
         };
       }
 
@@ -104,6 +107,7 @@ export const useTotemGameApi = () => {
           statChanges: response.data.statChanges,
           message: response.data.message,
           newEssenceBalance: response.data.newEssenceBalance,
+          achievementsUnlocked: !!(response.data.achievements && response.data.achievements.length > 0),
         };
       }
 
@@ -140,6 +144,7 @@ export const useTotemGameApi = () => {
           message: response.data.message,
           cooldown: response.data.cooldown,
           newEssenceBalance: response.data.newEssenceBalance,
+          achievementsUnlocked: !!(response.data.achievements && response.data.achievements.length > 0),
         };
       }
 
@@ -184,6 +189,7 @@ export const useTotemGameApi = () => {
           newDisplayName: response.data.evolution.newDisplayName,
           statBoosts: response.data.statBoosts,
           message: response.data.message,
+          achievementsUnlocked: !!(response.data.achievements && response.data.achievements.length > 0),
         };
       }
 

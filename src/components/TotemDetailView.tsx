@@ -53,7 +53,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     const { user, updateEssence } = useAuth();
     const gameApi = useTotemGameApi();
     const { isTotemAvailable, expeditionState, fetchTotemCooldowns, setTotemCooldowns, actionConfigs } = useGame();
-    const { incrementAchievementProgress } = useAchievements();
+    const { incrementAchievementProgress, refreshAchievements } = useAchievements();
 
     const [isLoading, setIsLoading] = useState<ActionType | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -351,6 +351,11 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
             const achievementId = ACTION_ACHIEVEMENT_MAP[action];
             if (achievementId) {
                 incrementAchievementProgress(achievementId);
+            }
+
+            // Refresh achievement state from API when milestones were unlocked
+            if (result.achievementsUnlocked) {
+                refreshAchievements();
             }
         } catch (err) {
             console.error(`Error with ${ActionType[action]}:`, err);

@@ -12,9 +12,9 @@ export const woodpeckerData: SpeciesConfig = {
   "available": true,
   "placeholderImage": "/totems/woodpeckerplacecard.png",
   "baseStats": {
-    "strength": 5,
-    "agility": 12,
-    "wisdom": 7
+    "strength": 7,
+    "agility": 11,
+    "wisdom": 6
   },
   "stages": [
     "Hatchling",

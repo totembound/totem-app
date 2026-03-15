@@ -13,8 +13,8 @@ export const beaverData: SpeciesConfig = {
   "placeholderImage": "/totems/beaverplacecard.png",
   "baseStats": {
     "strength": 10,
-    "agility": 5,
-    "wisdom": 9
+    "agility": 9,
+    "wisdom": 5
   },
   "stages": [
     "Kit",

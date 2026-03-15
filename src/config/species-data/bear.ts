@@ -6,14 +6,14 @@ export const bearData: SpeciesConfig = {
   "fullName": "Mighty Bear",
   "title": "The Unstoppable Force",
   "description": "The Bear represents strength, resilience, and dominance. It relies on brute force to overcome adversity, clearing obstacles through sheer power.",
-  "affinity": "Agility",
-  "domain": "Air",
+  "affinity": "Strength",
+  "domain": "Earth",
   "locationId": 17,
   "available": false,
   "placeholderImage": "/totems/bearplacecard.png",
   "baseStats": {
-    "strength": 5,
-    "agility": 12,
+    "strength": 12,
+    "agility": 5,
     "wisdom": 7
   },
   "stages": [

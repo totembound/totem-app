@@ -6,15 +6,15 @@ export const snakeData: SpeciesConfig = {
   "fullName": "Stealthy Snake",
   "title": "The Silent Observer",
   "description": "The Snake represents stealth, transformation, and wisdom. It moves unnoticed, striking only when the time is right.",
-  "affinity": "Agility",
-  "domain": "Air",
+  "affinity": "Wisdom",
+  "domain": "Earth",
   "locationId": 19,
   "available": false,
   "placeholderImage": "/totems/snakeplacecard.png",
   "baseStats": {
-    "strength": 5,
-    "agility": 12,
-    "wisdom": 7
+    "strength": 7,
+    "agility": 6,
+    "wisdom": 11
   },
   "stages": [
     "Hatchling",

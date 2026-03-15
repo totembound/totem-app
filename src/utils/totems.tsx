@@ -1,4 +1,5 @@
 import { AVAILABLE_SPECIES, LOCATIONS } from '../config/constants';
+import { getSpeciesById } from './species';
 import { Affinity, Domain, TotemData, Rarity, Species } from '../types/types';
 import { 
     Dumbbell, // Strength
@@ -178,89 +179,18 @@ export function getRarityBonusStat(rarity: Rarity): number {
 
 export function getSpeciesBaseStats(species: Species, rarity: Rarity): TotemStats {
     const bonus = getRarityBonusStat(rarity);
+    const speciesData = getSpeciesById(species);
 
-    const statsMap: Record<Species, TotemStats> = {
-        [Species.Bear]: {
-            strength: 12 + bonus,
-            wisdom: 7 + bonus,
-            agility: 5 + bonus,
-            primaryStat: 'strength'
-        },
-        [Species.Wolf]: {
-            strength: 11 + bonus,
-            agility: 8 + bonus,
-            wisdom: 5 + bonus,
-            primaryStat: 'strength'
-        },
-        [Species.Beaver]: {
-            strength: 10 + bonus,
-            wisdom: 9 + bonus,
-            agility: 5 + bonus,
-            primaryStat: 'strength'
-        },
-        [Species.Turtle]: {
-            strength: 10 + bonus,
-            agility: 8 + bonus,
-            wisdom: 6 + bonus,
-            primaryStat: 'strength'
-        },
-        [Species.Owl]: {
-            wisdom: 12 + bonus,
-            agility: 7 + bonus,
-            strength: 5 + bonus,
-            primaryStat: 'wisdom'
-        },
-        [Species.Raven]: {
-            wisdom: 11 + bonus,
-            agility: 8 + bonus,
-            strength: 5 + bonus,
-            primaryStat: 'wisdom'
-        },
-        [Species.Goose]: {
-            wisdom: 10 + bonus,
-            strength: 8 + bonus,
-            agility: 6 + bonus,
-            primaryStat: 'wisdom'
-        },
-        [Species.Snake]: {
-            wisdom: 11 + bonus,
-            strength: 7 + bonus,
-            agility: 6 + bonus,
-            primaryStat: 'wisdom'
-        },
-        [Species.Falcon]: {
-            agility: 12 + bonus,
-            wisdom: 7 + bonus,
-            strength: 5 + bonus,
-            primaryStat: 'agility'
-        },
-        [Species.Deer]: {
-            agility: 11 + bonus,
-            wisdom: 8 + bonus,
-            strength: 5 + bonus,
-            primaryStat: 'agility'
-        },
-        [Species.Otter]: {
-            agility: 10 + bonus,
-            strength: 8 + bonus,
-            wisdom: 6 + bonus,
-            primaryStat: 'agility'
-        },
-        [Species.Woodpecker]: {
-            agility: 11 + bonus,
-            strength: 7 + bonus,
-            wisdom: 6 + bonus,
-            primaryStat: 'agility'
-        },
-        [Species.None]: {
-            strength: 0 + bonus,
-            agility: 0 + bonus,
-            wisdom: 0 + bonus,
-            primaryStat: 'strength'
-        }
+    if (!speciesData) {
+        return { strength: 0, agility: 0, wisdom: 0, primaryStat: 'strength' };
+    }
+
+    return {
+        strength: speciesData.baseStats.strength + bonus,
+        agility: speciesData.baseStats.agility + bonus,
+        wisdom: speciesData.baseStats.wisdom + bonus,
+        primaryStat: speciesData.affinity.toLowerCase() as 'strength' | 'agility' | 'wisdom',
     };
-
-    return statsMap[species] || statsMap[Species.None];
 }
 
 // Helper to get emoji for species

@@ -42,7 +42,7 @@ const strengthChallenges: Challenge[] = [
         image: '/challenges/totem-wrestling-background.png',
         requirements: {
             stage: 3,
-            strength: 15,
+            strength: 13,
             agility: 8,
             wisdom: 8
         }
@@ -55,7 +55,7 @@ const strengthChallenges: Challenge[] = [
         image: '/challenges/rockfall-defense-background.png',
         requirements: {
             stage: 4,
-            strength: 20,
+            strength: 16,
             agility: 10,
             wisdom: 10
         }
@@ -85,7 +85,7 @@ const agilityChallenges: Challenge[] = [
         requirements: {
             stage: 3,
             strength: 8,
-            agility: 15,
+            agility: 13,
             wisdom: 8
         }
     },
@@ -98,7 +98,7 @@ const agilityChallenges: Challenge[] = [
         requirements: {
             stage: 4,
             strength: 10,
-            agility: 20,
+            agility: 16,
             wisdom: 10
         }
     }
@@ -128,7 +128,7 @@ const wisdomChallenges: Challenge[] = [
             stage: 3,
             strength: 8,
             agility: 8,
-            wisdom: 15
+            wisdom: 13
         }
     },
     {
@@ -141,7 +141,7 @@ const wisdomChallenges: Challenge[] = [
             stage: 4,
             strength: 10,
             agility: 10,
-            wisdom: 20
+            wisdom: 16
         }
     }
 ];
@@ -270,10 +270,12 @@ const Challenges = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {getCurrentChallenges()?.map(challenge => {
                             // Web2: Use plain string IDs
+                            const apiChallenge = challengeState.challenges[challenge.id];
                             const status = challengeState.userStatus[challenge.id];
                             const highScore = status?.highScore || 0;
-                            const maxAttempts = challengeState.challenges[challenge.id]?.maxDailyAttempts || DEFAULT_MAX_DAILY_ATTEMPTS;
+                            const maxAttempts = apiChallenge?.maxDailyAttempts || DEFAULT_MAX_DAILY_ATTEMPTS;
                             const attemptsLeft = status?.attemptsRemaining ?? maxAttempts;
+                            const requirements = apiChallenge?.requirements ?? challenge.requirements;
 
                             return (
                             <ChallengePanel
@@ -286,7 +288,7 @@ const Challenges = () => {
                                 highScore={Number(highScore)}
                                 attemptsLeft={attemptsLeft}
                                 maxAttempts={maxAttempts}
-                                requirements={challenge.requirements}
+                                requirements={requirements}
                                 onStart={() => setSelectedChallenge(challenge.id)}
                             />)
                         })}
@@ -308,7 +310,7 @@ const Challenges = () => {
                         isOpen={selectedChallenge !== null}
                         onClose={() => setSelectedChallenge(null)}
                         challengeType={currentChallenge?.type || 'strength'}
-                        requirements={currentChallenge?.requirements!}
+                        requirements={challengeState.challenges[currentChallenge?.id ?? '']?.requirements ?? currentChallenge?.requirements!}
                     />
                 )}
             </div>

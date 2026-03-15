@@ -13,6 +13,8 @@ import TotemActionBar from './TotemActionBar';
 import ExperienceEffect from './effects/ExperienceEffect';
 import { STAGE_THRESHOLDS } from '../config/constants';
 import { getTotemImageUrl, getStageName, getStageDescription } from '../utils/species';
+import { Heart, TrendingUp } from 'lucide-react';
+
 interface TotemDetailViewProps {
     totem: TotemData;
     onClose: () => void;
@@ -37,7 +39,7 @@ interface TotemDetailViewProps {
             agility?: number;
             wisdom?: number;
         }
-    ) => void; // Update local totem state (SPA pattern)
+    ) => void;
 }
 
 const TotemDetailView: React.FC<TotemDetailViewProps> = ({
@@ -189,12 +191,12 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
      // Find expedition end time if totem is on expedition
     const expeditionEndTime = useMemo(() => {
         if (!tokenIsOnExpedition) return 0;
-        
+
         // Find which expedition this totem is part of
-        const activeExpedition = expeditionState.userExpeditions.find(exp => 
+        const activeExpedition = expeditionState.userExpeditions.find(exp =>
             !exp.completed && exp.totemIds.some(id => id.toString() === totem.id)
         );
-        
+
         return activeExpedition ? activeExpedition.endTime : 0;
     }, [tokenIsOnExpedition, expeditionState.userExpeditions, totem.id]);
 
@@ -448,9 +450,23 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
         };
     }, [onClose]);
 
+    // Compute XP progress for the HUD bar
+    const xpProgressPercent = useMemo(() => {
+        if (currentAttributes.stage >= 4) return 100;
+        const currentThreshold = STAGE_THRESHOLDS[currentAttributes.stage];
+        const nextThreshold = STAGE_THRESHOLDS[currentAttributes.stage + 1];
+        if (nextThreshold === currentThreshold) return 100;
+        return Math.min(100, ((currentAttributes.experience - currentThreshold) / (nextThreshold - currentThreshold)) * 100);
+    }, [currentAttributes.experience, currentAttributes.stage]);
+
+    const xpProgressLabel = useMemo(() => {
+        if (currentAttributes.stage >= 4) return 'Max';
+        return `${Math.round(xpProgressPercent)}%`;
+    }, [currentAttributes.stage, xpProgressPercent]);
+
     return (
-        <div 
-            ref={dialogRef} 
+        <div
+            ref={dialogRef}
             className="flex flex-col h-full bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 w-full"
         >
             {showEvolutionCelebration && evolvedTotemData && (
@@ -471,7 +487,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                     }}
                 />
             )}
-            
+
             {/* Header - Show displayName (e.g., "Brown Pup") as title, nickname + mobile nav below */}
             <TotemDetailHeader
                 totemId={totem.id}
@@ -480,7 +496,6 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                 rarity={currentAttributes.rarity}
                 onClose={onClose}
                 onNicknameUpdate={(nickname) => {
-                    // Update local state so UI reflects change immediately
                     onUpdateTotemAttributes?.(totem.id, { nickname });
                 }}
                 onPrev={onPrev}
@@ -489,37 +504,88 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                 currentIndex={currentIndex}
             />
 
-            {/* Content - Stack on mobile, side-by-side on desktop. Swipe left/right to navigate totems. */}
-            <div
-                className="flex-1 overflow-y-auto pb-20 sm:pb-0"
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
-            >
-                <div className="flex flex-col md:grid md:grid-cols-2">
-                    {/* Left Column - Image and Actions */}
-                    <div className="flex-shrink-0">
-                        {/* Habitat Background with Image */}
-                        <TotemImageSection
-                            species={currentAttributes.species}
-                            rarity={currentAttributes.rarity}
-                            stage={evolvedTotemData?.stage ?? currentAttributes.stage}
-                            prestigeLevel={currentAttributes.prestigeLevel}
-                            imageUrl={evolvedTotemData?.image ?? totem.image}
-                            activeEffect={activeEffect}
-                            onEffectComplete={() => setActiveEffect(null)}
-                            isOnExpedition={tokenIsOnExpedition}
-                            expeditionEndTime={expeditionEndTime}
-                        />
+            {/* Content area - no touch handlers on scroll container (fixes iOS swipe bug) */}
+            <div className="flex-1 overflow-y-auto md:overflow-hidden pb-16 sm:pb-0 overscroll-contain">
+                <div className="flex flex-col md:grid md:grid-cols-2 md:h-full">
+                    {/* Left Column - Image, HUD, Actions */}
+                    <div className="flex-shrink-0 md:overflow-y-auto md:overscroll-contain">
+                        {/* Image - swipe handlers ONLY here, not on scroll container */}
+                        <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+                            <TotemImageSection
+                                species={currentAttributes.species}
+                                rarity={currentAttributes.rarity}
+                                stage={evolvedTotemData?.stage ?? currentAttributes.stage}
+                                prestigeLevel={currentAttributes.prestigeLevel}
+                                imageUrl={evolvedTotemData?.image ?? totem.image}
+                                activeEffect={activeEffect}
+                                onEffectComplete={() => setActiveEffect(null)}
+                                isOnExpedition={tokenIsOnExpedition}
+                                expeditionEndTime={expeditionEndTime}
+                            />
+                        </div>
 
                         {showExpEffect && (
-                            <ExperienceEffect 
+                            <ExperienceEffect
                                 exp={trainExp}
                                 onComplete={() => setShowExpEffect(false)}
                             />
                         )}
 
+                        {/* Vital Stats HUD - Happiness + XP always visible between image and actions */}
+                        <div className="px-3 py-2 bg-gray-50 dark:bg-gray-800/50 border-y border-gray-200 dark:border-gray-700">
+                            <div className="flex items-center gap-4">
+                                {/* Happiness gauge */}
+                                <div className="flex items-center gap-2 flex-1">
+                                    <Heart
+                                        size={16}
+                                        className={`${currentAttributes.happiness >= 30 ? 'text-pink-500' : 'text-red-500 animate-pulse'}`}
+                                    />
+                                    <div className="flex-1">
+                                        <div className="flex justify-between text-xs mb-0.5">
+                                            <span className="text-gray-500 dark:text-gray-400">Happiness</span>
+                                            <span className={`font-semibold ${currentAttributes.happiness < 30 ? 'text-red-500' : 'text-gray-700 dark:text-gray-200'}`}>
+                                                {currentAttributes.happiness}/100
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                                            <div
+                                                className={`rounded-full h-1.5 transition-all duration-500 ${currentAttributes.happiness >= 30 ? 'bg-pink-500' : 'bg-red-500'}`}
+                                                style={{ width: `${currentAttributes.happiness}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* XP gauge */}
+                                <div className="flex items-center gap-2 flex-1">
+                                    <TrendingUp size={16} className="text-blue-500" />
+                                    <div className="flex-1">
+                                        <div className="flex justify-between text-xs mb-0.5">
+                                            <span className="text-gray-500 dark:text-gray-400">XP</span>
+                                            <span className="font-semibold text-gray-700 dark:text-gray-200">
+                                                {xpProgressLabel}
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                                            <div
+                                                className="bg-blue-500 rounded-full h-1.5 transition-all duration-500"
+                                                style={{ width: `${xpProgressPercent}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Warning if happiness too low for evolve */}
+                            {canEvolve && currentAttributes.happiness < 30 && (
+                                <div className="mt-1.5 text-xs text-amber-600 dark:text-amber-400 text-center">
+                                    Need 30 happiness to evolve (current: {currentAttributes.happiness})
+                                </div>
+                            )}
+                        </div>
+
                         {/* Action Buttons */}
-                        <div className="mt-1 md:mt-2 px-2 sm:px-4 py-2">
+                        <div className="mt-1 px-2 sm:px-4 py-2">
                             <TotemActionBar
                                 attributes={currentAttributes}
                                 actionConfigs={actionConfigs}
@@ -536,7 +602,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                 canEvolve={canEvolve}
                                 isTotemOnExpedition={tokenIsOnExpedition}
                             />
-                            
+
                             {/* Error Display */}
                             {error && (
                                 <div className="mt-3 p-2 text-red-600 text-center text-sm bg-red-100 dark:bg-red-900/20 rounded-lg">
@@ -546,9 +612,9 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                         </div>
                     </div>
 
-                    {/* Right Column - Details and Statistics */}
-                    <div className="px-2 sm:px-4 py-2 border-t border-gray-200 dark:border-gray-700 md:border-t-0 md:border-l">
-                        {/* Brief Intro - Stage-specific description from IPFS metadata */}
+                    {/* Right Column - Stats/Details (scrollable on mobile, visible on desktop) */}
+                    <div className="px-2 sm:px-4 py-2 border-t border-gray-200 dark:border-gray-700 md:border-t-0 md:border-l md:overflow-y-auto">
+                        {/* Brief Intro - Stage-specific description */}
                         <div className="mb-2 min-h-10">
                             <p className="text-sm text-gray-600 dark:text-gray-300">
                                 {currentAttributes.nickname && <><span className="font-medium">Known as "{currentAttributes.nickname}"</span> by its companions. </>}
@@ -581,7 +647,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                         </div>
 
                         {/* Tab Content */}
-                        <div className="overflow-y-auto pb-4 sm:pb-2">
+                        <div className="pb-4 sm:pb-2">
                             {activeTab === 'stats' ? (
                                 <TotemStatsPanel attributes={currentAttributes} />
                             ) : (
@@ -601,7 +667,6 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                     </div>
                 </div>
             </div>
-
         </div>
     );
 };

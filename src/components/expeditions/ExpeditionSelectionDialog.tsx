@@ -52,7 +52,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
       getTotemStage(totem) >= expedition.minStage
   );
 
-  // Reset selections when dialog opens
+  // Reset selections when dialog opens + lock body scroll
   useEffect(() => {
     if (isOpen) {
       setSelectedTotems([]);
@@ -60,7 +60,13 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
       setError(null);
       setTeamScore(50); // Reset to base score
       setHideUnavailable(true);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
     }
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [isOpen]);
 
   // Calculate team score based on composition
@@ -439,7 +445,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
 
               {/* Totem Selection List */}
               <div className="mb-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-64 overflow-y-auto p-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-64 overflow-y-scroll overscroll-contain p-1" style={{ WebkitOverflowScrolling: 'touch' }}>
                 {filteredTotems.length > 0 ? (
                     filteredTotems.map((totem) => {
                     const isSelected = selectedTotems.includes(totem.id);

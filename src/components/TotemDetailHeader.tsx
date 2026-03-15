@@ -47,8 +47,8 @@ const TotemDetailHeader: React.FC<TotemDetailHeaderProps> = ({
         return `"${name}"`;
     };
 
-    const hasPrev = currentIndex !== undefined && currentIndex > 0;
-    const hasNext = currentIndex !== undefined && totalTotems !== undefined && currentIndex < totalTotems - 1;
+    const hasPrev = totalTotems !== undefined && totalTotems > 1;
+    const hasNext = totalTotems !== undefined && totalTotems > 1;
 
     return (
         <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">

@@ -131,35 +131,33 @@ const TotemGallery = () => {
         return expedition ? expedition.endTime : 0;
     };
 
-    // Filter NFTs
-    const filteredTotems = totems.filter(nft => {
+    // Filter totems
+    const filteredTotems = totems.filter(totem => {
         return (
-            (!filters.species || Species[nft.attributes.species] === filters.species) &&
-            (!filters.rarity || Rarity[nft.attributes.rarity] === filters.rarity) &&
-            (!filters.stage || nft.attributes.stage.toString() === filters.stage) &&
-            (!filters.affinity || nft.affinity === filters.affinity) &&
-            (!filters.domain || nft.domain === filters.domain)
+            (!filters.species || Species[totem.attributes.species] === filters.species) &&
+            (!filters.rarity || Rarity[totem.attributes.rarity] === filters.rarity) &&
+            (!filters.stage || totem.attributes.stage.toString() === filters.stage) &&
+            (!filters.affinity || totem.affinity === filters.affinity) &&
+            (!filters.domain || totem.domain === filters.domain)
         );
     });
 
-    const sortedAndFilteredNFTs = sortTotems(filteredTotems);
-    const totalPages = Math.max(1, Math.ceil(sortedAndFilteredNFTs.length / itemsPerPage));
+    const sortedAndFilteredTotems = sortTotems(filteredTotems);
+    const totalPages = Math.max(1, Math.ceil(sortedAndFilteredTotems.length / itemsPerPage));
 
     // Navigation handlers
     const handlePrevTotem = () => {
-        if (!selectedTotem) return;
-        const currentIndex = sortedAndFilteredNFTs.findIndex(t => t.id === selectedTotem.id);
-        if (currentIndex > 0) {
-            setSelectedTotem(sortedAndFilteredNFTs[currentIndex - 1]);
-        }
+        if (!selectedTotem || sortedAndFilteredTotems.length === 0) return;
+        const currentIndex = sortedAndFilteredTotems.findIndex(t => t.id === selectedTotem.id);
+        const prevIndex = currentIndex <= 0 ? sortedAndFilteredTotems.length - 1 : currentIndex - 1;
+        setSelectedTotem(sortedAndFilteredTotems[prevIndex]);
     };
 
     const handleNextTotem = () => {
-        if (!selectedTotem) return;
-        const currentIndex = sortedAndFilteredNFTs.findIndex(t => t.id === selectedTotem.id);
-        if (currentIndex < sortedAndFilteredNFTs.length - 1) {
-            setSelectedTotem(sortedAndFilteredNFTs[currentIndex + 1]);
-        }
+        if (!selectedTotem || sortedAndFilteredTotems.length === 0) return;
+        const currentIndex = sortedAndFilteredTotems.findIndex(t => t.id === selectedTotem.id);
+        const nextIndex = currentIndex >= sortedAndFilteredTotems.length - 1 ? 0 : currentIndex + 1;
+        setSelectedTotem(sortedAndFilteredTotems[nextIndex]);
     };
 
     // Reset page when filters change
@@ -241,7 +239,7 @@ const TotemGallery = () => {
                     currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={setCurrentPage}
-                    totalItems={sortedAndFilteredNFTs.length}
+                    totalItems={sortedAndFilteredTotems.length}
                     filters={filters}
                     setFilters={setFilters}
                     sortConfig={sortConfig}
@@ -278,7 +276,7 @@ const TotemGallery = () => {
                 )}
 
                 {/* Main Content */}
-                {!totemLoading && !totemError && sortedAndFilteredNFTs.length === 0 ? (
+                {!totemLoading && !totemError && sortedAndFilteredTotems.length === 0 ? (
                      <div className="flex flex-col items-center justify-center py-4 sm:py-8 px-2 sm:px-4">
                         <div className="text-gray-400 dark:text-gray-600 mb-2 sm:mb-4">
                             <ScrollText size={32} className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16" />
@@ -292,36 +290,36 @@ const TotemGallery = () => {
                                 : "You don't have any Totems yet. Visit the Shop to get started!"}
                         </p>
                     </div>
-                ) : !totemLoading && !totemError && sortedAndFilteredNFTs.length > 0 && viewMode === 'grid' ? (
+                ) : !totemLoading && !totemError && sortedAndFilteredTotems.length > 0 && viewMode === 'grid' ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-2 md:gap-3">
-                        {sortedAndFilteredNFTs
+                        {sortedAndFilteredTotems
                             .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                            .map((nft) => (
+                            .map((totem) => (
                                 <TotemGridCard
-                                    key={nft.id}
-                                    nft={nft}
-                                    onClick={() => setSelectedTotem(nft)}
-                                    isSelected={selectedTotem?.id === nft.id}
+                                    key={totem.id}
+                                    nft={totem}
+                                    onClick={() => setSelectedTotem(totem)}
+                                    isSelected={selectedTotem?.id === totem.id}
                                     isLoading={totemLoading}
-                                    isOnExpedition={!isTotemAvailable(nft.id)}
-                                    expeditionEndTime={getExpeditionEndTime(nft.id)}
+                                    isOnExpedition={!isTotemAvailable(totem.id)}
+                                    expeditionEndTime={getExpeditionEndTime(totem.id)}
                                 />
                             ))
                         }
                     </div>
-                ) : !totemLoading && !totemError && sortedAndFilteredNFTs.length > 0 ? (
+                ) : !totemLoading && !totemError && sortedAndFilteredTotems.length > 0 ? (
                     <div className="flex flex-col gap-1 sm:gap-2 md:gap-3">
-                        {sortedAndFilteredNFTs
+                        {sortedAndFilteredTotems
                             .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                            .map((nft) => (
+                            .map((totem) => (
                                 <TotemListRow
-                                    key={nft.id}
-                                    nft={nft}
-                                    onClick={() => setSelectedTotem(nft)}
-                                    isSelected={selectedTotem?.id === nft.id}
+                                    key={totem.id}
+                                    nft={totem}
+                                    onClick={() => setSelectedTotem(totem)}
+                                    isSelected={selectedTotem?.id === totem.id}
                                     isLoading={totemLoading}
-                                    isOnExpedition={!isTotemAvailable(nft.id)}
-                                    expeditionEndTime={getExpeditionEndTime(nft.id)}
+                                    isOnExpedition={!isTotemAvailable(totem.id)}
+                                    expeditionEndTime={getExpeditionEndTime(totem.id)}
                                 />
                             ))
                         }
@@ -333,14 +331,13 @@ const TotemGallery = () => {
             {selectedTotem && createPortal(
                 <div className="fixed inset-0 bottom-0 z-50 bg-white dark:bg-gray-900 sm:bg-black/50 sm:dark:bg-black/50 sm:flex sm:items-center sm:justify-center sm:p-2"
                     onClick={(e) => {
-                        // Close if the click was on the background overlay (desktop only)
                         if (e.target === e.currentTarget) {
                             setSelectedTotem(null);
                         }
                     }}
                 >
                     <div
-                        className="h-full sm:h-auto sm:max-h-[90vh] sm:max-w-[95vw] md:max-w-4xl sm:w-full bg-white dark:bg-gray-900 sm:rounded-lg overflow-hidden"
+                        className="h-full sm:h-auto sm:max-h-[95vh] sm:max-w-[95vw] md:max-w-4xl sm:w-full bg-white dark:bg-gray-900 sm:rounded-lg overflow-hidden"
                         aria-modal="true"
                         role="dialog"
                     >
@@ -349,8 +346,8 @@ const TotemGallery = () => {
                             onClose={() => setSelectedTotem(null)}
                             onPrev={handlePrevTotem}
                             onNext={handleNextTotem}
-                            totalTotems={sortedAndFilteredNFTs.length}
-                            currentIndex={sortedAndFilteredNFTs.findIndex(t => t.id === selectedTotem.id)}
+                            totalTotems={sortedAndFilteredTotems.length}
+                            currentIndex={sortedAndFilteredTotems.findIndex(t => t.id === selectedTotem.id)}
                             onUpdateTotemAttributes={updateTotemAttributes}
                         />
                     </div>

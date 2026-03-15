@@ -13,8 +13,8 @@ export const turtleData: SpeciesConfig = {
   "placeholderImage": "/totems/turtleplacecard.png",
   "baseStats": {
     "strength": 10,
-    "agility": 8,
-    "wisdom": 6
+    "agility": 6,
+    "wisdom": 8
   },
   "stages": [
     "Hatchling",

@@ -7,7 +7,7 @@ export const ravenData: SpeciesConfig = {
   "title": "The Shadowed Trickster",
   "description": "The Raven represents intelligence, cunning, and mystery. A master of deception, it sees paths unseen by others.",
   "affinity": "Wisdom",
-  "domain": "Shadow",
+  "domain": "Air",
   "locationId": 18,
   "available": false,
   "placeholderImage": "/totems/ravenplacecard.png",

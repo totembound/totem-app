@@ -55,7 +55,6 @@ interface AuthContextType {
   resendVerification: (email: string) => Promise<boolean>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
-  updateEssence: (newBalance: number) => void;
   clearError: () => void;
 }
 
@@ -244,10 +243,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [isAuthenticated]);
 
-  const updateEssence = useCallback((newBalance: number) => {
-    setUser(prev => prev ? { ...prev, currencies: { ...prev.currencies, essence: newBalance, gems: prev.currencies?.gems ?? 0 } } : prev);
-  }, []);
-
   const clearError = useCallback(() => {
     setError(null);
   }, []);
@@ -266,7 +261,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         resendVerification,
         logout,
         refreshUser,
-        updateEssence,
         clearError,
       }}
     >

@@ -59,6 +59,7 @@ describe('MobileNavigation', () => {
     fireEvent.click(screen.getByText('More'));
     expect(screen.getByText('Challenges')).toBeInTheDocument();
     expect(screen.getByText('Expeditions')).toBeInTheDocument();
+    expect(screen.getByText('Forge')).toBeInTheDocument();
     expect(screen.getByText('Achievements')).toBeInTheDocument();
     expect(screen.getByText('Settings')).toBeInTheDocument();
     expect(screen.getByText('Log Out')).toBeInTheDocument();

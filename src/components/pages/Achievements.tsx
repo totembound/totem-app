@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { useAchievements } from '../../contexts/AchievementsContext';
-import { Shield, Trophy, Swords, Sparkles, Crown, CheckCircle2, Lock, Flame, Map, LucideIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import { Shield, Trophy, Swords, Sparkles, Crown, CheckCircle2, Lock, Flame, Map, Hammer, LucideIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import Tooltip from '../Tooltip';
 import { AchievementCategory, AchievementProgress, AchievementType, AchievementView, Milestone } from '../../types/types';
 import { IPFS_GATEWAY_URL } from '../../config/constants';
@@ -12,7 +12,8 @@ const categoryOrder = {
     [AchievementCategory.Evolution]: 3,
     [AchievementCategory.Streak]: 4,
     [AchievementCategory.Challenge]: 5,
-    [AchievementCategory.Expedition]: 6
+    [AchievementCategory.Expedition]: 6,
+    [AchievementCategory.Forge]: 7
 };
 
 const categoryIcons: Record<AchievementCategory, LucideIcon> = {
@@ -21,7 +22,8 @@ const categoryIcons: Record<AchievementCategory, LucideIcon> = {
     [AchievementCategory.Streak]: Flame,
     [AchievementCategory.Action]: Sparkles,
     [AchievementCategory.Challenge]: Swords,
-    [AchievementCategory.Expedition]: Map
+    [AchievementCategory.Expedition]: Map,
+    [AchievementCategory.Forge]: Hammer
 };
 
 const categoryNames: Record<AchievementCategory, string> = {
@@ -30,7 +32,8 @@ const categoryNames: Record<AchievementCategory, string> = {
     [AchievementCategory.Streak]: 'Streak',
     [AchievementCategory.Action]: 'Action',
     [AchievementCategory.Challenge]: 'Challenge',
-    [AchievementCategory.Expedition]: 'Expedition'
+    [AchievementCategory.Expedition]: 'Expedition',
+    [AchievementCategory.Forge]: 'Forge'
 };
 
 interface AchievementCardProps {
@@ -261,9 +264,9 @@ const AchievementStatsRow: React.FC<AchievementStatsRowProps> = ({
 
     return (
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2 pb-6">
-            <div className="w-full grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-7 gap-2 sm:gap-26">
+            <div className="w-full grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
                 {/* Total Progress */}
-                <div className="col-span-2 sm:col-span-1 text-center">
+                <div className="col-span-1 text-center">
                     <Tooltip 
                         content={`Total: ${totalCompleted} of ${totalAchievements} completed\n(includes all categories, achievements & milestones)`}
                     >
@@ -394,7 +397,8 @@ const MilestoneProgress: React.FC<{
     badgeUri?: string;
 }> = ({ milestone, currentCount, isUnlocked, badgeUri }) => {
     const requirement = milestone.requirement;
-    const count = currentCount;
+    // Cap display at requirement for completed milestones (show 100/100, not 538/100)
+    const count = isUnlocked ? Math.min(currentCount, requirement) : currentCount;
     const progress = Math.min((count / requirement) * 100, 100);
     const uri = getBadgeUri(badgeUri);
 
@@ -611,7 +615,8 @@ const Achievements: React.FC = () => {
         [AchievementCategory.Streak]: useRef<HTMLDivElement>(null),
         [AchievementCategory.Action]: useRef<HTMLDivElement>(null),
         [AchievementCategory.Challenge]: useRef<HTMLDivElement>(null),
-        [AchievementCategory.Expedition]: useRef<HTMLDivElement>(null)
+        [AchievementCategory.Expedition]: useRef<HTMLDivElement>(null),
+        [AchievementCategory.Forge]: useRef<HTMLDivElement>(null)
     };
     
     const toggleCategory = (category: number) => {

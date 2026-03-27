@@ -219,7 +219,8 @@ export enum AchievementCategory {
     Streak = 2,
     Action = 3,
     Challenge = 4,
-    Expedition = 5
+    Expedition = 5,
+    Forge = 6
 }
 
 export interface AchievementState {

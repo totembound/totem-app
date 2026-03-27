@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   Home, ShoppingBag, Trophy, Swords, Gift, PawPrint,
-  Map, BookOpenText
+  Map, BookOpenText, Hammer
 } from 'lucide-react';
 
 const DesktopNavigation: React.FC = () => {
@@ -16,6 +16,7 @@ const DesktopNavigation: React.FC = () => {
   const moreNavItems = [
     { to: '/challenges', label: 'Challenges', icon: Swords },
     { to: '/expeditions', label: 'Expeditions', icon: Map },
+    { to: '/forge', label: 'Forge', icon: Hammer },
     { to: '/achievements', label: 'Achievements', icon: Trophy },
     { to: '/guides', label: 'Guides', icon: BookOpenText },
   ];

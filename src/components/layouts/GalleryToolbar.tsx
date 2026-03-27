@@ -243,7 +243,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
             {/* Mobile Filters Panel */}
             {isMobileFiltersOpen && (
                 <div className="fixed inset-0 bg-black/50 z-50 lg:hidden">
-                    <div className="fixed inset-x-0 bottom-16 w-full bg-white dark:bg-gray-800 rounded-t-2xl p-6 space-y-4 z-50">
+                    <div className="fixed inset-x-0 w-full bg-white dark:bg-gray-800 rounded-t-2xl p-6 space-y-4 z-50"
+                        style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))' }}>
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-lg font-semibold dark:text-white">Filter Totems</h3>
                             <button 
@@ -381,7 +382,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
             {/* Mobile Sort Menu */}
             {isSortOpen && (
                 <div className="fixed inset-0 bg-black/50 z-50 lg:hidden">
-                    <div className="fixed inset-x-0 bottom-16 w-full bg-white dark:bg-gray-800 rounded-t-2xl p-6 z-50">
+                    <div className="fixed inset-x-0 w-full bg-white dark:bg-gray-800 rounded-t-2xl p-6 z-50"
+                        style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))' }}>
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-lg font-semibold dark:text-white">Sort Totems</h3>
                             <button 

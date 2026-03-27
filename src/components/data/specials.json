@@ -124,6 +124,19 @@
         "month": 7
       },
       {
+        "id": "august-2025",
+        "bundleId": 3,
+        "name": "Tidebound Turtle (Oceanic Azure)",
+        "description": "A legendary force of balance, forever flowing with the oceans' heart.",
+        "baseSpecies": "Turtle",
+        "price": 5000,
+        "priceUsd": "$50",
+        "tokenAmount": 2000,
+        "dailyLimit": 1,
+        "image": "https://ipfs.totembound.com/ipfs/bafybeib4i4vhhabe2toyw6vansdu4v6xgoz6rk6zok7q2nlxr3mdnq4hvu",
+        "month": 8
+      },
+      {
         "id": "december-2025",
         "bundleId": 3,
         "name": "Everfrost Owl (Starlit Silver)",

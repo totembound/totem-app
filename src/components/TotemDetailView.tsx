@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { TotemData, ActionType, TotemAttributes, ActionTracking, ActionConfig } from '../types/types';
 import { useGame } from '../contexts/GameContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useUser } from '../contexts/UserContext';
 import { useAchievements } from '../contexts/AchievementsContext';
 import { useTotemGameApi } from '../hooks/useTotemGameApi';
 import CelebrationModal from './CelebrationModal';
@@ -52,7 +52,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     canUseAction: externalCanUseAction,
     onUpdateTotemAttributes,
 }) => {
-    const { user, updateEssence } = useAuth();
+    const { essenceBalance: essenceBalanceStr, setEssenceBalance } = useUser();
     const gameApi = useTotemGameApi();
     const { isTotemAvailable, expeditionState, fetchTotemCooldowns, setTotemCooldowns, actionConfigs } = useGame();
     const { incrementAchievementProgress, refreshAchievements } = useAchievements();
@@ -90,7 +90,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
         );
     }, [totem.attributes.species, totem.attributes.color, totem.attributes.stage, evolvedTotemData?.stage]);
 
-    const essenceBalance = user?.currencies?.essence ?? 0;
+    const essenceBalance = Number(essenceBalanceStr) || 0;
 
     // Check cooldowns to determine if action can be used - dynamically checks readyAt
     const canUseAction = useCallback((
@@ -339,7 +339,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
 
             // Update Essence balance directly from action response (no extra API call)
             if (result.newEssenceBalance !== undefined) {
-                updateEssence(result.newEssenceBalance);
+                setEssenceBalance(result.newEssenceBalance);
             }
 
             // Optimistic achievement progress update (no API call)

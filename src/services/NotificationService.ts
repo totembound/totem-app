@@ -372,6 +372,18 @@ class NotificationService {
   }
 
   /**
+   * Show notification for totem forged (fusion)
+   */
+  async showTotemForged(data: { fusionType: 'pure' | 'wild'; speciesName: string; rarityName: string }): Promise<void> {
+    const fusionLabel = data.fusionType === 'pure' ? 'Pure Fusion' : 'Wild Fusion';
+    const message = `${fusionLabel} complete! Forged a ${data.rarityName} ${data.speciesName}`;
+
+    await this.showNotification(NotificationType.TOTEM_FORGED, message, data, {
+      priority: NotificationPriority.HIGH,
+    });
+  }
+
+  /**
    * Show notification for bundle purchase
    */
   async showBundlePurchased(data: PurchaseNotificationData): Promise<void> {

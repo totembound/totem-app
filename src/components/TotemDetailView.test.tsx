@@ -7,9 +7,9 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 // HOISTED MOCKS
 // ============================================================================
 
-const mockAuthContext = vi.hoisted(() => ({
-  user: { currencies: { essence: 5000 } },
-  updateEssence: vi.fn(),
+const mockUserContext = vi.hoisted(() => ({
+  essenceBalance: '5000',
+  setEssenceBalance: vi.fn(),
 }));
 
 const mockGameApi = vi.hoisted(() => ({
@@ -45,8 +45,8 @@ const mockAchievementsContext = vi.hoisted(() => ({
 // MODULE MOCKS
 // ============================================================================
 
-vi.mock('../contexts/AuthContext', () => ({
-  useAuth: () => mockAuthContext,
+vi.mock('../contexts/UserContext', () => ({
+  useUser: () => mockUserContext,
 }));
 
 vi.mock('../hooks/useTotemGameApi', () => ({
@@ -252,7 +252,7 @@ describe('TotemDetailView', () => {
     await userEvent.click(screen.getByRole('button', { name: /Feed/ }));
 
     await waitFor(() => {
-      expect(mockAuthContext.updateEssence).toHaveBeenCalledWith(4990);
+      expect(mockUserContext.setEssenceBalance).toHaveBeenCalledWith(4990);
     });
   });
 

@@ -34,6 +34,9 @@ export enum NotificationType {
     // Loot notifications
     LOOT_CLAIMED = 'loot_claimed',
 
+    // Forge notifications
+    TOTEM_FORGED = 'totem_forged',
+
     // Shop notifications
     BUNDLE_PURCHASED = 'bundle_purchased',
     TOTEM_UNBOUND = 'totem_unbound',
@@ -205,6 +208,13 @@ export enum NotificationType {
     },
 
     // Shop notifications
+    [NotificationType.TOTEM_FORGED]: {
+      type: NotificationType.TOTEM_FORGED,
+      scope: NotificationScope.PERSONAL,
+      priority: NotificationPriority.HIGH,
+      sound: true,
+      autoOpen: true
+    },
     [NotificationType.BUNDLE_PURCHASED]: {
       type: NotificationType.BUNDLE_PURCHASED,
       scope: NotificationScope.PERSONAL,

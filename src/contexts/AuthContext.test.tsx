@@ -256,30 +256,6 @@ describe('AuthContext', () => {
     });
   });
 
-  describe('updateEssence', () => {
-    it('should update essence balance on user', async () => {
-      const AuthService = await import('../services/AuthService');
-      (AuthService.login as ReturnType<typeof vi.fn>).mockResolvedValue({
-        success: true,
-        user: { id: 'usr_1', email: 'test@test.com', displayName: 'Test', currencies: { essence: 100, gems: 50 } },
-      });
-
-      const { result } = renderHook(() => useAuth(), { wrapper });
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-
-      await act(async () => {
-        await result.current.login('test@test.com', 'pass');
-      });
-
-      act(() => {
-        result.current.updateEssence(500);
-      });
-
-      expect(result.current.user?.currencies?.essence).toBe(500);
-      expect(result.current.user?.currencies?.gems).toBe(50);
-    });
-  });
-
   describe('clearError', () => {
     it('should clear error state', async () => {
       const AuthService = await import('../services/AuthService');

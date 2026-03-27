@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, MapPin } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { getRarityBorderColor } from '../../utils/totems';
 import type { TotemData } from '../../types/types';
 

@@ -95,6 +95,7 @@ const quarters: Quarter[] = [
       { label: 'Interactive codex, guides & lore', status: 'done' },
       { label: 'Limited Edition monthly totems — 1 unique species each month', status: 'done' },
       { label: '6-step guided tutorial with sub-tasks, reward claims & completion celebration', status: 'done' },
+      { label: 'The Forge — fuse 3 totems of the same rarity into 1 of the next rarity', status: 'done', detail: 'Pure Fusion (same species) and Wild Fusion (mixed) modes with forge achievements' },
       { label: 'Elder Sanctum — seat stage 4+ totems for daily passive Essence & solo advisory missions', status: 'in-progress', detail: 'Passive daily rewards, solo advisory expeditions, and sealed loot crates for the upcoming Gear system' },
       { label: 'Unlock remaining 3 totems (Bear, Raven, Snake)', status: 'in-progress' },
     ],

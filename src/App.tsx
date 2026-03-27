@@ -59,6 +59,7 @@ import ShadowDomain from './components/guides/codex/ShadowDomain';
 import WorldMap from './components/guides/codex/WorldMap';
 import TutorialWizard from './components/guides/TutorialWizard';
 import { TutorialClaimsProvider } from './components/guides/useTutorialClaims';
+import TotemForge from './components/forge/TotemForge';
 
 // Email/password auth only - wallet auth removed
 const AppRoutes: React.FC = () => {
@@ -221,6 +222,11 @@ const AppRoutes: React.FC = () => {
         <Route path="shop" element={
           <Protected>
             <ShopInterface />
+          </Protected>
+        } />
+        <Route path="forge" element={
+          <Protected>
+            <TotemForge />
           </Protected>
         } />
 

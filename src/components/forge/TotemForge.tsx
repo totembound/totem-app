@@ -18,13 +18,13 @@ const TotemForge: React.FC = () => {
       {/* Header */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-100 dark:bg-orange-900/30 mb-4">
-          <Flame className="w-8 h-8 text-orange-500" />
+          <Hammer className="w-8 h-8 text-orange-500" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
           The Forge
         </h1>
         <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm sm:text-base">
-          Combine and craft to unlock powerful totems
+          Combine and craft to unlock powerful totems and items
         </p>
       </div>
 

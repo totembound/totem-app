@@ -1105,6 +1105,43 @@ class ApiClient {
     }>('POST', '/shop/bundles/purchase', { bundleId });
   }
   // ============================================
+  // Forge (Fusion) endpoints
+  // ============================================
+
+  async fuseTotem(totemIds: string[]) {
+    return this.request<{
+      action: 'forge';
+      fusionType: 'pure' | 'wild';
+      consumedTotemIds: string[];
+      newTotem: {
+        id: string;
+        speciesId: number;
+        speciesName: string;
+        colorId: number;
+        rarityId: number;
+        nickname: string | null;
+        stage: number;
+        experience: number;
+        stats: {
+          strength: number;
+          agility: number;
+          wisdom: number;
+          happiness: number;
+          hunger: number;
+        };
+        image: string;
+        createdAt: string;
+      };
+      newEssenceBalance: number;
+      achievements: Array<{
+        achievementId: string;
+        milestone?: number;
+        rewards?: { essence?: number; xp?: number };
+      }>;
+    }>('POST', '/totems/forge', { totemIds });
+  }
+
+  // ============================================
   // Loot Box endpoints
   // ============================================
 

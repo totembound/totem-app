@@ -649,4 +649,50 @@ describe('NotificationService', () => {
       expect(message).toContain('Test Thing');
     });
   });
+
+  describe('showTotemForged', () => {
+    beforeEach(() => {
+      vi.spyOn(console, 'log').mockImplementation(() => {});
+      notificationService.initialize(mockCallback, 'user-1');
+    });
+
+    it('should format wild fusion message', async () => {
+      await notificationService.showTotemForged({
+        fusionType: 'wild',
+        speciesName: 'Woodpecker',
+        rarityName: 'Uncommon',
+      });
+
+      const message = mockCallback.mock.calls[0][1];
+      expect(message).toBe('Wild Fusion complete! Forged a Uncommon Woodpecker');
+      expect(mockCallback.mock.calls[0][0]).toBe(NotificationType.TOTEM_FORGED);
+      expect(mockCallback.mock.calls[0][3]).toBe(NotificationPriority.HIGH);
+    });
+
+    it('should format pure fusion message', async () => {
+      await notificationService.showTotemForged({
+        fusionType: 'pure',
+        speciesName: 'Goose',
+        rarityName: 'Rare',
+      });
+
+      const message = mockCallback.mock.calls[0][1];
+      expect(message).toBe('Pure Fusion complete! Forged a Rare Goose');
+    });
+
+    it('should pass fusion data to callback', async () => {
+      const data = {
+        fusionType: 'wild' as const,
+        speciesName: 'Wolf',
+        rarityName: 'Epic',
+      };
+
+      await notificationService.showTotemForged(data);
+
+      const passedData = mockCallback.mock.calls[0][4];
+      expect(passedData.fusionType).toBe('wild');
+      expect(passedData.speciesName).toBe('Wolf');
+      expect(passedData.rarityName).toBe('Epic');
+    });
+  });
 });

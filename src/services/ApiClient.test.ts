@@ -1250,4 +1250,123 @@ describe('ApiClient', () => {
       expect(result.error?.message).toBe('Request failed with status 502');
     });
   });
+
+  describe('fuseTotem', () => {
+    beforeEach(() => {
+      const tokens = {
+        accessToken: 'test-access',
+        refreshToken: 'test-refresh',
+        idToken: 'test-id',
+        expiresAt: Date.now() + 3600000,
+      };
+      mockLocalStorage['totembound_tokens'] = JSON.stringify(tokens);
+    });
+
+    it('should POST to /totems/forge with totemIds array', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        json: () => Promise.resolve({
+          success: true,
+          data: {
+            action: 'forge',
+            fusionType: 'wild',
+            consumedTotemIds: ['ttm_1', 'ttm_2', 'ttm_3'],
+            newTotem: { id: 'ttm_new', speciesId: 2, speciesName: 'Wolf', colorId: 5, rarityId: 1, stage: 0 },
+            newEssenceBalance: 1500,
+            achievements: [],
+          },
+        }),
+      });
+
+      const result = await apiClient.fuseTotem(['ttm_1', 'ttm_2', 'ttm_3']);
+      expect(result.success).toBe(true);
+      expect(result.data?.action).toBe('forge');
+      expect(result.data?.fusionType).toBe('wild');
+      expect(result.data?.newTotem.speciesName).toBe('Wolf');
+      expect(result.data?.consumedTotemIds).toEqual(['ttm_1', 'ttm_2', 'ttm_3']);
+
+      const [url, options] = mockFetch.mock.calls[0];
+      expect(url).toContain('/totems/forge');
+      expect(options.method).toBe('POST');
+      expect(JSON.parse(options.body)).toEqual({ totemIds: ['ttm_1', 'ttm_2', 'ttm_3'] });
+    });
+
+    it('should handle pure fusion response', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        json: () => Promise.resolve({
+          success: true,
+          data: {
+            action: 'forge',
+            fusionType: 'pure',
+            consumedTotemIds: ['ttm_a', 'ttm_b', 'ttm_c'],
+            newTotem: { id: 'ttm_forged', speciesId: 0, speciesName: 'Goose', colorId: 3, rarityId: 2, stage: 0 },
+            newEssenceBalance: 2000,
+            achievements: [{ achievementId: 'ach_fusion-progression', milestone: 0, rewards: { essence: 100, xp: 150 } }],
+          },
+        }),
+      });
+
+      const result = await apiClient.fuseTotem(['ttm_a', 'ttm_b', 'ttm_c']);
+      expect(result.success).toBe(true);
+      expect(result.data?.fusionType).toBe('pure');
+      expect(result.data?.achievements).toHaveLength(1);
+      expect(result.data?.achievements[0].achievementId).toBe('ach_fusion-progression');
+    });
+
+    it('should handle INVALID_IDS error', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        json: () => Promise.resolve({
+          success: false,
+          error: { code: 'INVALID_IDS', message: 'Must provide exactly 3 totem IDs' },
+        }),
+      });
+
+      const result = await apiClient.fuseTotem(['ttm_1']);
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_IDS');
+    });
+
+    it('should handle RARITY_MISMATCH error', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        json: () => Promise.resolve({
+          success: false,
+          error: { code: 'RARITY_MISMATCH', message: 'All 3 totems must be the same rarity' },
+        }),
+      });
+
+      const result = await apiClient.fuseTotem(['ttm_1', 'ttm_2', 'ttm_3']);
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('RARITY_MISMATCH');
+    });
+
+    it('should handle SERVICE_UNAVAILABLE error', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        json: () => Promise.resolve({
+          success: false,
+          error: { code: 'SERVICE_UNAVAILABLE', message: 'Unable to verify expedition status' },
+        }),
+      });
+
+      const result = await apiClient.fuseTotem(['ttm_1', 'ttm_2', 'ttm_3']);
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('SERVICE_UNAVAILABLE');
+    });
+
+    it('should handle network error', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Failed to fetch'));
+
+      const result = await apiClient.fuseTotem(['ttm_1', 'ttm_2', 'ttm_3']);
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('NETWORK_ERROR');
+    });
+  });
 });

@@ -6,7 +6,7 @@ import {
   getSpeciesBaseStats,
 } from "../../../utils/totems";
 import { Rarity } from "../../../types/types";
-import { Brain, Dumbbell, Wind } from "lucide-react";
+import { Brain, Dumbbell, Wind, Flame, Dna, Shuffle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const TotemCodex: React.FC = () => {
@@ -310,6 +310,83 @@ const TotemCodex: React.FC = () => {
             </tbody>
           </table>
 
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-500 mt-6 flex items-center gap-2">
+            <Flame size={20} className="text-orange-500" />
+            Totem Fusion
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-2 mb-4">
+            The Forge allows you to combine 3 totems of the same rarity into 1 new totem of the next rarity tier.
+            The sacrificed totems are consumed in the process, and a fresh Stage 1 newborn emerges with a random
+            color from the target rarity's palette. Legendary is the highest forgeable rarity — you cannot fuse
+            Legendary or Limited totems.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div className="p-4 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/20">
+              <div className="flex items-center gap-2 mb-2">
+                <Dna size={18} className="text-indigo-500" />
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Pure Fusion</h3>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Combine 3 totems of the <strong className="text-gray-800 dark:text-gray-200">same species and rarity</strong>.
+                The result is <strong className="text-indigo-600 dark:text-indigo-400">guaranteed to be the same species</strong> at the next rarity tier.
+                Rewards players who collect multiples of a favourite species.
+              </p>
+            </div>
+            <div className="p-4 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/20">
+              <div className="flex items-center gap-2 mb-2">
+                <Shuffle size={18} className="text-emerald-500" />
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Wild Fusion</h3>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Combine 3 totems of the <strong className="text-gray-800 dark:text-gray-200">same rarity, any species</strong>.
+                The result is a <strong className="text-emerald-600 dark:text-emerald-400">random species</strong> at the next rarity tier.
+                The easier path — mix and match whatever you have.
+              </p>
+            </div>
+          </div>
+
+          <table className="w-full text-sm text-left text-gray-300 cursor-default">
+            <thead className="uppercase text-xs text-gray-500 dark:text-gray-400 border-b border-zinc-400 dark:border-zinc-600">
+              <tr>
+                <th className="px-1 py-2">Fuse 3&times;</th>
+                <th className="px-1 py-2">Result</th>
+                <th className="px-1 py-2">Notes</th>
+              </tr>
+            </thead>
+            <tbody className="text-zinc-900 dark:text-zinc-200">
+              <tr className="bg-gray-100 dark:bg-gray-800 hover:bg-purple-100 dark:hover:bg-purple-800/30 transition-colors duration-150">
+                <td className="px-1 py-2"><span className={`font-medium ${getRarityFontColor(Rarity.Common)}`}>Common</span></td>
+                <td className="px-1 py-2"><span className={`font-medium ${getRarityFontColor(Rarity.Uncommon)}`}>Uncommon</span></td>
+                <td className="px-1 py-2">Easiest fusion — Commons are plentiful</td>
+              </tr>
+              <tr className="bg-gray-50 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-purple-800/30 transition-colors duration-150">
+                <td className="px-1 py-2"><span className={`font-medium ${getRarityFontColor(Rarity.Uncommon)}`}>Uncommon</span></td>
+                <td className="px-1 py-2"><span className={`font-medium ${getRarityFontColor(Rarity.Rare)}`}>Rare</span></td>
+                <td className="px-1 py-2">Requires 9 original totems (3&times;3)</td>
+              </tr>
+              <tr className="bg-gray-100 dark:bg-gray-800 hover:bg-purple-100 dark:hover:bg-purple-800/30 transition-colors duration-150">
+                <td className="px-1 py-2"><span className={`font-medium ${getRarityFontColor(Rarity.Rare)}`}>Rare</span></td>
+                <td className="px-1 py-2"><span className={`font-medium ${getRarityFontColor(Rarity.Epic)}`}>Epic</span></td>
+                <td className="px-1 py-2">Requires 27 original totems</td>
+              </tr>
+              <tr className="bg-gray-50 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-purple-800/30 transition-colors duration-150">
+                <td className="px-1 py-2"><span className={`font-medium ${getRarityFontColor(Rarity.Epic)}`}>Epic</span></td>
+                <td className="px-1 py-2"><span className={`font-medium ${getRarityFontColor(Rarity.Legendary)}`}>Legendary</span></td>
+                <td className="px-1 py-2">Requires 81 original totems — the ultimate forge</td>
+              </tr>
+              <tr className="bg-gray-100 dark:bg-gray-800 transition-colors duration-150">
+                <td className="px-1 py-2"><span className={`font-medium ${getRarityFontColor(Rarity.Legendary)}`}>Legendary</span></td>
+                <td className="px-1 py-2 text-gray-500">—</td>
+                <td className="px-1 py-2 text-gray-500">Cannot be forged (highest tier)</td>
+              </tr>
+              <tr className="bg-gray-50 dark:bg-gray-700 transition-colors duration-150">
+                <td className="px-1 py-2"><span className={`font-medium ${getRarityFontColor(Rarity.Limited)}`}>Limited</span></td>
+                <td className="px-1 py-2 text-gray-500">—</td>
+                <td className="px-1 py-2 text-gray-500">Special editions are never consumed</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

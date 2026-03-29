@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Sparkles, Shield, Scroll, Crown, Trophy } from 'lucide-react';
+import { Clock, Sparkles, Shield, Scroll, Crown } from 'lucide-react';
 import { getMissionById } from '../../config/sanctum';
 import type { ActiveCouncilMission } from '../../types/types';
 

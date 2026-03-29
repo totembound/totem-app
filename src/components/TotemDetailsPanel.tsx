@@ -1,5 +1,5 @@
 import React from 'react';
-import { Lock, Unlock, MapPin, Landmark } from 'lucide-react';
+import { Unlock, MapPin, Landmark } from 'lucide-react';
 import { Species, Color, Rarity } from '../types/types';
 import { AVAILABLE_SPECIES } from '../config/constants';
 import { splitWords } from '../utils/formats';

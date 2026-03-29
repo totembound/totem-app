@@ -6,6 +6,7 @@ import { X, MapPin, Heart, AlertCircle, Zap, Sparkles } from "lucide-react";
 import { Domain } from "../../types/types";
 import { formatTokenAmount, formatHoursDuration } from "../../utils/formats";
 import { getRarityBorderColor, getTotemStage } from "../../utils/totems";
+import { isAvailableForExpedition, isAvailableForAction, getBusyReason } from "../../utils/totem-availability";
 import expeditions from "../data/expeditions.json";
 import { IPFS_GATEWAY_URL, CURRENCY_NAMES } from "../../config/constants";
 
@@ -176,12 +177,17 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
     const totem = totems.find((t) => t.id === totemId);
     if (!totem || !expedition) return false;
 
+    // Check if totem is seated on Elder Council (locked)
+    if (!isAvailableForExpedition(totem.attributes)) return false;
+
+    // Check if totem is on a council mission (away)
+    if (!isAvailableForAction(totem.attributes)) return false;
+
     // Check if totem has enough happiness
     if (totem.attributes.happiness < expedition.happinessCost) return false;
 
     // Check if totem is minimum stage
     if (getTotemStage(totem) <= expedition.minStage) return false;
-
 
     // Check if totem is already on another expedition
     if (isTotemOnExpedition(totemId)) return false;
@@ -453,6 +459,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                     const isEligible = isEligibleTotem(totem.id);
                     const totemHasMatchingDomain = hasMatchingDomain(totem.id);
                     const onExpedition = isTotemOnExpedition(totem.id);
+                    const busyReason = getBusyReason(totem.attributes);
                     // Get rarity border colors
                     const rarityColors = getRarityBorderColor(totem.attributes.rarity);
 
@@ -468,7 +475,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                               : "border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
                           }
                           ${
-                            !isEligible || onExpedition
+                            !isEligible || onExpedition || busyReason
                               ? "opacity-50 cursor-not-allowed"
                               : "cursor-pointer"
                           }
@@ -476,11 +483,12 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                         onClick={() =>
                           isEligible &&
                           !onExpedition &&
+                          !busyReason &&
                           toggleTotemSelection(totem.id)
                         }
                       >
-                        <div className="flex items-center gap-2">
-                          <div className={`relative w-12 h-12 rounded-lg overflow-hidden border ${rarityColors.border}`}>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className={`relative w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden border ${rarityColors.border}`}>
                             <img
                               src={
                                 totem.image?.replace(
@@ -497,7 +505,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                               </div>
                             )}
                           </div>
-                          <div className="flex flex-col">
+                          <div className="flex flex-col min-w-0">
                             <div className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
                               {totem.displayName || `#${totem.id}`}
                             </div>
@@ -514,6 +522,9 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                           </div>
                         </div>
 
+                        {busyReason && !onExpedition && (
+                            <div className="mt-2 px-2 py-0.5 bg-blue-600/70 text-white text-xs rounded">{busyReason}</div>
+                        )}
                         {onExpedition && (
                             <div className="mt-2 px-2 py-0.5 bg-red-400/70 text-white text-xs rounded">On Expedition</div>
                         )}

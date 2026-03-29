@@ -4,6 +4,7 @@ import { ChevronLeft, X } from 'lucide-react';
 import { TotemData } from '../../types/types';
 import { useGame } from '../../contexts/GameContext';
 import { getGameDifficulty, getTotemStage, getRarityBorderColor } from '../../utils/totems';
+import { getBusyReason } from '../../utils/totem-availability';
 import ChallengeGame from './ChallengeGame';
 import { IPFS_GATEWAY_URL } from '../../config/constants';
 
@@ -25,9 +26,10 @@ const TotemSelectionCard: React.FC<{
     totem: TotemData;
     challengeType: string;
     isSelected: boolean;
-    isAvailable: boolean; // Add this new prop
+    isAvailable: boolean;
+    busyReason: string | null;
     onClick: () => void;
-}> = ({ totem, challengeType, isSelected, onClick, isAvailable }) => {
+}> = ({ totem, challengeType, isSelected, onClick, isAvailable, busyReason }) => {
     const rarityBorderColors = getRarityBorderColor(totem.attributes.rarity);
     return (
     <div
@@ -59,7 +61,7 @@ const TotemSelectionCard: React.FC<{
                             className="w-full h-full object-contain"
                         />
                         <span className="absolute inset-0 flex items-center justify-center text-red-800 text-shadow-outline font-bold text-center px-1">
-                            Out on Expedition
+                            {busyReason || 'On Expedition'}
                         </span>
                     </div>
                 </div>
@@ -155,6 +157,7 @@ export const ChallengeDialog: React.FC<ChallengeDialogProps> = ({
                                         challengeType={challengeType}
                                         isSelected={selectedTotem?.id === totem.id}
                                         isAvailable={isTotemAvailable(totem.id)}
+                                        busyReason={getBusyReason(totem.attributes)}
                                         onClick={() => handleTotemSelect(totem)}
                                     />
                                 ))}

@@ -156,7 +156,6 @@ const makeTestTotem = (overrides: any = {}) => ({
     wisdom: 5,
     nickname: 'Fang',
     prestigeLevel: 0,
-    isStaked: false,
     ...overrides.attributes,
   },
   trackings: overrides.trackings || {},

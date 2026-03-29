@@ -1,8 +1,8 @@
 import React from 'react';
-import { Lock, Unlock, MapPin } from 'lucide-react';
+import { Lock, Unlock, MapPin, Landmark } from 'lucide-react';
 import { Species, Color, Rarity } from '../types/types';
 import { AVAILABLE_SPECIES } from '../config/constants';
-import { formatTimeRemaining, splitWords } from '../utils/formats';
+import { splitWords } from '../utils/formats';
 import { getTotemAffinityIcon, getTotemDomainIcon } from '../utils/totems';
 
 interface TotemDetailsPanelProps {
@@ -12,9 +12,13 @@ interface TotemDetailsPanelProps {
     color: Color;
     affinity: string;
     domain: string;
-    isStaked: boolean;
+    sanctum?: {
+        seated: boolean;
+        seatIndex: number;
+        seatedAt: string;
+        onMission: boolean;
+    };
     isOnExpedition?: boolean;
-    expeditionEndTime?: number;
     stageDescription?: string;
 }
 
@@ -25,9 +29,8 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
     color,
     affinity,
     domain,
-    isStaked,
+    sanctum,
     isOnExpedition = false,
-    expeditionEndTime = 0,
     stageDescription
 }) => {
     // Fallback to species-level description if stage description not available
@@ -102,32 +105,29 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
                     <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600 dark:text-gray-400">Status</span>
                         <span className="text-sm font-medium flex items-center gap-1.5">
-                            {isStaked ? (
+                            {sanctum?.seated ? (
                                 <>
-                                    <Lock size={14} className="text-blue-500" />
-                                    <span className="text-blue-600 dark:text-blue-400">Staked</span>
+                                    <Landmark size={14} className="text-amber-500" />
+                                    <span className="text-amber-600 dark:text-amber-400">
+                                        Council Seat {sanctum.seatIndex + 1}
+                                        {sanctum.onMission && ' (On Mission)'}
+                                    </span>
+                                </>
+                            ) : isOnExpedition ? (
+                                <>
+                                    <MapPin size={14} className="text-blue-500" />
+                                    <span className="text-blue-600 dark:text-blue-400">
+                                        On Expedition
+                                    </span>
                                 </>
                             ) : (
                                 <>
                                     <Unlock size={14} className="text-gray-500" />
-                                    <span>Unstaked</span>
+                                    <span>Available</span>
                                 </>
                             )}
                         </span>
                     </div>
-
-                    {/* Expedition Status Row */}
-                    {isOnExpedition && (
-                        <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-3 mt-2">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">Expedition</span>
-                            <span className="text-sm font-medium flex items-center gap-1.5">
-                                <MapPin size={14} className="text-blue-500" />
-                                <span className="text-blue-600 dark:text-blue-400">
-                                    {formatTimeRemaining(expeditionEndTime)}
-                                </span>
-                            </span>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

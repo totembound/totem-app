@@ -150,7 +150,13 @@ export interface TotemAttributes {
     wisdom: number;
     nickname: string | null;  // User-customizable name (optional)
     prestigeLevel: number;
-    isStaked: boolean;
+    sanctum?: {
+        seated: boolean;
+        seatIndex: number;
+        seatedAt: string;
+        onMission: boolean;
+        missionEndsAt?: string | null;
+    };
 }
 
 export interface TotemData {
@@ -220,7 +226,8 @@ export enum AchievementCategory {
     Action = 3,
     Challenge = 4,
     Expedition = 5,
-    Forge = 6
+    Forge = 6,
+    Sanctum = 7
 }
 
 export interface AchievementState {
@@ -522,6 +529,43 @@ export interface TutorialStep {
   tokenReward: string;
   experienceReward: number;
   requiresTotem: boolean;
+}
+
+export interface SanctumSeatInfo {
+    seatIndex: number;
+    totemId: string;
+    totemName: string;
+    species: string;
+    seatedAt: string;
+    lastClaimedAt: string;
+    tenureDays: number;
+    tenureMultiplier: number;
+    accumulatedEssence: number;
+    atCap: boolean;
+    onMission: boolean;
+    activeMission: ActiveCouncilMission | null;
+}
+
+export interface ActiveCouncilMission {
+    missionType: string;
+    name: string;
+    startedAt: string;
+    endsAt: string;
+    canClaim: boolean;
+}
+
+export interface SanctumState {
+    maxSeats: number;
+    seats: SanctumSeatInfo[];
+    totalAccumulated: number;
+    lockedSeats: number[];
+}
+
+export interface SanctumClaimResult {
+    totalClaimed: number;
+    breakdown: { seatIndex: number; totemId: string; claimed: number; tenureMultiplier: number }[];
+    newEssenceBalance: number;
+    achievements: Array<{ achievementId: string; milestone?: number; rewards?: { essence?: number; xp?: number } }>;
 }
 
 export {}

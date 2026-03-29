@@ -1231,6 +1231,101 @@ class ApiClient {
     this.loadTokens();
     return this.tokens?.idToken || null;
   }
+
+  // ============================================
+  // Sanctum endpoints
+  // ============================================
+
+  async getSanctum() {
+    return this.request<{
+      maxSeats: number;
+      seats: Array<{
+        seatIndex: number;
+        totemId: string;
+        totemName: string;
+        species: string;
+        seatedAt: string;
+        lastClaimedAt: string;
+        tenureDays: number;
+        tenureMultiplier: number;
+        accumulatedEssence: number;
+        atCap: boolean;
+        onMission: boolean;
+        activeMission: {
+          missionType: string;
+          name: string;
+          startedAt: string;
+          endsAt: string;
+          canClaim: boolean;
+        } | null;
+      }>;
+      totalAccumulated: number;
+      lockedSeats: number[];
+    }>('GET', '/sanctum');
+  }
+
+  async seatTotem(totemId: string, seatIndex?: number) {
+    return this.request<{
+      seatIndex: number;
+      totemId: string;
+      seatedAt: string;
+      sanctumState: unknown;
+      achievements: Array<{ achievementId: string; milestone?: number; rewards?: { essence?: number; xp?: number } }>;
+    }>('POST', '/sanctum/seat', { totemId, seatIndex });
+  }
+
+  async unseatTotem(totemId: string) {
+    return this.request<{
+      totemId: string;
+      sanctumState: unknown;
+    }>('POST', '/sanctum/unseat', { totemId });
+  }
+
+  async claimSanctum() {
+    return this.request<{
+      totalClaimed: number;
+      breakdown: Array<{ seatIndex: number; totemId: string; claimed: number; tenureMultiplier: number }>;
+      newEssenceBalance: number;
+      achievements: Array<{ achievementId: string; milestone?: number; rewards?: { essence?: number; xp?: number } }>;
+    }>('POST', '/sanctum/claim', {});
+  }
+
+  async getCouncilMissions() {
+    return this.request<{
+      governance: Array<unknown>;
+      diplomacy: Array<unknown>;
+      legacy: Array<unknown>;
+    }>('GET', '/sanctum/missions');
+  }
+
+  async startCouncilMission(totemId: string, missionType: string) {
+    return this.request<{
+      missionType: string;
+      totemId: string;
+      startedAt: string;
+      endsAt: string;
+      cost: { essence: number; happiness: number };
+      newEssenceBalance: number;
+    }>('POST', '/sanctum/missions/start', { totemId, missionType });
+  }
+
+  async claimCouncilMission(totemId: string) {
+    return this.request<{
+      missionType: string;
+      missionName: string;
+      totemId: string;
+      rewards: { xp: number; runesEarned: { lesser: number; greater: number; ancient: number } };
+      newRuneBalances: { lesser: number; greater: number; ancient: number } | null;
+      achievements: Array<{ achievementId: string; milestone?: number; rewards?: { essence?: number; xp?: number } }>;
+    }>('POST', '/sanctum/missions/claim', { totemId });
+  }
+
+  async cancelCouncilMission(totemId: string) {
+    return this.request<{
+      totemId: string;
+      cancelled: boolean;
+    }>('POST', '/sanctum/missions/cancel', { totemId });
+  }
 }
 
 // Export singleton instance

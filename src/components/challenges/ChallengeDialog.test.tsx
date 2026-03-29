@@ -76,7 +76,6 @@ const mockTotems = [
       wisdom: 5,
       nickname: null,
       prestigeLevel: 0,
-      isStaked: false,
     },
     trackings: {},
   },
@@ -100,7 +99,6 @@ const mockTotems = [
       wisdom: 14,
       nickname: null,
       prestigeLevel: 0,
-      isStaked: false,
     },
     trackings: {},
   },
@@ -212,7 +210,7 @@ describe('ChallengeDialog', () => {
   it('shows unavailable overlay for totems on expedition', () => {
     mockGameContext.isTotemAvailable.mockImplementation((id: string) => id !== 'ttm_001');
     render(<ChallengeDialog {...defaultProps} />);
-    expect(screen.getByText('Out on Expedition')).toBeInTheDocument();
+    expect(screen.getByText('On Expedition')).toBeInTheDocument();
   });
 
   it('does not select unavailable totem on click', async () => {

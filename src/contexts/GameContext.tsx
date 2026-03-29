@@ -8,6 +8,7 @@ import { getTotemStage } from '../utils/totems';
 import apiClient from '../services/ApiClient';
 import notificationService from '../services/NotificationService';
 import { ACTION_CONFIGS, TIME_WINDOWS, GAME_PARAMS } from '../config/game-config';
+import { isAvailableForAction } from '../utils/totem-availability';
 
 export interface GameContextType {
     actionConfigs: Record<ActionType, ActionConfig>;
@@ -376,7 +377,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         );
     }, [challengeState, totems]);
 
-    // Get eligible totems for a challenge
+    // Get eligible totems for a challenge (stat/stage requirements only)
+    // Availability (expedition, council mission) is checked separately via isTotemAvailable
     const getEligibleTotems = useCallback((challengeId: string) => {
         // Web2: Use plain string IDs instead of hashed IDs
         const challenge = challengeState.challenges[challengeId];
@@ -1063,14 +1065,20 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [fetchTotems, updateBalances]);
 
     const isTotemAvailable = useCallback((totemId: string): boolean => {
-        if (!expeditionState.userExpeditions) return true;
-        
         // Check if totem is on an active expedition
-        // Web2: Compare string IDs directly
-        return !expeditionState.userExpeditions.some(exp =>
-          !exp.completed && exp.totemIds.some(id => id === totemId)
-        );
-      }, [expeditionState.userExpeditions]);
+        if (expeditionState.userExpeditions) {
+          const onExpedition = expeditionState.userExpeditions.some(exp =>
+            !exp.completed && exp.totemIds.some(id => id === totemId)
+          );
+          if (onExpedition) return false;
+        }
+
+        // Check if totem is on a council mission (blocked from all activities)
+        const totem = totems.find(t => t.id === totemId);
+        if (totem && !isAvailableForAction(totem.attributes)) return false;
+
+        return true;
+      }, [expeditionState.userExpeditions, totems]);
 
     const showExpeditionEffect = useCallback((data: ExpeditionRewardsData) => {
         setActiveExpeditionEffect(data);

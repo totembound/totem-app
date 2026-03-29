@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../../contexts/GameContext';
 import { useAchievements } from '../../contexts/AchievementsContext';
-import { Calendar, Coins, Flame, Trophy, Lock, Gift, Package, Sparkles, TrendingUp, Zap } from 'lucide-react';
+import { Calendar, Coins, Crown, Flame, Trophy, Lock, Gift, Package, Sparkles, TrendingUp, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Tooltip from '../Tooltip';
 import TokensDisplay from '../TokensDisplay';
@@ -58,7 +58,6 @@ const Rewards = () => {
     const isClaimLoading = rewardsState.isClaimLoading;
     // Derive unlock status from achievements context (already loaded, no extra API call)
     const hasWeeklyUnlocked = progress['ach_login-progression']?.unlockedMilestones[0] || false;
-    const hasStakingUnlocked = progress['ach_evolution-progression']?.unlockedMilestones[3] || false;
 
     // Check streak requirements
     const canPurchaseDailyProtection = (streakStatus?.streakDays || 0) >= 7;
@@ -204,28 +203,6 @@ const Rewards = () => {
         </div>
     </>);
 
-    const stakingCardContent = (<>
-        <div className="grid grid-cols-1 gap-3 mb-6">
-            <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                <div className="text-sm text-gray-600 dark:text-gray-400">Apprentice</div>
-                <div className="text-lg font-semibold text-gray-900 dark:text-white">500 {CURRENCY_NAMES.SOFT}</div>
-            </div>
-            <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                <div className="text-sm text-gray-600 dark:text-gray-400">Guardian</div>
-                <div className="text-lg font-semibold text-gray-900 dark:text-white">2,500 {CURRENCY_NAMES.SOFT}</div>
-            </div>
-            <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                <div className="text-sm text-gray-600 dark:text-gray-400">Elder</div>
-                <div className="text-lg font-semibold text-gray-900 dark:text-white">10,000 {CURRENCY_NAMES.SOFT}</div>
-            </div>
-        </div>
-
-        <button
-            className="w-full py-2 px-4 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
-        >
-            Stake {CURRENCY_NAMES.SOFT}
-        </button>
-    </>);
 
     const LockedOverlay: React.FC<LockedOverlayProps> = ({ children, achievementName }) => {
         const handleViewAchievement = () => {
@@ -449,24 +426,43 @@ const Rewards = () => {
                         }
                     </div>
 
-                    {/* Wise Elders Staking */}
+                    {/* Elder Sanctum */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 h-full">
-                        <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
-                                <Coins className="w-6 h-6 text-purple-500" />
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                    Wise Elders Staking
-                                </h2>
+                                <Crown className="w-6 h-6 text-amber-500" />
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Elder Sanctum</h2>
                             </div>
-                            <AchievementIcon unlocked={hasStakingUnlocked} name="Elder Evolution" />
                         </div>
 
-                        {hasStakingUnlocked
-                            ? stakingCardContent
-                            : <LockedOverlay achievementName="Elder Evolution">
-                                {stakingCardContent}
-                            </LockedOverlay>
-                        }
+                        <div className="mb-6">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                Seat your most powerful totems on the Council of Elders to earn passive Essence over time.
+                            </p>
+
+                            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 mb-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Coins className="w-4 h-4 text-amber-500" />
+                                    <span className="text-sm font-medium text-gray-900 dark:text-white">Passive Earnings</span>
+                                </div>
+                                <p className="text-xs text-gray-600 dark:text-gray-400">
+                                    Earn 0.5 Essence/hr per seated Elder, with tenure bonuses up to 1.5x
+                                </p>
+                            </div>
+
+                            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-6">
+                                <p>• Requires Stage 4+ (Adult) totems</p>
+                                <p>• Up to 3 Council Seats available</p>
+                                <p>• Exclusive Council Missions</p>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => navigate('/sanctum')}
+                            className="w-full py-2 px-4 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors font-medium"
+                        >
+                            Visit Sanctum
+                        </button>
                     </div>
             </div>
     </div>

@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Home, ShoppingBag, Trophy, Swords, Gift, PawPrint,
   MoreHorizontal, Settings, LogOut, Sparkles, Gem, Map, BookOpenText,
-  LucideIcon, FileText, ShieldCheck, GraduationCap, Hammer
+  LucideIcon, FileText, ShieldCheck, GraduationCap, Hammer, Crown
 } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -33,6 +33,7 @@ const MobileNavigation: React.FC = () => {
     { to: '/challenges', label: 'Challenges', icon: Swords },
     { to: '/expeditions', label: 'Expeditions', icon: Map },
     { to: '/forge', label: 'Forge', icon: Hammer },
+    { to: '/sanctum', label: 'Sanctum', icon: Crown },
     { to: '/achievements', label: 'Achievements', icon: Trophy },
     { to: '/guides', label: 'Guides', icon: BookOpenText },
   ];

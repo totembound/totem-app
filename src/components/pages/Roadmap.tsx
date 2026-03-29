@@ -82,21 +82,28 @@ const quarters: Quarter[] = [
     iconBg: 'bg-green-500/20',
     icon: <Zap className="h-6 w-6 text-green-400" />,
     items: [
+      // Foundation
       { label: '12 totem species across Earth, Water & Air domains, each with 16 color variants', status: 'done' },
-      { label: 'Core gameplay — Feed, Train, Treat & 5-stage Evolution', status: 'done', detail: 'Daily care actions with cooldowns, XP, happiness, and stage thresholds' },
       { label: '6 rarity tiers — Common, Uncommon, Rare, Epic, Legendary & Limited', status: 'done' },
+      { label: 'Core gameplay — Feed, Train, Treat & 5-stage Evolution', status: 'done', detail: 'Daily care actions with cooldowns, XP, happiness, and stage thresholds' },
+      // Content systems
       { label: 'Totem Shop — buy, sell & marketplace listings', status: 'done' },
       { label: '10 challenge mini-games across Strength, Agility & Wisdom', status: 'done', detail: 'Skill-based mini-games with daily attempts that earn XP and happiness' },
       { label: '15 expeditions across 3 domains', status: 'done', detail: 'Send 3-totem teams on timed missions for Essence, XP, and rune drops' },
       { label: 'Daily & weekly rewards with streak bonuses', status: 'done', detail: 'Escalating streak multipliers with purchasable streak protection' },
       { label: '25+ achievements with progression milestones', status: 'done' },
+      // Economy & monetization
       { label: 'Gem Store, Essence Exchange & collector bundles', status: 'done' },
       { label: 'Subscription tiers, loot boxes & prestige system', status: 'done' },
-      { label: 'Interactive codex, guides & lore', status: 'done' },
       { label: 'Limited Edition monthly totems — 1 unique species each month', status: 'done' },
+      // Onboarding & guides
       { label: '6-step guided tutorial with sub-tasks, reward claims & completion celebration', status: 'done' },
+      { label: 'Interactive codex, guides & lore', status: 'done' },
+      // Endgame
       { label: 'The Forge — fuse 3 totems of the same rarity into 1 of the next rarity', status: 'done', detail: 'Pure Fusion (same species) and Wild Fusion (mixed) modes with forge achievements' },
-      { label: 'Elder Sanctum — seat stage 4+ totems for daily passive Essence & solo advisory missions', status: 'in-progress', detail: 'Passive daily rewards, solo advisory expeditions, and sealed loot crates for the upcoming Gear system' },
+      { label: 'Elder Sanctum — seat stage 4+ totems for passive Essence & council missions', status: 'done', detail: '3 council seats, 9 tiered missions with rune drops, passive hourly Essence earnings with claim system' },
+      // In progress
+      { label: 'Spirit Village — illustrated hub replaces nav bar with tappable buildings', status: 'in-progress', detail: '10 buildings with progressive unlock, ambient animations, and notification badges' },
       { label: 'Unlock remaining 3 totems (Bear, Raven, Snake)', status: 'in-progress' },
     ],
   },
@@ -135,7 +142,7 @@ const quarters: Quarter[] = [
     icon: <Map className="h-6 w-6 text-orange-400" />,
     items: [
       { label: '12 new totems from Fire, Spirit & Shadow domains', status: 'planned', detail: 'Fully balanced with unique stats, affinities & evolution art' },
-      { label: 'Habitat system — customizable totem homes', status: 'planned', detail: 'Build and upgrade environments that provide passive bonuses' },
+      { label: 'Habitat system — customizable totem homes in the Spirit Village', status: 'planned', detail: 'Upgrade village buildings for passive bonuses and visual progression' },
       { label: 'Player Exchange — auction house & buy-now marketplace', status: 'planned', detail: 'Trade prized totems at fair market prices vs. shop discount' },
       { label: 'Domain-specific challenge arenas', status: 'planned', detail: 'New mini-games themed around each domain element' },
       { label: 'Cross-domain expedition routes', status: 'planned', detail: 'Longer expeditions spanning multiple domains for greater rewards' },

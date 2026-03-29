@@ -99,7 +99,7 @@ describe('TotemGallery', () => {
           species: 0, color: 0, rarity: 0,
           happiness: 50, experience: 100, stage: 0,
           strength: 10, agility: 10, wisdom: 10,
-          isStaked: false, nickname: null, prestigeLevel: 0,
+          nickname: null, prestigeLevel: 0,
         },
         trackings: {},
       },

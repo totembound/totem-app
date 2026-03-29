@@ -520,7 +520,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                 activeEffect={activeEffect}
                                 onEffectComplete={() => setActiveEffect(null)}
                                 isOnExpedition={tokenIsOnExpedition}
-                                expeditionEndTime={expeditionEndTime}
+                                sanctum={currentAttributes.sanctum}
                             />
                         </div>
 
@@ -601,6 +601,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                 onEvolve={handleEvolve}
                                 canEvolve={canEvolve}
                                 isTotemOnExpedition={tokenIsOnExpedition}
+                                busyReason={currentAttributes.sanctum?.onMission ? 'On Mission' : currentAttributes.sanctum?.seated ? 'Seated' : undefined}
                             />
 
                             {/* Error Display */}
@@ -658,9 +659,8 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                     color={currentAttributes.color}
                                     affinity={totem.affinity}
                                     domain={totem.domain}
-                                    isStaked={currentAttributes.isStaked}
+                                    sanctum={currentAttributes.sanctum}
                                     isOnExpedition={tokenIsOnExpedition}
-                                    expeditionEndTime={expeditionEndTime}
                                 />
                             )}
                         </div>

@@ -117,7 +117,6 @@ const makeMockTotem = (overrides: any = {}) => ({
     wisdom: 5,
     nickname: null,
     prestigeLevel: 0,
-    isStaked: false,
     ...overrides.attributes,
   },
   trackings: {},

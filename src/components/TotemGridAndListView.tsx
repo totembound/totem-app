@@ -1,6 +1,6 @@
 import React from 'react';
 import { TotemData, Rarity } from '../types/types';
-import { Heart, MapPin, Sparkles } from 'lucide-react';
+import { Heart, MapPin, Sparkles, Swords, Landmark } from 'lucide-react';
 import { AFFINITY_ICONS, DOMAIN_ICONS, getRarityBadgeColor, getRarityBorderColor } from '../utils/totems';
 import { IPFS_GATEWAY_URL, STAGE_THRESHOLDS } from '../config/constants';
 import { formatTimeRemaining } from '../utils/formats';
@@ -40,12 +40,28 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
                 relative hover:z-10 h-full flex flex-col
             `}
         >
-            {/* Expedition Badge - top left */}
-            {isOnExpedition && (
+            {/* Status Badge - top left */}
+            {isOnExpedition && !nft.attributes.sanctum?.seated && (
                 <div className="absolute top-2 left-2 z-20">
                     <span className="bg-blue-600 text-white text-[9px] sm:text-xs font-medium px-1.5 py-0.5 rounded-full shadow-md flex items-center gap-0.5">
                         <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         <span className="hidden sm:inline">On Expedition</span>
+                    </span>
+                </div>
+            )}
+            {nft.attributes.sanctum?.onMission && (
+                <div className="absolute top-2 left-2 z-20">
+                    <span className="bg-blue-600 text-white text-[9px] sm:text-xs font-medium px-1.5 py-0.5 rounded-full shadow-md flex items-center gap-0.5">
+                        <Swords className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                        <span className="hidden sm:inline">On Mission</span>
+                    </span>
+                </div>
+            )}
+            {nft.attributes.sanctum?.seated && !nft.attributes.sanctum?.onMission && (
+                <div className="absolute top-2 left-2 z-20">
+                    <span className="bg-blue-600 text-white text-[9px] sm:text-xs font-medium px-1.5 py-0.5 rounded-full shadow-md flex items-center gap-0.5">
+                        <Landmark className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                        <span className="hidden sm:inline">Seated</span>
                     </span>
                 </div>
             )}
@@ -69,13 +85,22 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
                     className="w-full h-full object-cover"
                     loading="lazy"
                 />
-                {/* Expedition time overlay */}
-                {isOnExpedition && (
+                {/* Status overlay - bottom */}
+                {isOnExpedition && !nft.attributes.sanctum?.seated && (
                     <div className="absolute bottom-0 left-0 right-0 text-center pb-1.5">
                         <span className="bg-blue-600/80 dark:bg-blue-800/90 text-white text-[9px] sm:text-xs font-medium px-2 py-0.5 rounded-full backdrop-blur-sm shadow-lg">
                             {expeditionEndTime > 0 && expeditionEndTime > Math.floor(Date.now() / 1000)
                                 ? formatTimeRemaining(expeditionEndTime)
                                 : 'Expedition complete'}
+                        </span>
+                    </div>
+                )}
+                {nft.attributes.sanctum?.onMission && (
+                    <div className="absolute bottom-0 left-0 right-0 text-center pb-1.5">
+                        <span className="bg-blue-600/80 dark:bg-blue-800/90 text-white text-[9px] sm:text-xs font-medium px-2 py-0.5 rounded-full backdrop-blur-sm shadow-lg">
+                            {nft.attributes.sanctum.missionEndsAt && new Date(nft.attributes.sanctum.missionEndsAt).getTime() > Date.now()
+                                ? formatTimeRemaining(Math.floor(new Date(nft.attributes.sanctum.missionEndsAt).getTime() / 1000))
+                                : nft.attributes.sanctum.missionEndsAt ? 'Mission complete' : 'On Mission'}
                         </span>
                     </div>
                 )}
@@ -211,7 +236,7 @@ export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelecte
 
                 {/* Stats */}
                 <div className="flex gap-1.5 sm:gap-2 md:gap-4 flex-shrink-0 items-center">
-                    {isOnExpedition && (
+                    {isOnExpedition && !nft.attributes.sanctum?.seated && (
                         <div className="flex flex-col items-center">
                             <span className="bg-blue-600 text-white text-[10px] sm:text-xs font-medium px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
                                 <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
@@ -225,6 +250,26 @@ export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelecte
                                         ? formatTimeRemaining(expeditionEndTime).replace(' remaining', '')
                                         : 'Done'}
                                 </span>
+                            </span>
+                        </div>
+                    )}
+                    {nft.attributes.sanctum?.onMission && (
+                        <div className="flex flex-col items-center">
+                            <span className="bg-blue-600 text-white text-[10px] sm:text-xs font-medium px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                                <Swords className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                <span>
+                                    {nft.attributes.sanctum?.missionEndsAt && new Date(nft.attributes.sanctum.missionEndsAt).getTime() > Date.now()
+                                        ? formatTimeRemaining(Math.floor(new Date(nft.attributes.sanctum.missionEndsAt).getTime() / 1000))
+                                        : 'Complete'}
+                                </span>
+                            </span>
+                        </div>
+                    )}
+                    {nft.attributes.sanctum?.seated && !nft.attributes.sanctum?.onMission && (
+                        <div className="flex flex-col items-center">
+                            <span className="bg-blue-600 text-white text-[10px] sm:text-xs font-medium px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                                <Landmark className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                <span>Seated</span>
                             </span>
                         </div>
                     )}

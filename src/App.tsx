@@ -60,6 +60,7 @@ import WorldMap from './components/guides/codex/WorldMap';
 import TutorialWizard from './components/guides/TutorialWizard';
 import { TutorialClaimsProvider } from './components/guides/useTutorialClaims';
 import TotemForge from './components/forge/TotemForge';
+import ElderSanctum from './components/sanctum/ElderSanctum';
 
 // Email/password auth only - wallet auth removed
 const AppRoutes: React.FC = () => {
@@ -227,6 +228,11 @@ const AppRoutes: React.FC = () => {
         <Route path="forge" element={
           <Protected>
             <TotemForge />
+          </Protected>
+        } />
+        <Route path="sanctum" element={
+          <Protected>
+            <ElderSanctum />
           </Protected>
         } />
 

@@ -169,9 +169,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         strength: totem.attributes?.strength || 10,
                         agility: totem.attributes?.agility || 10,
                         wisdom: totem.attributes?.wisdom || 10,
-                        isStaked: false,
                         nickname: totem.attributes?.nickname || null,
-                        prestigeLevel: totem.attributes?.prestigeLevel || 0
+                        prestigeLevel: totem.attributes?.prestigeLevel || 0,
+                        ...(totem.attributes?.sanctum && { sanctum: totem.attributes.sanctum }),
                     },
                     trackings: totem.trackings || {}
                 }));
@@ -334,9 +334,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         strength: totemData.attributes?.strength || 10,
                         agility: totemData.attributes?.agility || 10,
                         wisdom: totemData.attributes?.wisdom || 10,
-                        isStaked: false,
                         nickname: totemData.attributes?.nickname || null,
-                        prestigeLevel: totemData.attributes?.prestigeLevel || 0
+                        prestigeLevel: totemData.attributes?.prestigeLevel || 0,
+                        ...(totemData.attributes?.sanctum && { sanctum: totemData.attributes.sanctum }),
                     },
                     trackings: totemData.trackings || {}
                 };

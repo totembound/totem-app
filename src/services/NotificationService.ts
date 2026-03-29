@@ -298,6 +298,39 @@ class NotificationService {
   }
 
   /**
+   * Show notification for sanctum Essence claimed
+   */
+  async showSanctumClaimed(data: { totalClaimed: number }): Promise<void> {
+    const message = `Claimed ${data.totalClaimed.toLocaleString()} Essence from the Elder Sanctum`;
+    await this.showNotification(NotificationType.SANCTUM_CLAIMED, message, data, {
+      priority: NotificationPriority.LOW,
+    });
+  }
+
+  /**
+   * Show notification for council mission rewards claimed
+   */
+  async showMissionRewards(data: { missionName: string; xp: number; runesGained: { lesser: number; greater: number; ancient: number } }): Promise<void> {
+    const totalRunes = data.runesGained.lesser + data.runesGained.greater + data.runesGained.ancient;
+
+    const rewardParts: string[] = [];
+    if (data.xp) rewardParts.push(`+${data.xp} XP`);
+    if (totalRunes > 0) {
+      const runeParts: string[] = [];
+      if (data.runesGained.lesser > 0) runeParts.push(`${data.runesGained.lesser} Lesser`);
+      if (data.runesGained.greater > 0) runeParts.push(`${data.runesGained.greater} Greater`);
+      if (data.runesGained.ancient > 0) runeParts.push(`${data.runesGained.ancient} Ancient`);
+      rewardParts.push(runeParts.join(', ') + ` Rune${totalRunes !== 1 ? 's' : ''}`);
+    }
+
+    const message = `Mission "${data.missionName}" complete! ${rewardParts.join(', ')}`;
+
+    await this.showNotification(NotificationType.MISSION_COMPLETE, message, data, {
+      priority: NotificationPriority.MEDIUM,
+    });
+  }
+
+  /**
    * Show notification for achievement unlocked
    */
   async showAchievementUnlocked(data: AchievementNotificationData): Promise<void> {

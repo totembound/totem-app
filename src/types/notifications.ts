@@ -37,6 +37,11 @@ export enum NotificationType {
     // Forge notifications
     TOTEM_FORGED = 'totem_forged',
 
+    // Sanctum notifications
+    SANCTUM_CLAIMED = 'sanctum_claimed',
+    SANCTUM_FULL = 'sanctum_full',
+    MISSION_COMPLETE = 'mission_complete',
+
     // Shop notifications
     BUNDLE_PURCHASED = 'bundle_purchased',
     TOTEM_UNBOUND = 'totem_unbound',
@@ -205,6 +210,23 @@ export enum NotificationType {
       type: NotificationType.LOOT_CLAIMED,
       scope: NotificationScope.PERSONAL,
       priority: NotificationPriority.MEDIUM
+    },
+
+    // Sanctum notifications
+    [NotificationType.SANCTUM_CLAIMED]: {
+      type: NotificationType.SANCTUM_CLAIMED,
+      scope: NotificationScope.PERSONAL,
+      priority: NotificationPriority.LOW,
+    },
+    [NotificationType.SANCTUM_FULL]: {
+      type: NotificationType.SANCTUM_FULL,
+      scope: NotificationScope.PERSONAL,
+      priority: NotificationPriority.LOW,
+    },
+    [NotificationType.MISSION_COMPLETE]: {
+      type: NotificationType.MISSION_COMPLETE,
+      scope: NotificationScope.PERSONAL,
+      priority: NotificationPriority.MEDIUM,
     },
 
     // Shop notifications

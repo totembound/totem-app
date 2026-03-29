@@ -13,6 +13,8 @@ import {
   VolumeX,
   Settings,
   Map,
+  Coins,
+  Swords,
 } from "lucide-react";
 import { useNotifications } from "../hooks/useNotifications";
 import {
@@ -37,6 +39,10 @@ const NotificationIcon = ({ type }: { type: NotificationType }) => {
       return <Bell size={16} className="text-green-500" />;
     case NotificationType.EXPEDITION_REWARDS:
       return <Map size={16} className="text-purple-500" />;
+    case NotificationType.SANCTUM_CLAIMED:
+      return <Coins size={16} className="text-amber-500" />;
+    case NotificationType.MISSION_COMPLETE:
+      return <Swords size={16} className="text-indigo-500" />;
     default:
       return <Bell size={16} className="text-gray-500 dark:text-gray-400" />;
   }
@@ -112,7 +118,8 @@ function NotificationsPanel() {
       case "expeditions":
         filtered = getFilteredNotifications({
           types: [
-            NotificationType.EXPEDITION_REWARDS
+            NotificationType.EXPEDITION_REWARDS,
+            NotificationType.MISSION_COMPLETE,
           ],
         });
         break;
@@ -130,6 +137,7 @@ function NotificationsPanel() {
             NotificationType.REWARD_CLAIMED,
             NotificationType.PROTECTION_PURCHASED,
             NotificationType.PROTECTION_USED,
+            NotificationType.SANCTUM_CLAIMED,
           ],
         });
         break;

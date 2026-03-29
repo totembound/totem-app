@@ -129,6 +129,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 [AchievementCategory.Challenge]: [],
                 [AchievementCategory.Expedition]: [],
                 [AchievementCategory.Forge]: [],
+                [AchievementCategory.Sanctum]: [],
             };
             const byId: Record<string, AchievementView> = {};
 

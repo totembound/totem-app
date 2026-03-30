@@ -51,6 +51,7 @@ interface AuthContextType {
   // Actions
   login: (email: string, password: string) => Promise<{ success: boolean; needsVerification?: boolean }>;
   signup: (email: string, password: string, displayName?: string) => Promise<{ success: boolean; needsVerification?: boolean }>;
+  loginWithOAuth: (provider: string, code: string, redirectUri: string) => Promise<{ success: boolean; isNewUser?: boolean; error?: string }>;
   verifyEmail: (email: string, code: string, password: string) => Promise<boolean>;
   resendVerification: (email: string) => Promise<boolean>;
   logout: () => Promise<void>;
@@ -177,6 +178,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
+  const loginWithOAuth = useCallback(async (
+    provider: string,
+    code: string,
+    redirectUri: string
+  ): Promise<{ success: boolean; isNewUser?: boolean; error?: string }> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await AuthService.handleOAuthCallback(provider, code, redirectUri);
+
+      if (result.success && result.user) {
+        setUser(result.user as AuthUser);
+        setIsAuthenticated(true);
+        if (result.lootItem) {
+          setLootItem(result.lootItem);
+        }
+        setIsLoading(false);
+        return { success: true, isNewUser: result.isNewUser };
+      } else {
+        const errorMsg = result.error || 'OAuth login failed';
+        setError(errorMsg);
+        setIsLoading(false);
+        return { success: false, error: errorMsg };
+      }
+    } catch (err) {
+      console.error('OAuth login error:', err);
+      const errorMsg = 'An unexpected error occurred';
+      setError(errorMsg);
+      setIsLoading(false);
+      return { success: false, error: errorMsg };
+    }
+  }, []);
+
   const verifyEmail = useCallback(async (
     email: string,
     code: string,
@@ -257,6 +292,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         error,
         login,
         signup,
+        loginWithOAuth,
         verifyEmail,
         resendVerification,
         logout,

@@ -67,6 +67,8 @@ export interface LoginResponse {
   success: boolean;
   user?: User;
   tokens?: AuthTokens;
+  isNewUser?: boolean;
+  lootItem?: LootItemInfo;
   error?: string;
 }
 
@@ -330,6 +332,32 @@ export async function getMe(): Promise<MeResponse> {
 
   if (data.success && data.user) {
     storeUser(data.user);
+  }
+
+  return data;
+}
+
+/**
+ * Exchange OAuth authorization code for tokens
+ */
+export async function handleOAuthCallback(
+  provider: string,
+  code: string,
+  redirectUri: string
+): Promise<LoginResponse> {
+  const response = await fetch(`${API_URL}/auth/oauth/callback`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ provider, code, redirectUri }),
+  });
+
+  const data = await response.json();
+
+  if (data.success && data.tokens) {
+    storeTokens(data.tokens);
+    if (data.user) {
+      storeUser(data.user);
+    }
   }
 
   return data;

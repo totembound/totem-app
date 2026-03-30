@@ -22,6 +22,7 @@ import {
 import { CURRENCY_NAMES } from '../../config/constants';
 import { COMING_SOON } from '../../config/flags';
 import { ComingSoon } from '../ComingSoon';
+import SocialLoginButtons from '../auth/SocialLoginButtons';
 
 type SignupStep = 'form' | 'processing' | 'success';
 
@@ -417,6 +418,9 @@ const Signup: React.FC = () => {
               )}
             </button>
           </form>
+
+          {/* Social Login */}
+          <SocialLoginButtons isLoading={isSubmitting || isLoading} />
 
           {/* Divider */}
           <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">

@@ -137,6 +137,19 @@
         "month": 8
       },
       {
+        "id": "september-2025",
+        "bundleId": 3,
+        "name": "Autumnfang Bear (Harvest Gold)",
+        "description": "A revered spirit of the turning seasons, ensuring the cycle continues.",
+        "baseSpecies": "Bear",
+        "price": 5000,
+        "priceUsd": "$50",
+        "tokenAmount": 2000,
+        "dailyLimit": 1,
+        "image": "https://ipfs.totembound.com/ipfs/bafybeihj6czqap7thwef4sy24k7qbiyu3rwfcib67cydnwmxghzlazezwi",
+        "month": 9
+      },
+      {
         "id": "december-2025",
         "bundleId": 3,
         "name": "Everfrost Owl (Starlit Silver)",

@@ -201,7 +201,7 @@
       "affinity": "Strength",
       "domain": "Earth",
       "locationId": 17,
-      "available": false,
+      "available": true,
       "image": "/totems/bearplacecard.png",
       "baseStats": {
         "strength": 12,

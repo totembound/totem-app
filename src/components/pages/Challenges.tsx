@@ -39,7 +39,7 @@ const strengthChallenges: Challenge[] = [
         type: 'strength',
         title: 'Totem Wrestling',
         description: 'Push against a guardian spirit in a strength duel. Tap rapidly to overpower it. Strength affects endurance and resistance.',
-        image: '/challenges/totem-wrestling-background.png',
+        image: '/challenges/wrestling-ring-background.png',
         requirements: {
             stage: 3,
             strength: 13,

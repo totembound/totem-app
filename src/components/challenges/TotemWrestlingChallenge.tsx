@@ -1,604 +1,770 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameState } from '../../types/types';
 
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+type ChargePhase = 'idle' | 'charging' | 'peaked' | 'declining';
+
+type ImpactParticle = {
+    id: number;
+    x: number;       // px from left of game area
+    yPercent: number; // % from top
+    dirX: number;
+    dirY: number;
+    size: number;
+    timestamp: number;
+    color: string;
+};
+
 type GameSettings = {
-  initialPlayerScore: number;
-  initialComputerScore: number;
-  computerIncreaseRate: number;
-  playerClickValue: number;
-  timeLimit: number;
+    chargeRate: number;             // charge points added per animation frame
+    peakZoneMin: number;            // lower bound of peak zone (0–100)
+    peakZoneMax: number;            // upper bound of peak zone (0–100)
+    declineRate: number;            // charge points removed per frame after peak
+    basePushPower: number;          // position delta at 100% charge
+    peakPushMultiplier: number;     // bonus multiplier when releasing in peak zone
+    opponentBaseInterval: number;   // ms between opponent charges
+    opponentChargeRate:   number;   // charge points added per frame for opponent
+    opponentPushPower:    number;   // multiplier on opponent push power
+    timeLimit: number;              // seconds
 };
 
 interface TotemWrestlingChallengeProps {
-  difficulty?: number;
-  strength?: number;
-  onComplete?: (score: number) => void;
-  onFail?: () => void;
+    difficulty?: number;
+    strength?: number;
+    onComplete?: (score: number) => void;
+    onFail?: () => void;
 }
 
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
 const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
-  difficulty = 2,
-  strength = 10,
-  onComplete = (score: number) => console.log('Challenge complete:', score),
-  onFail = () => console.log('Challenge failed')
+    difficulty = 2,
+    strength = 10,
+    onComplete = (score: number) => console.log('Challenge complete:', score),
+    onFail = () => console.log('Challenge failed'),
 }) => {
-  // Game state management
-  const [gameState, setGameState] = useState<GameState>('ready');
-  const [playerScore, setPlayerScore] = useState<number>(50);
-  const [computerScore, setComputerScore] = useState<number>(50);
-  const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  const [_showAlert, setShowAlert] = useState<boolean>(false);
-  const [containerWidth, setContainerWidth] = useState<number>(1000);
-  const [finalScore, setFinalScore] = useState<number>(0);
-  
-  // Position smoothing state
-  const [currentPosition, setCurrentPosition] = useState<number>(0);
-  
-  // Particle effects state
-  const [particles, setParticles] = useState<Array<{
-    id: number;
-    x: number;
-    y: number;
-    timestamp: number;
-    size: number;
-    color: string;
-    directionX: number;
-    directionY: number;
-    rotation: number;
-    blur: boolean;
-  }>>([]);
 
-  // References for timer implementation and animation
-  const gameAreaRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const timerRef = useRef<number | null>(null);
-  const endTimeRef = useRef<number | null>(null);
-  const animationRef = useRef<number | null>(null);
-  const targetPositionRef = useRef<number>(0);
-  const particleIdRef = useRef<number>(0);
+    // -----------------------------------------------------------------------
+    // State
+    // -----------------------------------------------------------------------
 
-  // Calculate game settings based on difficulty and strength
-  const gameSettings: GameSettings = {
-    initialPlayerScore: 50,
-    initialComputerScore: 50,
-    computerIncreaseRate: 0.4 + (difficulty * 0.2),
-    playerClickValue: (strength + difficulty) * 0.5,
-    timeLimit: 12 - (difficulty * 2),
-  };
+    const [gameState, setGameState]           = useState<GameState>('ready');
+    const [playerCharge, setPlayerCharge]     = useState<number>(0);
+    const [chargePhase, setChargePhase]       = useState<ChargePhase>('idle');
+    const [opponentCharge, setOpponentCharge] = useState<number>(0);
+    const [isOpponentCharging, setIsOpponentCharging] = useState<boolean>(false);
 
-  // Use relative sizes based on container width
-  const backgroundWidth = containerWidth;
-  const characterWidth = containerWidth * 0.43; // 43% of container width (512/1184 ≈ 0.43)
+    // contactPosition: 0 = player pushed opponent fully out (win),
+    //                  1 = opponent pushed player fully out (lose),
+    //                  0.5 = center start
+    const [contactPosition, setContactPosition] = useState<number>(0.5);
+    const [displayPosition, setDisplayPosition] = useState<number>(0.5);
 
-  // Calculate the maximum movement distance
-  const maxMovement = backgroundWidth - characterWidth;
+    const [timeLeft, setTimeLeft]         = useState<number | null>(null);
+    const [finalScore, setFinalScore]     = useState<number>(0);
+    const [impactParticles, setImpactParticles] = useState<ImpactParticle[]>([]);
 
-  // Calculate final game score based on win condition and time elapsed
-  const calculateGameScore = useCallback((isWin: boolean, timeElapsed: number, timeLimit: number): number => {
-    if (!isWin) return 0;
+    // -----------------------------------------------------------------------
+    // Refs  (avoid stale closures in loops / event handlers)
+    // -----------------------------------------------------------------------
 
-    if (timeElapsed >= timeLimit) {
-      // Player won when the timer ran out
-      return 1000;
-    }
+    const gameAreaRef          = useRef<HTMLDivElement>(null);
+    const timerRef             = useRef<number | null>(null);
+    const endTimeRef           = useRef<number | null>(null);
+    const chargeAnimRef        = useRef<number | null>(null);
+    const smoothingRef         = useRef<number | null>(null);
+    const opponentTimerRef     = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const opponentIntervalRef  = useRef<number | null>(null);
+    const particleIdRef        = useRef<number>(0);
+    const displayPositionRef   = useRef<number>(0.5);
 
-    // Player won by reaching the instant win condition
-    // Calculate score based on how quickly they won, up to 2000 points 
-    const timePercentage = 1 - (timeElapsed / timeLimit);
-    return 1000 + Math.round(timePercentage * 1000); // 1000 to 2000 range 
+    // Ref mirrors for use inside rAF / setTimeout closures
+    const chargeValueRef       = useRef<number>(0);
+    const chargePhaseRef       = useRef<ChargePhase>('idle');
+    const contactPositionRef   = useRef<number>(0.5);
+    const isHoldingRef         = useRef<boolean>(false);
+    const gameStateRef         = useRef<GameState>('ready');
+    const gameEndedRef         = useRef<boolean>(false);
+    // Ref so applyPush can call handleGameEnd without a circular useCallback dep
+    const handleGameEndRef     = useRef<(success: boolean) => void>(() => {});
 
-  }, []);
+    // Keep refs in sync with state
+    useEffect(() => { gameStateRef.current = gameState; }, [gameState]);
 
-  // Update container width on mount and window resize
-  useEffect(() => {
-    const updateWidth = () => {
-      if (containerRef.current) {
-        setContainerWidth(containerRef.current.clientWidth);
-      }
+    // Smooth display position toward contact position each animation frame
+    useEffect(() => {
+        if (gameState !== 'playing') return;
+
+        const smooth = () => {
+            const target  = contactPositionRef.current;
+            const current = displayPositionRef.current;
+            const diff    = target - current;
+
+            if (Math.abs(diff) > 0.001) {
+                const next = current + diff * 0.15;
+                displayPositionRef.current = next;
+                setDisplayPosition(next);
+            } else if (current !== target) {
+                displayPositionRef.current = target;
+                setDisplayPosition(target);
+            }
+
+            smoothingRef.current = requestAnimationFrame(smooth);
+        };
+
+        smoothingRef.current = requestAnimationFrame(smooth);
+        return () => {
+            if (smoothingRef.current) cancelAnimationFrame(smoothingRef.current);
+        };
+    }, [gameState]);
+
+    // -----------------------------------------------------------------------
+    // Game settings — strength scales charge speed, peak width, push power
+    // -----------------------------------------------------------------------
+
+    const gameSettings: GameSettings = {
+        chargeRate:            0.6 + (strength * 0.06),           // str=13→1.38, str=20→1.8 pts/frame (~1.1–1.5s to peak)
+        peakZoneMin:           Math.max(60, 80 - strength),       // wider peak with more strength
+        peakZoneMax:           95,
+        declineRate:           2.2,
+        basePushPower:         0.015 + (strength * 0.001),       // str=13→0.028, str=20→0.035 — weak outside peak
+        peakPushMultiplier:    2.5,                               // peak release is ~3.5x a non-peak at same charge
+        opponentBaseInterval:  Math.max(1000, 1800 - (difficulty * 200)),
+        opponentChargeRate:    1.4 + (difficulty * 0.4),
+        opponentPushPower:     2.1 + (difficulty * 0.225),
+        timeLimit:             20,
     };
 
-    // Initial width calculation
-    updateWidth();
+    // -----------------------------------------------------------------------
+    // Visual helpers
+    // -----------------------------------------------------------------------
 
-    // Add resize listener
-    window.addEventListener('resize', updateWidth);
+    const inPeakZone = chargePhase !== 'declining'
+        && playerCharge >= gameSettings.peakZoneMin
+        && playerCharge <= gameSettings.peakZoneMax;
 
-    // Cleanup
-    return () => window.removeEventListener('resize', updateWidth);
-  }, []);
-
-  // Calculate character position based on scores using ratio
-  const calculatePosition = useCallback((player: number, computer: number): number => {
-    // Calculate ratio between scores
-    const ratio = player / computer;
-
-    // Map ratio from 0.5 to 2.0 to normalized position from 0 to 1
-    // When ratio is 1.0 (equal scores), normalizedPosition will be 0.5 (center)
-    let normalizedPosition;
-
-    if (ratio >= 2) {
-      // Player score is double or more, max position (right)
-      normalizedPosition = 1;
-    } else if (ratio <= 0.5) {
-      // Computer score is double or more, min position (left)
-      normalizedPosition = 0;
-    } else {
-      // For ratios between 0.5 and 2.0, create smooth transition
-      // This maps 0.5 -> 0, 1.0 -> 0.5, and 2.0 -> 1.0
-      normalizedPosition = (ratio - 0.5) / 1.5;
-    }
-
-    // Convert normalized position (0 to 1) to actual pixel position
-    const position = normalizedPosition * maxMovement;
-
-    // Ensure position stays within bounds (shouldn't be necessary but added for safety)
-    return Math.max(0, Math.min(maxMovement, position));
-  }, [maxMovement]);
-
-  // Update target position when scores change (using ref to avoid re-renders)
-  useEffect(() => {
-    targetPositionRef.current = calculatePosition(playerScore, computerScore);
-  }, [playerScore, computerScore, calculatePosition]);
-
-  // Smooth position animation with constant movement speed
-  useEffect(() => {
-    if (gameState !== 'playing') return;
-
-    const movementSpeed = 0.3;
-    
-    const animate = () => {
-      setCurrentPosition(current => {
-        const target = targetPositionRef.current;
-        const diff = target - current;
-        
-        // If we're close enough, snap to target
-        if (Math.abs(diff) < 1) {
-          return target;
+    const getAuraStyle = (): React.CSSProperties => {
+        if (playerCharge === 0) return {};
+        const t = playerCharge / 100;
+        if (inPeakZone) {
+            return {
+                filter: `drop-shadow(0 0 ${14 + t * 18}px gold) brightness(1.35)`,
+                transform: `scale(${1 + t * 0.09})`,
+                transition: 'filter 0.08s ease-out, transform 0.08s ease-out',
+            };
         }
-        
-        // Move toward target at constant rate
-        const direction = diff > 0 ? 1 : -1;
-        const nextPosition = current + (direction * movementSpeed);
-        
-        // Don't overshoot the target
-        if (direction > 0) {
-          return Math.min(nextPosition, target);
+        if (chargePhase === 'declining') {
+            return {
+                filter: `drop-shadow(0 0 ${6 + t * 10}px rgba(249, 115, 22, 0.9)) brightness(1.1)`,
+                transition: 'filter 0.08s ease-out',
+            };
+        }
+        return {
+            filter: `drop-shadow(0 0 ${4 + t * 14}px rgba(147, 197, 253, 0.9)) brightness(${1 + t * 0.18})`,
+            transform: `scale(${1 + t * 0.05})`,
+            transition: 'filter 0.08s ease-out, transform 0.08s ease-out',
+        };
+    };
+
+    const getOpponentAuraStyle = (): React.CSSProperties => {
+        if (opponentCharge === 0) return {};
+        const t = opponentCharge / 100;
+        // transform is intentionally omitted here — always set via inline style below
+        // so translateX(-50%) is never dropped when transitioning between charge states
+        return {
+            filter: `drop-shadow(0 0 ${4 + t * 14}px rgba(239, 68, 68, 0.9)) brightness(${1 + t * 0.18})`,
+            transition: 'filter 0.08s ease-out, transform 0.08s ease-out',
+        };
+    };
+
+    // -----------------------------------------------------------------------
+    // Impact particles
+    // -----------------------------------------------------------------------
+
+    const spawnImpactParticles = useCallback((xPx: number) => {
+        const palette = [
+            'bg-amber-400', 'bg-orange-500', 'bg-yellow-300',
+            'bg-red-400', 'bg-stone-400',
+        ];
+        const newParticles: ImpactParticle[] = [];
+        for (let i = 0; i < 14; i++) {
+            const angle = (Math.PI * 2 * i) / 14;
+            newParticles.push({
+                id: particleIdRef.current++,
+                x: xPx,
+                yPercent: 78,
+                dirX: Math.cos(angle) * (Math.random() * 55 + 20),
+                dirY: Math.sin(angle) * (Math.random() * 35 + 10),
+                size: Math.random() * 4 + 3,
+                timestamp: Date.now(),
+                color: palette[Math.floor(Math.random() * palette.length)],
+            });
+        }
+        setImpactParticles(prev => [...prev, ...newParticles]);
+    }, []);
+
+    // -----------------------------------------------------------------------
+    // Push application — updates the shared contact position
+    // -----------------------------------------------------------------------
+
+    const applyPush = useCallback((power: number, direction: 'player' | 'opponent') => {
+        // Player pushes opponent toward right edge (contact increases toward 1 = opponent out).
+        //   contactPosition 0 → player side fully out (player LOSES)
+        //   contactPosition 1 → opponent side fully out (player WINS)
+        // Player push moves contact toward 1; opponent push moves it toward 0.
+        const delta = direction === 'player' ? power : -power;
+
+        // Compute next position synchronously so ring-out checks and particle spawn
+        // all use the same post-push value (state setter updater runs asynchronously).
+        const next = Math.max(0, Math.min(1, contactPositionRef.current + delta));
+        contactPositionRef.current = next;
+        setContactPosition(next);
+
+        // Ring-out checks
+        if (next >= 0.97) {
+            handleGameEndRef.current(true);
+        } else if (next <= 0.03) {
+            handleGameEndRef.current(false);
+        }
+
+        // Spawn particles at the post-push contact point
+        const gameAreaWidth = gameAreaRef.current?.clientWidth || 400;
+        spawnImpactParticles(next * gameAreaWidth);
+    }, [spawnImpactParticles]);
+
+    // -----------------------------------------------------------------------
+    // Score calculation
+    // -----------------------------------------------------------------------
+
+    const calculateScore = useCallback((won: boolean): number => {
+        if (!won) return 0;
+        const timeUsed = endTimeRef.current
+            ? Math.max(0, gameSettings.timeLimit - (endTimeRef.current - Date.now()) / 1000)
+            : gameSettings.timeLimit;
+        const timeFraction  = Math.max(0, 1 - (timeUsed / gameSettings.timeLimit));
+        // How far did player push the opponent? (contactPosition close to 1 = further)
+        const pushFraction  = Math.max(0, (contactPositionRef.current - 0.5) * 2);
+        return Math.round(1000 + (timeFraction * 600) + (pushFraction * 400));
+    }, [gameSettings.timeLimit]);
+
+    // -----------------------------------------------------------------------
+    // Game end
+    // -----------------------------------------------------------------------
+
+    const handleGameEnd = useCallback((success: boolean) => {
+        if (gameEndedRef.current) return;
+        gameEndedRef.current = true;
+
+        if (timerRef.current)          { window.clearInterval(timerRef.current);          timerRef.current = null; }
+        if (opponentTimerRef.current)  { clearTimeout(opponentTimerRef.current);           opponentTimerRef.current = null; }
+        if (opponentIntervalRef.current) { window.clearInterval(opponentIntervalRef.current); opponentIntervalRef.current = null; }
+        if (chargeAnimRef.current)     { cancelAnimationFrame(chargeAnimRef.current);      chargeAnimRef.current = null; }
+        isHoldingRef.current = false;
+
+        if (success) {
+            const score = calculateScore(true);
+            setFinalScore(score);
+            setGameState('success');
+            onComplete(score);
         } else {
-          return Math.max(nextPosition, target);
+            setFinalScore(0);
+            setGameState('failed');
+            onFail();
         }
-      });
-      
-      animationRef.current = requestAnimationFrame(animate);
-    };
-    
-    // Start animation
-    animationRef.current = requestAnimationFrame(animate);
-    
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
-      }
-    };
-  }, [gameState]);
+    }, [calculateScore, onComplete, onFail]);
 
-  // Function to handle game ending (extracted to avoid duplication)
-  const handleGameEnd = useCallback((success: boolean, elapsedTime: number | null = null) => {
-    // Clear any active timers
-    if (timerRef.current) {
-      window.clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
+    // Keep handleGameEndRef in sync so applyPush can call it without stale closure
+    useEffect(() => { handleGameEndRef.current = handleGameEnd; }, [handleGameEnd]);
 
-    if (success) {
-      const finalElapsedTime = elapsedTime !== null ? elapsedTime : gameSettings.timeLimit;
-      const score = calculateGameScore(true, finalElapsedTime, gameSettings.timeLimit);
-      setFinalScore(score);
-      setGameState('success');
-      onComplete(score);
-    } else {
-      setFinalScore(0);
-      setGameState('failed');
-      onFail();
-    }
-  }, [gameSettings.timeLimit, calculateGameScore, onComplete, onFail]);
+    // -----------------------------------------------------------------------
+    // Charge animation loop (rAF)
+    // -----------------------------------------------------------------------
 
-  const startTimer = useCallback(() => {
-    // Clear any existing timer
-    if (timerRef.current) {
-      window.clearInterval(timerRef.current);
-    }
+    const runChargeLoop = useCallback(() => {
+        if (!isHoldingRef.current || gameStateRef.current !== 'playing') return;
 
-    // Calculate when the timer should end
-    const now = Date.now();
-    const duration = gameSettings.timeLimit * 1000; // convert seconds to milliseconds
-    endTimeRef.current = now + duration;
+        const current = chargeValueRef.current;
+        const phase   = chargePhaseRef.current;
 
-    // Set initial timeLeft
-    setTimeLeft(gameSettings.timeLimit);
+        if (phase === 'charging') {
+            const next = current + gameSettings.chargeRate;
+            if (next >= gameSettings.peakZoneMax) {
+                chargeValueRef.current  = gameSettings.peakZoneMax;
+                chargePhaseRef.current  = 'peaked';
+                setChargePhase('peaked');
+            } else {
+                chargeValueRef.current = next;
+            }
+            setPlayerCharge(chargeValueRef.current);
 
-    // Start a new timer that updates every 100ms for smoother countdown
-    timerRef.current = window.setInterval(() => {
-      if (endTimeRef.current === null) return;
+        } else if (phase === 'peaked') {
+            // One-frame hold at peak so the UI can flash "RELEASE!"
+            chargePhaseRef.current = 'declining';
+            setChargePhase('declining');
 
-      const now = Date.now();
-      const remaining = Math.max(0, endTimeRef.current - now);
-      const remainingSeconds = remaining / 1000;
-
-      // Update timeLeft
-      setTimeLeft(remainingSeconds);
-
-      // Check if timer has expired
-      if (remainingSeconds <= 0) {
-        // Clear timer
-        if (timerRef.current) {
-          window.clearInterval(timerRef.current);
-          timerRef.current = null;
+        } else if (phase === 'declining') {
+            const next = Math.max(0, current - gameSettings.declineRate);
+            chargeValueRef.current = next;
+            setPlayerCharge(next);
         }
 
-        // End game based on final scores - player must have higher score to win
-        handleGameEnd(playerScore > computerScore);
-      }
-    }, 100); // Update more frequently for smoother countdown
+        chargeAnimRef.current = requestAnimationFrame(runChargeLoop);
+    }, [gameSettings.chargeRate, gameSettings.peakZoneMax, gameSettings.declineRate]);
 
-  }, [gameSettings.timeLimit, handleGameEnd, playerScore, computerScore]);
+    // -----------------------------------------------------------------------
+    // Press start / end  (works for both mouse and touch)
+    // -----------------------------------------------------------------------
 
-  // Initialize the game
-  const startGame = useCallback(() => {
-    // Set both scores to be equal at start
-    setPlayerScore(gameSettings.initialPlayerScore);
-    setComputerScore(gameSettings.initialComputerScore);
-    setGameState('playing');
-    setFinalScore(0);
-    
-    // Initialize positions to center
-    const centerPosition = maxMovement / 2;
-    setCurrentPosition(centerPosition);
-    targetPositionRef.current = centerPosition;
+    const handlePressStart = useCallback(() => {
+        if (gameStateRef.current !== 'playing') return;
+        if (isHoldingRef.current) return; // ignore multi-touch duplicates
 
-    // Start the timer
-    startTimer();
-  }, [gameSettings.initialPlayerScore, gameSettings.initialComputerScore, startTimer, maxMovement]);
+        isHoldingRef.current    = true;
+        chargeValueRef.current  = 0;
+        chargePhaseRef.current  = 'charging';
+        setChargePhase('charging');
+        setPlayerCharge(0);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        window.clearInterval(timerRef.current);
-      }
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, []);
+        if (chargeAnimRef.current) cancelAnimationFrame(chargeAnimRef.current);
+        chargeAnimRef.current = requestAnimationFrame(runChargeLoop);
+    }, [runChargeLoop]);
 
-  // Handle player clicks on the game area
-  const handleGameAreaClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (gameState !== 'playing') return;
+    const handlePressEnd = useCallback(() => {
+        if (!isHoldingRef.current) return;
+        isHoldingRef.current = false;
 
-    // Get the game area element's bounding rectangle
-    const gameAreaRect = gameAreaRef.current?.getBoundingClientRect();
+        if (chargeAnimRef.current) {
+            cancelAnimationFrame(chargeAnimRef.current);
+            chargeAnimRef.current = null;
+        }
 
-    if (!gameAreaRect) return;
+        const charge = chargeValueRef.current;
+        const phase  = chargePhaseRef.current;
 
-    // Check if the click is within the bounds of the game area
-    const x = e.clientX;
-    const y = e.clientY;
+        if (charge > 4 && gameStateRef.current === 'playing') {
+            const isInPeak = phase !== 'declining' && charge >= gameSettings.peakZoneMin;
+            const rawPower = gameSettings.basePushPower * (charge / 100);
+            const power    = isInPeak ? rawPower * gameSettings.peakPushMultiplier : rawPower;
+            applyPush(power, 'player');
+        }
 
-    if (
-      x >= gameAreaRect.left &&
-      x <= gameAreaRect.right &&
-      y >= gameAreaRect.top &&
-      y <= gameAreaRect.bottom
-    ) {
-      // Click is within the game area boundaries
-      setPlayerScore(prev => prev + gameSettings.playerClickValue);
+        chargeValueRef.current = 0;
+        chargePhaseRef.current = 'idle';
+        setPlayerCharge(0);
+        setChargePhase('idle');
+    }, [gameSettings.peakZoneMin, gameSettings.basePushPower, gameSettings.peakPushMultiplier, applyPush]);
 
-      // Create particle effect at click position
-      const relativeX = x - gameAreaRect.left;
-      const relativeY = y - gameAreaRect.top;
+    // -----------------------------------------------------------------------
+    // Opponent AI — charges visibly then releases
+    // -----------------------------------------------------------------------
 
-      const dustColors = [
-        'bg-stone-600 bg-opacity-60',
-        'bg-gray-500 bg-opacity-55', 
-        'bg-amber-800 bg-opacity-50',
-        'bg-stone-700 bg-opacity-65',
-        'bg-gray-600 bg-opacity-60',
-        'bg-yellow-800 bg-opacity-45'
-      ];
-      
-      // Create multiple particles for each click - clustered dust cloud
-      const newParticles: Array<{
-        id: number;
-        x: number;
-        y: number;
-        timestamp: number;
-        size: number;
-        color: string;
-        directionX: number;
-        directionY: number;
-        rotation: number;
-        blur: boolean;
-      }> = [];
-      
-      for (let i = 0; i < 12; i++) {
-        const angle = (Math.PI * 2 * i) / 12;
-        const initialRadius = Math.random() * 10;
-        const expansionRadius = Math.random() * 40 + 25;
-        
-        newParticles.push({
-          id: particleIdRef.current++,
-          x: relativeX + Math.cos(angle) * initialRadius,
-          y: relativeY + Math.sin(angle) * initialRadius,
-          timestamp: Date.now() + i * 15,
-          size: Math.random() * 3 + 3,
-          color: dustColors[Math.floor(Math.random() * dustColors.length)],
-          directionX: Math.cos(angle) * expansionRadius,
-          directionY: Math.sin(angle) * expansionRadius - Math.random() * 20,
-          rotation: Math.random() * 90,
-          blur: Math.random() > 0.3
-        });
-      }
-      
-      setParticles(prev => [...prev, ...newParticles]);
-    }
-  }, [gameState, gameSettings.playerClickValue]);
+    useEffect(() => {
+        if (gameState !== 'playing') return;
 
-  // Computer score increase effect
-  useEffect(() => {
-    if (gameState !== 'playing') return;
+        const scheduleNext = () => {
+            const delay = gameSettings.opponentBaseInterval + (Math.random() * 800 - 400);
+            opponentTimerRef.current = setTimeout(() => {
+                if (gameStateRef.current !== 'playing') return;
 
-    const timer = setInterval(() => {
-      setComputerScore(prev => prev + gameSettings.computerIncreaseRate);
-    }, 100);
+                setIsOpponentCharging(true);
+                let oppCharge = 0;
 
-    return () => clearInterval(timer);
-  }, [gameState, gameSettings.computerIncreaseRate]);
+                opponentIntervalRef.current = window.setInterval(() => {
+                    oppCharge = Math.min(100, oppCharge + gameSettings.opponentChargeRate);
+                    setOpponentCharge(oppCharge);
 
-  // Check for instant win condition - based on visual position
-  useEffect(() => {
-    if (gameState !== 'playing' || endTimeRef.current === null) return;
+                    // Release somewhere in the 80–100 range
+                    if (oppCharge >= 80 + Math.random() * 20) {
+                        if (opponentIntervalRef.current) {
+                            window.clearInterval(opponentIntervalRef.current);
+                            opponentIntervalRef.current = null;
+                        }
+                        setIsOpponentCharging(false);
+                        setOpponentCharge(0);
 
-    // Check if character has visually reached the right edge (player wins)
-    const winThreshold = maxMovement * 0.95; // 95% of the way to the right edge
-    if (currentPosition >= winThreshold) {
-      // Calculate time elapsed for the instant win
-      const now = Date.now();
-      const elapsed = (gameSettings.timeLimit * 1000) - (endTimeRef.current - now);
-      const elapsedSeconds = Math.min(gameSettings.timeLimit, elapsed / 1000);
+                        if (gameStateRef.current === 'playing') {
+                            const power = gameSettings.basePushPower * (oppCharge / 100) * gameSettings.opponentPushPower;
+                            applyPush(power, 'opponent');
+                            if (gameStateRef.current === 'playing') scheduleNext();
+                        }
+                    }
+                }, 30);
+            }, delay);
+        };
 
-      // End game with win
-      handleGameEnd(true, elapsedSeconds);
-    }
-  }, [currentPosition, gameSettings.timeLimit, gameState, handleGameEnd, maxMovement]);
+        scheduleNext();
 
-  // Check for instant lose condition - based on visual position
-  useEffect(() => {
-    if (gameState !== 'playing') return;
+        return () => {
+            if (opponentTimerRef.current)   clearTimeout(opponentTimerRef.current);
+            if (opponentIntervalRef.current) window.clearInterval(opponentIntervalRef.current);
+        };
+    }, [gameState, gameSettings.opponentBaseInterval, gameSettings.basePushPower, applyPush]);
 
-    // Check if character has visually reached the left edge (computer wins)
-    const loseThreshold = maxMovement * 0.05; // 5% of the way from the left edge
-    if (currentPosition <= loseThreshold) {
-      // End game with loss
-      handleGameEnd(false);
-    }
-  }, [currentPosition, gameState, handleGameEnd, maxMovement]);
+    // -----------------------------------------------------------------------
+    // Countdown timer
+    // -----------------------------------------------------------------------
 
-  // Show alert when time is running low
-  useEffect(() => {
-    if (timeLeft !== null && timeLeft <= 5 && gameState === 'playing') {
-      setShowAlert(true);
-    } else {
-      setShowAlert(false);
-    }
-  }, [timeLeft, gameState]);
+    const startTimer = useCallback(() => {
+        if (timerRef.current) window.clearInterval(timerRef.current);
+        const now = Date.now();
+        endTimeRef.current = now + gameSettings.timeLimit * 1000;
+        setTimeLeft(gameSettings.timeLimit);
 
-  // Clean up old particles
-  useEffect(() => {
-    const cleanupInterval = setInterval(() => {
-      const now = Date.now();
-      setParticles(prev => prev.filter(particle => now - particle.timestamp < 1000)); // Match longer particle lifetime
-    }, 100);
+        timerRef.current = window.setInterval(() => {
+            if (endTimeRef.current === null) return;
+            const remaining = Math.max(0, (endTimeRef.current - Date.now()) / 1000);
+            setTimeLeft(remaining);
 
-    return () => clearInterval(cleanupInterval);
-  }, []);
+            if (remaining <= 0) {
+                if (timerRef.current) { window.clearInterval(timerRef.current); timerRef.current = null; }
+                // Whoever has better position wins at time-up
+                handleGameEndRef.current(contactPositionRef.current > 0.5);
+            }
+        }, 100);
+    }, [gameSettings.timeLimit]);
 
-  // Score ticker component - similar to second code
-  const scoreTicker = (
-    <div className="text-gray-300 font-bold">
-      Time: {timeLeft ? timeLeft.toFixed(1) : '-'}s | Score: {Math.floor(finalScore)}
-    </div>
-  );
+    // -----------------------------------------------------------------------
+    // Start / reset game
+    // -----------------------------------------------------------------------
 
-  // Game content rendering based on state
-  const renderGameContent = () => {
-    return (
-      <>
-        {/* Game area with flexible height */}
-        <div className="bg-slate-800 rounded-lg mb-4 max-w-2xl mx-auto">
-          <div 
-            ref={gameAreaRef}
-            className="relative w-full h-96 bg-slate-700 rounded-lg overflow-hidden cursor-pointer"
-            onClick={handleGameAreaClick}
-          >
-            {/* Tug-of-War Progress Bar - Top of game area */}
-            <div className="absolute top-4 left-4 right-4 h-6 bg-gray-800 rounded-lg overflow-hidden border-2 border-gray-600">
-              {/* Calculate progress based on current position */}
-              {(() => {
-                const progressPercentage = maxMovement > 0 ? (currentPosition / maxMovement) * 100 : 50;
-                const clampedProgress = Math.max(5, Math.min(95, progressPercentage)); // Keep between 5-95% for visual purposes
-                
-                // Intensity effects based on how close to winning
-                const centerDistance = Math.abs(clampedProgress - 50);
-                const intensity = centerDistance / 45; // 0 to 1 scale
-                const isPlayerWinning = clampedProgress > 50;
-                const isComputerWinning = clampedProgress < 50;
-                
-                return (
-                  <>
-                    {/* Single container approach - avoid overlapping */}
-                    <div className="relative w-full h-full">
-                      {/* Player (Left/Blue) Section */}
-                      <div 
-                        className={`absolute top-0 left-0 h-full transition-transform duration-300 ${
-                          isPlayerWinning ? 'bg-blue-600' : 'bg-blue-500'
-                        }`}
-                        style={{ 
-                          width: '100%',
-                          transform: `scaleX(${clampedProgress / 100})`,
-                          transformOrigin: 'left',
-                          boxShadow: isPlayerWinning && intensity > 0.6 ? `inset 0 0 ${intensity * 10}px rgba(59, 130, 246, 0.8)` : ''
-                        }}
-                      />
-                      
-                      {/* Computer (Right/Red) Section - fills remaining space */}
-                      <div 
-                        className={`absolute top-0 right-0 h-full transition-transform duration-300 ${
-                          isComputerWinning ? 'bg-red-600' : 'bg-red-500'
-                        }`}
-                        style={{ 
-                          width: '100%',
-                          transform: `scaleX(${(100 - clampedProgress) / 100})`,
-                          transformOrigin: 'right',
-                          boxShadow: isComputerWinning && intensity > 0.6 ? `inset 0 0 ${intensity * 10}px rgba(239, 68, 68, 0.8)` : ''
-                        }}
-                      />
-                    </div>
-                    
-                    {/* Dramatic Effects for Near-Win States */}
-                    {intensity > 0.8 && (
-                      <div 
-                        className={`absolute top-0 h-full w-full animate-pulse ${
-                          isPlayerWinning ? 'bg-blue-400' : 'bg-red-400'
-                        } opacity-20`}
-                        style={{ animationDuration: '0.3s' }}
-                      />
-                    )}
-                  </>
-                );
-              })()}
-            </div>
+    const startGame = useCallback(() => {
+        // Clear any running timers from a previous round
+        if (timerRef.current)            { window.clearInterval(timerRef.current); timerRef.current = null; }
+        if (opponentTimerRef.current)    { clearTimeout(opponentTimerRef.current); opponentTimerRef.current = null; }
+        if (opponentIntervalRef.current) { window.clearInterval(opponentIntervalRef.current); opponentIntervalRef.current = null; }
+        if (chargeAnimRef.current)       { cancelAnimationFrame(chargeAnimRef.current); chargeAnimRef.current = null; }
 
-            {/* Static Background Image */}
-            <img
-              src="/challenges/forest-background.png"
-              alt="Background"
-              className="w-full h-full object-cover"
-            />
+        isHoldingRef.current       = false;
+        chargeValueRef.current     = 0;
+        chargePhaseRef.current     = 'idle';
+        contactPositionRef.current = 0.5;
+        displayPositionRef.current = 0.5;
+        gameEndedRef.current       = false;
 
-            {/* Moving Character (Foreground) - using currentPosition for smooth constant-rate movement */}
-            <div
-              className="absolute bottom-0"
-              style={{
-                width: `${(characterWidth / backgroundWidth) * 100}%`,
-                left: `${(currentPosition / backgroundWidth) * 100}%`,
-              }}
-            >
-              <img
-                src="/challenges/bearwolfstandoff.png"
-                alt="Game Character"
-                className="w-full h-auto"
-              />
-            </div>
+        setContactPosition(0.5);
+        setDisplayPosition(0.5);
+        setPlayerCharge(0);
+        setOpponentCharge(0);
+        setChargePhase('idle');
+        setIsOpponentCharging(false);
+        setFinalScore(0);
+        setImpactParticles([]);
+        setGameState('playing');
 
-            {/* Particle Effects */}
-            {particles.map(particle => {
-              const age = Date.now() - particle.timestamp;
-              const maxAge = 1000;
-              const progress = Math.min(age / maxAge, 1);
-              const opacity = Math.max(0, (1 - progress) * 0.9);
-              
-              // Gradual expansion from center point - starts slow, speeds up
-              const expansionProgress = progress * progress;
-              const translateX = particle.directionX * expansionProgress;
-              const translateY = particle.directionY * expansionProgress;
-              const rotation = particle.rotation + (progress * 45);
-              
-              // Progressive blur and settling effect
-              const blur = particle.blur || progress > 0.4 ? 'blur-sm' : '';
-              const settling = progress > 0.7 ? 'opacity-60' : '';
-              
-              return (
-                <div
-                  key={particle.id}
-                  className={`absolute pointer-events-none ${particle.color} rounded-full ${blur} ${settling}`}
-                  style={{
-                    left: particle.x,
-                    top: particle.y,
-                    width: `${particle.size}px`,
-                    height: `${particle.size}px`,
-                    opacity: opacity,
-                    transform: `translate(-50%, -50%) translate(${translateX}px, ${translateY}px) rotate(${rotation}deg)`,
-                    transition: 'none',
-                    boxShadow: '0 0 3px rgba(92, 92, 92, 0.5)',
-                    filter: progress > 0.6 ? 'blur(0.5px)' : ''
-                  }}
-                />
-              );
-            })}
-          </div>
+        startTimer();
+    }, [startTimer]);
+
+    // -----------------------------------------------------------------------
+    // Cleanup on unmount
+    // -----------------------------------------------------------------------
+
+    useEffect(() => {
+        return () => {
+            if (timerRef.current)            window.clearInterval(timerRef.current);
+            if (opponentTimerRef.current)    clearTimeout(opponentTimerRef.current);
+            if (opponentIntervalRef.current) window.clearInterval(opponentIntervalRef.current);
+            if (chargeAnimRef.current)       cancelAnimationFrame(chargeAnimRef.current);
+            if (smoothingRef.current)        cancelAnimationFrame(smoothingRef.current);
+        };
+    }, []);
+
+    // Particle cleanup
+    useEffect(() => {
+        const id = setInterval(() => {
+            const now = Date.now();
+            setImpactParticles(prev => prev.filter(p => now - p.timestamp < 850));
+        }, 100);
+        return () => clearInterval(id);
+    }, []);
+
+    // -----------------------------------------------------------------------
+    // Derived layout values
+    // -----------------------------------------------------------------------
+
+    // displayPosition is a smoothed version of contactPosition used for all visuals.
+    // contactPosition drives game logic (ring-out, score); displayPosition drives rendering.
+    const contactXPercent   = displayPosition * 100;
+    // offset = half of player width (20) + half of opponent width (17) = 18
+    // keeps sprites just touching at the contact point
+    const playerXPercent    = contactXPercent - 18;   // player sprite left-center
+    const opponentXPercent  = contactXPercent + 18;   // opponent sprite left-center
+
+    // Lean angle: losing spirit leans away from contact point
+    const playerLean   = Math.min(15, (0.5 - displayPosition) * 40);  // leans right if losing
+    const opponentLean = Math.min(15, (displayPosition - 0.5) * 40);  // leans left if losing
+
+    // Compute player aura once so filter and transform can be split without calling twice
+    const playerAuraStyle = getAuraStyle();
+    const playerAuraScale = playerAuraStyle.transform ?? '';
+
+    const scoreTicker = (
+        <div className="text-gray-300 font-bold">
+            Time: {timeLeft != null ? timeLeft.toFixed(1) : '-'}s | Score: {Math.floor(finalScore)}
         </div>
-
-        {/* Controls and buttons section - below the game area */}
-        <div>
-          {gameState === 'ready' && (
-            <button
-              className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
-                transition-colors duration-200"
-              onClick={startGame}
-              type="button"
-            >
-              Start Challenge
-            </button>
-          )}
-
-          {gameState === 'playing' && (
-            <button
-              className="w-full py-2 px-4 bg-gray-400 dark:bg-gray-600 text-white rounded-lg cursor-not-allowed"
-              disabled={true}
-              type="button"
-            >
-              {scoreTicker}
-            </button>
-          )}
-
-          {gameState === 'success' && (
-            <div className="flex justify-between items-center">
-              {scoreTicker}
-              <button
-                className="py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 
-                  transition-colors duration-200"
-                onClick={startGame}
-                type="button"
-              >
-                Try Again
-              </button>
-            </div>
-          )}
-
-          {gameState === 'failed' && (
-            <div className="flex justify-between items-center">
-              {scoreTicker}
-              <button
-                className="py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 
-                  transition-colors duration-200"
-                onClick={startGame}
-                type="button"
-              >
-                Try Again
-              </button>
-            </div>
-          )}
-        </div>
-      </>
     );
-  };
 
-  return (
-    <div ref={containerRef} className="w-full max-w-2xl mx-auto">
-      {renderGameContent()}
-    </div>
-  );
+    // -----------------------------------------------------------------------
+    // Render
+    // -----------------------------------------------------------------------
+
+    return (
+        <div className="w-full max-w-2xl mx-auto">
+
+            {/* ---- Game Area ---- */}
+            <div
+                ref={gameAreaRef}
+                className="relative w-full h-96 rounded-lg overflow-hidden select-none touch-none mb-4
+                    cursor-pointer"
+                onMouseDown={handlePressStart}
+                onMouseUp={handlePressEnd}
+                onMouseLeave={handlePressEnd}
+                onTouchStart={(e) => { e.preventDefault(); handlePressStart(); }}
+                onTouchEnd={(e)   => { e.preventDefault(); handlePressEnd(); }}
+                onTouchCancel={(e) => { e.preventDefault(); handlePressEnd(); }}
+            >
+                {/* Background — sumo spirit ring */}
+                <img
+                    src="/challenges/wrestling-ring-background.png"
+                    alt="Spirit wrestling ring"
+                    className="absolute inset-0 w-full h-full object-cover"
+                />
+
+                {/* Subtle edge danger zones */}
+                <div
+                    className="absolute top-0 left-0 h-full bg-blue-500/10 pointer-events-none transition-opacity duration-300"
+                    style={{ width: '12%', opacity: displayPosition < 0.2 ? 0.7 : 0.15 }}
+                />
+                <div
+                    className="absolute top-0 right-0 h-full bg-red-500/10 pointer-events-none transition-opacity duration-300"
+                    style={{ width: '12%', opacity: displayPosition > 0.8 ? 0.7 : 0.15 }}
+                />
+
+                {/* Player spirit */}
+                <div
+                    className="absolute pointer-events-none"
+                    style={{
+                        left:     `${playerXPercent}%`,
+                        bottom:   '8%',
+                        width:    '40%',
+                        ...playerAuraStyle,
+                        // always include translateX(-50%) and lean; append scale if aura provides one
+                        transform: `translateX(-50%) rotate(${playerLean}deg)${playerAuraScale ? ` ${playerAuraScale}` : ''}`,
+                    }}
+                >
+                    <img
+                        src="/challenges/player-bear-sprite.png"
+                        alt="Your spirit"
+                        className="w-full h-auto"
+                    />
+                </div>
+
+                {/* Opponent spirit */}
+                <div
+                    className="absolute pointer-events-none"
+                    style={{
+                        left:     `${opponentXPercent}%`,
+                        bottom:   '8%',
+                        width:    '34%',
+                        ...getOpponentAuraStyle(),
+                        // translateX(-50%) always applied so sprite stays centered on opponentXPercent;
+                        // scale only when charging, lean always applied
+                        transform: opponentCharge === 0
+                            ? `translateX(-50%) rotate(${-opponentLean}deg)`
+                            : `translateX(-50%) scale(${1 + (opponentCharge / 100) * 0.05}) rotate(${-opponentLean}deg)`,
+                    }}
+                >
+                    <img
+                        src="/challenges/opponent-wolf-sprite.png"
+                        alt="Guardian spirit"
+                        className="w-full h-auto"
+                    />
+                </div>
+
+                {/* Impact particles */}
+                {impactParticles.map(particle => {
+                    const age      = Date.now() - particle.timestamp;
+                    const progress = Math.min(age / 850, 1);
+                    const opacity  = Math.max(0, 1 - progress);
+                    return (
+                        <div
+                            key={particle.id}
+                            className={`absolute pointer-events-none rounded-full ${particle.color}`}
+                            style={{
+                                left:      `${particle.x}px`,
+                                top:       `${particle.yPercent}%`,
+                                width:     `${particle.size}px`,
+                                height:    `${particle.size}px`,
+                                opacity,
+                                transform: `translate(-50%, -50%)
+                                    translate(${particle.dirX * progress * progress}px,
+                                              ${particle.dirY * progress * progress}px)`,
+                            }}
+                        />
+                    );
+                })}
+
+                {/* ---- HUD elements ---- */}
+
+                {/* Position bar — top of arena */}
+                <div className="absolute top-3 left-4 right-4 h-2.5 bg-gray-900/70 rounded-full overflow-hidden border border-gray-600">
+                    {/* Player (blue) fills from left as they gain ground */}
+                    <div
+                        className="absolute top-0 left-0 h-full bg-blue-500 rounded-full"
+                        style={{ width: `${displayPosition * 100}%` }}
+                    />
+                    {/* Opponent (red) fills from right */}
+                    <div
+                        className="absolute top-0 right-0 h-full bg-red-500 rounded-full"
+                        style={{ width: `${(1 - displayPosition) * 100}%` }}
+                    />
+                    {/* Center marker */}
+                    <div className="absolute top-0 left-1/2 w-0.5 h-full bg-white/50 -translate-x-px" />
+                </div>
+
+                {/* Opponent charge indicator — floats above opponent spirit */}
+                {isOpponentCharging && (
+                    <div
+                        className="absolute pointer-events-none"
+                        style={{
+                            left:      `${opponentXPercent}%`,
+                            bottom:    '70%',
+                            transform: 'translateX(-50%)',
+                            width:     '80px',
+                        }}
+                    >
+                        <div className="h-2 bg-gray-800/80 rounded-full overflow-hidden border border-red-800/50">
+                            <div
+                                className="h-full bg-red-500 transition-none"
+                                style={{ width: `${opponentCharge}%` }}
+                            />
+                        </div>
+                        <p className="text-red-300 text-xs text-center mt-0.5 font-bold tracking-wide">
+                            CHARGING
+                        </p>
+                    </div>
+                )}
+
+                {/* Player charge bar — floats above player spirit */}
+                {gameState === 'playing' && (
+                    <div
+                        className="absolute pointer-events-none"
+                        style={{
+                            left:      `${playerXPercent}%`,
+                            bottom:    '70%',
+                            transform: 'translateX(-50%)',
+                            width:     '88px',
+                        }}
+                    >
+                        {/* Bar with peak zone highlight */}
+                        <div className="relative h-3 bg-gray-900/80 rounded-full overflow-hidden border border-gray-600">
+                            {/* Peak zone backdrop */}
+                            <div
+                                className="absolute top-0 h-full bg-yellow-400/25"
+                                style={{
+                                    left:  `${gameSettings.peakZoneMin}%`,
+                                    width: `${gameSettings.peakZoneMax - gameSettings.peakZoneMin}%`,
+                                }}
+                            />
+                            {/* Charge fill */}
+                            <div
+                                className={`h-full rounded-full transition-none ${
+                                    inPeakZone
+                                        ? 'bg-yellow-400'
+                                        : chargePhase === 'declining'
+                                        ? 'bg-orange-500'
+                                        : 'bg-blue-400'
+                                }`}
+                                style={{
+                                    width:     `${playerCharge}%`,
+                                    boxShadow: inPeakZone ? '0 0 8px gold' : 'none',
+                                }}
+                            />
+                        </div>
+
+                        {/* Label */}
+                        <p className={`text-xs text-center mt-0.5 font-bold tracking-wide ${
+                            inPeakZone          ? 'text-yellow-300 animate-pulse'
+                            : chargePhase === 'declining' ? 'text-orange-400'
+                            : chargePhase === 'charging'  ? 'text-blue-300'
+                            : 'text-transparent'
+                        }`}>
+                            {inPeakZone          ? 'RELEASE!'
+                            : chargePhase === 'declining' ? 'TOO LATE'
+                            : chargePhase === 'charging'  ? 'HOLD...'
+                            : '\u00A0' /* nbsp keeps height stable */}
+                        </p>
+                    </div>
+                )}
+
+                {/* Instruction overlay when ready */}
+                {gameState === 'ready' && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                        <p className="text-white text-lg font-bold text-center px-4 leading-snug">
+                            Hold to charge · Release at peak to push
+                        </p>
+                    </div>
+                )}
+
+            </div>
+
+            {/* ---- Controls below game area (same pattern as original) ---- */}
+            <div>
+                {gameState === 'ready' && (
+                    <button
+                        className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700
+                            transition-colors duration-200"
+                        onClick={startGame}
+                        type="button"
+                    >
+                        Start Challenge
+                    </button>
+                )}
+
+                {gameState === 'playing' && (
+                    <button
+                        className="w-full py-2 px-4 bg-gray-400 dark:bg-gray-600 text-white rounded-lg cursor-not-allowed"
+                        disabled
+                        type="button"
+                    >
+                        {scoreTicker}
+                    </button>
+                )}
+
+                {gameState === 'success' && (
+                    <div className="flex justify-between items-center">
+                        {scoreTicker}
+                        <button
+                            className="py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700
+                                transition-colors duration-200"
+                            onClick={startGame}
+                            type="button"
+                        >
+                            Try Again
+                        </button>
+                    </div>
+                )}
+
+                {gameState === 'failed' && (
+                    <div className="flex justify-between items-center">
+                        {scoreTicker}
+                        <button
+                            className="py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700
+                                transition-colors duration-200"
+                            onClick={startGame}
+                            type="button"
+                        >
+                            Try Again
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
 };
 
 export default TotemWrestlingChallenge;

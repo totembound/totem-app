@@ -23,6 +23,7 @@ import About from './components/pages/About';
 import Plans from './components/pages/Plans';
 import Roadmap from './components/pages/Roadmap';
 import ForgotPassword from './components/pages/ForgotPassword';
+import OAuthCallback from './components/pages/OAuthCallback';
 // SignupForm removed, using email/password Signup only
 import { usePageViews } from './hooks/usePageViews';
 import { useIoTCommands } from './hooks/useIoTCommands';
@@ -85,6 +86,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/signup" element={<Signup/>} />
         <Route path="/verify-email" element={<VerifyEmail/>} />
         <Route path="/forgot-password" element={<ForgotPassword/>} />
+        <Route path="/auth/callback" element={<OAuthCallback/>} />
         <Route path="/terms" element={<LegalDocument doc="terms" />} />
         <Route path="/privacy" element={<LegalDocument doc="privacy" />} />
         <Route index element={<Home />} />

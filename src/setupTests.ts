@@ -98,13 +98,6 @@ const originalFetch = global.fetch;
 global.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
   const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
 
-  // Mock species index
-  if (url.includes('/data/species/index.json')) {
-    return Promise.resolve(new Response(JSON.stringify({
-      species: []
-    }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
-  }
-
   // Pass through other requests
   return originalFetch(input, init);
 }) as typeof fetch;

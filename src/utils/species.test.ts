@@ -101,8 +101,8 @@ describe('getTotemImageUrl', () => {
   });
 
   it('should return placeholder for species without color images', () => {
-    const url = getTotemImageUrl(8, 0, 0);
-    expect(url).toBe('/totems/bearplacecard.png');
+    const url = getTotemImageUrl(9, 0, 0); // Raven - unavailable, no colors
+    expect(url).toBe('/totems/ravenplacecard.png');
   });
 
   it('should return placeholder for unknown species', () => {
@@ -122,7 +122,7 @@ describe('getStageName', () => {
   });
 
   it('should return generic stage names for species without color data', () => {
-    expect(getStageName(8, 0, 0)).toBe('Cub');
+    expect(getStageName(9, 0, 0)).toBe('Hatchling'); // Raven - unavailable, falls back to base stages
   });
 
   it('should return "Unknown" for out of range stage', () => {
@@ -142,7 +142,7 @@ describe('getStageDescription', () => {
   });
 
   it('should return empty string for species without color descriptions', () => {
-    expect(getStageDescription(8, 0, 0)).toBe('');
+    expect(getStageDescription(9, 0, 0)).toBe(''); // Raven - unavailable, no descriptions
   });
 });
 
@@ -158,7 +158,7 @@ describe('getSpeciesColors', () => {
   });
 
   it('should return empty array for species without colors', () => {
-    expect(getSpeciesColors(8)).toEqual([]);
+    expect(getSpeciesColors(9)).toEqual([]); // Raven - unavailable, no colors
   });
 });
 

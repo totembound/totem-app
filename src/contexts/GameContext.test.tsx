@@ -79,7 +79,6 @@ const mockTotem = (overrides: any = {}) => ({
     strength: 10,
     agility: 10,
     wisdom: 10,
-    isStaked: false,
     nickname: null,
     prestigeLevel: 0,
     ...overrides.attributes,
@@ -159,14 +158,14 @@ describe('GameContext', () => {
 
       // Default canUseAction
       expect(ctx.canUseAction(
-        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         ActionType.Feed,
       )).toBe(false);
 
       // Default getActionStatus
       expect(ctx.getActionStatus(
         ActionType.Feed,
-        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         { lastUsed: 0, dailyUses: 0, dayStartTime: 0 },
         {} as any,
       )).toBe('Action not configured');
@@ -313,7 +312,7 @@ describe('GameContext', () => {
       const { result } = renderHook(() => useGame(), { wrapper });
 
       const canUse = result.current.canUseAction(
-        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         ActionType.None,
         { lastUsed: 0, dailyUses: 0, dayStartTime: 0 }
       );
@@ -324,7 +323,7 @@ describe('GameContext', () => {
       const { result } = renderHook(() => useGame(), { wrapper });
 
       const canUse = result.current.canUseAction(
-        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         ActionType.None,
         { lastUsed: 0, dailyUses: 0, dayStartTime: 0 }
       );
@@ -336,7 +335,7 @@ describe('GameContext', () => {
 
       // Train requires minHappiness: 20
       const canUse = result.current.canUseAction(
-        { species: 0, color: 0, rarity: 0, happiness: 10, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 10, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         ActionType.Train,
         { lastUsed: 0, dailyUses: 0, dayStartTime: 0 }
       );
@@ -347,7 +346,7 @@ describe('GameContext', () => {
       const { result } = renderHook(() => useGame(), { wrapper });
 
       const canUse = result.current.canUseAction(
-        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         ActionType.Train
       );
       expect(canUse).toBe(false);
@@ -360,7 +359,7 @@ describe('GameContext', () => {
 
       // Treat has 4 hour cooldown (14400s), last used just now
       const canUse = result.current.canUseAction(
-        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         ActionType.Treat,
         { lastUsed: now, dailyUses: 0, dayStartTime: 0 }
       );
@@ -374,7 +373,7 @@ describe('GameContext', () => {
 
       // Treat has 4 hour cooldown (14400s), last used 5 hours ago
       const canUse = result.current.canUseAction(
-        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         ActionType.Treat,
         { lastUsed: now - 18000, dailyUses: 0, dayStartTime: 0 }
       );
@@ -389,7 +388,7 @@ describe('GameContext', () => {
 
       // Feed has maxDaily: 3
       const canUse = result.current.canUseAction(
-        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         ActionType.Feed,
         { lastUsed: now - 7200, dailyUses: 3, dayStartTime: today }
       );
@@ -403,7 +402,7 @@ describe('GameContext', () => {
 
       expect(result.current.getActionStatus(
         ActionType.Train,
-        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         null as any,
         result.current.actionConfigs[ActionType.Train]
       )).toBe('Action not configured');
@@ -414,7 +413,7 @@ describe('GameContext', () => {
 
       const status = result.current.getActionStatus(
         ActionType.Train,
-        { species: 0, color: 0, rarity: 0, happiness: 10, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 10, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         { lastUsed: 0, dailyUses: 0, dayStartTime: 0 },
         result.current.actionConfigs[ActionType.Train]
       );
@@ -427,7 +426,7 @@ describe('GameContext', () => {
       const now = Math.floor(Date.now() / 1000);
       const status = result.current.getActionStatus(
         ActionType.Treat,
-        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         { lastUsed: now, dailyUses: 0, dayStartTime: 0 },
         result.current.actionConfigs[ActionType.Treat]
       );
@@ -441,7 +440,7 @@ describe('GameContext', () => {
       const now = Math.floor(Date.now() / 1000);
       const status = result.current.getActionStatus(
         ActionType.Train,
-        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         { lastUsed: now - 7200, dailyUses: 0, dayStartTime: 0 },
         result.current.actionConfigs[ActionType.Train]
       );
@@ -1363,7 +1362,7 @@ describe('GameContext', () => {
 
       const status = result.current.getActionStatus(
         ActionType.None,
-        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         { lastUsed: 0, dailyUses: 0, dayStartTime: 0 },
         result.current.actionConfigs[ActionType.None]
       );
@@ -1379,7 +1378,7 @@ describe('GameContext', () => {
       // Feed uses time windows, not daily limit — status reflects window availability
       const status = result.current.getActionStatus(
         ActionType.Feed,
-        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         { lastUsed: now, dailyUses: 3, dayStartTime: today },
         result.current.actionConfigs[ActionType.Feed]
       );
@@ -1393,7 +1392,7 @@ describe('GameContext', () => {
       const _now = Math.floor(Date.now() / 1000);
       const status = result.current.getActionStatus(
         ActionType.Feed,
-        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 0, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         { lastUsed: 0, dailyUses: 0, dayStartTime: 0 },
         result.current.actionConfigs[ActionType.Feed]
       );
@@ -1843,7 +1842,7 @@ describe('GameContext', () => {
 
       // Feed uses time windows; lastUsed = 0 means different day, so should be true
       const canUse = result.current.canUseAction(
-        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 50, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         ActionType.Feed,
         { lastUsed: 0, dailyUses: 0, dayStartTime: 0 }
       );
@@ -1855,7 +1854,7 @@ describe('GameContext', () => {
 
       // Evolve requires minHappiness: 50, no cooldown, no daily limit
       const canUse = result.current.canUseAction(
-        { species: 0, color: 0, rarity: 0, happiness: 60, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 60, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         ActionType.Evolve,
         { lastUsed: 0, dailyUses: 0, dayStartTime: 0 }
       );
@@ -1867,7 +1866,7 @@ describe('GameContext', () => {
 
       // Evolve requires minHappiness: 30
       const canUse = result.current.canUseAction(
-        { species: 0, color: 0, rarity: 0, happiness: 20, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, isStaked: false, nickname: null, prestigeLevel: 0 },
+        { species: 0, color: 0, rarity: 0, happiness: 20, experience: 100, stage: 0, strength: 10, agility: 10, wisdom: 10, nickname: null, prestigeLevel: 0 },
         ActionType.Evolve,
         { lastUsed: 0, dailyUses: 0, dayStartTime: 0 }
       );

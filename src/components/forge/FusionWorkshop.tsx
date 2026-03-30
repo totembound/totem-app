@@ -1,10 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { ArrowLeft, Flame, Shuffle, Dna } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
+import { useGame } from '../../contexts/GameContext';
 import { useAchievements } from '../../contexts/AchievementsContext';
 import { apiClient } from '../../services/ApiClient';
 import { notificationService } from '../../services/NotificationService';
 import { Rarity } from '../../types/types';
+import { isAvailableForExpedition, isAvailableForAction } from '../../utils/totem-availability';
 import FusionSelectionPanel from './FusionSelectionPanel';
 import FusionPreview from './FusionPreview';
 import FusionResultModal from './FusionResultModal';
@@ -25,6 +27,7 @@ const RARITY_NAMES: Record<number, string> = {
 
 const FusionWorkshop: React.FC<FusionWorkshopProps> = ({ onBack }) => {
   const { totems, fetchTotems, updateBalances } = useUser();
+  const { expeditionState } = useGame();
   const { refreshAchievements } = useAchievements();
 
   const [fusionMode, setFusionMode] = useState<FusionMode>(null);
@@ -45,13 +48,23 @@ const FusionWorkshop: React.FC<FusionWorkshopProps> = ({ onBack }) => {
     achievements: Array<{ achievementId: string; milestone?: number; rewards?: { essence?: number; xp?: number } }>;
   } | null>(null);
 
-  // Get eligible totems (not Legendary, not Limited, user-owned)
+  const totemsOnExpedition = useMemo(() => new Set(
+    expeditionState.userExpeditions
+      ?.filter((exp) => !exp.completed)
+      ?.flatMap((exp) => exp.totemIds) || []
+  ), [expeditionState.userExpeditions]);
+
+  // Get eligible totems (not Legendary, not Limited, not busy)
   const eligibleTotems = useMemo(() => {
     return totems.filter(t => {
       const rarity = t.attributes.rarity;
-      return rarity !== Rarity.Legendary && rarity !== Rarity.Limited;
+      if (rarity === Rarity.Legendary || rarity === Rarity.Limited) return false;
+      if (totemsOnExpedition.has(t.id)) return false;
+      if (!isAvailableForExpedition(t.attributes)) return false; // seated
+      if (!isAvailableForAction(t.attributes)) return false; // on mission
+      return true;
     });
-  }, [totems]);
+  }, [totems, totemsOnExpedition]);
 
   // Group by rarity to find which rarities have 3+ totems
   const rarityGroups = useMemo(() => {

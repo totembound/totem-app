@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { useAchievements } from '../../contexts/AchievementsContext';
-import { Shield, Trophy, Swords, Sparkles, Crown, CheckCircle2, Lock, Flame, Map, Hammer, LucideIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import { Shield, Trophy, Swords, Sparkles, Crown, CheckCircle2, Lock, Flame, Map, Hammer, Landmark, LucideIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import Tooltip from '../Tooltip';
 import { AchievementCategory, AchievementProgress, AchievementType, AchievementView, Milestone } from '../../types/types';
 import { IPFS_GATEWAY_URL } from '../../config/constants';
@@ -13,7 +13,8 @@ const categoryOrder = {
     [AchievementCategory.Streak]: 4,
     [AchievementCategory.Challenge]: 5,
     [AchievementCategory.Expedition]: 6,
-    [AchievementCategory.Forge]: 7
+    [AchievementCategory.Forge]: 7,
+    [AchievementCategory.Sanctum]: 8
 };
 
 const categoryIcons: Record<AchievementCategory, LucideIcon> = {
@@ -23,7 +24,8 @@ const categoryIcons: Record<AchievementCategory, LucideIcon> = {
     [AchievementCategory.Action]: Sparkles,
     [AchievementCategory.Challenge]: Swords,
     [AchievementCategory.Expedition]: Map,
-    [AchievementCategory.Forge]: Hammer
+    [AchievementCategory.Forge]: Hammer,
+    [AchievementCategory.Sanctum]: Landmark
 };
 
 const categoryNames: Record<AchievementCategory, string> = {
@@ -33,7 +35,8 @@ const categoryNames: Record<AchievementCategory, string> = {
     [AchievementCategory.Action]: 'Action',
     [AchievementCategory.Challenge]: 'Challenge',
     [AchievementCategory.Expedition]: 'Expedition',
-    [AchievementCategory.Forge]: 'Forge'
+    [AchievementCategory.Forge]: 'Forge',
+    [AchievementCategory.Sanctum]: 'Sanctum'
 };
 
 interface AchievementCardProps {
@@ -264,7 +267,7 @@ const AchievementStatsRow: React.FC<AchievementStatsRowProps> = ({
 
     return (
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2 pb-6">
-            <div className="w-full grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+            <div className="w-full grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
                 {/* Total Progress */}
                 <div className="col-span-1 text-center">
                     <Tooltip 
@@ -616,7 +619,8 @@ const Achievements: React.FC = () => {
         [AchievementCategory.Action]: useRef<HTMLDivElement>(null),
         [AchievementCategory.Challenge]: useRef<HTMLDivElement>(null),
         [AchievementCategory.Expedition]: useRef<HTMLDivElement>(null),
-        [AchievementCategory.Forge]: useRef<HTMLDivElement>(null)
+        [AchievementCategory.Forge]: useRef<HTMLDivElement>(null),
+        [AchievementCategory.Sanctum]: useRef<HTMLDivElement>(null)
     };
     
     const toggleCategory = (category: number) => {

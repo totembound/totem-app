@@ -9,6 +9,7 @@ interface TotemActionBarProps {
     actionTracking: Partial<Record<ActionType, ActionTracking>>;
     essenceBalance: number;
     isTotemOnExpedition?: boolean;
+    busyReason?: string;
     canUseAction: (
         attributes: TotemAttributes,
         actionType: ActionType,
@@ -35,6 +36,7 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
     actionTracking,
     essenceBalance,
     isTotemOnExpedition = false,
+    busyReason,
     canUseAction,
     getActionStatus,
     getNextFeedWindow,
@@ -47,9 +49,9 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
 }) => {
     const getEssenceCost = (cost: number): number => cost;
 
-    // Get expedition status message
+    // Get busy status message
     const expeditionStatusMessage = isTotemOnExpedition
-        ? `On Expedition`
+        ? (busyReason || 'On Expedition')
         : '';
 
     // Render a single action button

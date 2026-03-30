@@ -145,8 +145,9 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
             </div>
 
             {/* Challenge Game */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-100 
-              dark:border-gray-700 shadow-sm">
+            <div className={`bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-100
+              dark:border-gray-700 shadow-sm transition-opacity duration-200
+              ${isSubmitting ? 'pointer-events-none opacity-50' : ''}`}>
                 {challengeType === 'strength' && challengeId === 'chl_boulder-breaker' && (
                     <BoulderBreakerChallenge
                         strength={attributes.strength}

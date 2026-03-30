@@ -54,8 +54,7 @@ function makeApiTotem(overrides: Record<string, unknown> = {}) {
       wisdom: 10,
       nickname: null,
       prestigeLevel: 0,
-      isStaked: false,
-    },
+          },
     trackings: {},
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-02T00:00:00Z',
@@ -123,7 +122,7 @@ describe('totem service', () => {
       expect(totem.attributes.agility).toBe(6);
       expect(totem.attributes.wisdom).toBe(10);
       expect(totem.attributes.prestigeLevel).toBe(0);
-      expect(totem.attributes.isStaked).toBe(false);
+      expect(totem.attributes.sanctum).toBeUndefined();
 
       // Verify auth header sent
       const [url, options] = mockFetch.mock.calls[0];

@@ -309,6 +309,3 @@ export interface TotemCodex {
   rarity: Rarity;
   image: string;
 }
-
-// Codex variant data now built dynamically from species cache
-// via getCodexVariants() in utils/species.ts (stage 0 images from public/data/species/*.json)

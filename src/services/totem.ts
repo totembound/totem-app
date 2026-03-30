@@ -47,7 +47,12 @@ interface ApiTotemAttributes {
   wisdom: number;
   nickname: string | null;
   prestigeLevel: number;
-  isStaked: boolean;
+  sanctum?: {
+    seated: boolean;
+    seatIndex: number;
+    seatedAt: string;
+    onMission: boolean;
+  };
 }
 
 interface ApiTotemTrackings {
@@ -234,7 +239,7 @@ function transformTotem(apiTotem: ApiTotem): TotemData {
       wisdom: apiTotem.attributes.wisdom,
       nickname: apiTotem.attributes.nickname || null, // User's custom name (optional)
       prestigeLevel: apiTotem.attributes.prestigeLevel, // Dynamic
-      isStaked: apiTotem.attributes.isStaked,
+      ...(apiTotem.attributes.sanctum && { sanctum: apiTotem.attributes.sanctum }),
     },
     trackings,
   };

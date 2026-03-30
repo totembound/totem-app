@@ -10,6 +10,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Mail, Lock, Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
 import { COMING_SOON } from '../../config/flags';
 import { ComingSoon } from '../ComingSoon';
+import SocialLoginButtons from '../auth/SocialLoginButtons';
 
 const Login: React.FC = () => {
   const { login, isAuthenticated, isLoading, error, clearError } = useAuth();
@@ -214,6 +215,9 @@ const Login: React.FC = () => {
               )}
             </button>
           </form>
+
+          {/* Social Login */}
+          <SocialLoginButtons isLoading={isSubmitting || isLoading} />
 
           {/* Divider */}
           <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">

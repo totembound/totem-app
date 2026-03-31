@@ -59,10 +59,6 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
     const [opponentCharge, setOpponentCharge] = useState<number>(0);
     const [isOpponentCharging, setIsOpponentCharging] = useState<boolean>(false);
 
-    // contactPosition: 0 = player pushed opponent fully out (win),
-    //                  1 = opponent pushed player fully out (lose),
-    //                  0.5 = center start
-    const [contactPosition, setContactPosition] = useState<number>(0.5);
     const [displayPosition, setDisplayPosition] = useState<number>(0.5);
 
     const [timeLeft, setTimeLeft]         = useState<number | null>(null);
@@ -223,7 +219,6 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
         // all use the same post-push value (state setter updater runs asynchronously).
         const next = Math.max(0, Math.min(1, contactPositionRef.current + delta));
         contactPositionRef.current = next;
-        setContactPosition(next);
 
         // Ring-out checks
         if (next >= 0.97) {
@@ -446,7 +441,6 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
         displayPositionRef.current = 0.5;
         gameEndedRef.current       = false;
 
-        setContactPosition(0.5);
         setDisplayPosition(0.5);
         setPlayerCharge(0);
         setOpponentCharge(0);

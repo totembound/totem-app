@@ -164,7 +164,7 @@ class ApiClient {
           error: { code: 'NOT_AUTHENTICATED', message: 'Not logged in' },
         };
       }
-      headers['Authorization'] = this.tokens.idToken;
+      headers['Authorization'] = this.tokens.accessToken;
     }
 
     try {
@@ -179,7 +179,7 @@ class ApiClient {
         const refreshed = await this.refreshAccessToken();
         if (refreshed) {
           // Retry the request with new token
-          headers['Authorization'] = this.tokens!.idToken;
+          headers['Authorization'] = this.tokens!.accessToken;
           const retryResponse = await fetch(`${API_BASE_URL}${path}`, {
             method,
             headers,

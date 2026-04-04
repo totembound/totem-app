@@ -107,8 +107,8 @@ const TotemImageSection: React.FC<TotemImageSectionProps> = ({
     // Intermittent idle breathing — 6s breath cycle every 15-20s
     const BREATH_DURATION = 6000;
     const imgRef = useRef<HTMLImageElement>(null);
-    const breathTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
-    const scheduleTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+    const breathTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const scheduleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         const triggerBreath = () => {

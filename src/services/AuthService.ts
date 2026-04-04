@@ -141,8 +141,8 @@ export function getStoredUser(): User | null {
  */
 export function getAuthHeader(): Record<string, string> {
   const tokens = getStoredTokens();
-  if (!tokens?.idToken) return {};
-  return { Authorization: tokens.idToken };
+  if (!tokens?.accessToken) return {};
+  return { Authorization: tokens.accessToken };
 }
 
 /**

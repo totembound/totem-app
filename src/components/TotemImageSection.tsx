@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { MapPin, Sparkles, Star, Swords, Landmark } from 'lucide-react';
 import { Rarity, Species } from '../types/types';
 import ActionEffect from './effects/ActionEffect';
@@ -103,6 +103,42 @@ const TotemImageSection: React.FC<TotemImageSectionProps> = ({
     const habitatBackground = HABITAT_BACKGROUNDS[Species.None];
     // Clean up IPFS URL if needed
     const cleanImageUrl = imageUrl.replace('ipfs://', IPFS_GATEWAY_URL);
+
+    // Intermittent idle breathing — 6s breath cycle every 15-20s
+    const BREATH_DURATION = 6000;
+    const imgRef = useRef<HTMLImageElement>(null);
+    const breathTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const scheduleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        const triggerBreath = () => {
+            const el = imgRef.current;
+            if (!el) return;
+            el.classList.remove('animate-breathe');
+            void el.offsetWidth;
+            el.classList.add('animate-breathe');
+            breathTimerRef.current = setTimeout(() => {
+                el.classList.remove('animate-breathe');
+            }, BREATH_DURATION);
+        };
+
+        const scheduleBreath = () => {
+            const delay = 15000 + Math.random() * 5000;
+            scheduleTimerRef.current = setTimeout(() => {
+                triggerBreath();
+                scheduleBreath();
+            }, delay);
+        };
+
+        scheduleBreath();
+
+        return () => {
+            if (scheduleTimerRef.current) clearTimeout(scheduleTimerRef.current);
+            if (breathTimerRef.current) clearTimeout(breathTimerRef.current);
+            const el = imgRef.current;
+            if (el) el.classList.remove('animate-breathe');
+        };
+    }, []);
     
     return (
         <div className={`
@@ -117,7 +153,8 @@ const TotemImageSection: React.FC<TotemImageSectionProps> = ({
             
             {/* Main image - scaled to 80% and centered */}
             <div className="absolute inset-0 flex items-center justify-center z-10">
-                <img 
+                <img
+                    ref={imgRef}
                     src={cleanImageUrl}
                     alt={`${Species[species]} - ${STAGE_NAMES[stage]}`}
                     className="w-4/5 h-4/5 object-contain transition-transform duration-500"

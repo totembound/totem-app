@@ -135,7 +135,7 @@ describe('ApiClient', () => {
 
       const [url, options] = mockFetch.mock.calls[0];
       expect(url).toContain('/totems');
-      expect(options.headers['Authorization']).toBe('test-access');
+      expect(options.headers['Authorization']).toBe('test-id');
       expect(options.method).toBe('GET');
     });
 

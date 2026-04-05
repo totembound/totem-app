@@ -4,6 +4,7 @@ import { COUNCIL_MISSIONS } from '../../config/sanctum';
 import type { ActiveCouncilMission } from '../../types/types';
 import CouncilMissionCard from './CouncilMissionCard';
 import CouncilMissionActive from './CouncilMissionActive';
+import apiClient from '../../services/ApiClient';
 
 export interface MissionClaimResult {
   missionName: string;
@@ -52,7 +53,6 @@ const CouncilMissionPanel: React.FC<CouncilMissionPanelProps> = ({
     setLoadingMissionId(missionId);
     setError(null);
     try {
-      const { default: apiClient } = await import('../../services/ApiClient');
       const res = await apiClient.startCouncilMission(totemId, missionId);
       if (!res.success) {
         setError(res.error?.message ?? 'Failed to start mission');
@@ -70,7 +70,6 @@ const CouncilMissionPanel: React.FC<CouncilMissionPanelProps> = ({
     setActiveLoading(true);
     setError(null);
     try {
-      const { default: apiClient } = await import('../../services/ApiClient');
       const res = await apiClient.claimCouncilMission(totemId);
       if (!res.success) {
         setError(res.error?.message ?? 'Failed to claim mission');
@@ -93,7 +92,6 @@ const CouncilMissionPanel: React.FC<CouncilMissionPanelProps> = ({
     setActiveLoading(true);
     setError(null);
     try {
-      const { default: apiClient } = await import('../../services/ApiClient');
       const res = await apiClient.cancelCouncilMission(totemId);
       if (!res.success) {
         setError(res.error?.message ?? 'Failed to cancel mission');

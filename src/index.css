@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes idle-breathe {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));
+  }
+  50% {
+    transform: scale(1.015) translateY(-3px);
+    filter: drop-shadow(0 8px 12px rgba(0,0,0,0.1));
+  }
+}
+
+.animate-breathe {
+  animation: idle-breathe 6s ease-in-out;
+}
+
 html, body {
     margin: 0;
     padding: 0;
@@ -9,17 +24,6 @@ html, body {
 
 body {
   overflow-x: hidden;
-}
-
-.bg {
-    background-image: url("./totembound.png");
-    height: 100vh;
-    width: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
-    position: fixed;
-    z-index: -1;
 }
 
 .content {

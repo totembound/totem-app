@@ -21,7 +21,7 @@ const getTutorialProgress = async () => {
   // Use rewards endpoint for tutorial progress
   const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/v1'}/rewards/tutorial/progress`, {
     headers: {
-      'Authorization': apiClient.getIdToken() || '',
+      'Authorization': apiClient.getAccessToken() || '',
       'Content-Type': 'application/json'
     }
   });
@@ -36,7 +36,7 @@ const claimTutorialReward = async (rewardId: string, totemId: string) => {
   const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/v1'}/rewards/tutorial`, {
     method: 'POST',
     headers: {
-      'Authorization': apiClient.getIdToken() || '',
+      'Authorization': apiClient.getAccessToken() || '',
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({ step, totemId })

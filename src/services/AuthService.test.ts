@@ -99,7 +99,7 @@ describe('AuthService', () => {
   describe('getAuthHeader', () => {
     it('should return auth header when tokens exist', () => {
       store['totembound_tokens'] = JSON.stringify({ accessToken: 'my-token', refreshToken: 'rt', idToken: 'it', expiresIn: 3600, tokenType: 'Bearer' });
-      expect(getAuthHeader()).toEqual({ Authorization: 'it' });
+      expect(getAuthHeader()).toEqual({ Authorization: 'my-token' });
     });
 
     it('should return empty object when no tokens', () => {
@@ -333,7 +333,7 @@ describe('AuthService', () => {
       expect(localStorageMock.setItem).toHaveBeenCalledWith('totembound_user', expect.any(String));
 
       const [, options] = mockFetch.mock.calls[0];
-      expect(options.headers['Authorization']).toBe('it');
+      expect(options.headers['Authorization']).toBe('at');
     });
 
     it('should not store user on failure', async () => {
@@ -359,7 +359,7 @@ describe('AuthService', () => {
 
       const response = await authFetch('/test');
       expect(response.status).toBe(200);
-      expect(mockFetch.mock.calls[0][1].headers['Authorization']).toBe('it');
+      expect(mockFetch.mock.calls[0][1].headers['Authorization']).toBe('at');
     });
 
     it('should retry with refreshed token on 401', async () => {

@@ -11,7 +11,7 @@ import TotemStatsPanel from './TotemStatsPanel';
 import TotemDetailsPanel from './TotemDetailsPanel';
 import TotemActionBar from './TotemActionBar';
 import ExperienceEffect from './effects/ExperienceEffect';
-import { STAGE_THRESHOLDS } from '../config/constants';
+import { STAGE_THRESHOLDS, BASE_ELDER_XP, PRESTIGE_XP_REQUIREMENT } from '../config/constants';
 import { getTotemImageUrl, getStageName, getStageDescription } from '../utils/species';
 import { Heart, TrendingUp } from 'lucide-react';
 
@@ -450,19 +450,28 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
         };
     }, [onClose]);
 
-    // Compute XP progress for the HUD bar
+    // Compute XP progress for the HUD bar (switches to prestige at max stage)
+    const isPrestige = currentAttributes.stage >= 4;
+    const prestigeLevel = useMemo(() => {
+        if (!isPrestige || currentAttributes.experience <= BASE_ELDER_XP) return 0;
+        return Math.floor((currentAttributes.experience - BASE_ELDER_XP) / PRESTIGE_XP_REQUIREMENT);
+    }, [isPrestige, currentAttributes.experience]);
+
     const xpProgressPercent = useMemo(() => {
-        if (currentAttributes.stage >= 4) return 100;
+        if (isPrestige) {
+            const currentPrestigeThreshold = BASE_ELDER_XP + (prestigeLevel * PRESTIGE_XP_REQUIREMENT);
+            return Math.min(100, ((currentAttributes.experience - currentPrestigeThreshold) / PRESTIGE_XP_REQUIREMENT) * 100);
+        }
         const currentThreshold = STAGE_THRESHOLDS[currentAttributes.stage];
         const nextThreshold = STAGE_THRESHOLDS[currentAttributes.stage + 1];
         if (nextThreshold === currentThreshold) return 100;
         return Math.min(100, ((currentAttributes.experience - currentThreshold) / (nextThreshold - currentThreshold)) * 100);
-    }, [currentAttributes.experience, currentAttributes.stage]);
+    }, [currentAttributes.experience, currentAttributes.stage, isPrestige, prestigeLevel]);
 
     const xpProgressLabel = useMemo(() => {
-        if (currentAttributes.stage >= 4) return 'Max';
+        if (isPrestige) return `P${prestigeLevel} · ${Math.round(xpProgressPercent)}%`;
         return `${Math.round(xpProgressPercent)}%`;
-    }, [currentAttributes.stage, xpProgressPercent]);
+    }, [isPrestige, prestigeLevel, xpProgressPercent]);
 
     return (
         <div
@@ -556,19 +565,21 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                     </div>
                                 </div>
 
-                                {/* XP gauge */}
+                                {/* XP gauge — switches to purple prestige bar at max stage */}
                                 <div className="flex items-center gap-2 flex-1">
-                                    <TrendingUp size={16} className="text-blue-500" />
+                                    <TrendingUp size={16} className={isPrestige ? 'text-purple-500' : 'text-blue-500'} />
                                     <div className="flex-1">
                                         <div className="flex justify-between text-xs mb-0.5">
-                                            <span className="text-gray-500 dark:text-gray-400">XP</span>
+                                            <span className="text-gray-500 dark:text-gray-400">
+                                                {isPrestige ? 'Prestige' : 'XP'}
+                                            </span>
                                             <span className="font-semibold text-gray-700 dark:text-gray-200">
                                                 {xpProgressLabel}
                                             </span>
                                         </div>
                                         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
                                             <div
-                                                className="bg-blue-500 rounded-full h-1.5 transition-all duration-500"
+                                                className={`rounded-full h-1.5 transition-all duration-500 ${isPrestige ? 'bg-purple-500' : 'bg-blue-500'}`}
                                                 style={{ width: `${xpProgressPercent}%` }}
                                             />
                                         </div>

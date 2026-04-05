@@ -62,7 +62,8 @@ vi.mock('react-router-dom', async () => {
       <div data-testid="route">{element}</div>
     ),
     Outlet: () => <div data-testid="outlet">Outlet Content</div>,
-    Navigate: () => null
+    Navigate: () => null,
+    useNavigate: () => vi.fn(),
   };
 });
 

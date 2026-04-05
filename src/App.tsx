@@ -1,11 +1,11 @@
 import React from 'react';
 import { UserProvider } from './contexts/UserContext';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { GameProvider } from './contexts/GameContext';
 import { AchievementsProvider } from './contexts/AchievementsContext';
 import TotemGallery from './components/pages/TotemGallery';
 import ShopInterface from './components/pages/ShopInterface';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { MainLayout } from './components/layouts/MainLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -67,9 +67,20 @@ import ElderSanctum from './components/sanctum/ElderSanctum';
 const AppRoutes: React.FC = () => {
   usePageViews();
   const { updateBalances, fetchTotems } = useUser();
+  const { logout, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   useIoTCommands({
     onBalanceUpdate: () => { updateBalances(); },
     onSync: () => { updateBalances(); fetchTotems(); },
+    // Admin-triggered force logout (per-user or global). The toast is shown
+    // by the hook itself; this callback performs the actual session clear
+    // and redirect. Short delay so the user sees the reason before redirect.
+    onForceLogout: () => {
+      if (!isAuthenticated) return;
+      setTimeout(() => {
+        logout().finally(() => navigate('/login', { replace: true }));
+      }, 1500);
+    },
   });
 
   const Layout = MainLayout;

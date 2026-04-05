@@ -141,8 +141,8 @@ export function getStoredUser(): User | null {
  */
 export function getAuthHeader(): Record<string, string> {
   const tokens = getStoredTokens();
-  if (!tokens?.accessToken) return {};
-  return { Authorization: tokens.accessToken };
+  if (!tokens?.idToken) return {};
+  return { Authorization: tokens.idToken };
 }
 
 /**
@@ -368,7 +368,7 @@ export async function handleOAuthCallback(
  */
 export function isAuthenticated(): boolean {
   const tokens = getStoredTokens();
-  return !!tokens?.accessToken;
+  return !!tokens?.idToken;
 }
 
 /**

@@ -44,9 +44,14 @@ const GoogleIcon = () => (
   </svg>
 );
 
+const TwitchIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#9146FF" aria-hidden="true">
+    <path d="M4.265 1.5L1.5 5.648v15.352h5.176V24h2.94l2.912-2.941h4.236L22.5 15.382V1.5H4.265zm16.47 12.941l-3.528 3.529h-5.176l-2.941 2.941v-2.941H4.853V3.265h15.882v11.176zM17.206 7.03v5.883h-2.118V7.03h2.118zm-5.764 0v5.883H9.324V7.03h2.118z" />
+  </svg>
+);
+
 // Add future provider icons here:
 // const DiscordIcon = () => ( ... );
-// const TwitchIcon = () => ( ... );
 
 const OAUTH_PROVIDERS: Record<string, OAuthProviderConfig> = {
   google: {
@@ -60,8 +65,18 @@ const OAUTH_PROVIDERS: Record<string, OAuthProviderConfig> = {
     hoverBg: 'hover:bg-gray-50 dark:hover:bg-gray-700',
     icon: <GoogleIcon />,
   },
+  twitch: {
+    name: 'Twitch',
+    authorizeUrl: 'https://id.twitch.tv/oauth2/authorize',
+    scopes: 'user:read:email',
+    clientId: import.meta.env.VITE_TWITCH_CLIENT_ID,
+    bg: 'bg-white dark:bg-gray-800',
+    border: 'border border-gray-300 dark:border-gray-600',
+    text: 'text-gray-700 dark:text-gray-200',
+    hoverBg: 'hover:bg-gray-50 dark:hover:bg-gray-700',
+    icon: <TwitchIcon />,
+  },
   // discord: { ... },
-  // twitch: { ... },
 };
 
 // ============================================

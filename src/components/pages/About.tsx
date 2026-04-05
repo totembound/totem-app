@@ -138,8 +138,8 @@ const About: React.FC = () => {
                   Rewards
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Complete achievements, maintain daily streaks, and earn {CURRENCY_NAMES.SOFT}
-                  to enhance your gameplay experience and unlock
+                  Complete achievements, maintain daily streaks, and earn {CURRENCY_NAMES.SOFT} to 
+                  enhance your gameplay experience and unlock
                   exclusive content.
                 </p>
               </div>

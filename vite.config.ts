@@ -99,10 +99,15 @@ export default defineConfig(({ mode }) => ({
     sourcemap: mode !== 'production',
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
-          ui: ['lucide-react', 'tailwind-merge']
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          if (id.includes('/node_modules/react-router/') || id.includes('/node_modules/react-router-dom/') || id.includes('/node_modules/@remix-run/router/')) return 'router';
+          if (id.includes('/node_modules/lucide-react/') || id.includes('/node_modules/tailwind-merge/')) return 'ui';
+          if (id.includes('/node_modules/mqtt/') || id.includes('/node_modules/mqtt-packet/')) return 'mqtt';
+          // Everything else from node_modules (including react/react-dom/scheduler
+          // and their transitive deps) goes into one vendor chunk to avoid
+          // circular chunk edges between vendor and deps.
+          return 'vendor';
         }
       }
     }

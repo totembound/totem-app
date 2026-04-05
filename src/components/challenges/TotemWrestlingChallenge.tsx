@@ -525,7 +525,8 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
                 <img
                     src="/challenges/wrestling-ring-background.png"
                     alt="Spirit wrestling ring"
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                    draggable={false}
                 />
 
                 {/* Subtle edge danger zones */}
@@ -554,6 +555,7 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
                         src="/challenges/player-bear-sprite.png"
                         alt="Your spirit"
                         className="w-full h-auto"
+                        draggable={false}
                     />
                 </div>
 
@@ -576,6 +578,7 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
                         src="/challenges/opponent-wolf-sprite.png"
                         alt="Guardian spirit"
                         className="w-full h-auto"
+                        draggable={false}
                     />
                 </div>
 

@@ -336,6 +336,8 @@ const RingDiveChallenge: React.FC<RingDiveChallengeProps> = ({
                   height: '100px',
                   objectFit: 'cover'
                 }}
+                className="pointer-events-none"
+                draggable={false}
               />
             </div>
             
@@ -359,16 +361,18 @@ const RingDiveChallenge: React.FC<RingDiveChallengeProps> = ({
                   height: '100px',
                   objectFit: 'cover'
                 }}
+                className="pointer-events-none"
+                draggable={false}
               />
             </div>
           </React.Fragment>
         ))}
 
         {/* Player Character */}
-        <img 
+        <img
           src="/challenges/ringbird.png"
           alt="Player"
-          className="absolute"
+          className="absolute pointer-events-none"
           style={{
             left: `${playerRef.current.x}px`,
             top: `${playerRef.current.y}px`,
@@ -377,6 +381,7 @@ const RingDiveChallenge: React.FC<RingDiveChallengeProps> = ({
             objectFit: 'fill',
             zIndex: 20
           }}
+          draggable={false}
         />
         
         {/* Score Messages using our new component */}

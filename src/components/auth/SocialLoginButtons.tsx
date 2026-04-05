@@ -70,6 +70,8 @@ const OAUTH_PROVIDERS: Record<string, OAuthProviderConfig> = {
 
 interface SocialLoginButtonsProps {
   isLoading?: boolean;
+  disabled?: boolean;
+  onDisabledClick?: () => void;
 }
 
 function generateState(): string {
@@ -103,7 +105,11 @@ function buildAuthorizeUrl(provider: string, config: OAuthProviderConfig): strin
   return `${config.authorizeUrl}?${params.toString()}`;
 }
 
-const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ isLoading = false }) => {
+const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({
+  isLoading = false,
+  disabled = false,
+  onDisabledClick,
+}) => {
   // Filter to only providers with configured client IDs
   const activeProviders = Object.entries(OAUTH_PROVIDERS).filter(
     ([, config]) => !!config.clientId
@@ -114,6 +120,10 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ isLoading = fal
 
   const handleClick = (provider: string, config: OAuthProviderConfig) => {
     if (isLoading) return;
+    if (disabled) {
+      onDisabledClick?.();
+      return;
+    }
     const url = buildAuthorizeUrl(provider, config);
     window.location.href = url;
   };
@@ -140,7 +150,9 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ isLoading = fal
             type="button"
             onClick={() => handleClick(provider, config)}
             disabled={isLoading}
-            className={`w-full py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-3 min-h-[44px] transition-all disabled:opacity-50 disabled:cursor-not-allowed ${config.bg} ${config.border} ${config.text} ${config.hoverBg}`}
+            aria-disabled={disabled}
+            title={disabled ? 'You must agree to the Terms of Use and Privacy Policy' : undefined}
+            className={`w-full py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-3 min-h-[44px] transition-all disabled:opacity-50 disabled:cursor-not-allowed ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${config.bg} ${config.border} ${config.text} ${config.hoverBg}`}
           >
             {config.icon}
             Continue with {config.name}

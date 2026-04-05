@@ -420,7 +420,13 @@ const Signup: React.FC = () => {
           </form>
 
           {/* Social Login */}
-          <SocialLoginButtons isLoading={isSubmitting || isLoading} />
+          <SocialLoginButtons
+            isLoading={isSubmitting || isLoading}
+            disabled={!agreedToTerms}
+            onDisabledClick={() =>
+              setLocalError('You must agree to the Terms of Use and Privacy Policy')
+            }
+          />
 
           {/* Divider */}
           <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">

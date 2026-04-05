@@ -55,7 +55,7 @@ class ApiClient {
   }
 
   public isAuthenticated(): boolean {
-    return !!this.tokens?.accessToken;
+    return !!this.tokens?.idToken;
   }
 
   public getAccessToken(): string | null {
@@ -158,13 +158,13 @@ class ApiClient {
       // Always read fresh from localStorage to handle token updates from AuthService
       this.loadTokens();
 
-      if (!this.tokens?.accessToken) {
+      if (!this.tokens?.idToken) {
         return {
           success: false,
           error: { code: 'NOT_AUTHENTICATED', message: 'Not logged in' },
         };
       }
-      headers['Authorization'] = this.tokens.accessToken;
+      headers['Authorization'] = this.tokens.idToken;
     }
 
     try {
@@ -179,7 +179,7 @@ class ApiClient {
         const refreshed = await this.refreshAccessToken();
         if (refreshed) {
           // Retry the request with new token
-          headers['Authorization'] = this.tokens!.accessToken;
+          headers['Authorization'] = this.tokens!.idToken;
           const retryResponse = await fetch(`${API_BASE_URL}${path}`, {
             method,
             headers,

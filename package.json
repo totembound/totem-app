@@ -1,6 +1,6 @@
 {
   "name": "totem-app",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "TotemBound is a game where players raise, train, and evolve mystical spirit animal companions. Players connect to their totemic spirit animals, unlocking wisdom, rewards, and achievements in an immersive journey of growth and discovery.",
   "private": true,
   "dependencies": {

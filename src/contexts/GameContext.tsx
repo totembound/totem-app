@@ -387,7 +387,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return totems
             .filter(totem => {
                 const reqs = challenge.requirements;
-                return getTotemStage(totem) >= Number(reqs.stage) &&
+                return totem.attributes.stage >= Number(reqs.stage) &&
                        totem.attributes.strength >= Number(reqs.strength) &&
                        totem.attributes.agility >= Number(reqs.agility) &&
                        totem.attributes.wisdom >= Number(reqs.wisdom);

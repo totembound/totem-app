@@ -40,8 +40,12 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
     const stage = requirements.stage;
     const eligibleTotems = getEligibleTotems(id);
     const meetsRequirements = eligibleTotems.length > 0;
-    const maxExpReward = Math.max(10, stage * 10 - 10);
-    const essenceReward = stage * 5; // Stage 1=5, Stage 2=10, Stage 3=15, Stage 4=20
+    const ESSENCE_BY_STAGE = [10, 15, 20] as const;
+    const XP_BY_STAGE = [20, 20, 30] as const;
+    // Trial (stage 0, balance) gets 5 Essence / 10 XP; affinity challenges use tier lookup
+    const isTrial = affinityType === 'balance';
+    const essenceReward = isTrial ? 5 : (ESSENCE_BY_STAGE[stage] ?? 20);
+    const maxExpReward = isTrial ? 10 : (XP_BY_STAGE[stage] ?? 30);
 
     const _getAffinityColor = () => {
         switch(affinityType) {
@@ -129,7 +133,7 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
                             px-3 py-1 rounded-full text-sm font-semibold shadow-md
                             ${getStageBadgeStyle()}
                         `}>
-                            Stage {requirements.stage}+
+                            Stage {requirements.stage + 1}+
                         </span>
                     </div>
                     <p className="mt-4 text-sm text-gray-200 line-clamp-3">{description}</p>
@@ -202,7 +206,7 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
                         )}
                         <div className="text-sm px-3 py-1.5 rounded-md bg-purple-50 dark:bg-purple-900/20 
                             text-purple-700 dark:text-purple-400">
-                            Stage: {requirements.stage}+
+                            Stage: {requirements.stage + 1}+
                         </div>
                     </div>
                 </div>

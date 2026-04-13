@@ -300,7 +300,7 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     numConstellations: 3, // Choose from 3 constellations per difficulty level
     minStars: 5 + difficulty,
     maxStars: 7 + (difficulty * 2),
-    numDistractorStars: Math.max(0, (difficulty * 5) - (wisdom - 9)),
+    numDistractorStars: Math.max(0, (difficulty * 5) - (wisdom - 10)),
     timeLimit: 30 + (wisdom - 9) * 5, // More wisdom gives more time
   };
 
@@ -347,7 +347,7 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     const timeSinceAction = Date.now() - lastActionTime;
     
     // Base timing depends on difficulty
-    const baseDelay = difficulty === 1 ? 2000 : difficulty === 2 ? 4000 : 6000;
+    const baseDelay = difficulty === 1 ? 2000 : difficulty === 2 ? 3000 : 4000;
     const moderateDelay = baseDelay * 2;
     const obviousDelay = baseDelay * 4;
     
@@ -370,19 +370,15 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
     // Opacity based on difficulty and hint intensity
     const difficultyOpacity = {
       1: { subtle: 0.18, moderate: 0.30, obvious: 0.40 },
-      2: { subtle: 0.15, moderate: 0.25, obvious: 0.35 },
-      3: { subtle: 0.10, moderate: 0.18, obvious: 0.28 }
+      2: { subtle: 0.18, moderate: 0.28, obvious: 0.38 },
+      3: { subtle: 0.15, moderate: 0.24, obvious: 0.34 }
     }[difficulty];
     
     const baseOpacity = difficultyOpacity?.[hintIntensity] ?? 0.1;
-    
-    // Gentle pulsing effect - slower pulse for higher difficulty
-    const pulseSpeed = difficulty === 1 ? 2000 : difficulty === 2 ? 3000 : 4000;
-    const pulseMultiplier = 0.6 + 0.4 * Math.sin(Date.now() / pulseSpeed);
-    const opacity = baseOpacity * pulseMultiplier;
+    const opacity = baseOpacity;
     
     ctx.strokeStyle = `rgba(135, 206, 235, ${opacity})`;
-    ctx.lineWidth = difficulty === 1 ? 1.5 : 1;
+    ctx.lineWidth = difficulty === 1 ? 1.5 : difficulty === 2 ? 1.25 : 1.5;
     
     // Dash pattern becomes more subtle with higher difficulty
     const dashPattern = difficulty === 1 ? [4, 4] : difficulty === 2 ? [3, 6] : [2, 8];
@@ -746,7 +742,7 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
       animationFrame = requestAnimationFrame(animate);
     };
 
-    if (gameState === 'playing' && selectedStars.length > 0 && validNextStars.length > 0) {
+    if (gameState === 'playing') {
       animationFrame = requestAnimationFrame(animate);
     }
 
@@ -801,40 +797,44 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
 
     // Progressive glow for valid next stars
     let glowClasses = '';
+    let hintBrightness = 1;
     if (isValidNext && gameState === 'playing' && hintIntensity !== 'none') {
       const intensityConfig = {
         'subtle': {
-          brightness: difficulty === 1 ? 108 : difficulty === 2 ? 105 : 103,
-          shadow: difficulty === 1 ? 'shadow-sm shadow-amber-300/20' : 
-                  difficulty === 2 ? 'shadow-sm shadow-amber-300/15' : 
+          brightness: difficulty === 1 ? 1.08 : difficulty === 2 ? 1.05 : 1.03,
+          shadow: difficulty === 1 ? 'shadow-sm shadow-amber-300/20' :
+                  difficulty === 2 ? 'shadow-sm shadow-amber-300/15' :
                   'shadow-sm shadow-amber-300/10',
           animation: ''
         },
         'moderate': {
-          brightness: difficulty === 1 ? 115 : difficulty === 2 ? 110 : 105,
-          shadow: difficulty === 1 ? 'shadow-md shadow-amber-400/30' : 
-                  difficulty === 2 ? 'shadow-md shadow-amber-400/20' : 
+          brightness: difficulty === 1 ? 1.15 : difficulty === 2 ? 1.10 : 1.05,
+          shadow: difficulty === 1 ? 'shadow-md shadow-amber-400/30' :
+                  difficulty === 2 ? 'shadow-md shadow-amber-400/20' :
                   'shadow-sm shadow-amber-400/15',
-          animation: difficulty === 1 ? 'animate-pulse' : ''
+          animation: ''
         },
         'obvious': {
-          brightness: difficulty === 1 ? 125 : difficulty === 2 ? 118 : 110,
-          shadow: difficulty === 1 ? 'shadow-lg shadow-amber-500/40' : 
-                  difficulty === 2 ? 'shadow-md shadow-amber-500/25' : 
+          brightness: difficulty === 1 ? 1.25 : difficulty === 2 ? 1.18 : 1.10,
+          shadow: difficulty === 1 ? 'shadow-lg shadow-amber-500/40' :
+                  difficulty === 2 ? 'shadow-md shadow-amber-500/25' :
                   'shadow-md shadow-amber-500/15',
-          animation: difficulty === 1 ? 'animate-pulse' : difficulty === 2 ? 'animate-pulse' : ''
+          animation: ''
         }
       };
 
       const config = intensityConfig[hintIntensity];
       glowClasses = `${config.animation} ${config.shadow}`;
+      hintBrightness = config.brightness;
     }
+
+    const imgBrightness = isSelected ? 1.5 : hintBrightness;
 
     return (
       <div
         key={star.id}
         className={`
-          absolute w-4 h-4 transform -translate-x-1/2 -translate-y-1/2 
+          absolute w-4 h-4 transform -translate-x-1/2 -translate-y-1/2
           ${gameState === 'playing' ? 'cursor-pointer' : 'cursor-default'}
           flex items-center justify-center transition-all duration-300
           ${isSelected ? 'scale-125' : 'scale-100'}
@@ -850,19 +850,8 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
         <img
           src="/challenges/16bit-star.png"
           alt="Star"
-          className={`
-            w-full h-full object-contain transition-all duration-300
-            ${isSelected ? 'brightness-150' : 'brightness-100'}
-            ${isSelected ? 'animate-pulse' : ''}
-            ${isValidNext && gameState === 'playing' && hintIntensity !== 'none' ? 
-              `brightness-${
-                hintIntensity === 'obvious' ? 
-                  (difficulty === 1 ? '125' : difficulty === 2 ? '118' : '110') :
-                hintIntensity === 'moderate' ?
-                  (difficulty === 1 ? '115' : difficulty === 2 ? '110' : '105') :
-                  (difficulty === 1 ? '108' : difficulty === 2 ? '105' : '103')
-              }` : ''}
-          `}
+          className={`w-full h-full object-contain transition-all duration-300 ${isSelected ? 'animate-pulse' : ''}`}
+          style={{ filter: `brightness(${imgBrightness})` }}
         />
       </div>
     );

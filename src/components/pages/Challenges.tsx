@@ -3,164 +3,14 @@ import ChallengeDialog from '../challenges/ChallengeDialog';
 import ChallengePanel from '../challenges/ChallengePanel';
 import { useGame } from '../../contexts/GameContext';
 import { DEFAULT_MAX_DAILY_ATTEMPTS } from '../../config/constants';
+import { CHALLENGES, type AffinityType } from '../../config/challenges';
 
-type AffinityType = 'strength' | 'agility' | 'wisdom' | 'balance';
-
-interface Challenge {
-    id: string;
-    title: string;
-    description: string;
-    image: string;
-    type: AffinityType;
-    requirements: {
-        stage: number;
-        strength: number;
-        agility: number;
-        wisdom: number;
-    };
-}
-
-const strengthChallenges: Challenge[] = [
-    {
-        id: 'chl_boulder-breaker',
-        type: 'strength',
-        title: 'Boulder Breaker',
-        description: 'Break a massive rock by timing your strikes correctly. Strength determines power and speed. Harder levels add resistance.',
-        image: '/challenges/breaking-background.png',
-        requirements: {
-            stage: 2,
-            strength: 10,
-            agility: 5,
-            wisdom: 5
-        }
-    },
-    {
-        id: 'chl_totem-wrestling',
-        type: 'strength',
-        title: 'Totem Wrestling',
-        description: 'Push against a guardian spirit in a strength duel. Tap rapidly to overpower it. Strength affects endurance and resistance.',
-        image: '/challenges/wrestling-ring-background.png',
-        requirements: {
-            stage: 3,
-            strength: 13,
-            agility: 8,
-            wisdom: 8
-        }
-    },
-    {
-        id: 'chl_rockfall-defense',
-        type: 'strength',
-        title: 'Rockfall Defense',
-        description: 'Block falling boulders by clicking in the right zones. Strength increases stamina for longer survival. Higher levels add unpredictable patterns.',
-        image: '/challenges/rockfall-defense-background.png',
-        requirements: {
-            stage: 4,
-            strength: 16,
-            agility: 10,
-            wisdom: 10
-        }
-    }
-];
-
-const agilityChallenges: Challenge[] = [
-    {
-        id: 'chl_spirit-path',
-        type: 'agility',
-        title: 'Spirit Path Navigation',
-        description: 'Navigate a magical path of vanishing tiles, racing from start to finish before the ground disappears beneath you.',
-        image: '/challenges/spiritpath-background.png',
-        requirements: {
-            stage: 2,
-            strength: 5,
-            agility: 10,
-            wisdom: 5
-        }
-    },
-    {
-        id: 'chl_aerial-ring-dive',
-        type: 'agility',
-        title: 'Aerial Ring Dive',
-        description: 'Fly through shifting rings in the air. Agility improves control. Missing too many rings voids the attempt.',
-        image: '/challenges/aerial-ring-background.png',
-        requirements: {
-            stage: 3,
-            strength: 8,
-            agility: 13,
-            wisdom: 8
-        }
-    },
-    {
-        id: 'chl_spirit-dance',
-        type: 'agility',
-        title: 'Totem Spirit Dance',
-        description: 'Tap in rhythm with spirit drum beats. Agility determines timing accuracy. Harder levels add offbeat sections.',
-        image: '/challenges/totem-spirit-background.png',
-        requirements: {
-            stage: 4,
-            strength: 10,
-            agility: 16,
-            wisdom: 10
-        }
-    }
-];
-
-const wisdomChallenges: Challenge[] = [
-    {
-        id: 'chl_ancient-runes',
-        type: 'wisdom',
-        title: 'Ancient Runes Decoding',
-        description: 'Memorize and repeat glowing rune patterns. Wisdom increases memory retention and mistake tolerance. Higher levels add speed.',
-        image: '/challenges/ancient-runes-background.png',
-        requirements: {
-            stage: 2,
-            strength: 5,
-            agility: 5,
-            wisdom: 10
-        }
-    },
-    {
-        id: 'chl_star-mapping',
-        type: 'wisdom',
-        title: 'Celestial Star Mapping',
-        description: 'Connect stars to form constellations. Wisdom provides hints and reduces errors. Higher difficulty means more complex patterns.',
-        image: '/challenges/celestial-star-background.png',
-        requirements: {
-            stage: 3,
-            strength: 8,
-            agility: 8,
-            wisdom: 13
-        }
-    },
-    {
-        id: 'chl_spirit-weaving',
-        type: 'wisdom',
-        title: 'Spirit Weaving Runes',
-        description: 'Align magical runes in the correct order. Incorrect placements disrupt the pattern. Wisdom slows instability.',
-        image: '/challenges/spirit-weaving-background.png',
-        requirements: {
-            stage: 4,
-            strength: 10,
-            agility: 10,
-            wisdom: 16
-        }
-    }
-];
-
-const balanceChallenges: Challenge[] = [
-    {
-        id: 'chl_garden-pest-patrol',
-        type: 'balance',
-        title: 'Garden Pest Patrol',
-        description: 'Start your totems journey by protecting the garden. Use your instinct and reflexes to smack down those pesky moles where they pop up.',
-        image: '/challenges/first-path-challenge.jpg',
-        requirements: {
-            stage: 1,
-            strength: 1,
-            agility: 1,
-            wisdom: 1
-        }
-    }
-]
+const challengesByType = {
+    balance: CHALLENGES.filter(c => c.type === 'balance'),
+    strength: CHALLENGES.filter(c => c.type === 'strength'),
+    agility: CHALLENGES.filter(c => c.type === 'agility'),
+    wisdom: CHALLENGES.filter(c => c.type === 'wisdom'),
+};
 
 interface TabButtonProps {
     isActive: boolean;
@@ -181,7 +31,7 @@ const TabButton: React.FC<TabButtonProps> = ({ isActive, onClick, children }) =>
 
 const Challenges = () => {
     const { challengeState, refreshChallenges } = useGame();
-    const [activeTab, setActiveTab] = useState('balance');
+    const [activeTab, setActiveTab] = useState<AffinityType>('balance');
     const [selectedChallenge, setSelectedChallenge] = useState<string | null>(null);
 
     // Load challenges on page mount (lazy — not loaded globally)
@@ -189,24 +39,11 @@ const Challenges = () => {
         refreshChallenges();
     }, [refreshChallenges]);
 
-    const getSelectedChallenge = (): Challenge | undefined => {
-        const allChallenges = [...strengthChallenges, ...agilityChallenges, ...wisdomChallenges, ...balanceChallenges];
-        return allChallenges.find(c => c.id === selectedChallenge);
+    const getSelectedChallenge = () => {
+        return CHALLENGES.find(c => c.id === selectedChallenge);
     };
 
-    const getCurrentChallenges = () => {
-        switch (activeTab) {
-            case 'strength':
-                return strengthChallenges;
-            case 'agility':
-                return agilityChallenges;
-            case 'wisdom':
-                return wisdomChallenges;
-            case 'balance':
-                return balanceChallenges;
-        }
-    };
-
+    const currentChallenges = challengesByType[activeTab] || [];
     const currentChallenge = getSelectedChallenge();
 
     return (
@@ -268,8 +105,7 @@ const Challenges = () => {
 
                     {/* Challenge Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {getCurrentChallenges()?.map(challenge => {
-                            // Web2: Use plain string IDs
+                        {currentChallenges.map(challenge => {
                             const apiChallenge = challengeState.challenges[challenge.id];
                             const status = challengeState.userStatus[challenge.id];
                             const highScore = status?.highScore || 0;
@@ -281,10 +117,10 @@ const Challenges = () => {
                             <ChallengePanel
                                 key={challenge.id}
                                 id={challenge.id}
-                                title={challenge.title}
+                                title={challenge.name}
                                 description={challenge.description}
                                 image={challenge.image}
-                                affinityType={challenge.type || 'strength'}
+                                affinityType={challenge.type}
                                 highScore={Number(highScore)}
                                 attemptsLeft={attemptsLeft}
                                 maxAttempts={maxAttempts}
@@ -303,14 +139,14 @@ const Challenges = () => {
                 </section>
 
                 {/* Challenge Dialog */}
-                {selectedChallenge && (
+                {selectedChallenge && currentChallenge && (
                     <ChallengeDialog
-                        challengeId={currentChallenge?.id || ''}
-                        title={currentChallenge?.title || 'Challenge'}
+                        challengeId={currentChallenge.id}
+                        title={currentChallenge.name}
                         isOpen={selectedChallenge !== null}
                         onClose={() => setSelectedChallenge(null)}
-                        challengeType={currentChallenge?.type || 'strength'}
-                        requirements={challengeState.challenges[currentChallenge?.id ?? '']?.requirements ?? currentChallenge?.requirements!}
+                        challengeType={currentChallenge.type}
+                        requirements={challengeState.challenges[currentChallenge.id]?.requirements ?? currentChallenge.requirements}
                     />
                 )}
             </div>

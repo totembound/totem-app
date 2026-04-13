@@ -145,7 +145,7 @@ export const ChallengeDialog: React.FC<ChallengeDialogProps> = ({
                                     {challengeType === 'agility' && `Agility: ${requirements.agility}`}
                                     {challengeType === 'wisdom' && `Wisdom: ${requirements.wisdom}`}
                                     <br />
-                                    Stage: {stage}
+                                    Stage: {stage + 1}
                                 </p>
                             </div>
                         ) : (

@@ -188,7 +188,7 @@ describe('ChallengeDialog', () => {
     render(<ChallengeDialog {...defaultProps} />);
     expect(screen.getByText(/None of your totems meet the requirements/)).toBeInTheDocument();
     expect(screen.getByText(/Strength: 10/)).toBeInTheDocument();
-    expect(screen.getByText(/Stage: 1/)).toBeInTheDocument();
+    expect(screen.getByText(/Stage: 2/)).toBeInTheDocument();
   });
 
   it('shows agility requirement for agility challenges', () => {

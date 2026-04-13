@@ -1,11 +1,14 @@
 /** Challenge definitions (bundled at build time). Source of truth for frontend. */
 
+export type AffinityType = 'strength' | 'agility' | 'wisdom' | 'balance';
+
 export interface ChallengeDefinition {
     id: string;
     name: string;
     description: string;
-    type: string;
+    type: AffinityType;
     affinity: string;
+    image: string;
     requirements: { stage: number; strength: number; agility: number; wisdom: number };
     maxDailyAttempts: number;
     maxScore: number;
@@ -17,10 +20,11 @@ export const CHALLENGES: ChallengeDefinition[] = [
     {
         id: "chl_garden-pest-patrol",
         name: "Garden Pest Patrol",
-        description: "Start your totem's journey by protecting the garden. Use your instinct and reflexes to smack down those pesky moles.",
+        description: "Start your totem's journey by protecting the garden. Use your instinct and reflexes to smack down those pesky moles where they pop up.",
         type: "balance",
         affinity: "balance",
-        requirements: { stage: 1, strength: 1, agility: 1, wisdom: 1 },
+        image: "/challenges/first-path-challenge.jpg",
+        requirements: { stage: 0, strength: 1, agility: 1, wisdom: 1 },
         maxDailyAttempts: 5,
         maxScore: 1000,
         xpReward: { base: 10, perPoint: 0.01 },
@@ -29,10 +33,11 @@ export const CHALLENGES: ChallengeDefinition[] = [
     {
         id: "chl_boulder-breaker",
         name: "Boulder Breaker",
-        description: "Break a massive rock by timing your strikes correctly. Strength determines power and speed.",
+        description: "Break a massive rock by timing your strikes correctly. Strength determines power and speed. Harder levels add resistance.",
         type: "strength",
         affinity: "strength",
-        requirements: { stage: 2, strength: 10, agility: 5, wisdom: 5 },
+        image: "/challenges/breaking-background.png",
+        requirements: { stage: 0, strength: 10, agility: 5, wisdom: 5 },
         maxDailyAttempts: 5,
         maxScore: 2000,
         xpReward: { base: 20, perPoint: 0.01 },
@@ -41,10 +46,11 @@ export const CHALLENGES: ChallengeDefinition[] = [
     {
         id: "chl_totem-wrestling",
         name: "Totem Wrestling",
-        description: "Push against a guardian spirit in a strength duel. Tap rapidly to overpower it.",
+        description: "Push against a guardian spirit in a strength duel. Tap rapidly to overpower it. Strength affects endurance and resistance.",
         type: "strength",
         affinity: "strength",
-        requirements: { stage: 3, strength: 13, agility: 8, wisdom: 8 },
+        image: "/challenges/wrestling-ring-background.png",
+        requirements: { stage: 1, strength: 13, agility: 5, wisdom: 5 },
         maxDailyAttempts: 5,
         maxScore: 2000,
         xpReward: { base: 20, perPoint: 0.01 },
@@ -53,10 +59,11 @@ export const CHALLENGES: ChallengeDefinition[] = [
     {
         id: "chl_rockfall-defense",
         name: "Rockfall Defense",
-        description: "Block falling boulders by clicking in the right zones. Strength increases stamina.",
+        description: "Block falling boulders by clicking in the right zones. Strength increases stamina for longer survival. Higher levels add unpredictable patterns.",
         type: "strength",
         affinity: "strength",
-        requirements: { stage: 4, strength: 16, agility: 10, wisdom: 10 },
+        image: "/challenges/rockfall-defense-background.png",
+        requirements: { stage: 2, strength: 16, agility: 5, wisdom: 5 },
         maxDailyAttempts: 5,
         maxScore: 3000,
         xpReward: { base: 30, perPoint: 0.01 },
@@ -65,10 +72,11 @@ export const CHALLENGES: ChallengeDefinition[] = [
     {
         id: "chl_spirit-path",
         name: "Spirit Path Navigation",
-        description: "Navigate a magical path of vanishing tiles, racing from start to finish.",
+        description: "Navigate a magical path of vanishing tiles, racing from start to finish before the ground disappears beneath you.",
         type: "agility",
         affinity: "agility",
-        requirements: { stage: 2, strength: 5, agility: 10, wisdom: 5 },
+        image: "/challenges/spiritpath-background.png",
+        requirements: { stage: 0, strength: 5, agility: 10, wisdom: 5 },
         maxDailyAttempts: 5,
         maxScore: 2000,
         xpReward: { base: 20, perPoint: 0.01 },
@@ -77,10 +85,11 @@ export const CHALLENGES: ChallengeDefinition[] = [
     {
         id: "chl_aerial-ring-dive",
         name: "Aerial Ring Dive",
-        description: "Fly through shifting rings in the air. Agility improves control.",
+        description: "Fly through shifting rings in the air. Agility improves control. Missing too many rings voids the attempt.",
         type: "agility",
         affinity: "agility",
-        requirements: { stage: 3, strength: 8, agility: 13, wisdom: 8 },
+        image: "/challenges/aerial-ring-background.png",
+        requirements: { stage: 1, strength: 5, agility: 13, wisdom: 5 },
         maxDailyAttempts: 5,
         maxScore: 2000,
         xpReward: { base: 20, perPoint: 0.01 },
@@ -89,10 +98,11 @@ export const CHALLENGES: ChallengeDefinition[] = [
     {
         id: "chl_spirit-dance",
         name: "Totem Spirit Dance",
-        description: "Tap in rhythm with spirit drum beats. Agility determines timing accuracy.",
+        description: "Tap in rhythm with spirit drum beats. Agility determines timing accuracy. Harder levels add offbeat sections.",
         type: "agility",
         affinity: "agility",
-        requirements: { stage: 4, strength: 10, agility: 16, wisdom: 10 },
+        image: "/challenges/totem-spirit-background.png",
+        requirements: { stage: 2, strength: 5, agility: 16, wisdom: 5 },
         maxDailyAttempts: 5,
         maxScore: 3000,
         xpReward: { base: 30, perPoint: 0.01 },
@@ -101,10 +111,11 @@ export const CHALLENGES: ChallengeDefinition[] = [
     {
         id: "chl_ancient-runes",
         name: "Ancient Runes Decoding",
-        description: "Memorize and repeat glowing rune patterns. Wisdom increases memory retention.",
+        description: "Memorize and repeat glowing rune patterns. Wisdom increases memory retention and mistake tolerance. Higher levels add speed.",
         type: "wisdom",
         affinity: "wisdom",
-        requirements: { stage: 2, strength: 5, agility: 5, wisdom: 10 },
+        image: "/challenges/ancient-runes-background.png",
+        requirements: { stage: 0, strength: 5, agility: 5, wisdom: 10 },
         maxDailyAttempts: 5,
         maxScore: 2000,
         xpReward: { base: 20, perPoint: 0.01 },
@@ -113,10 +124,11 @@ export const CHALLENGES: ChallengeDefinition[] = [
     {
         id: "chl_star-mapping",
         name: "Celestial Star Mapping",
-        description: "Connect stars to form constellations. Wisdom provides hints and reduces errors.",
+        description: "Connect stars to form constellations. Wisdom provides hints and reduces errors. Higher difficulty means more complex patterns.",
         type: "wisdom",
         affinity: "wisdom",
-        requirements: { stage: 3, strength: 8, agility: 8, wisdom: 13 },
+        image: "/challenges/celestial-star-background.png",
+        requirements: { stage: 1, strength: 5, agility: 5, wisdom: 13 },
         maxDailyAttempts: 5,
         maxScore: 2000,
         xpReward: { base: 20, perPoint: 0.01 },
@@ -125,10 +137,11 @@ export const CHALLENGES: ChallengeDefinition[] = [
     {
         id: "chl_spirit-weaving",
         name: "Spirit Weaving Runes",
-        description: "Align magical runes in the correct order. Wisdom slows instability.",
+        description: "Align magical runes in the correct order. Incorrect placements disrupt the pattern. Wisdom slows instability.",
         type: "wisdom",
         affinity: "wisdom",
-        requirements: { stage: 4, strength: 10, agility: 10, wisdom: 16 },
+        image: "/challenges/spirit-weaving-background.png",
+        requirements: { stage: 2, strength: 5, agility: 5, wisdom: 16 },
         maxDailyAttempts: 5,
         maxScore: 3000,
         xpReward: { base: 30, perPoint: 0.01 },

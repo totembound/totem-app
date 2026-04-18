@@ -347,58 +347,52 @@ describe('getGameDifficulty', () => {
     expect(getGameDifficulty(null as any, 2)).toBe(0);
   });
 
-  it('should return 1 for default/unmatched reqStage', () => {
+  it('should return 1 when totem stage is at or below reqStage', () => {
     expect(getGameDifficulty(makeTotem(1), 1)).toBe(1);
     expect(getGameDifficulty(makeTotem(1), 5)).toBe(1);
   });
 
-  describe('reqStage 2', () => {
-    it('should return 1 for stage <= 2', () => {
-      expect(getGameDifficulty(makeTotem(1), 2)).toBe(1);
-      expect(getGameDifficulty(makeTotem(2), 2)).toBe(1);
+  describe('reqStage 0', () => {
+    it('should return 1 for stage 1 (minimum eligible)', () => {
+      expect(getGameDifficulty(makeTotem(1), 0)).toBe(1);
+    });
+
+    it('should return 2 for stage 2', () => {
+      expect(getGameDifficulty(makeTotem(2), 0)).toBe(2);
+    });
+
+    it('should return 3 for stage >= 3', () => {
+      expect(getGameDifficulty(makeTotem(3), 0)).toBe(3);
+      expect(getGameDifficulty(makeTotem(5), 0)).toBe(3);
+    });
+  });
+
+  describe('reqStage 1', () => {
+    it('should return 1 for stage 2 (minimum eligible)', () => {
+      expect(getGameDifficulty(makeTotem(2), 1)).toBe(1);
     });
 
     it('should return 2 for stage 3', () => {
-      expect(getGameDifficulty(makeTotem(3), 2)).toBe(2);
+      expect(getGameDifficulty(makeTotem(3), 1)).toBe(2);
     });
 
-    it('should return 3 for stage > 3', () => {
-      expect(getGameDifficulty(makeTotem(4), 2)).toBe(3);
-      expect(getGameDifficulty(makeTotem(5), 2)).toBe(3);
+    it('should return 3 for stage >= 4', () => {
+      expect(getGameDifficulty(makeTotem(4), 1)).toBe(3);
+      expect(getGameDifficulty(makeTotem(5), 1)).toBe(3);
     });
   });
 
-  describe('reqStage 3', () => {
-    it('should return 1 for stage <= 3', () => {
-      expect(getGameDifficulty(makeTotem(2), 3)).toBe(1);
-      expect(getGameDifficulty(makeTotem(3), 3)).toBe(1);
+  describe('reqStage 2', () => {
+    it('should return 1 for stage 3 (minimum eligible)', () => {
+      expect(getGameDifficulty(makeTotem(3), 2)).toBe(1);
     });
 
     it('should return 2 for stage 4', () => {
-      expect(getGameDifficulty(makeTotem(4), 3)).toBe(2);
+      expect(getGameDifficulty(makeTotem(4), 2)).toBe(2);
     });
 
-    it('should return 3 for stage > 4', () => {
-      expect(getGameDifficulty(makeTotem(5), 3)).toBe(3);
-    });
-  });
-
-  describe('reqStage 4', () => {
-    it('should return 1 for stage <= 4', () => {
-      expect(getGameDifficulty(makeTotem(3), 4)).toBe(1);
-      expect(getGameDifficulty(makeTotem(4), 4)).toBe(1);
-    });
-
-    it('should return 2 for stage 5 with prestige 0', () => {
-      expect(getGameDifficulty(makeTotem(5, 0), 4)).toBe(2);
-    });
-
-    it('should return 3 for stage 5 with prestige > 0', () => {
-      expect(getGameDifficulty(makeTotem(5, 1), 4)).toBe(3);
-    });
-
-    it('should return 3 for stage > 5', () => {
-      expect(getGameDifficulty(makeTotem(6, 0), 4)).toBe(3);
+    it('should return 3 for stage 5', () => {
+      expect(getGameDifficulty(makeTotem(5), 2)).toBe(3);
     });
   });
 });

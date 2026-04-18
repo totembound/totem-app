@@ -1037,10 +1037,11 @@ class ApiClient {
     }>('POST', '/subscription/reactivate');
   }
 
-  async getBillingPortalUrl() {
+  async getBillingPortalUrl(returnPath?: string) {
+    const qs = returnPath ? `?returnPath=${encodeURIComponent(returnPath)}` : '';
     return this.request<{
       portalUrl: string;
-    }>('GET', '/subscription/portal');
+    }>('GET', `/subscription/portal${qs}`);
   }
 
   async getSubscriptionBonusStatus() {

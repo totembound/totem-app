@@ -132,7 +132,7 @@ class ApiClient {
     try {
       return await response.json();
     } catch (parseError) {
-      console.error(`Failed to parse JSON response from ${path}:`, parseError);
+      console.error('Failed to parse JSON response from', path, parseError);
       return {
         success: false,
         error: {

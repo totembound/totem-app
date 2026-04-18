@@ -49,8 +49,8 @@ const Header: React.FC = () => {
 
   return (
     <>
-      {/* Mobile Streak Tracker */}
-      {isAuthenticated && showStreakTracker && streakDays > 0 && (
+      {/* Mobile Streak Tracker — only surfaces when there's something to claim */}
+      {isAuthenticated && showStreakTracker && canClaimToday && (
         <div className="md:hidden absolute top-0 left-0 right-0 z-50 bg-purple-500 text-white px-4 py-2 shadow-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -60,15 +60,13 @@ const Header: React.FC = () => {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              {canClaimToday && (
-                <button
-                  onClick={handleClaimReward}
-                  disabled={isClaiming}
-                  className="bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full text-xs font-medium disabled:opacity-50"
-                >
-                  {isClaiming ? 'Claiming...' : 'Claim Reward'}
-                </button>
-              )}
+              <button
+                onClick={handleClaimReward}
+                disabled={isClaiming}
+                className="bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full text-xs font-medium disabled:opacity-50"
+              >
+                {isClaiming ? 'Claiming...' : 'Claim Reward'}
+              </button>
               <button
                 onClick={() => setShowStreakTracker(false)}
                 className="text-white/60 hover:text-white p-1"

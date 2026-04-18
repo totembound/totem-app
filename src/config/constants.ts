@@ -301,6 +301,114 @@ export const LOCATIONS: Location[] = [
     details: "Legends claim it was raised by a Totem who walked between worlds and returned changed.",
     image: ""
   },
+  {
+    id: 25,
+    name: "Crescent Grave",
+    desc: "A perfect crescent-shaped sea, too calm, too deep. The water remembers the weight of a fallen moon.",
+    type: "Lake",
+    coordinates: { x: 75, y: 75 },
+    details: "Said to mark the impact site of Veylua, the Third Moon. Salt here chants softly at dusk.",
+    image: "/domains/water-domain.jpg"
+  },
+  {
+    id: 26,
+    name: "Saltspire Keep",
+    desc: "A shattered coastal fortress whose walls were built from the ribs of great tide-beasts.",
+    type: "Ruins",
+    coordinates: { x: 85, y: 60 },
+    details: "Fell to the Bone Tide. The Bonewatchers still keep the Salt Vigil here on moonless nights.",
+    image: "/domains/shadow-domain.jpg"
+  },
+  {
+    id: 27,
+    name: "Scorchtrack Plateau",
+    desc: "A plain of cracked volcanic stone where Emberhorn's hooves struck, and the ground has trembled since.",
+    type: "Volcano",
+    coordinates: { x: 72, y: 16 },
+    details: "Fire Trials are held here each summer. Certain lava veins draw themselves into glyphs no scholar can read.",
+    image: "/domains/fire-domain.jpg"
+  },
+  {
+    id: 28,
+    name: "Chamber of Quiet Hours",
+    desc: "A hidden ledge above Windcliff where a single feather floats without falling.",
+    type: "Mountains",
+    coordinates: { x: 22, y: 8 },
+    details: "Pilgrims climb for days to meditate here. Some descend changed. Some do not descend.",
+    image: "/habitats/owl-habitat.jpg"
+  },
+  {
+    id: 29,
+    name: "Wyrmspine Pass",
+    desc: "A jagged pass where the vertebrae of a fallen serpent form a bridge across the sky.",
+    type: "Mountains",
+    coordinates: { x: 44, y: 18 },
+    details: "Wind sings through the spine-bones like a flute. The song is said to predate names.",
+    image: "/domains/shadow-domain.jpg"
+  },
+  {
+    id: 30,
+    name: "Lantern Orchard",
+    desc: "A sacred glade where lantern-fruits bloom once a year, each holding a sliver of Aeluin's final light.",
+    type: "Forest",
+    coordinates: { x: 48, y: 14 },
+    details: "Reachable only during the Dove's Descent. The Lantern Wardens tend it in silence.",
+    image: "/domains/spirit-domain.jpg"
+  },
+  {
+    id: 31,
+    name: "Driftmoor Fen",
+    desc: "A low, drifting marshland where the Lanternless once wandered. Mist here refuses to lift.",
+    type: "Marsh",
+    coordinates: { x: 10, y: 68 },
+    details: "Walkers report meeting themselves here - older, younger, or never-having-been.",
+    image: "/domains/spirit-domain.jpg"
+  },
+  {
+    id: 32,
+    name: "Ashen Hollow",
+    desc: "A forest reduced to white ash and pale new shoots, where the Withering once began.",
+    type: "Forest",
+    coordinates: { x: 58, y: 32 },
+    details: "Deer-guides know paths through the ash that close behind anyone who turns back.",
+    image: "/domains/earth-domain.jpg"
+  },
+  {
+    id: 33,
+    name: "Coiling Grounds",
+    desc: "A spiral clearing near Twilight Coil where the great Coiling Festival is held each year.",
+    type: "Forest",
+    coordinates: { x: 12, y: 48 },
+    details: "The spiral is walked three times: for sleep, for shedding, for self. Outsiders walk only once.",
+    image: "/habitats/snake-habitat.jpg"
+  },
+  {
+    id: 34,
+    name: "Cliff of Glyphs",
+    desc: "A sheer cliff face where the Glyphs of Yal'Teveth rearrange themselves each night.",
+    type: "Mountains",
+    coordinates: { x: 8, y: 20 },
+    details: "Scribes who try to record the full sequence vanish after the thirteenth page.",
+    image: "/habitats/raven-habitat.jpg"
+  },
+  {
+    id: 35,
+    name: "Drumhold",
+    desc: "A circular wooden hall where the Long Drum has been beaten without pause for seven generations.",
+    type: "Forest",
+    coordinates: { x: 44, y: 46 },
+    details: "If the drum ever stops, the Drumkeepers believe the world will notice. None have tested this.",
+    image: "/habitats/woodpecker-habitat.jpg"
+  },
+  {
+    id: 36,
+    name: "Mirror Glen",
+    desc: "A fog-filled clearing of shattered mirror-shards that drift in spiritstorms.",
+    type: "Mist",
+    coordinates: { x: 78, y: 32 },
+    details: "Touch a shard to glimpse a Vision of the Then - always at a cost you cannot name.",
+    image: "/domains/spirit-domain.jpg"
+  }
 ];
 
 export interface TotemCodex {

@@ -103,6 +103,7 @@ export const ChallengeDialog: React.FC<ChallengeDialogProps> = ({
     const [selectedTotem, setSelectedTotem] = useState<TotemData | null>(null);
     const [showSelection, setShowSelection] = useState(true);
     const [isCompleted, setIsCompleted] = useState(false);
+    const handleCompleted = useCallback(() => setIsCompleted(true), []);
     const stage = requirements.stage;
     const name = selectedTotem?.displayName || selectedTotem?.name;
     const difficulty = getGameDifficulty(selectedTotem!, requirements.stage);
@@ -115,8 +116,6 @@ export const ChallengeDialog: React.FC<ChallengeDialogProps> = ({
         setSelectedTotem(totem);
         setShowSelection(false);
     };
-
-    const handleCompleted = useCallback(() => setIsCompleted(true), []);
 
     return createPortal(
         <div className="fixed inset-0 z-[60] bg-white dark:bg-gray-800 sm:bg-transparent sm:dark:bg-transparent sm:flex sm:items-center sm:justify-center sm:p-4">

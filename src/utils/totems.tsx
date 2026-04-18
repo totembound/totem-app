@@ -235,42 +235,7 @@ export function getCurrentMonth() {
 export const getGameDifficulty = (totem: TotemData, reqStage: number) => {
     if (!totem) return 0;
     const totemStage = totem.attributes.stage + 1;
-    const prestigeLevel = Number(totem.attributes.prestigeLevel);
-
-    if (reqStage === 2) {
-        if (totemStage <= 2) {
-            return 1;
-        }
-        else if (totemStage <= 3) {
-            return 2;
-        }
-        else {
-            return 3;
-        }        
-    }
-    if (reqStage === 3) {
-        if (totemStage <= 3) {
-            return 1;
-        }
-        else if (totemStage <= 4) {
-            return 2;
-        }
-        else {
-            return 3;
-        }
-    }
-    if (reqStage === 4) {
-        if (totemStage <= 4) {
-            return 1;
-        }
-        else if (totemStage <= 5 &&  prestigeLevel === 0) {
-            return 2;
-        }
-        else {
-            return 3;
-        }
-    }
-    return 1;
+    return Math.min(3, Math.max(1, totemStage - reqStage));
 }
 
 // Helper to get display info

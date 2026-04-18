@@ -132,7 +132,7 @@ class ApiClient {
     try {
       return await response.json();
     } catch (parseError) {
-      console.error(`Failed to parse JSON response from ${path}:`, parseError);
+      console.error('Failed to parse JSON response from', path, parseError);
       return {
         success: false,
         error: {
@@ -1037,10 +1037,11 @@ class ApiClient {
     }>('POST', '/subscription/reactivate');
   }
 
-  async getBillingPortalUrl() {
+  async getBillingPortalUrl(returnPath?: string) {
+    const qs = returnPath ? `?returnPath=${encodeURIComponent(returnPath)}` : '';
     return this.request<{
       portalUrl: string;
-    }>('GET', '/subscription/portal');
+    }>('GET', `/subscription/portal${qs}`);
   }
 
   async getSubscriptionBonusStatus() {

@@ -38,6 +38,7 @@ const AccountSettings = () => {
     const [canceling, setCanceling] = useState(false);
     const [reactivating, setReactivating] = useState(false);
     const [claimingBonus, setClaimingBonus] = useState(false);
+    const [openingPortal, setOpeningPortal] = useState(false);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const version = serviceWorkerRegistration.getVersion();
@@ -110,15 +111,25 @@ const AccountSettings = () => {
     };
 
     const handleBillingPortal = async () => {
+        if (openingPortal) return;
+        setOpeningPortal(true);
+        setErrorMessage(null);
         try {
-            const response = await apiClient.getBillingPortalUrl();
+            const returnPath = window.location.pathname + window.location.search;
+            const response = await apiClient.getBillingPortalUrl(returnPath);
             if (response.success && response.data?.portalUrl) {
-                window.open(response.data.portalUrl, '_blank', 'noopener,noreferrer');
+                // Same-tab navigation — window.open is silently blocked in iOS PWA standalone mode.
+                // Stripe's return_url brings the user back to `returnPath` when they're done.
+                window.location.assign(response.data.portalUrl);
+                // Keep spinner visible while the browser navigates away
+                return;
             } else {
                 setErrorMessage(response.error?.message || 'Could not open billing portal');
             }
         } catch (err: any) {
             setErrorMessage(err?.message || 'Failed to open billing portal');
+        } finally {
+            setOpeningPortal(false);
         }
     };
 
@@ -326,10 +337,14 @@ const AccountSettings = () => {
                                         {subInfo?.stripeCustomerId && (
                                             <button
                                                 onClick={handleBillingPortal}
-                                                className="inline-flex items-center gap-2 px-5 py-2.5 border border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors text-sm"
+                                                disabled={openingPortal}
+                                                className="inline-flex items-center gap-2 px-5 py-2.5 border border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                                             >
-                                                <CreditCard className="w-4 h-4" />
-                                                Manage Billing
+                                                {openingPortal ? (
+                                                    <><Loader2 className="w-4 h-4 animate-spin" />Opening...</>
+                                                ) : (
+                                                    <><CreditCard className="w-4 h-4" />Manage Billing</>
+                                                )}
                                             </button>
                                         )}
                                     </div>

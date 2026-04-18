@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, X } from 'lucide-react';
 import { TotemData } from '../../types/types';
@@ -102,6 +102,7 @@ export const ChallengeDialog: React.FC<ChallengeDialogProps> = ({
     const { getEligibleTotems, isTotemAvailable } = useGame();
     const [selectedTotem, setSelectedTotem] = useState<TotemData | null>(null);
     const [showSelection, setShowSelection] = useState(true);
+    const [isCompleted, setIsCompleted] = useState(false);
     const stage = requirements.stage;
     const name = selectedTotem?.displayName || selectedTotem?.name;
     const difficulty = getGameDifficulty(selectedTotem!, requirements.stage);
@@ -114,6 +115,8 @@ export const ChallengeDialog: React.FC<ChallengeDialogProps> = ({
         setSelectedTotem(totem);
         setShowSelection(false);
     };
+
+    const handleCompleted = useCallback(() => setIsCompleted(true), []);
 
     return createPortal(
         <div className="fixed inset-0 z-[60] bg-white dark:bg-gray-800 sm:bg-transparent sm:dark:bg-transparent sm:flex sm:items-center sm:justify-center sm:p-4">
@@ -170,12 +173,14 @@ export const ChallengeDialog: React.FC<ChallengeDialogProps> = ({
                         <div className="flex-shrink-0 flex flex-row items-center justify-between p-3 sm:p-4 bg-gray-50 dark:bg-gray-900">
                             {/* Selected Totem Info */}
                             <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => setShowSelection(true)}
-                                    className="p-1.5 sm:p-2 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 bg-gray-100 dark:bg-gray-800 rounded transition-colors"
-                                >
-                                    <ChevronLeft className="w-5 h-5" />
-                                </button>
+                                {!isCompleted && (
+                                    <button
+                                        onClick={() => setShowSelection(true)}
+                                        className="p-1.5 sm:p-2 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 bg-gray-100 dark:bg-gray-800 rounded transition-colors"
+                                    >
+                                        <ChevronLeft className="w-5 h-5" />
+                                    </button>
+                                )}
                                 <img
                                     src={selectedTotem?.image.replace('ipfs://', IPFS_GATEWAY_URL)}
                                     alt={name}
@@ -201,6 +206,7 @@ export const ChallengeDialog: React.FC<ChallengeDialogProps> = ({
                                     challengeType={challengeType}
                                     difficulty={difficulty}
                                     onClose={onClose}
+                                    onCompleted={handleCompleted}
                             />)}
                         </div>
                     </div>

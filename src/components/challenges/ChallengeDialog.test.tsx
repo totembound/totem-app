@@ -46,8 +46,12 @@ vi.mock('lucide-react', () => ({
 }));
 
 vi.mock('./ChallengeGame', () => ({
-  default: ({ challengeId, tokenId }: any) => (
-    <div data-testid="challenge-game" data-challenge={challengeId} data-token={tokenId} />
+  default: ({ challengeId, tokenId, onCompleted }: any) => (
+    <div data-testid="challenge-game" data-challenge={challengeId} data-token={tokenId}>
+      <button data-testid="mock-complete" onClick={() => onCompleted?.()}>
+        complete
+      </button>
+    </div>
   ),
 }));
 
@@ -264,6 +268,17 @@ describe('ChallengeDialog', () => {
     // Click back button (ChevronLeft)
     await userEvent.click(screen.getByTestId('icon-chevron').closest('button')!);
     expect(screen.getByRole('heading', { name: 'Select a Totem' })).toBeInTheDocument();
+  });
+
+  it('hides back button after challenge is completed', async () => {
+    render(<ChallengeDialog {...defaultProps} />);
+    await userEvent.click(screen.getByRole('heading', { name: /gray pup/i }));
+    expect(screen.getByTestId('icon-chevron')).toBeInTheDocument();
+
+    // Simulate ChallengeGame firing onCompleted after success state
+    await userEvent.click(screen.getByRole('button', { name: /complete/i }));
+
+    expect(screen.queryByTestId('icon-chevron')).not.toBeInTheDocument();
   });
 
   // =========================================================================

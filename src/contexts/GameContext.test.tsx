@@ -589,7 +589,11 @@ describe('GameContext', () => {
         },
       });
 
-      mockApiClient.completeChallenge.mockResolvedValue({ success: true });
+      const achievements = [{ achievementId: 'ach_first_challenge' }];
+      mockApiClient.completeChallenge.mockResolvedValue({
+        success: true,
+        data: { achievements },
+      });
 
       const { result } = renderHook(() => useGame(), { wrapper });
 
@@ -604,6 +608,7 @@ describe('GameContext', () => {
       });
 
       expect(mockApiClient.completeChallenge).toHaveBeenCalledWith('ch-1', 'totem-1', 85);
+      expect(mockNotificationService.processAchievementsFromResponse).toHaveBeenCalledWith(achievements);
     });
 
     it('completeChallenge should throw for unknown challenge', async () => {

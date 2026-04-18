@@ -23,6 +23,7 @@ interface ChallengeGameProps {
     challengeType: string;
     difficulty: number;
     onClose: () => void;
+    onCompleted?: () => void;
 }
 
 interface ChallengeStatus {
@@ -34,13 +35,14 @@ interface ChallengeStatus {
     totalScore: number;
 }
 
-const ChallengeGame: React.FC<ChallengeGameProps> = ({ 
+const ChallengeGame: React.FC<ChallengeGameProps> = ({
     challengeId,
     tokenId,
     attributes,
     challengeType,
     difficulty,
-    onClose
+    onClose,
+    onCompleted
 }) => {
     const { updateTotem, handleRateLimitError } = useUser();
     const { completeChallenge, challengeState } = useGame();
@@ -105,14 +107,12 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
             await refreshAchievements();
             setShowScoreEffect(true);
 
-             // Update totem state after delay
-             setTimeout(async () => {
+            // Update totem state after score effect plays
+            setTimeout(async () => {
                 await updateTotem(tokenId, ActionType.None);
                 setShowSuccess(true);
-                setTimeout(() => {
-                    onClose();
-                }, 2000);
-            }, 2000); // Wait for score effect to complete
+                onCompleted?.();
+            }, 2000);
         }
         catch (error) {
             console.error('Complete challenge failed:', error);
@@ -131,7 +131,7 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
     return (
         <div className="space-y-4">
             {/* Stats Bar */}
-            <div className="flex justify-between items-center text-sm bg-gray-50 dark:bg-gray-800/50 
+            <div className="flex justify-between items-center text-sm bg-gray-50 dark:bg-gray-800/50
               rounded-lg p-4 border border-gray-100 dark:border-gray-700">
                 <span className="text-gray-600 dark:text-gray-300">
                     Attempts: {attemptsLeft}/{maxAttempts}
@@ -147,7 +147,8 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
             {/* Challenge Game */}
             <div className={`bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-100
               dark:border-gray-700 shadow-sm transition-opacity duration-200
-              ${isSubmitting ? 'pointer-events-none opacity-50' : ''}`}>
+              ${isSubmitting ? 'pointer-events-none opacity-50' : ''}
+              ${showSuccess ? 'hidden' : ''}`}>
                 {challengeType === 'strength' && challengeId === 'chl_boulder-breaker' && (
                     <BoulderBreakerChallenge
                         strength={attributes.strength}
@@ -257,26 +258,39 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
 
             {/* Action Buttons */}
             <div className="flex mt-4 gap-4">
-                <button
-                    onClick={onClose}
-                    type="button"
-                    className="flex-1 px-4 py-2.5 text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800
-                      hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors
-                      border border-gray-200 dark:border-gray-700 font-medium"
-                >
-                    Cancel
-                </button>
-                <button
-                    onClick={handleSubmit}
-                    disabled={isSubmitting || bestScore === 0 || attemptsLeft == 0}
-                    type="button"
-                    className={`flex-1 px-4 py-2.5 text-white rounded-lg transition-colors font-medium
-                        ${isSubmitting || bestScore === 0 || attemptsLeft == 0
-                            ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
-                            : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600'}`}
-                >
-                    {isSubmitting ? 'Submitting...' : 'Submit Score'}
-                </button>
+                {showSuccess ? (
+                    <button
+                        onClick={onClose}
+                        type="button"
+                        className="flex-1 px-4 py-2.5 text-white rounded-lg transition-colors font-medium
+                          bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600"
+                    >
+                        Done
+                    </button>
+                ) : (
+                    <>
+                        <button
+                            onClick={onClose}
+                            type="button"
+                            className="flex-1 px-4 py-2.5 text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800
+                              hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors
+                              border border-gray-200 dark:border-gray-700 font-medium"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSubmit}
+                            disabled={isSubmitting || bestScore === 0 || attemptsLeft == 0}
+                            type="button"
+                            className={`flex-1 px-4 py-2.5 text-white rounded-lg transition-colors font-medium
+                                ${isSubmitting || bestScore === 0 || attemptsLeft == 0
+                                    ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
+                                    : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600'}`}
+                        >
+                            {isSubmitting ? 'Submitting...' : 'Submit Score'}
+                        </button>
+                    </>
+                )}
             </div>
         </div>
     );

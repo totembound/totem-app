@@ -450,6 +450,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 },
             }));
         }
+
+        // Push any unlocked achievements to the notifications bell
+        notificationService.processAchievementsFromResponse(response.data?.achievements);
     }, [challengeState]);
 
     // Helper to convert UTC hours to seconds since day start

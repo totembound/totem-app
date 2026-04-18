@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { MapPinIcon, X, Info } from "lucide-react";
 import Tooltip from "../Tooltip";
 import { LOCATIONS } from "../../config/constants";
@@ -159,7 +160,15 @@ interface InteractiveMapProps {
 }
 
 export const InteractiveMap: React.FC<InteractiveMapProps> = ({ selected }) => {
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(selected || null);
+  const [searchParams] = useSearchParams();
+  const queryLocationId = Number(searchParams.get("location"));
+  const queryLocation = Number.isFinite(queryLocationId)
+    ? LOCATIONS.find((l) => l.id === queryLocationId) || null
+    : null;
+
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(
+    selected || queryLocation || null
+  );
   const [hoveredLocation, setHoveredLocation] = useState<Location | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -174,6 +183,12 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ selected }) => {
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  useEffect(() => {
+    if (queryLocation) {
+      setSelectedLocation(queryLocation);
+    }
+  }, [queryLocation?.id]);
 
   const handlePinClick = (location: Location) => {
     setSelectedLocation(location);

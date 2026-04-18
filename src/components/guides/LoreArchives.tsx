@@ -74,7 +74,6 @@ const TaleCard: React.FC<{ tale: Tale; onOpen: (t: Tale) => void }> = ({ tale, o
         </div>
         <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-2">
           <h3 className="font-serif text-xl font-bold text-white text-shadow-lg leading-tight">
-            <span className="mr-2">{tale.emoji}</span>
             {tale.title}
           </h3>
         </div>
@@ -139,7 +138,6 @@ const TaleModal: React.FC<{ tale: Tale | null; onClose: () => void }> = ({ tale,
               <EraBadge era={tale.era} />
             </div>
             <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white text-shadow-lg">
-              <span className="mr-2">{tale.emoji}</span>
               {tale.title}
             </h2>
           </div>

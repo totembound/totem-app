@@ -329,15 +329,10 @@ const TotemGallery = () => {
 
             {/* Detail View Modal - portaled to body to avoid containing block issues */}
             {selectedTotem && createPortal(
-                <div className="fixed inset-0 bottom-0 z-50 bg-white dark:bg-gray-900 sm:bg-black/50 sm:dark:bg-black/50 sm:flex sm:items-center sm:justify-center sm:p-2"
-                    onClick={(e) => {
-                        if (e.target === e.currentTarget) {
-                            setSelectedTotem(null);
-                        }
-                    }}
-                >
+                <div className="fixed inset-0 z-[60] bg-white dark:bg-gray-900 sm:bg-transparent sm:dark:bg-transparent sm:flex sm:items-center sm:justify-center sm:p-2">
+                    <div className="hidden sm:block fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setSelectedTotem(null)} />
                     <div
-                        className="h-full sm:h-auto sm:max-h-[95vh] sm:max-w-[95vw] md:max-w-4xl sm:w-full bg-white dark:bg-gray-900 sm:rounded-lg overflow-hidden"
+                        className="relative h-full sm:h-auto sm:max-h-[95vh] sm:max-w-[95vw] md:max-w-4xl sm:w-full bg-white dark:bg-gray-900 sm:rounded-lg overflow-hidden"
                         aria-modal="true"
                         role="dialog"
                     >

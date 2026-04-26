@@ -326,7 +326,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
         <div className="fixed inset-0 z-[60] bg-white dark:bg-gray-800 sm:bg-transparent sm:dark:bg-transparent sm:flex sm:items-center sm:justify-center sm:p-4">
           {/* Backdrop - visible on desktop only */}
           <div
-            className="hidden sm:block fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+            className="hidden sm:block fixed inset-0 bg-black/30 backdrop-blur-sm"
             onClick={onClose}
           ></div>
 

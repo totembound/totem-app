@@ -1,14 +1,26 @@
 {
     "items": [
       {
-        "id": "5",
-        "title": "Elder Sanctum & New Species Coming Soon",
-        "emoji": "🏛️",
-        "content": "Seat your stage 4+ totems in the Elder Sanctum for daily passive Essence and solo advisory missions. Plus, 4 new species — Turtle, Bear, Raven & Snake — are on the way!",
-        "date": "2026-02-22 00:00:00",
+        "id": "6",
+        "title": "New Species Coming Soon",
+        "emoji": "🪶",
+        "content": "Two more spirit companions are on their way — Raven and Snake — to round out the next wave of species. Check the roadmap to see what's next for TotemBound.",
+        "date": "2026-04-15 00:00:00",
         "cta": {
           "text": "View Roadmap",
           "link": "/roadmap",
+          "external": false
+        }
+      },
+      {
+        "id": "5",
+        "title": "Elder Sanctum & Totem Forge Are Live",
+        "emoji": "🏛️",
+        "content": "Seat your Stage 4+ totems in the Elder Sanctum for passive Essence and solo advisory missions. Fuse three same-rarity totems in the Forge to ascend to the next tier — Pure or Wild Fusion modes available.",
+        "date": "2026-03-26 00:00:00",
+        "cta": {
+          "text": "Visit the Sanctum",
+          "link": "/sanctum",
           "external": false
         }
       },

@@ -153,8 +153,9 @@ const ElderSanctum: React.FC = () => {
       xp: result.xp,
       runesGained: result.runesGained,
     });
-    notificationService.processAchievementsFromResponse([]);
-    await Promise.all([fetchSanctum(), updateBalances(), fetchTotems()]);
+    // Rune balances, totem XP, and achievements are updated inline by claimCouncilMission.
+    // Refresh sanctum state for cleared activeMission, and totems for sanctum.onMission flag.
+    await Promise.all([fetchSanctum(), fetchTotems()]);
   };
 
   // Resolve mission panel data

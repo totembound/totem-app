@@ -8,6 +8,8 @@
 import { useState, useCallback } from 'react';
 import apiClient from '../services/ApiClient';
 import { notificationService } from '../services/NotificationService';
+import { useUser } from '../contexts/UserContext';
+import { useAchievements } from '../contexts/AchievementsContext';
 
 export interface GameActionResult {
   success: boolean;
@@ -44,10 +46,29 @@ export interface CooldownStatus {
 export const useTotemGameApi = () => {
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
+  const { totems } = useUser();
+  const { applyUnlockedAchievements } = useAchievements();
 
   const setActionLoading = (action: string, isLoading: boolean) => {
     setLoading(prev => ({ ...prev, [action]: isLoading }));
   };
+
+  // Resolve "Your <name>" label for notifications. Prefers nickname.
+  const resolveTotemLabel = useCallback((totemId: string): string | undefined => {
+    const t = totems.find(t => t.id === totemId);
+    if (!t) return undefined;
+    return t.attributes?.nickname || t.displayName || t.name;
+  }, [totems]);
+
+  // Centralized: notify + live-update context for any action result with achievements.
+  const handleAchievementResult = useCallback((totemId: string, achievements?: any[]) => {
+    if (!achievements || achievements.length === 0) return;
+    const label = resolveTotemLabel(totemId);
+    notificationService.processAchievementsFromResponse(achievements, label).catch(err => {
+      console.error('Failed to process achievement notifications:', err);
+    });
+    applyUnlockedAchievements(achievements);
+  }, [applyUnlockedAchievements, resolveTotemLabel]);
 
   /**
    * Feed a totem
@@ -60,7 +81,7 @@ export const useTotemGameApi = () => {
       const response = await apiClient.feedTotem(totemId);
 
       if (response.success && response.data) {
-        notificationService.processAchievementsFromResponse(response.data.achievements);
+        handleAchievementResult(totemId, response.data.achievements);
 
         return {
           success: true,
@@ -98,7 +119,7 @@ export const useTotemGameApi = () => {
       const response = await apiClient.trainTotem(totemId);
 
       if (response.success && response.data) {
-        notificationService.processAchievementsFromResponse(response.data.achievements);
+        handleAchievementResult(totemId, response.data.achievements);
 
         return {
           success: true,
@@ -134,7 +155,7 @@ export const useTotemGameApi = () => {
       const response = await apiClient.treatTotem(totemId);
 
       if (response.success && response.data) {
-        notificationService.processAchievementsFromResponse(response.data.achievements);
+        handleAchievementResult(totemId, response.data.achievements);
 
         return {
           success: true,
@@ -178,8 +199,9 @@ export const useTotemGameApi = () => {
           newStage: response.data.evolution.newStage,
           newStageName: response.data.evolution.newStageName,
           newDisplayName: response.data.evolution.newDisplayName,
+          totemLabel: resolveTotemLabel(totemId),
         });
-        notificationService.processAchievementsFromResponse(response.data.achievements);
+        handleAchievementResult(totemId, response.data.achievements);
 
         return {
           success: true,

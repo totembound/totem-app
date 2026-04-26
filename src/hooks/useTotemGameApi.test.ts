@@ -26,6 +26,15 @@ vi.mock('../services/NotificationService', () => ({
   },
 }));
 
+// Mock context hooks — useTotemGameApi reads them for totem-name labelling
+// and live achievement-state patching, but those wires aren't under test here.
+vi.mock('../contexts/UserContext', () => ({
+  useUser: () => ({ totems: [] }),
+}));
+vi.mock('../contexts/AchievementsContext', () => ({
+  useAchievements: () => ({ applyUnlockedAchievements: vi.fn() }),
+}));
+
 import apiClient from '../services/ApiClient';
 
 describe('useTotemGameApi', () => {

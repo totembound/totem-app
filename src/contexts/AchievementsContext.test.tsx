@@ -410,6 +410,110 @@ describe('AchievementsContext', () => {
     });
   });
 
+  describe('applyUnlockedAchievements (Batch 1)', () => {
+    it('marks one-time achievement achieved + bumps currentCount to milestone requirement', async () => {
+      mockApiClient.getAchievements.mockResolvedValue({
+        success: true,
+        data: {
+          achievements: {
+            ach_first_feed: [{ unlocked: false, progress: 0 }],
+          },
+        },
+      });
+
+      const { result } = renderHook(() => useAchievements(), { wrapper });
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.progress['ach_first_feed']?.achieved).toBe(false);
+
+      act(() => {
+        result.current.applyUnlockedAchievements([
+          { achievementId: 'ach_first_feed', milestone: 0, rewards: { essence: 25, xp: 0 } },
+        ]);
+      });
+
+      expect(result.current.progress['ach_first_feed'].achieved).toBe(true);
+      expect(result.current.progress['ach_first_feed'].unlockedMilestones[0]).toBe(true);
+      expect(result.current.achievementsById['ach_first_feed'].currentCount).toBeGreaterThanOrEqual(1);
+    });
+
+    it('marks the specific milestone unlocked for progression achievements', async () => {
+      mockApiClient.getAchievements.mockResolvedValue({
+        success: true,
+        data: {
+          achievements: {
+            ach_evolution_progression: [
+              { unlocked: false, progress: 0 },
+              { unlocked: false, progress: 0 },
+              { unlocked: false, progress: 0 },
+            ],
+          },
+        },
+      });
+
+      const { result } = renderHook(() => useAchievements(), { wrapper });
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      act(() => {
+        result.current.applyUnlockedAchievements([
+          { achievementId: 'ach_evolution_progression', milestone: 1, rewards: { essence: 50, xp: 50 } },
+        ]);
+      });
+
+      const p = result.current.progress['ach_evolution_progression'];
+      expect(p.unlockedMilestones[0]).toBe(true); // any earlier ones implicitly unlocked
+      expect(p.unlockedMilestones[1]).toBe(true);
+      expect(p.unlockedMilestones[2]).toBe(false);
+      expect(p.achieved).toBe(false); // not all milestones unlocked
+    });
+
+    it('is idempotent — applying the same unlock twice does not double-bump count', async () => {
+      mockApiClient.getAchievements.mockResolvedValue({
+        success: true,
+        data: {
+          achievements: {
+            ach_evolution_progression: [
+              { unlocked: false, progress: 0 },
+              { unlocked: false, progress: 0 },
+              { unlocked: false, progress: 0 },
+            ],
+          },
+        },
+      });
+
+      const { result } = renderHook(() => useAchievements(), { wrapper });
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      const payload = [{ achievementId: 'ach_evolution_progression', milestone: 1, rewards: {} }];
+
+      act(() => result.current.applyUnlockedAchievements(payload));
+      const firstCount = result.current.achievementsById['ach_evolution_progression'].currentCount;
+
+      act(() => result.current.applyUnlockedAchievements(payload));
+      expect(result.current.achievementsById['ach_evolution_progression'].currentCount).toBe(firstCount);
+    });
+
+    it('handles undefined / empty input without throwing', async () => {
+      const { result } = renderHook(() => useAchievements(), { wrapper });
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      act(() => result.current.applyUnlockedAchievements(undefined));
+      act(() => result.current.applyUnlockedAchievements([]));
+    });
+
+    it('ignores unknown achievementIds without throwing', async () => {
+      const { result } = renderHook(() => useAchievements(), { wrapper });
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      act(() => {
+        result.current.applyUnlockedAchievements([
+          { achievementId: 'ach_nonexistent', milestone: 0 },
+        ]);
+      });
+      expect(result.current.progress['ach_nonexistent']).toBeUndefined();
+    });
+  });
+
   describe('showAchievementEffect / hideAchievementEffect', () => {
     it('should toggle activeAchievementEffect', async () => {
       const { result } = renderHook(() => useAchievements(), { wrapper });

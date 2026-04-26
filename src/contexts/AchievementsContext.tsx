@@ -4,6 +4,13 @@ import { useAuth } from './AuthContext';
 import apiClient from '../services/ApiClient';
 import { ACHIEVEMENTS, ACHIEVEMENT_CATEGORIES, ACHIEVEMENT_TYPES } from '../config/achievements';
 
+export interface ActionAchievementUnlock {
+    achievementId: string;
+    milestone?: number;
+    newMilestones?: number[];
+    rewards?: { essence?: number; xp?: number };
+}
+
 interface AchievementsContextType {
     achievements: Record<AchievementCategory, AchievementView[]>;
     achievementsById: Record<string, AchievementView>;
@@ -14,6 +21,7 @@ interface AchievementsContextType {
     getAchievementById: (id: string) => AchievementView | undefined;
     hasAchievement: (id: string) => boolean;
     incrementAchievementProgress: (achievementId: string) => void;
+    applyUnlockedAchievements: (unlocked?: ActionAchievementUnlock[]) => void;
     showAchievementEffect: (achievementId: string) => void;
     hideAchievementEffect: () => void;
     checkSpecificAchievement: (id: string) => Promise<boolean>;
@@ -79,15 +87,14 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 for (const [achievementId, milestones] of Object.entries(result.data.achievements)) {
                     const milestoneArray = milestones as Array<{ unlocked: boolean; progress: number }>;
 
-                    // Get progress value from first milestone (all milestones have same progress)
-                    const currentCount = milestoneArray[0]?.progress || 0;
+                    // Per-milestone progress; falls back to first milestone's progress
+                    // for typical progression achievements where all share one counter.
+                    const milestoneProgress = milestoneArray.map(m => m.progress || 0);
+                    const currentCount = milestoneProgress[0] || 0;
 
-                    // Check if any milestone is unlocked (for one-time achievements, this means completed)
                     const unlockedMilestones = milestoneArray.map(m => m.unlocked);
                     const hasAnyUnlocked = unlockedMilestones.some(u => u);
 
-                    // For one-time achievements (single milestone), achieved = that milestone unlocked
-                    // For progression achievements, achieved = all milestones unlocked
                     const achieved = milestoneArray.length === 1
                         ? milestoneArray[0].unlocked
                         : milestoneArray.every(m => m.unlocked);
@@ -99,6 +106,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
                         count: currentCount,
                         requirementsMet: hasAnyUnlocked || currentCount > 0,
                         unlockedMilestones,
+                        milestoneProgress,
                     };
                 }
                 return progressMap;
@@ -246,6 +254,115 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         });
     }, []);
 
+    // Patches context state from action-response unlocks. Used by useTotemGame
+    // (and other action call sites) instead of a full refresh GET, so achievement
+    // UI updates without an extra round-trip.
+    const applyUnlockedAchievements = useCallback((unlocked?: ActionAchievementUnlock[]) => {
+        if (!unlocked || unlocked.length === 0) return;
+
+        setProgress(prev => {
+            const next = { ...prev };
+            for (const u of unlocked) {
+                const ach = ACHIEVEMENTS.find(a => a.id === u.achievementId);
+                if (!ach) continue;
+                const milestoneCount = ach.milestones?.length || 1;
+                const existing = next[u.achievementId] || {
+                    startTime: 0,
+                    lastUpdate: Date.now(),
+                    achieved: false,
+                    count: 0,
+                    requirementsMet: true,
+                    unlockedMilestones: Array.from({ length: milestoneCount }, () => false),
+                    milestoneProgress: Array.from({ length: milestoneCount }, () => 0),
+                };
+                const indices = u.newMilestones?.length
+                    ? u.newMilestones
+                    : (typeof u.milestone === 'number' ? [u.milestone] : []);
+
+                const unlockedFlags = [...(existing.unlockedMilestones || Array(milestoneCount).fill(false))];
+                // Mark this milestone (and all earlier ones — they must have been unlocked first) as true.
+                for (const idx of indices) {
+                    for (let i = 0; i <= idx && i < unlockedFlags.length; i++) unlockedFlags[i] = true;
+                }
+                // Bump count to the highest unlocked milestone's requirement (or +1) so the
+                // progress bar reflects the milestone crossed.
+                const highest = indices.length ? Math.max(...indices) : -1;
+                const requirement = highest >= 0
+                    ? ach.milestones?.[highest]?.requirement ?? existing.count
+                    : existing.count;
+                const newCount = Math.max(existing.count, requirement);
+
+                // Per-milestone progress: bump the specific milestone's count to
+                // its requirement when its index is unlocked here.
+                const milestoneProgress = [...(existing.milestoneProgress || Array(milestoneCount).fill(0))];
+                for (const idx of indices) {
+                    if (idx < milestoneProgress.length) {
+                        const req = ach.milestones?.[idx]?.requirement ?? 0;
+                        milestoneProgress[idx] = Math.max(milestoneProgress[idx] || 0, req);
+                    }
+                }
+
+                next[u.achievementId] = {
+                    ...existing,
+                    achieved: ach.type === 0
+                        ? unlockedFlags[0] === true // OneTime: achieved when M0 unlocked
+                        : unlockedFlags.every(Boolean),
+                    count: newCount,
+                    requirementsMet: true,
+                    unlockedMilestones: unlockedFlags,
+                    milestoneProgress,
+                    lastUpdate: Date.now(),
+                };
+            }
+            return next;
+        });
+
+        // Mirror the count bump into achievementsById so the categorized UI reflects it.
+        setAchievementsById(prev => {
+            const next = { ...prev };
+            for (const u of unlocked) {
+                const view = next[u.achievementId];
+                if (!view) continue;
+                const indices = u.newMilestones?.length
+                    ? u.newMilestones
+                    : (typeof u.milestone === 'number' ? [u.milestone] : []);
+                const highest = indices.length ? Math.max(...indices) : -1;
+                const requirement = highest >= 0 && view.milestones?.[highest]?.requirement
+                    ? view.milestones[highest].requirement
+                    : view.currentCount;
+                next[u.achievementId] = {
+                    ...view,
+                    currentCount: Math.max(view.currentCount, requirement),
+                    isCompleted: view.achievementType === 0 ? true : view.isCompleted,
+                };
+            }
+            return next;
+        });
+
+        setAchievements(prev => {
+            const next = { ...prev };
+            for (const cat of Object.keys(next) as unknown as AchievementCategory[]) {
+                next[cat] = next[cat].map(a => {
+                    const u = unlocked.find(x => x.achievementId === a.id);
+                    if (!u) return a;
+                    const indices = u.newMilestones?.length
+                        ? u.newMilestones
+                        : (typeof u.milestone === 'number' ? [u.milestone] : []);
+                    const highest = indices.length ? Math.max(...indices) : -1;
+                    const requirement = highest >= 0 && a.milestones?.[highest]?.requirement
+                        ? a.milestones[highest].requirement
+                        : a.currentCount;
+                    return {
+                        ...a,
+                        currentCount: Math.max(a.currentCount, requirement),
+                        isCompleted: a.achievementType === 0 ? true : a.isCompleted,
+                    };
+                });
+            }
+            return next;
+        });
+    }, []);
+
     const showAchievementEffect = useCallback((achievementId: string) => {
         setActiveAchievementEffect(achievementId);
     }, []);
@@ -282,6 +399,7 @@ export const AchievementsProvider: React.FC<{ children: React.ReactNode }> = ({ 
             getAchievementById,
             hasAchievement,
             incrementAchievementProgress,
+            applyUnlockedAchievements,
             showAchievementEffect,
             hideAchievementEffect,
             activeAchievementEffect,

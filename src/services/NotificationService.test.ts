@@ -355,7 +355,7 @@ describe('NotificationService', () => {
 
       const message = mockCallback.mock.calls[0][1];
       expect(message).toContain('First Evolution');
-      expect(message).toContain('unlocked');
+      expect(message).toMatch(/unlocked/i);
       expect(mockCallback.mock.calls[0][3]).toBe(NotificationPriority.HIGH);
     });
   });
@@ -376,7 +376,7 @@ describe('NotificationService', () => {
       const message = mockCallback.mock.calls[0][1];
       expect(message).toContain('Milestone');
       expect(message).toContain('Trainer');
-      expect(message).toContain('unlocked');
+      expect(message).toMatch(/unlocked/i);
     });
 
     it('should format milestone without name', async () => {
@@ -387,7 +387,7 @@ describe('NotificationService', () => {
 
       const message = mockCallback.mock.calls[0][1];
       expect(message).toContain('Milestone');
-      expect(message).toContain('unlocked');
+      expect(message).toMatch(/unlocked/i);
     });
   });
 
@@ -600,7 +600,7 @@ describe('NotificationService', () => {
       const message = mockCallback.mock.calls[0][1];
       expect(message).toContain('Milestone');
       expect(message).toContain('Expert Trainer');
-      expect(message).toContain('unlocked');
+      expect(message).toMatch(/unlocked/i);
     });
 
     it('should use newMilestones last entry when milestone not set', async () => {

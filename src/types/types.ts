@@ -341,6 +341,13 @@ export interface AchievementProgress {
     count: number;
     achieved: boolean;
     unlockedMilestones: boolean[];
+    /**
+     * Per-milestone progress count. Mirrors the API's per-milestone progress
+     * field. For typical progression achievements every entry equals `count`;
+     * for achievements like anti-meta-collector each milestone has its own
+     * counter (e.g., commons / uncommons / rares).
+     */
+    milestoneProgress: number[];
     requirementsMet : boolean;
 }
 

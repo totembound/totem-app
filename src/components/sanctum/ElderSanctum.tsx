@@ -10,7 +10,7 @@ import TokensDisplay from '../TokensDisplay';
 import SanctumSeat from './SanctumSeat';
 import SanctumClaimBanner from './SanctumClaimBanner';
 import CouncilMissionPanel from './CouncilMissionPanel';
-import type { MissionClaimResult } from './CouncilMissionPanel';
+import type { MissionClaimResult } from '../../contexts/GameContext';
 import MissionRewardsDialog from './MissionRewardsDialog';
 import { SANCTUM_CONFIG } from '../../config/sanctum';
 import { isAvailableForExpedition } from '../../utils/totem-availability';

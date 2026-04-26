@@ -8,8 +8,6 @@ import apiClient from '../../services/ApiClient';
 import { useGame } from '../../contexts/GameContext';
 import type { MissionClaimResult } from '../../contexts/GameContext';
 
-export type { MissionClaimResult };
-
 interface CouncilMissionPanelProps {
   totemId: string;
   totemName: string;

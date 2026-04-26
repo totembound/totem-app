@@ -247,7 +247,7 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
   };
 
   // Initialize the game
-  const startGame = () => {
+  const initializeGame = () => {
     try {
       console.log('Starting game...');
 
@@ -590,8 +590,8 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
         gameState={gameState}
         score={score}
         timeLeft={timeLeft}
-        onStart={startGame}
-        onRestart={startGame}
+        onStart={initializeGame}
+        onRestart={initializeGame}
       />
     </div>
   );

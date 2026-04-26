@@ -428,7 +428,7 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
     // Start / reset game
     // -----------------------------------------------------------------------
 
-    const startGame = useCallback(() => {
+    const initializeGame = useCallback(() => {
         // Clear any running timers from a previous round
         if (timerRef.current)            { window.clearInterval(timerRef.current); timerRef.current = null; }
         if (opponentTimerRef.current)    { clearTimeout(opponentTimerRef.current); opponentTimerRef.current = null; }
@@ -709,8 +709,8 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
                 gameState={gameState}
                 score={finalScore}
                 timeLeft={timeLeft}
-                onStart={startGame}
-                onRestart={startGame}
+                onStart={initializeGame}
+                onRestart={initializeGame}
             />
         </div>
     );

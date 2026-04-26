@@ -657,7 +657,7 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
   }, []);
 
 
-  const startGame = useCallback(() => {
+  const initializeGame = useCallback(() => {
     // Reset all game states
     resetGameStates();
 
@@ -903,8 +903,8 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
         gameState={gameState}
         score={finalScore}
         timeLeft={timeLeft}
-        onStart={startGame}
-        onRestart={startGame}
+        onStart={initializeGame}
+        onRestart={initializeGame}
       />
     </div>
   );

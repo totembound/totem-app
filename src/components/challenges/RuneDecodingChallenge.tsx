@@ -316,7 +316,7 @@ const RuneMemoryChallenge: React.FC<RuneMemoryChallengeProps> = ({
   }, [gameSettings.displaySpeed, pauseTimer, startTimer, resumeTimer]);
 
   // Initialize the game
-  const startGame = useCallback(() => {
+  const initializeGame = useCallback(() => {
     // Reset all game-related states more explicitly
     setPlayerPattern([]);
     setPattern([]); // Explicitly clear the previous pattern
@@ -512,8 +512,8 @@ const RuneMemoryChallenge: React.FC<RuneMemoryChallengeProps> = ({
           gameState={gameState}
           score={finalScore}
           timeLeft={timeLeft}
-          onStart={startGame}
-          onRestart={startGame}
+          onStart={initializeGame}
+          onRestart={initializeGame}
           extraStats={<> | Attempts: {attemptsLeft}</>}
         />
       </>

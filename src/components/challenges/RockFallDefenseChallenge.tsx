@@ -222,7 +222,7 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
   }, [playerScore, onComplete]);
 
   // Initialize the game
-  const startGame = useCallback(() => {
+  const initializeGame = useCallback(() => {
     // Reset game state
     setPlayerScore(0);
     setRocks([]);
@@ -350,8 +350,8 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
           gameState={gameState}
           score={playerScore}
           timeLeft={timeLeft}
-          onStart={startGame}
-          onRestart={startGame}
+          onStart={initializeGame}
+          onRestart={initializeGame}
         />
       </>
     );

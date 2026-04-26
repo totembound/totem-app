@@ -51,26 +51,11 @@ const ChallengeActionBar: React.FC<ChallengeActionBarProps> = ({
         </button>
       )}
 
-      {gameState === 'success' && (
+      {(gameState === 'success' || gameState === 'failed') && (
         <div className="flex justify-between items-center">
           {ticker}
           <button
-            className="py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700
-              transition-colors duration-200"
-            onClick={onRestart}
-            type="button"
-          >
-            {restartLabel}
-          </button>
-        </div>
-      )}
-
-      {gameState === 'failed' && (
-        <div className="flex justify-between items-center">
-          {ticker}
-          <button
-            className="py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700
-              transition-colors duration-200"
+            className={`py-2 px-4 ${gameState === 'success' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} text-white rounded-lg transition-colors duration-200`}
             onClick={onRestart}
             type="button"
           >

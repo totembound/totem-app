@@ -197,7 +197,7 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
   }, []);
   
   // Start the game immediately without countdown
-  const startGame = useCallback(() => {
+  const initializeGame = useCallback(() => {
     // Start actual game immediately
     setGameState('playing');
     gameStateRef.current = 'playing';
@@ -708,8 +708,8 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
         gameState={gameState}
         score={score}
         timeLeft={timeLeft}
-        onStart={startGame}
-        onRestart={startGame}
+        onStart={initializeGame}
+        onRestart={initializeGame}
       />
     </div>
   );

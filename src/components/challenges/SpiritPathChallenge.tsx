@@ -357,7 +357,7 @@ const SpiritPath: React.FC<SpiritPathProps> = ({
   }, [gameSettings.timeLimit, handleGameEnd]);
 
   // Initialize the game
-  const startGame = useCallback(() => {
+  const initializeGame = useCallback(() => {
     // Initialize the grid
     const newGrid = initializeGrid();
     setGrid(newGrid);
@@ -725,8 +725,8 @@ const SpiritPath: React.FC<SpiritPathProps> = ({
           gameState={gameState}
           score={finalScore}
           timeLeft={timeLeft}
-          onStart={startGame}
-          onRestart={startGame}
+          onStart={initializeGame}
+          onRestart={initializeGame}
         />
       </>
     );

@@ -494,7 +494,12 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ achievement }) => {
                         key={index}
                         milestone={milestone}
                         badgeUri={milestone.badgeUri}
-                        currentCount={achievement.currentCount}
+                        currentCount={
+                            // Prefer per-milestone progress when available (e.g.,
+                            // anti-meta-collector's per-rarity counters); otherwise
+                            // fall back to the shared currentCount.
+                            achievementProgress?.milestoneProgress?.[index] ?? achievement.currentCount
+                        }
                         isUnlocked={achievementProgress?.unlockedMilestones[index] || false}
                         />
                     ))}

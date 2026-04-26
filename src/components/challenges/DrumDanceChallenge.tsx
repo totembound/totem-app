@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameState } from '../../types/types';
+import ChallengeActionBar from './ChallengeActionBar';
 
 type Ring = {
   id: number;
@@ -196,7 +197,7 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
   }, []);
   
   // Start the game immediately without countdown
-  const startGame = useCallback(() => {
+  const initializeGame = useCallback(() => {
     // Start actual game immediately
     setGameState('playing');
     gameStateRef.current = 'playing';
@@ -287,26 +288,6 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
     pendingRingsRef.current = [...pendingRingsRef.current, ...newRings];
     setPendingRings(prevRings => [...prevRings, ...newRings]);
   }, [difficulty, validatePattern]);
-
-  // Reset game
-  const resetGame = useCallback(() => {
-    setGameState('ready');
-    setTimeLeft(SONG_DURATION);
-    setScore(0);
-    setRings([]);
-    setPendingRings([]);
-    setLastHitType(null);
-    setLastHitBongo(null);
-    
-    gameStateRef.current = 'ready';
-    timeLeftRef.current = SONG_DURATION;
-    scoreRef.current = 0;
-    ringsRef.current = [];
-    pendingRingsRef.current = [];
-    lastHitTypeRef.current = null;
-    lastHitBongoRef.current = null;
-    lastPatternEndTimeRef.current = 0;
-  }, []);
 
   // Game loop
   useEffect(() => {
@@ -723,54 +704,13 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
         )}
       </div>
 
-      {/* Game Controls */}
-      <div className="mt-4">
-        {gameState === 'ready' && (
-          <button
-            className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-            onClick={startGame}
-            type="button"
-          >
-            Start Rhythm Game
-          </button>
-        )}
-
-        {gameState === 'playing' && (
-          <div className="w-full py-2 px-4 bg-gray-400 dark:bg-gray-600 text-white rounded-lg text-center">
-            Time: {timeLeft.toFixed(1)}s | Score: {Math.floor(score)}
-          </div>
-        )}
-
-        {gameState === 'success' && (
-          <div className="flex justify-between items-center">
-            <div className="text-gray-300 font-bold">
-              Time: {timeLeft.toFixed(1)}s | Score: {Math.floor(score)}
-            </div>
-            <button
-              className="py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
-              onClick={startGame}
-              type="button"
-            >
-              Play Again
-            </button>
-          </div>
-        )}
-        
-        {gameState === 'failed' && (
-          <div className="flex justify-between items-center">
-            <div className="text-gray-300 font-bold">
-              Game Over | Score: {Math.floor(score)}
-            </div>
-            <button
-              className="py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
-              onClick={resetGame}
-              type="button"
-            >
-              Try Again
-            </button>
-          </div>
-        )}
-      </div>
+      <ChallengeActionBar
+        gameState={gameState}
+        score={score}
+        timeLeft={timeLeft}
+        onStart={initializeGame}
+        onRestart={initializeGame}
+      />
     </div>
   );
 };

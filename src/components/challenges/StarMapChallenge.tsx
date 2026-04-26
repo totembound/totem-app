@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameState } from '../../types/types';
+import ChallengeActionBar from './ChallengeActionBar';
 
 type GameSettings = {
   numConstellations: number;
@@ -656,7 +657,7 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
   }, []);
 
 
-  const startGame = useCallback(() => {
+  const initializeGame = useCallback(() => {
     // Reset all game states
     resetGameStates();
 
@@ -752,14 +753,6 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
       }
     };
   }, [gameState, selectedStars, validNextStars, drawConnections]);
-
-  // Score ticker component
-  const scoreTicker = (
-    <div className="text-gray-300 font-bold">
-      Time: {timeLeft ? timeLeft.toFixed(1) : '-'}s |
-      Score: {Math.floor(finalScore)}
-    </div>
-  );
 
   // Calculate the optimal square size based on container dimensions
   useEffect(() => {
@@ -860,7 +853,7 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
   return (
     <div ref={containerRef} className="w-full max-w-2xl mx-auto">
       <div
-        className="relative bg-slate-800 rounded-lg mb-4 w-full h-96 mx-auto p-0 overflow-hidden"
+        className="relative bg-slate-800 rounded-lg w-full h-96 mx-auto p-0 overflow-hidden"
       >
         <div
           ref={gameAreaRef}
@@ -906,39 +899,13 @@ const ConstellationChallenge: React.FC<ConstellationChallengeProps> = ({
         </div>
       </div>
 
-      {/* Controls and buttons section */}
-      <div>
-        {gameState === 'ready' && (
-          <button
-            className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
-                transition-colors duration-200"
-            onClick={startGame}
-            type="button"
-          >
-            Start Challenge
-          </button>
-        )}
-
-        {gameState === 'playing' && (
-          <div className="w-full py-2 px-4 bg-gray-600 text-white rounded-lg">
-            {scoreTicker}
-          </div>
-        )}
-
-        {(gameState === 'success' || gameState === 'failed') && (
-          <div className="flex justify-between items-center">
-            {scoreTicker}
-            <button
-              className={`py-2 px-4 ${gameState === 'success' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} 
-                  text-white rounded-lg transition-colors duration-200`}
-              onClick={startGame}
-              type="button"
-            >
-              Try Again
-            </button>
-          </div>
-        )}
-      </div>
+      <ChallengeActionBar
+        gameState={gameState}
+        score={finalScore}
+        timeLeft={timeLeft}
+        onStart={initializeGame}
+        onRestart={initializeGame}
+      />
     </div>
   );
 };

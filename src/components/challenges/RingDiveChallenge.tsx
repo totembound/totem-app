@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameState } from '../../types/types';
 import { useScoreMessages } from '../../hooks/useScoreMessagesEffect';
 import ScoreMessages from '../effects/ScoreMessageEffect';
+import ChallengeActionBar from './ChallengeActionBar';
 
 type Hoop = {
   id: number;
@@ -299,10 +300,6 @@ const RingDiveChallenge: React.FC<RingDiveChallengeProps> = ({
     
   }, [gameState, agility]);
   
-  const scoreTicker = <div className="text-gray-300 font-bold">
-    Time: {timeLeft.toFixed(1)}s | Score: {Math.floor(score)}
-  </div>;
-
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div 
@@ -393,44 +390,13 @@ const RingDiveChallenge: React.FC<RingDiveChallengeProps> = ({
         />
       </div>
 
-      {/* Game Controls */}
-      <div className="mt-4">
-        {gameState === 'ready' && (
-          <button
-            className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
-            transition-colors duration-200"
-            onClick={initializeGame}
-            type="button"
-          >
-            Start Challenge
-          </button>
-        )}
-
-        {gameState === 'playing' && (
-          <button
-            className="w-full py-2 px-4 bg-gray-400 dark:bg-gray-600 text-white rounded-lg cursor-not-allowed"
-            onClick={initializeGame}
-            disabled={true}
-            type="button" 
-          >
-            {scoreTicker}
-          </button>
-        )}
-
-        {gameState === 'success' && (
-          <div className="flex justify-between items-center">
-            {scoreTicker}
-            <button
-              className="py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 
-              transition-colors duration-200"
-              onClick={initializeGame}
-              type="button"
-            >
-              Play Again
-            </button>
-          </div>
-        )}
-      </div>
+      <ChallengeActionBar
+        gameState={gameState}
+        score={score}
+        timeLeft={timeLeft}
+        onStart={initializeGame}
+        onRestart={initializeGame}
+      />
     </div>
   );
 };

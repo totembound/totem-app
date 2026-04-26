@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameState } from '../../types/types';
+import ChallengeActionBar from './ChallengeActionBar';
 
 type GameSettings = {
   gridSize: number;
@@ -315,7 +316,7 @@ const RuneMemoryChallenge: React.FC<RuneMemoryChallengeProps> = ({
   }, [gameSettings.displaySpeed, pauseTimer, startTimer, resumeTimer]);
 
   // Initialize the game
-  const startGame = useCallback(() => {
+  const initializeGame = useCallback(() => {
     // Reset all game-related states more explicitly
     setPlayerPattern([]);
     setPattern([]); // Explicitly clear the previous pattern
@@ -439,14 +440,6 @@ const RuneMemoryChallenge: React.FC<RuneMemoryChallengeProps> = ({
     }
   }, [timeLeft, gameState, isDisplayingPattern]);
 
-  // Score ticker component
-  const scoreTicker = (
-    <div className="text-gray-300 font-bold">
-      Time: {timeLeft ? timeLeft.toFixed(1) : '-'}s | 
-      Attempts: {attemptsLeft} | 
-      Score: {Math.floor(finalScore)}
-    </div>
-  );
 
   // Render a single rune
   const renderRune = (index: number) => {
@@ -515,42 +508,14 @@ const RuneMemoryChallenge: React.FC<RuneMemoryChallengeProps> = ({
         </div>
 
         {/* Controls and buttons section - below the game area */}
-        <div>
-          {gameState === 'ready' && (
-            <button
-              className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
-                transition-colors duration-200"
-              onClick={startGame}
-              type="button"
-            >
-              Start Challenge
-            </button>
-          )}
-
-          {gameState === 'playing' && (
-            <button
-              className="w-full py-2 px-4 bg-gray-400 dark:bg-gray-600 text-white rounded-lg cursor-not-allowed"
-              disabled={true}
-              type="button"
-            >
-              {scoreTicker}
-            </button>
-          )}
-
-          {(gameState === 'success' || gameState === 'failed') && (
-            <div className="flex justify-between items-center">
-              {scoreTicker}
-              <button
-                className={`py-2 px-4 ${gameState === 'success' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} 
-                  text-white rounded-lg transition-colors duration-200`}
-                onClick={startGame}
-                type="button"
-              >
-                Try Again
-              </button>
-            </div>
-          )}
-        </div>
+        <ChallengeActionBar
+          gameState={gameState}
+          score={finalScore}
+          timeLeft={timeLeft}
+          onStart={initializeGame}
+          onRestart={initializeGame}
+          extraStats={<> | Attempts: {attemptsLeft}</>}
+        />
       </>
     </div>
   );

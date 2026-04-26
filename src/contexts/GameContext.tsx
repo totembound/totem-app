@@ -59,12 +59,13 @@ export interface GameContextType {
 
     runeBalances: RuneBalances;
     getUserRuneBalances: () => Promise<void>;
-    
+
     // New expedition-related properties
     expeditionState: ExpeditionState;
     refreshExpeditions: () => Promise<void>;
     startExpedition: (expeditionId: string, totemIds: string[]) => Promise<boolean>;
     claimExpeditionRewards: (expeditionId: string) => Promise<boolean>;
+    claimCouncilMission: (totemId: string) => Promise<MissionClaimResult | null>;
     isTotemAvailable: (totemId: string) => boolean;
     activeExpeditionEffect: ExpeditionRewardsData | null;
     showExpeditionEffect: (data: ExpeditionRewardsData) => void;
@@ -79,6 +80,12 @@ export interface GameContextType {
     getTotemCooldowns: (totemId: string) => CooldownStatus | null;
     setTotemCooldowns: (totemId: string, cooldowns: CooldownStatus) => void;
     fetchTotemCooldowns: (totemId: string) => Promise<CooldownStatus | null>;
+}
+
+export interface MissionClaimResult {
+    missionName: string;
+    xp: number;
+    runesGained: { lesser: number; greater: number; ancient: number };
 }
 
 export interface LootItem {
@@ -177,6 +184,7 @@ const GameContext = createContext<GameContextType>({
       refreshExpeditions: async () => {},
       startExpedition: async () => false,
       claimExpeditionRewards: async () => false,
+      claimCouncilMission: async () => null,
       isTotemAvailable: () => false,
       activeExpeditionEffect: null,
       showExpeditionEffect: () => undefined,
@@ -1021,6 +1029,48 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, [refreshExpeditions, updateBalances, updateTotemAttributes]);
 
+    const claimCouncilMission = useCallback(async (totemId: string): Promise<MissionClaimResult | null> => {
+        try {
+            const response = await apiClient.claimCouncilMission(totemId);
+
+            if (!response.success || !response.data) {
+                console.error('Failed to claim council mission:', response.error);
+                return null;
+            }
+
+            const { rewards, missionName, newRuneBalances, achievements } = response.data;
+
+            // Update rune balances inline (authoritative total from backend when runes dropped)
+            if (newRuneBalances) {
+                setRuneBalances({
+                    lesser: newRuneBalances.lesser || 0,
+                    greater: newRuneBalances.greater || 0,
+                    ancient: newRuneBalances.ancient || 0,
+                });
+            }
+
+            // Update totem XP locally so UI reflects the gain immediately
+            const totem = totems.find(t => t.id === totemId);
+            if (totem && rewards?.xp) {
+                updateTotemAttributes(totemId, {
+                    experience: (totem.attributes.experience || 0) + rewards.xp,
+                });
+            }
+
+            // Process achievements earned from the claim
+            notificationService.processAchievementsFromResponse(achievements);
+
+            return {
+                missionName: missionName || 'Council Mission',
+                xp: rewards?.xp || 0,
+                runesGained: rewards?.runesEarned || { lesser: 0, greater: 0, ancient: 0 },
+            };
+        } catch (error) {
+            console.error('Error claiming council mission:', error);
+            return null;
+        }
+    }, [totems, updateTotemAttributes]);
+
     const fetchLootItems = useCallback(async () => {
         if (!apiClient.isAuthenticated()) return;
         // Dedup: return in-flight promise (prevents StrictMode double-fire)
@@ -1153,6 +1203,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             refreshExpeditions,
             startExpedition,
             claimExpeditionRewards,
+            claimCouncilMission,
             isTotemAvailable,
             activeExpeditionEffect,
             showExpeditionEffect,

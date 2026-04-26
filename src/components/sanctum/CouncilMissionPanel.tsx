@@ -5,12 +5,8 @@ import type { ActiveCouncilMission } from '../../types/types';
 import CouncilMissionCard from './CouncilMissionCard';
 import CouncilMissionActive from './CouncilMissionActive';
 import apiClient from '../../services/ApiClient';
-
-export interface MissionClaimResult {
-  missionName: string;
-  xp: number;
-  runesGained: { lesser: number; greater: number; ancient: number };
-}
+import { useGame } from '../../contexts/GameContext';
+import type { MissionClaimResult } from '../../contexts/GameContext';
 
 interface CouncilMissionPanelProps {
   totemId: string;
@@ -45,6 +41,7 @@ const CouncilMissionPanel: React.FC<CouncilMissionPanelProps> = ({
   onMissionClaimed,
   onMissionCancelled,
 }) => {
+  const { claimCouncilMission } = useGame();
   const [loadingMissionId, setLoadingMissionId] = useState<string | null>(null);
   const [activeLoading, setActiveLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,17 +67,12 @@ const CouncilMissionPanel: React.FC<CouncilMissionPanelProps> = ({
     setActiveLoading(true);
     setError(null);
     try {
-      const res = await apiClient.claimCouncilMission(totemId);
-      if (!res.success) {
-        setError(res.error?.message ?? 'Failed to claim mission');
+      const result = await claimCouncilMission(totemId);
+      if (!result) {
+        setError('Failed to claim mission');
         return;
       }
-      const data = res.data;
-      onMissionClaimed({
-        missionName: data?.missionName || 'Council Mission',
-        xp: data?.rewards?.xp || 0,
-        runesGained: data?.rewards?.runesEarned || { lesser: 0, greater: 0, ancient: 0 },
-      });
+      onMissionClaimed(result);
     } catch (err: any) {
       setError(err?.message ?? 'Failed to claim mission');
     } finally {

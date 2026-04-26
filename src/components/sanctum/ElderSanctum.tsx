@@ -10,7 +10,7 @@ import TokensDisplay from '../TokensDisplay';
 import SanctumSeat from './SanctumSeat';
 import SanctumClaimBanner from './SanctumClaimBanner';
 import CouncilMissionPanel from './CouncilMissionPanel';
-import type { MissionClaimResult } from './CouncilMissionPanel';
+import type { MissionClaimResult } from '../../contexts/GameContext';
 import MissionRewardsDialog from './MissionRewardsDialog';
 import { SANCTUM_CONFIG } from '../../config/sanctum';
 import { isAvailableForExpedition } from '../../utils/totem-availability';
@@ -153,8 +153,9 @@ const ElderSanctum: React.FC = () => {
       xp: result.xp,
       runesGained: result.runesGained,
     });
-    notificationService.processAchievementsFromResponse([]);
-    await Promise.all([fetchSanctum(), updateBalances(), fetchTotems()]);
+    // Rune balances, totem XP, and achievements are updated inline by claimCouncilMission.
+    // Refresh sanctum state for cleared activeMission, and totems for sanctum.onMission flag.
+    await Promise.all([fetchSanctum(), fetchTotems()]);
   };
 
   // Resolve mission panel data

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Swords } from 'lucide-react';
 import { COUNCIL_MISSIONS } from '../../config/sanctum';
 import type { ActiveCouncilMission } from '../../types/types';
@@ -45,6 +46,18 @@ const CouncilMissionPanel: React.FC<CouncilMissionPanelProps> = ({
   const [loadingMissionId, setLoadingMissionId] = useState<string | null>(null);
   const [activeLoading, setActiveLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
 
   const handleStartMission = async (missionId: string) => {
     setLoadingMissionId(missionId);
@@ -103,10 +116,11 @@ const CouncilMissionPanel: React.FC<CouncilMissionPanelProps> = ({
     return acc;
   }, {});
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+  return createPortal(
+    <div className="fixed inset-0 z-[60] bg-white dark:bg-gray-800 sm:bg-transparent sm:dark:bg-transparent sm:flex sm:items-center sm:justify-center sm:p-4">
+      <div className="hidden sm:block fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
       <div
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col"
+        className="relative w-full h-full sm:h-auto sm:max-w-lg sm:max-h-[85vh] bg-white dark:bg-gray-800 sm:rounded-xl shadow-xl flex flex-col overflow-hidden"
         role="dialog"
         aria-label="Council Missions"
       >
@@ -176,7 +190,8 @@ const CouncilMissionPanel: React.FC<CouncilMissionPanelProps> = ({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../../contexts/GameContext';
+import { useUser } from '../../contexts/UserContext';
 import { useAchievements } from '../../contexts/AchievementsContext';
-import { Calendar, Coins, Crown, Flame, Trophy, Lock, Gift, Package, Sparkles, TrendingUp, Zap } from 'lucide-react';
+import { Calendar, Coins, Crown, Flame, Trophy, Lock, Gift, Package, Shield, Sparkles, TrendingUp, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Tooltip from '../Tooltip';
 import TokensDisplay from '../TokensDisplay';
@@ -35,6 +36,7 @@ const RARITY_BORDER: Record<string, string> = {
 
 const Rewards = () => {
     const { rewardsState, claimDailyReward, claimWeeklyReward, refreshRewardStatus, lootItems, fetchLootItems } = useGame();
+    const { essenceBalance } = useUser();
     const { refreshAchievements, progress } = useAchievements();
     const navigate = useNavigate();
     const [selectedLootItem, setSelectedLootItem] = useState<LootItem | null>(null);
@@ -59,9 +61,21 @@ const Rewards = () => {
     // Derive unlock status from achievements context (already loaded, no extra API call)
     const hasWeeklyUnlocked = progress['ach_login-progression']?.unlockedMilestones[0] || false;
 
-    // Check streak requirements
-    const canPurchaseDailyProtection = (streakStatus?.streakDays || 0) >= 7;
-    const canPurchaseWeeklyProtection = (weeklyStatus?.weeklyStreak || 0) >= 28;
+    // Check streak requirements + affordability (must afford the cheapest tier)
+    const essenceNum = Number(essenceBalance) || 0;
+    const DAILY_MIN_COST = 50;   // Tier 1 daily protection
+    const WEEKLY_MIN_COST = 500; // Only weekly tier
+    const canPurchaseDailyProtection = (streakStatus?.streakDays || 0) >= 7 && essenceNum >= DAILY_MIN_COST;
+    const canPurchaseWeeklyProtection = (weeklyStatus?.weeklyStreak || 0) >= 4 && essenceNum >= WEEKLY_MIN_COST;
+
+    // Active protection state (server-authoritative). Charges are consumable —
+    // the badge shows how many "Streak Saver" charges the player has banked.
+    const dailyCharges = streakStatus?.protectionCharges || 0;
+    const weeklyCharges = weeklyStatus?.protectionCharges || 0;
+    const dailyProtected = !!streakStatus?.isProtected || dailyCharges > 0;
+    const weeklyProtected = !!weeklyStatus?.isProtected || weeklyCharges > 0;
+    const protectionLabel = (charges: number) =>
+        charges <= 1 ? 'Streak Saver Ready' : `Streak Saver x${charges}`;
 
     // Daily bonus calculation (matches backend: 5% per day from day 2, max 100% at day 21)
     const dailyStreakDays = streakStatus?.streakDays || 0;
@@ -180,23 +194,33 @@ const Rewards = () => {
             >
                 {isClaimLoading ? 'Claiming...' : weeklyStatus?.canClaimWeekly ? 'Claim Weekly' : 'Already Claimed'}
             </button>
-            <ProtectionDialog type="weekly">
+            {weeklyProtected ? (
                 <button
-                    className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={!canPurchaseWeeklyProtection}
+                    disabled
+                    className="w-full py-2 px-4 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed"
                 >
-                    Buy Protection
+                    <Shield className="w-4 h-4" />
+                    {protectionLabel(weeklyCharges)}
                 </button>
-            </ProtectionDialog>
+            ) : (
+                <ProtectionDialog type="weekly">
+                    <button
+                        className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={!canPurchaseWeeklyProtection}
+                    >
+                        Buy Protection
+                    </button>
+                </ProtectionDialog>
+            )}
         </div>
 
         {/* Protection info */}
         <div className="text-sm flex items-center mb-2">
-            <h3 className="text-gray-800 dark:text-gray-200">Weekly Protection</h3>
+            <h3 className="text-gray-800 dark:text-gray-200">Weekly Streak Saver</h3>
         </div>
         <div className="text-sm text-gray-600 dark:text-gray-400">
             <ul className="space-y-1">
-                <li>• 500 {CURRENCY_NAMES.SOFT} - 14 days
+                <li>• 500 {CURRENCY_NAMES.SOFT} - 2 charges
                     <span className="text-sm ml-2 text-gray-500">* 4-week streak</span>
                 </li>
             </ul>
@@ -381,26 +405,36 @@ const Rewards = () => {
                             >
                                 {isClaimLoading ? 'Claiming...' : streakStatus?.canClaimToday ? 'Claim Daily' : 'Already Claimed'}
                             </button>
-                            <ProtectionDialog type="daily">
+                            {dailyProtected ? (
                                 <button
-                                    className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    disabled={!canPurchaseDailyProtection}
+                                    disabled
+                                    className="w-full py-2 px-4 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed"
                                 >
-                                    Buy Protection
+                                    <Shield className="w-4 h-4" />
+                                    {protectionLabel(dailyCharges)}
                                 </button>
-                            </ProtectionDialog>
+                            ) : (
+                                <ProtectionDialog type="daily">
+                                    <button
+                                        className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        disabled={!canPurchaseDailyProtection}
+                                    >
+                                        Buy Protection
+                                    </button>
+                                </ProtectionDialog>
+                            )}
                         </div>
 
                         {/* Protection info */}
                         <div className="text-sm flex items-center mb-2">
-                            <h3 className="text-gray-800 dark:text-gray-200">Streak Protection</h3>
+                            <h3 className="text-gray-800 dark:text-gray-200">Streak Saver</h3>
                         </div>
                         <div className="text-sm text-gray-600 dark:text-gray-400">
                             <ul className="space-y-1">
-                                <li>• Tier 1: 50 {CURRENCY_NAMES.SOFT} - 1 day
+                                <li>• Tier 1: 50 {CURRENCY_NAMES.SOFT} - 1 charge
                                     <span className="text-sm ml-2 text-gray-500">* 7-day streak</span>
                                 </li>
-                                <li>• Tier 2: 250 {CURRENCY_NAMES.SOFT} - 7 days
+                                <li>• Tier 2: 250 {CURRENCY_NAMES.SOFT} - 7 charges
                                     <span className="text-sm ml-2 text-gray-500">* 14-day streak</span>
                                 </li>
                             </ul>
@@ -415,7 +449,16 @@ const Rewards = () => {
                                 <Calendar className="w-6 h-6 text-green-500" />
                                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Weekly Rewards</h2>
                             </div>
-                            <AchievementIcon unlocked={hasWeeklyUnlocked} name="Week Warrior" color="green" />
+                            {!weeklyStatus?.canClaimWeekly && weeklyStatus?.nextClaimTime ? (
+                                <div className="text-xs text-gray-900 dark:text-white">
+                                    <CountdownTimer
+                                        endTime={weeklyStatus.nextClaimTime}
+                                        onComplete={refreshRewardStatus}
+                                    />
+                                </div>
+                            ) : (
+                                <AchievementIcon unlocked={hasWeeklyUnlocked} name="Week Warrior" color="green" />
+                            )}
                         </div>
 
                         {hasWeeklyUnlocked

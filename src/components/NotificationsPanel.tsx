@@ -473,7 +473,7 @@ function NotificationsPanel() {
       {/* Settings Modal - rendered via portal to avoid positioning issues */}
       {showSettingsModal && createPortal(
         <div
-          className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowSettingsModal(false);

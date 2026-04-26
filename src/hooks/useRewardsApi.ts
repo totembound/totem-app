@@ -16,7 +16,7 @@ export interface RewardStatus {
     bestStreak: number;
     nextClaimTime: Date | null;
     isProtected: boolean;
-    protectionExpiry: Date | null;
+    protectionCharges: number;
   };
   weekly: {
     canClaim: boolean;
@@ -24,7 +24,7 @@ export interface RewardStatus {
     bestStreak: number;
     nextClaimTime: Date | null;
     isProtected: boolean;
-    protectionExpiry: Date | null;
+    protectionCharges: number;
     isUnlocked: boolean;
   };
 }
@@ -66,9 +66,7 @@ export const useRewardsApi = () => {
               ? new Date(response.data.daily.nextClaimTime)
               : null,
             isProtected: response.data.daily.isProtected,
-            protectionExpiry: response.data.daily.protectionExpiry
-              ? new Date(response.data.daily.protectionExpiry)
-              : null,
+            protectionCharges: response.data.daily.protectionCharges || 0,
           },
           weekly: {
             canClaim: response.data.weekly.canClaim,
@@ -78,9 +76,7 @@ export const useRewardsApi = () => {
               ? new Date(response.data.weekly.nextClaimTime)
               : null,
             isProtected: response.data.weekly.isProtected,
-            protectionExpiry: response.data.weekly.protectionExpiry
-              ? new Date(response.data.weekly.protectionExpiry)
-              : null,
+            protectionCharges: response.data.weekly.protectionCharges || 0,
             isUnlocked: response.data.weekly.isUnlocked,
           },
         };

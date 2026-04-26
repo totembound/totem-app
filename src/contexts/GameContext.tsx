@@ -663,7 +663,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 bestStreak: daily.bestStreak || 0,
                 nextClaimTime: daily.nextClaimTime ? new Date(daily.nextClaimTime).getTime() / 1000 : 0,
                 isProtected: daily.isProtected || false,
-                protectionExpiry: daily.protectionExpiry ? new Date(daily.protectionExpiry).getTime() / 1000 : 0
+                protectionCharges: daily.protectionCharges || 0
             };
 
             const weeklyStatus: WeeklyStatus = {
@@ -672,7 +672,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 bestWeeklyStreak: weekly.bestStreak || 0,
                 nextClaimTime: weekly.nextClaimTime ? new Date(weekly.nextClaimTime).getTime() / 1000 : 0,
                 isProtected: weekly.isProtected || false,
-                protectionExpiry: weekly.protectionExpiry ? new Date(weekly.protectionExpiry).getTime() / 1000 : 0
+                protectionCharges: weekly.protectionCharges || 0
             };
 
             const hasWeeklyUnlocked = weekly.isUnlocked || false;

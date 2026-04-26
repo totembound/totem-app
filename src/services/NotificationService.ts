@@ -186,10 +186,14 @@ class NotificationService {
   /**
    * Show notification for totem evolution
    */
-  async showTotemEvolved(data: EvolutionNotificationData): Promise<void> {
+  async showTotemEvolved(data: EvolutionNotificationData & { totemLabel?: string }): Promise<void> {
     const stageName = data.newStageName || `Stage ${data.newStage + 1}`;
-    const displayName = data.newDisplayName || 'Your totem';
-    const message = `${displayName} evolved to ${stageName}!`;
+    // Prefer the explicit totemLabel (nickname or pre-evolve display name) over
+    // the post-evolve newDisplayName so the user recognizes the totem they acted on.
+    const subject = data.totemLabel
+      ? `Your ${data.totemLabel}`
+      : (data.newDisplayName || 'Your totem');
+    const message = `${subject} evolved to ${stageName}!`;
 
     await this.showNotification(NotificationType.TOTEM_EVOLVED, message, data, {
       priority: NotificationPriority.HIGH,
@@ -333,8 +337,9 @@ class NotificationService {
   /**
    * Show notification for achievement unlocked
    */
-  async showAchievementUnlocked(data: AchievementNotificationData): Promise<void> {
-    let message = `Achievement "${data.achievementName}" unlocked!`;
+  async showAchievementUnlocked(data: AchievementNotificationData & { totemLabel?: string }): Promise<void> {
+    const subject = data.totemLabel ? `Your ${data.totemLabel} unlocked` : 'Unlocked';
+    let message = `${subject} Achievement "${data.achievementName}"!`;
     const rewardParts: string[] = [];
     if (data.rewards?.essence) rewardParts.push(`+${data.rewards.essence} ${CURRENCY_NAMES.SOFT}`);
     if (data.rewards?.xp) rewardParts.push(`+${data.rewards.xp} XP`);
@@ -348,9 +353,10 @@ class NotificationService {
   /**
    * Show notification for milestone unlocked
    */
-  async showMilestoneUnlocked(data: MilestoneNotificationData): Promise<void> {
-    const name = data.achievementName ? ` "${data.achievementName}"` : "";
-    let message = `Milestone${name} unlocked!`;
+  async showMilestoneUnlocked(data: MilestoneNotificationData & { totemLabel?: string }): Promise<void> {
+    const subject = data.totemLabel ? `Your ${data.totemLabel} unlocked` : 'Unlocked';
+    const name = data.achievementName ? ` "${data.achievementName}"` : '';
+    let message = `${subject} Milestone${name}!`;
     const rewardParts: string[] = [];
     if (data.rewards?.essence) rewardParts.push(`+${data.rewards.essence} ${CURRENCY_NAMES.SOFT}`);
     if (data.rewards?.xp) rewardParts.push(`+${data.rewards.xp} XP`);
@@ -479,7 +485,8 @@ class NotificationService {
       milestone?: number;
       newMilestones?: number[];
       rewards?: { essence?: number; xp?: number };
-    }>
+    }>,
+    totemLabel?: string
   ): Promise<void> {
     if (!achievements || achievements.length === 0) return;
 
@@ -490,11 +497,9 @@ class NotificationService {
       } catch {
         // Config not loaded yet — use formatted ID as fallback
       }
-      // Use config name, or format the ID into a readable name as fallback
       const achievementName = config?.name ||
         ach.achievementId.replace(/^ach_/, '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-      // Determine milestone index from either field
       const milestoneIndex = ach.milestone ?? ach.newMilestones?.[ach.newMilestones.length - 1];
 
       if (milestoneIndex !== undefined && milestoneIndex !== null && config?.milestones) {
@@ -505,6 +510,7 @@ class NotificationService {
           milestoneIndex,
           badgeUri: milestoneConfig?.badgeUri,
           rewards: ach.rewards,
+          totemLabel,
         });
       } else {
         await this.showAchievementUnlocked({
@@ -512,6 +518,7 @@ class NotificationService {
           achievementName,
           badgeUri: config?.badgeUri,
           rewards: ach.rewards,
+          totemLabel,
         });
       }
     }

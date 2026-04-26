@@ -316,7 +316,7 @@ export interface StreakStatus {
     bestStreak: number;
     nextClaimTime: number;
     isProtected: boolean;
-    protectionExpiry: number;
+    protectionCharges: number;
 }
 
 export interface WeeklyStatus {
@@ -325,7 +325,7 @@ export interface WeeklyStatus {
     bestWeeklyStreak: number;
     nextClaimTime: number;
     isProtected: boolean;
-    protectionExpiry: number;
+    protectionCharges: number;
 }
 
 export interface Milestone {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Shield, AlertCircle, X } from 'lucide-react';
 import { useGame } from '../contexts/GameContext';
+import { useUser } from '../contexts/UserContext';
 import { CURRENCY_NAMES } from '../config/constants';
 
 interface ProtectionDialogProps {
@@ -10,36 +11,50 @@ interface ProtectionDialogProps {
 
 interface ProtectionTier {
   cost: number;
-  duration: number;
+  charges: number;
   requiredStreak: number;
 }
 
 const ProtectionDialog: React.FC<ProtectionDialogProps> = ({ type, children }) => {
   const { rewardsState, purchaseProtection } = useGame();
+  const { essenceBalance } = useUser();
+  const essenceNum = Number(essenceBalance) || 0;
   const [isOpen, setIsOpen] = useState(false);
   const [selectedTier, setSelectedTier] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const dailyTiers: ProtectionTier[] = [
-    { cost: 50, duration: 1, requiredStreak: 7 },
-    { cost: 250, duration: 7, requiredStreak: 14 }
+    { cost: 50, charges: 1, requiredStreak: 7 },
+    { cost: 250, charges: 7, requiredStreak: 14 }
   ];
 
   const weeklyTiers: ProtectionTier[] = [
-    { cost: 500, duration: 14, requiredStreak: 4 }
+    { cost: 500, charges: 2, requiredStreak: 4 }
   ];
 
   const tiers = type === 'daily' ? dailyTiers : weeklyTiers;
   const streakStatus = rewardsState.streakStatus;
 
+  const closeDialog = () => {
+    setIsOpen(false);
+    setErrorMessage(null);
+    setSelectedTier(null);
+  };
+
   const handlePurchase = async (tier: number) => {
     if (!purchaseProtection) return;
     setIsProcessing(true);
+    setErrorMessage(null);
     try {
       const success = await purchaseProtection(type, tier);
       if (success) {
-        setIsOpen(false);
+        closeDialog();
       }
+    }
+    catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to purchase protection';
+      setErrorMessage(message);
     }
     finally {
       setIsProcessing(false);
@@ -69,8 +84,8 @@ const ProtectionDialog: React.FC<ProtectionDialogProps> = ({ type, children }) =
                 Choose a protection tier to safeguard your {type} streak
               </p>
             </div>
-            <button 
-              onClick={() => setIsOpen(false)}
+            <button
+              onClick={closeDialog}
               className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               <X className="w-5 h-5" />
@@ -83,11 +98,13 @@ const ProtectionDialog: React.FC<ProtectionDialogProps> = ({ type, children }) =
               const currentStreak = type === 'daily'
                 ? (streakStatus?.streakDays ?? 0)
                 : (rewardsState.weeklyStatus?.weeklyStreak ?? 0);
-              const isEligible = currentStreak >= tier.requiredStreak;
+              const meetsStreak = currentStreak >= tier.requiredStreak;
+              const canAfford = essenceNum >= tier.cost;
+              const isEligible = meetsStreak && canAfford;
               const isSelected = selectedTier === index;
 
               return (
-                <div 
+                <div
                   key={index}
                   onClick={() => {
                     if (isEligible) setSelectedTier(index);
@@ -97,8 +114,8 @@ const ProtectionDialog: React.FC<ProtectionDialogProps> = ({ type, children }) =
                       ? 'hover:border-purple-500 cursor-pointer'
                       : 'opacity-50 cursor-not-allowed'
                   } ${
-                    isSelected 
-                      ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' 
+                    isSelected
+                      ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
                       : 'border-gray-200 dark:border-gray-700'
                   }`}
                 >
@@ -115,20 +132,36 @@ const ProtectionDialog: React.FC<ProtectionDialogProps> = ({ type, children }) =
                       {tier.cost} {CURRENCY_NAMES.SOFT}
                     </span>
                   </div>
-                  
+
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Protects your streak for {tier.duration} day{tier.duration > 1 ? 's' : ''}
+                    {tier.charges} streak save{tier.charges > 1 ? 's' : ''} — used only when you miss a {type === 'daily' ? 'day' : 'week'}
                   </div>
 
-                  {!isEligible && (
+                  {!meetsStreak && (
                     <div className="flex items-center gap-2 mt-2 text-sm text-amber-600 dark:text-amber-400">
                       <AlertCircle className="w-4 h-4" />
                       <span>Requires {tier.requiredStreak}-{type === 'daily' ? 'day' : 'week'} streak</span>
                     </div>
                   )}
+                  {meetsStreak && !canAfford && (
+                    <div className="flex items-center gap-2 mt-2 text-sm text-amber-600 dark:text-amber-400">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>Not enough {CURRENCY_NAMES.SOFT} (need {tier.cost - essenceNum} more)</span>
+                    </div>
+                  )}
                 </div>
               );
             })}
+
+            {errorMessage && (
+              <div
+                role="alert"
+                className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300"
+              >
+                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
 
             <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
               <button

@@ -448,7 +448,7 @@ class ApiClient {
         bestStreak: number;
         nextClaimTime: string | null;
         isProtected: boolean;
-        protectionExpiry: string | null;
+        protectionCharges: number;
       };
       weekly: {
         canClaim: boolean;
@@ -456,7 +456,7 @@ class ApiClient {
         bestStreak: number;
         nextClaimTime: string | null;
         isProtected: boolean;
-        protectionExpiry: string | null;
+        protectionCharges: number;
         isUnlocked: boolean;
       };
     }>('GET', '/rewards/status');
@@ -499,8 +499,9 @@ class ApiClient {
       rewardType: string;
       tier: number;
       cost: number;
-      durationSeconds: number;
-      protectionExpiry: string;
+      chargesAdded: number;
+      protectionCharges: number;
+      maxCharges: number;
       newBalance: number;
     }>('POST', `/rewards/${type}/protection`, { tier });
   }

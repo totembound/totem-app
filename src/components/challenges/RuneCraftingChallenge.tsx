@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameState } from '../../types/types';
+import ChallengeActionBar from './ChallengeActionBar';
 import Tooltip from '../Tooltip';
 import { elementsDB, RuneType, validateChainReaction } from './RuneValidator';
 
@@ -28,7 +29,7 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
   const [incorrectAttempts, setIncorrectAttempts] = useState<number>(0);
   const [_showAlert, setShowAlert] = useState<boolean>(false);
   const [_showMaxSlotsAlert, setShowMaxSlotsAlert] = useState<boolean>(false);
-  const [finalScore, setFinalScore] = useState<number>(0);
+  const [score, setScore] = useState<number>(0);
   const [_showSuccess, setShowSuccess] = useState<boolean>(false);
   const [_showFailure, setShowFailure] = useState<boolean>(false);
   const [_outcomeDescription, setOutcomeDescription] = useState<string>('');
@@ -153,13 +154,13 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
           incorrectAttempts
         );
 
-        setFinalScore(score);
+        setScore(score);
         setGameState('success');
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 2000);
         onComplete(score);
       } else {
-        setFinalScore(0);
+        setScore(0);
         setGameState('failed');
         setShowFailure(true);
         setTimeout(() => setShowFailure(false), 2000);
@@ -257,7 +258,7 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
       setOutcomeDescription('');
       setIncorrectAttempts(0);
       setGameState('playing');
-      setFinalScore(0);
+      setScore(0);
       setShowSuccess(false);
       setShowFailure(false);
 
@@ -368,6 +369,12 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
     };
   }, []);
 
+  // Drive live score preview during play
+  useEffect(() => {
+    if (gameState !== 'playing' || timeLeft === null) return;
+    setScore(calculateGameScore(timeLimit - timeLeft, timeLimit, incorrectAttempts));
+  }, [timeLeft, incorrectAttempts, gameState, timeLimit]);
+
   // Show alert when time is running low
   useEffect(() => {
     if (timeLeft !== null && timeLeft <= 5 && gameState === 'playing') {
@@ -376,14 +383,6 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
       setShowAlert(false);
     }
   }, [timeLeft, gameState]);
-
-  // Score ticker component
-  const _scoreTicker = (
-    <div className="text-gray-300 font-bold">
-      Time: {timeLeft ? timeLeft.toFixed(1) : '-'}s |
-      Score: {Math.floor(finalScore)}
-    </div>
-  );
 
   // Empty slot component for selected runes
   const EmptySlot = () => (
@@ -587,69 +586,13 @@ const SpiritWeavingRunes: React.FC<SpiritWeavingRunesProps> = ({
       </div>
 
       {/* Status Bar */}
-      <div>
-        {gameState === 'ready' && (
-          <button
-            className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
-        transition-colors duration-200"
-            onClick={startGame}
-            type="button"
-          >
-            Start Challenge
-          </button>
-        )}
-
-        {gameState === 'playing' && (
-          <button
-            className="w-full py-2 px-4 bg-gray-400 dark:bg-gray-600 text-white rounded-lg cursor-not-allowed"
-            disabled={true}
-            type="button"
-          >
-            <div className="text-gray-300 font-bold">
-              Time: {timeLeft ? timeLeft.toFixed(1) : '-'}s |
-              Score: {Math.floor(calculateGameScore(
-                timeLimit - (timeLeft || 0),
-                timeLimit,
-                incorrectAttempts
-              ))}
-            </div>
-          </button>
-        )}
-
-        {gameState === 'success' && (
-          <div className="flex justify-between items-center">
-            <div className="text-gray-300 font-bold">
-              Time: {timeLeft ? timeLeft.toFixed(1) : '-'}s |
-              Score: {Math.floor(finalScore)}
-            </div>
-            <button
-              className="py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 
-          transition-colors duration-200"
-              onClick={startGame}
-              type="button"
-            >
-              Try Again
-            </button>
-          </div>
-        )}
-
-        {gameState === 'failed' && (
-          <div className="flex justify-between items-center">
-            <div className="text-gray-300 font-bold">
-              Time: {timeLeft ? timeLeft.toFixed(1) : '-'}s |
-              Score: {Math.floor(finalScore)}
-            </div>
-            <button
-              className="py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 
-          transition-colors duration-200"
-              onClick={startGame}
-              type="button"
-            >
-              Try Again
-            </button>
-          </div>
-        )}
-      </div>
+      <ChallengeActionBar
+        gameState={gameState}
+        score={score}
+        timeLeft={timeLeft}
+        onStart={startGame}
+        onRestart={startGame}
+      />
     </div>
   );
 };

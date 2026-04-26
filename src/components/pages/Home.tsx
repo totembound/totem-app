@@ -14,6 +14,9 @@ import {
   Zap,
   Shield,
   Star,
+  Hammer,
+  Crown,
+  BookOpenText,
 } from "lucide-react";
 import specialsData from "../data/specials.json";
 import { getCurrentMonth } from "../../utils/totems";
@@ -256,7 +259,7 @@ const LoggedInHome: React.FC = () => {
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Quick Actions */}
+          {/* Quick Actions — daily / utility */}
           <div className="bg-purple-100 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800/50">
             <h2 className="text-xl font-semibold mb-3 text-purple-800 dark:text-purple-100">
               Quick Actions
@@ -270,6 +273,13 @@ const LoggedInHome: React.FC = () => {
                 View Totems
               </Link>
               <Link
+                to="/rewards"
+                className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-purple-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
+              >
+                <Gift className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                Daily Rewards
+              </Link>
+              <Link
                 to="/shop"
                 className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-purple-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
               >
@@ -277,28 +287,21 @@ const LoggedInHome: React.FC = () => {
                 Visit Shop
               </Link>
               <Link
-                to="/achievements"
+                to="/forge"
                 className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-purple-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
               >
-                <Trophy className="w-5 h-5 text-amber-500 dark:text-amber-400" />
-                Check Achievements
+                <Hammer className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                Totem Forge
               </Link>
             </div>
           </div>
 
-          {/* Game Stats */}
+          {/* Your Journey — progression / adventure */}
           <div className="bg-blue-100 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800/50">
             <h2 className="text-xl font-semibold mb-3 text-blue-800 dark:text-blue-100">
               Your Journey
             </h2>
-            <div className="space-y-3">
-              <Link
-                to="/rewards"
-                className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
-              >
-                <Gift className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-                <span>Daily Rewards</span>
-              </Link>
+            <div className="space-y-2">
               <Link
                 to="/challenges"
                 className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
@@ -313,9 +316,34 @@ const LoggedInHome: React.FC = () => {
                 <Map className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                 <span>Expeditions</span>
               </Link>
+              <Link
+                to="/sanctum"
+                className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
+              >
+                <Crown className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                <span>Elder Sanctum</span>
+              </Link>
+              <Link
+                to="/achievements"
+                className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
+              >
+                <Trophy className="w-5 h-5 text-amber-500 dark:text-amber-400" />
+                <span>Achievements</span>
+              </Link>
             </div>
           </div>
         </div>
+
+        {/* Guides & Lore — slim full-width link */}
+        <Link
+          to="/guides"
+          className="mt-4 flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-800 dark:text-gray-100 shadow-sm border border-gray-200 dark:border-gray-700"
+        >
+          <BookOpenText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+          <span>
+            New here? Browse the <strong>Guides, Codex & Lore</strong>
+          </span>
+        </Link>
       </div>
 
       {/* News & Updates Section */}

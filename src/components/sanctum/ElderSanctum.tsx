@@ -174,6 +174,7 @@ const ElderSanctum: React.FC = () => {
   if (loading) {
     return (
       <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg">
+        <Header />
         <div className="flex items-center justify-center min-h-[200px]">
           <div className="animate-pulse text-gray-400 dark:text-gray-500">Loading Elder Sanctum...</div>
         </div>
@@ -302,7 +303,7 @@ interface TotemPickerProps {
 
 const TotemPicker: React.FC<TotemPickerProps> = ({ eligibleTotems, onSelect, onClose, isLoading }) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
       <div
         className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col"
         role="dialog"

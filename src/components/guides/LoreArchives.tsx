@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { ChevronDown, MapPin, Sparkles, X } from "lucide-react";
 import GuidesHeader from "./GuidesHeader";
@@ -109,16 +110,11 @@ const TaleModal: React.FC<{ tale: Tale | null; onClose: () => void }> = ({ tale,
 
   if (!tale) return null;
 
-  return (
-    <div
-      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto
-        border border-amber-200/70 dark:border-gray-700 shadow-2xl">
-        <div className="relative h-56 sm:h-80 overflow-hidden rounded-t-2xl">
+  return createPortal(
+    <div className="fixed inset-0 z-[60] bg-white dark:bg-gray-900 sm:bg-transparent sm:dark:bg-transparent sm:flex sm:items-center sm:justify-center sm:p-4">
+      <div className="hidden sm:block fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full h-full sm:h-auto sm:max-w-2xl sm:max-h-[90vh] bg-white dark:bg-gray-900 sm:rounded-2xl sm:border sm:border-amber-200/70 sm:dark:border-gray-700 shadow-2xl overflow-y-auto">
+        <div className="relative h-56 sm:h-80 overflow-hidden sm:rounded-t-2xl">
           <img src={tale.image} alt={tale.title} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           <button
@@ -174,7 +170,8 @@ const TaleModal: React.FC<{ tale: Tale | null; onClose: () => void }> = ({ tale,
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 
@@ -418,7 +415,7 @@ const AtlasSection: React.FC = () => {
             {rows.map((r) => (
               <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                 <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-serif">
-                  <span className="mr-2">{r.emoji}</span>
+                  <span className="inline-block w-6 mr-2 text-center align-middle">{r.emoji}</span>
                   {r.title}
                 </td>
                 <td className="px-4 py-3 hidden sm:table-cell">

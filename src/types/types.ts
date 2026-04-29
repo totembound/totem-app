@@ -138,6 +138,39 @@ export enum Affinity {
     Wisdom = 2
 }
 
+// ---- Profile (bio / avatar / banner) ----
+
+export type AvatarRef =
+    | { kind: 'domain'; id: Domain }
+    | { kind: 'totem'; speciesId: number; colorId: number; stage: number }
+    | null;
+
+export type BannerRef =
+    | { kind: 'domain'; id: Domain }
+    | null;
+
+export interface UserProfile {
+    bio: string | null;
+    avatar: AvatarRef;
+    banner: BannerRef;
+}
+
+export type PlayerTier = 'free' | 'premium' | 'vip';
+
+export interface PublicPlayerProfile {
+    id: string;
+    displayName: string;
+    createdAt: string;
+    tier: PlayerTier;
+    profile: UserProfile;
+    stats: {
+        totalTotems: number;
+        totalChallengesCompleted: number;
+        bestLoginStreak: number;
+        highestStageReached: number;
+    };
+}
+
 export interface TotemAttributes {
     species: Species;
     color: Color;

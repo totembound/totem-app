@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Award, Crown, Loader2, CheckCircle, XCircle, CreditCard, Gift, Gem, Sparkles, Shield, ArrowUpRight, Clock, Zap, Star, Pencil } from 'lucide-react';
+import { Award, Crown, Loader2, CheckCircle, XCircle, CreditCard, Gift, Gem, Sparkles, Shield, ArrowUpRight, Clock, Zap, Star, Pencil, User as UserIcon } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import apiClient from '../../services/ApiClient';
 import * as serviceWorkerRegistration from '../../serviceWorkerRegistration';
 import EditDisplayNameDialog from '../settings/EditDisplayNameDialog';
+import { ProfileEditor } from '../profile/ProfileEditor';
+import { Avatar } from '../profile/Avatar';
+import { resolveBannerImage } from '../../utils/avatar';
+import type { UserProfile } from '../../types/types';
 
 interface SubscriptionInfo {
   tier: string;
@@ -43,6 +47,7 @@ const AccountSettings = () => {
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [editingName, setEditingName] = useState(false);
+    const [profile, setProfile] = useState<UserProfile>({ bio: null, avatar: null, banner: null });
     const version = serviceWorkerRegistration.getVersion();
 
     // Use authUser for profile info (displayName, email)
@@ -74,6 +79,16 @@ const AccountSettings = () => {
         if (isAuthenticated) {
             fetchSubscriptionStatus();
         }
+    }, [isAuthenticated]);
+
+    useEffect(() => {
+        if (!isAuthenticated) return;
+        let cancelled = false;
+        apiClient.getProfile().then(res => {
+            if (cancelled || !res.success || !res.data?.profile) return;
+            setProfile(res.data.profile);
+        });
+        return () => { cancelled = true; };
     }, [isAuthenticated]);
 
     const handleCancel = async () => {
@@ -168,7 +183,7 @@ const AccountSettings = () => {
             bg: 'bg-amber-500',
             bgLight: 'bg-amber-50 dark:bg-amber-900/20',
             border: 'border-amber-400 dark:border-amber-600',
-            badgeClass: 'text-amber-700 bg-amber-100 dark:text-amber-300 dark:bg-amber-900/40',
+            badgeClass: 'text-amber-700 bg-amber-100 dark:text-amber-300 dark:bg-amber-900',
             gradient: 'from-amber-500 to-orange-600',
             heroGradient: 'from-amber-900/80 via-orange-900/60 to-gray-900/90',
             ringColor: 'ring-amber-400',
@@ -181,7 +196,7 @@ const AccountSettings = () => {
             bg: 'bg-purple-500',
             bgLight: 'bg-purple-50 dark:bg-purple-900/20',
             border: 'border-purple-400 dark:border-purple-600',
-            badgeClass: 'text-purple-700 bg-purple-100 dark:text-purple-300 dark:bg-purple-900/40',
+            badgeClass: 'text-purple-700 bg-purple-100 dark:text-purple-300 dark:bg-purple-900',
             gradient: 'from-purple-500 to-indigo-600',
             heroGradient: 'from-purple-900/80 via-indigo-900/60 to-gray-900/90',
             ringColor: 'ring-purple-400',
@@ -194,10 +209,12 @@ const AccountSettings = () => {
             bg: 'bg-emerald-500',
             bgLight: 'bg-emerald-50 dark:bg-emerald-900/20',
             border: 'border-emerald-400 dark:border-emerald-600',
-            badgeClass: 'text-emerald-700 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-900/40',
+            badgeClass: 'text-emerald-700 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-900',
             gradient: 'from-emerald-500 to-teal-600',
             heroGradient: 'from-emerald-900/80 via-teal-900/60 to-gray-900/90',
-            ringColor: 'ring-emerald-400',
+            // Neutral gray ring for free — no tier flex but still gives the avatar
+            // a subtle outline. Paid tiers (premium/vip) get the colored rings.
+            ringColor: 'ring-gray-300 dark:ring-gray-600',
         },
     };
 
@@ -205,14 +222,46 @@ const AccountSettings = () => {
 
     return (
         <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg">
-            {/* Hero Profile Header */}
-            <div className={`relative rounded-xl overflow-hidden mb-8 bg-gradient-to-r ${tier.heroGradient}`}>
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDE4YzMuMzE0IDAgNiAyLjY4NiA2IDZzLTIuNjg2IDYtNiA2LTYtMi42ODYtNi02IDIuNjg2LTYgNi02ek0xMiA0OGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-50" />
+            {/* Hero Profile Header.
+                Banner set → render the chosen image clean (no tier tint).
+                Banner not set → fall back to the tier-themed gradient + dot pattern,
+                so free/premium/vip users without a banner still see something themed.
+                Either way, tier is also explicitly conveyed by the inline badge below. */}
+            {(() => {
+                const bannerSrc = resolveBannerImage(profile.banner);
+                return (
+                    <div className={`relative rounded-xl overflow-hidden mb-8 ${bannerSrc ? '' : `bg-gradient-to-r ${tier.heroGradient}`}`}>
+                        {bannerSrc ? (
+                            <>
+                                <img
+                                    src={bannerSrc}
+                                    alt=""
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                />
+                                {/* Light scrim improves white-text readability on bright banners */}
+                                <div className="absolute inset-0 bg-black/20" />
+                            </>
+                        ) : (
+                            // Tile a faint dot-scatter pattern over the tier gradient
+                            // for a subtle texture (otherwise the hero reads as a flat color).
+                            <div className="absolute inset-0 bg-[url('/patterns/dot-scatter.svg')] opacity-50" />
+                        )}
                 <div className="relative px-6 py-8 sm:px-8 sm:py-10 flex flex-col sm:flex-row items-center gap-6">
-                    {/* Avatar */}
-                    <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br ${tier.gradient} flex items-center justify-center ring-4 ${tier.ringColor} ring-opacity-50 shadow-lg flex-shrink-0`}>
-                        <span className="text-white text-2xl sm:text-3xl font-bold">{initials}</span>
-                    </div>
+                    {/* Avatar — neutral light/dark ring applied directly on the Avatar
+                        (which has explicit w-32 h-32) so the ring can never read as an
+                        oval. Tier signal lives in the inline tier badge below the name. */}
+                    {profile.avatar ? (
+                        <Avatar
+                            avatar={profile.avatar}
+                            displayName={displayName}
+                            size="xl"
+                            className="flex-shrink-0 ring-4 ring-white dark:ring-gray-800 shadow-lg"
+                        />
+                    ) : (
+                        <div className={`w-32 h-32 rounded-full bg-gradient-to-br ${tier.gradient} flex items-center justify-center ring-4 ring-white dark:ring-gray-800 shadow-lg flex-shrink-0`}>
+                            <span className="text-white text-3xl font-bold">{initials}</span>
+                        </div>
+                    )}
                     {/* Info */}
                     <div className="text-center sm:text-left flex-1 min-w-0">
                         <div className="flex items-center gap-1 mb-1 justify-center sm:justify-start">
@@ -227,12 +276,8 @@ const AccountSettings = () => {
                             </button>
                         </div>
                         {email && (
-                            <p className="text-white/60 text-sm mb-3 truncate">{email}</p>
+                            <p className="text-white/60 text-sm truncate">{email}</p>
                         )}
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold ${tier.badgeClass}`}>
-                            {tier.iconSmall}
-                            {tier.label}
-                        </span>
                     </div>
                     {/* Quick Stats */}
                     <div className="flex gap-4 sm:gap-6 flex-shrink-0">
@@ -250,7 +295,9 @@ const AccountSettings = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+                    </div>
+                );
+            })()}
 
             {/* Status Banners */}
             {successMessage && (
@@ -272,6 +319,35 @@ const AccountSettings = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column */}
                 <div className="lg:col-span-2 space-y-6">
+
+                    {/* Profile (bio, avatar, banner) */}
+                    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700/50 flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                                    <UserIcon className="w-4 h-4" />
+                                </div>
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Public profile</h2>
+                            </div>
+                            {authUser?.id && (
+                                <Link
+                                    to={`/players/${authUser.id}`}
+                                    className="inline-flex items-center gap-1 text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
+                                >
+                                    <ArrowUpRight className="w-3.5 h-3.5" />
+                                    View as others see it
+                                </Link>
+                            )}
+                        </div>
+                        <div className="p-6">
+                            <ProfileEditor
+                                displayName={displayName}
+                                onSaved={msg => setSuccessMessage(msg)}
+                                onError={msg => setErrorMessage(msg)}
+                                onCommit={p => setProfile(p)}
+                            />
+                        </div>
+                    </div>
 
                     {/* Subscription Management */}
                     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -301,7 +377,7 @@ const AccountSettings = () => {
                                                 <span className={`font-semibold ${tier.color}`}>{tier.label} Plan</span>
                                                 <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                                                     cancelAtPeriodEnd
-                                                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-400'
+                                                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-400'
                                                         : 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400'
                                                 }`}>
                                                     {cancelAtPeriodEnd ? 'Canceling' : 'Active'}
@@ -388,7 +464,7 @@ const AccountSettings = () => {
                     {isSubscribed && bonusStatus && (
                         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                             <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700/50 flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center text-amber-500">
+                                <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-900 flex items-center justify-center text-amber-500">
                                     <Gift className="w-4 h-4" />
                                 </div>
                                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Monthly Bonus</h2>
@@ -414,7 +490,7 @@ const AccountSettings = () => {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center">
+                                                    <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
                                                         <Gem className="w-5 h-5 text-purple-500" />
                                                     </div>
                                                     <div>

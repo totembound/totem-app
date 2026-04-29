@@ -38,7 +38,7 @@ function refsEqual(a: AvatarRef | BannerRef, b: AvatarRef | BannerRef): boolean 
 }
 
 export function ImagePickerDialog(props: ImagePickerDialogProps) {
-    const { isOpen, mode, onClose, onSave } = props;
+    const { isOpen, mode, onClose } = props;
     const [tab, setTab] = useState<'domains' | 'totems'>('domains');
     const [selected, setSelected] = useState<AvatarRef | BannerRef>(props.current);
     const [expandedTotemId, setExpandedTotemId] = useState<string | null>(null);

@@ -429,11 +429,21 @@ class ApiClient {
       currencies: { essence: number; gems: number; runes?: { lesser: number; greater: number; ancient: number } };
       stats: { totalTotems: number; loginStreak: number };
       settings: { notifications: boolean; darkMode: string };
+      displayNameCooldown?: { readyAt: string | null; skipCost: number };
     }>('GET', '/user/profile');
   }
 
   async updateProfile(data: { displayName?: string; settings?: Record<string, unknown> }) {
     return this.request('PUT', '/user/profile', data);
+  }
+
+  async updateDisplayName(displayName: string, skipCooldown = false) {
+    return this.request<{
+      displayName: string;
+      displayNameCooldown: { readyAt: string; skipCost: number };
+      skippedCooldown: boolean;
+      newEssenceBalance?: number;
+    }>('PUT', '/user/displayName', { displayName, skipCooldown });
   }
 
   // ============================================

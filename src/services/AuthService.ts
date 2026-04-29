@@ -33,6 +33,10 @@ export interface User {
     notifications: boolean;
     darkMode: string;
   };
+  displayNameCooldown?: {
+    readyAt: string | null;
+    skipCost: number;
+  };
   createdAt?: string;
 }
 

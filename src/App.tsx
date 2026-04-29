@@ -20,6 +20,7 @@ import Achievements from './components/pages/Achievements';
 import AccountSettings from './components/pages/AccountSettings';
 import LegalDocument from './components/LegalDocument';
 import About from './components/pages/About';
+import PublicPlayerProfile from './components/pages/PublicPlayerProfile';
 import Plans from './components/pages/Plans';
 import Roadmap from './components/pages/Roadmap';
 import ForgotPassword from './components/pages/ForgotPassword';
@@ -103,6 +104,11 @@ const AppRoutes: React.FC = () => {
         <Route index element={<Home />} />
 
         {/* Protected routes */}
+        <Route path="players/:userId" element={
+          <Protected>
+            <PublicPlayerProfile />
+          </Protected>
+        } />
         <Route path="account">
           <Route index element={<Navigate to="/account/settings" replace />} />
           <Route path="settings" element={

@@ -121,15 +121,19 @@ export const AFFINITIES: AffinityConfig[] = [
 // --- Domains ---
 
 export interface DomainConfig {
-    id: number;
+    id: number;            // matches the Domain enum in types.ts
     name: string;
-    speciesIds: number[];
+    speciesIds: number[];  // empty for sleeping domains (Fire, Spirit, Shadow)
+    image: string;         // public path for avatar/banner picker thumbnails
 }
 
 export const DOMAINS: DomainConfig[] = [
-    { id: 0, name: 'Air', speciesIds: [3, 6, 9, 11] },
-    { id: 1, name: 'Earth', speciesIds: [2, 5, 8, 10] },
-    { id: 2, name: 'Water', speciesIds: [0, 1, 4, 7] },
+    { id: 0, name: 'Air',    speciesIds: [3, 6, 9, 11],  image: '/domains/air-domain.jpg' },
+    { id: 1, name: 'Earth',  speciesIds: [2, 5, 8, 10],  image: '/domains/earth-domain.jpg' },
+    { id: 2, name: 'Water',  speciesIds: [0, 1, 4, 7],   image: '/domains/water-domain.jpg' },
+    { id: 3, name: 'Fire',   speciesIds: [],             image: '/domains/fire-domain.jpg' },
+    { id: 4, name: 'Spirit', speciesIds: [],             image: '/domains/spirit-domain.jpg' },
+    { id: 5, name: 'Shadow', speciesIds: [],             image: '/domains/shadow-domain.jpg' },
 ];
 
 // --- Actions ---

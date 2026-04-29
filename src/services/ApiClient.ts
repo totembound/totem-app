@@ -5,6 +5,8 @@
  * Replaces Web3 contract calls for the Web2 migration.
  */
 
+import type { AvatarRef, BannerRef, PublicPlayerProfile } from '../types/types';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/v1';
 
 interface ApiResponse<T = unknown> {
@@ -430,11 +432,22 @@ class ApiClient {
       stats: { totalTotems: number; loginStreak: number };
       settings: { notifications: boolean; darkMode: string };
       displayNameCooldown?: { readyAt: string | null; skipCost: number };
+      profile?: { bio: string | null; avatar: AvatarRef; banner: BannerRef };
     }>('GET', '/user/profile');
   }
 
-  async updateProfile(data: { displayName?: string; settings?: Record<string, unknown> }) {
+  async updateProfile(data: {
+    displayName?: string;
+    settings?: Record<string, unknown>;
+    bio?: string | null;
+    avatar?: AvatarRef;
+    banner?: BannerRef;
+  }) {
     return this.request('PUT', '/user/profile', data);
+  }
+
+  async getPublicPlayerProfile(userId: string) {
+    return this.request<PublicPlayerProfile>('GET', `/players/${userId}/public`);
   }
 
   async updateDisplayName(displayName: string, skipCooldown = false) {

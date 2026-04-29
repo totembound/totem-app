@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Loader2, AlertTriangle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useUser } from '../../contexts/UserContext';
 import { Species, Rarity } from '../../types/types';
 import MessageDialog from '../MessageDialog';
@@ -14,6 +15,7 @@ import { notificationService } from '../../services/NotificationService';
 interface UnboundTotem {
     tokenId: string;
     previousOwner: string;
+    sellerDisplayName: string;
     sellPrice: number;
     species: number;
     color: number;
@@ -99,6 +101,18 @@ const UnboundTotemCard: React.FC<{
                 {/* Spacer to push bottom content down */}
                 <div className="flex-grow">
                     <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                        {totem.previousOwner && (
+                            <div className="flex justify-between items-center mb-2 text-sm">
+                                <span className="text-gray-600 dark:text-gray-400">Seller</span>
+                                <Link
+                                    to={`/players/${totem.previousOwner}`}
+                                    className="text-indigo-600 dark:text-indigo-400 hover:underline truncate max-w-[60%] text-right"
+                                    title={`View ${totem.sellerDisplayName}'s profile`}
+                                >
+                                    {totem.sellerDisplayName}
+                                </Link>
+                            </div>
+                        )}
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-gray-600 dark:text-gray-400">Purchase Price</span>
                             <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
@@ -154,7 +168,8 @@ const UnboundTotems: React.FC = () => {
             if (response.success && response.data) {
                 const listings = (response.data.listings || []).map((listing: any) => ({
                     tokenId: listing.totemId || '',
-                    previousOwner: listing.originalOwnerId || '',
+                    previousOwner: listing.seller?.id || listing.originalOwnerId || '',
+                    sellerDisplayName: listing.seller?.displayName || 'Anonymous',
                     sellPrice: listing.sellPrice || 0,
                     species: listing.totem?.speciesId ?? 0,
                     color: listing.totem?.colorId ?? 0,

@@ -231,7 +231,7 @@ const AccountSettings = () => {
                 const bannerSrc = resolveBannerImage(profile.banner);
                 return (
                     <div className={`relative rounded-xl overflow-hidden mb-8 ${bannerSrc ? '' : `bg-gradient-to-r ${tier.heroGradient}`}`}>
-                        {bannerSrc && (
+                        {bannerSrc ? (
                             <>
                                 <img
                                     src={bannerSrc}
@@ -241,6 +241,10 @@ const AccountSettings = () => {
                                 {/* Light scrim improves white-text readability on bright banners */}
                                 <div className="absolute inset-0 bg-black/20" />
                             </>
+                        ) : (
+                            // Tile a faint dot-scatter pattern over the tier gradient
+                            // for a subtle texture (otherwise the hero reads as a flat color).
+                            <div className="absolute inset-0 bg-[url('/patterns/dot-scatter.svg')] opacity-50" />
                         )}
                 <div className="relative px-6 py-8 sm:px-8 sm:py-10 flex flex-col sm:flex-row items-center gap-6">
                     {/* Avatar — neutral light/dark ring applied directly on the Avatar

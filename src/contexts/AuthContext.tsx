@@ -7,6 +7,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import * as AuthService from '../services/AuthService';
+import type { UserProfile } from '../types/types';
 
 interface AuthUser {
   id: string;
@@ -32,6 +33,7 @@ interface AuthUser {
     readyAt: string | null;
     skipCost: number;
   };
+  profile?: UserProfile;
   createdAt?: string;
 }
 

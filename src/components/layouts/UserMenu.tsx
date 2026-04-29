@@ -2,14 +2,45 @@
  * User Menu Component
  *
  * Dropdown menu for authenticated users.
+ *
+ * Trigger: avatar (size=xs) + displayName + chevron.
+ * Dropdown header: banner strip + overlapping avatar + name (with inline tier
+ * badge) + email — mirrors the public profile page so the visual language is
+ * consistent across header menu, AccountSettings hero, and PublicPlayerProfile.
  */
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUser } from '../../contexts/UserContext';
-import { User, LogOut, Settings, ChevronDown, Sparkles, Gem, Shield, GraduationCap } from 'lucide-react';
+import { Award, ChevronDown, Crown, Gem, GraduationCap, LogOut, Settings, Shield, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CURRENCY_NAMES } from '../../config/constants';
+import { Avatar } from '../profile/Avatar';
+import { resolveBannerImage } from '../../utils/avatar';
+
+// Tier badge config — Free shows green Shield (informational, only for the
+// signed-in user's own menu — public profile hides Free per product call).
+// Premium = purple, VIP = amber/gold. Mirrors PublicPlayerProfile classes.
+// Tier badge config — only governs the inline pill next to the displayName.
+// Avatar ring is intentionally tier-agnostic (neutral white/gray-800) so the
+// ring acts as a "cutout" against the dropdown surface, never as a tier signal.
+const TIER_BADGE: Record<string, { label: string; className: string; Icon: typeof Crown }> = {
+  vip: {
+    label: 'VIP',
+    className: 'text-amber-700 bg-amber-100 dark:text-amber-300 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700',
+    Icon: Crown,
+  },
+  premium: {
+    label: 'Premium',
+    className: 'text-purple-700 bg-purple-100 dark:text-purple-300 dark:bg-purple-900/20 border-purple-300 dark:border-purple-700',
+    Icon: Award,
+  },
+  free: {
+    label: 'Free',
+    className: 'text-emerald-700 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700',
+    Icon: Shield,
+  },
+};
 
 export const UserMenu: React.FC = () => {
   const { user, logout } = useAuth();
@@ -19,14 +50,12 @@ export const UserMenu: React.FC = () => {
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -37,44 +66,28 @@ export const UserMenu: React.FC = () => {
     navigate('/');
   };
 
-  // Get tier badge color
-  const getTierColor = () => {
-    switch (user?.tier) {
-      case 'premium':
-        return 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400';
-      case 'vip':
-        return 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400';
-      default: // free
-        return 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400';
-    }
-  };
-
-  const getTierName = () => {
-    switch (user?.tier) {
-      case 'premium':
-        return 'Premium';
-      case 'vip':
-        return 'VIP';
-      default:
-        return 'Free';
-    }
-  };
+  const displayName = user?.displayName || user?.email?.split('@')[0] || 'Account';
+  const avatar = user?.profile?.avatar ?? null;
+  const banner = user?.profile?.banner ?? null;
+  const bannerSrc = resolveBannerImage(banner);
+  const tierKey = user?.tier && TIER_BADGE[user.tier] ? user.tier : 'free';
+  const tier = TIER_BADGE[tierKey];
 
   return (
     <div className="relative sm:static" ref={menuRef}>
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg
+        className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg
           border transition-all duration-200
           bg-white hover:bg-gray-50
           dark:bg-gray-800 dark:hover:bg-gray-700
           border-gray-200 dark:border-gray-700
           text-gray-700 dark:text-gray-300"
       >
-        <User size={18} className="text-gray-500 dark:text-gray-400" />
+        <Avatar avatar={avatar} displayName={displayName} size="sm" />
         <span className="font-medium hidden sm:block">
-          {user?.displayName || user?.email?.split('@')[0] || 'Account'}
+          {displayName}
         </span>
         <ChevronDown
           size={16}
@@ -85,35 +98,50 @@ export const UserMenu: React.FC = () => {
 
       {isOpen && (
         <div
-          className="fixed top-12 right-4 left-4 sm:absolute sm:top-full sm:left-auto sm:right-0 mt-2 sm:w-64
+          className="fixed top-12 right-4 left-4 sm:absolute sm:top-full sm:left-auto sm:right-0 mt-2 sm:w-72
             bg-white dark:bg-gray-800 rounded-lg shadow-lg
             border border-gray-200 dark:border-gray-700
-            py-2 z-50"
+            overflow-hidden z-50"
         >
-          {/* User Info */}
-          <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-            <p className="font-medium text-gray-900 dark:text-white truncate">
-              {user?.displayName || 'Player'}
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-              {user?.email}
-            </p>
+          {/* Banner strip with overlapping avatar */}
+          <div className="relative h-20 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
+            {bannerSrc && (
+              <img
+                src={bannerSrc}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            )}
+            <Avatar
+              avatar={avatar}
+              displayName={displayName}
+              size="md"
+              className="absolute -bottom-6 left-3 shadow-lg ring-2 ring-white dark:ring-gray-800"
+            />
           </div>
 
-          {/* Tier Badge */}
-          <div className="px-4 py-2">
-            <div className="flex items-center gap-2">
-              <Shield size={16} className="text-gray-500 dark:text-gray-400" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Account Tier
-              </span>
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${getTierColor()}`}>
-                {getTierName()}
+          {/* Identity — name + tier badge inline, email below.
+              pt-7 reserves room for the half-overhanging avatar (md = 48px / 2 = 24px). */}
+          <div className="pt-7 px-4 pb-3">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <p className="font-semibold text-gray-900 dark:text-white truncate">
+                {user?.displayName || 'Player'}
+              </p>
+              <span
+                className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold border ${tier.className}`}
+              >
+                <tier.Icon className="w-3 h-3" />
+                {tier.label}
               </span>
             </div>
+            {user?.email && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                {user.email}
+              </p>
+            )}
           </div>
 
-          <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
+          <div className="border-t border-gray-200 dark:border-gray-700" />
 
           {/* Currency Balances */}
           <div className="px-4 py-3 space-y-2">
@@ -140,7 +168,7 @@ export const UserMenu: React.FC = () => {
             </div>
           </div>
 
-          <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
+          <div className="border-t border-gray-200 dark:border-gray-700" />
 
           {/* Settings Link */}
           <Link
@@ -170,7 +198,7 @@ export const UserMenu: React.FC = () => {
             <span className="text-sm">Show Tutorial</span>
           </button>
 
-          <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
+          <div className="border-t border-gray-200 dark:border-gray-700" />
 
           {/* Logout Button */}
           <button

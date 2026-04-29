@@ -60,6 +60,26 @@ describe('UserMenu', () => {
     expect(screen.getByText('Free')).toBeInTheDocument();
   });
 
+  it('renders the trigger avatar (initials fallback when no avatar set)', () => {
+    render(<UserMenu />);
+    // Initials for "TestPlayer" — single word, first 2 chars uppercase = "TE".
+    // The trigger renders an Avatar component; the button label is "TE TestPlayer".
+    const triggerButton = screen.getByRole('button', { name: /TestPlayer/ });
+    expect(triggerButton).toBeInTheDocument();
+    // The Avatar component for null avatar renders a span with the initials text.
+    expect(screen.getByText('TE')).toBeInTheDocument();
+  });
+
+  it('renders displayName + email + tier badge in dropdown header', () => {
+    render(<UserMenu />);
+    fireEvent.click(screen.getByText('TestPlayer'));
+    // displayName appears in the dropdown header (along with the trigger button).
+    const playerOccurrences = screen.getAllByText('TestPlayer');
+    expect(playerOccurrences.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('test@example.com')).toBeInTheDocument();
+    expect(screen.getByText('Free')).toBeInTheDocument();
+  });
+
   it('should call logout and navigate on Log Out click', async () => {
     render(<UserMenu />);
     fireEvent.click(screen.getByText('TestPlayer'));

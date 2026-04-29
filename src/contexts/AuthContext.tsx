@@ -28,6 +28,10 @@ interface AuthUser {
     notifications: boolean;
     darkMode: string;
   };
+  displayNameCooldown?: {
+    readyAt: string | null;
+    skipCost: number;
+  };
   createdAt?: string;
 }
 

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Award, Crown, Loader2, CheckCircle, XCircle, CreditCard, Gift, Gem, Sparkles, Shield, ArrowUpRight, Clock, Zap, Star } from 'lucide-react';
+import { Award, Crown, Loader2, CheckCircle, XCircle, CreditCard, Gift, Gem, Sparkles, Shield, ArrowUpRight, Clock, Zap, Star, Pencil } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import apiClient from '../../services/ApiClient';
 import * as serviceWorkerRegistration from '../../serviceWorkerRegistration';
+import EditDisplayNameDialog from '../settings/EditDisplayNameDialog';
 
 interface SubscriptionInfo {
   tier: string;
@@ -41,6 +42,7 @@ const AccountSettings = () => {
     const [openingPortal, setOpeningPortal] = useState(false);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [editingName, setEditingName] = useState(false);
     const version = serviceWorkerRegistration.getVersion();
 
     // Use authUser for profile info (displayName, email)
@@ -213,7 +215,17 @@ const AccountSettings = () => {
                     </div>
                     {/* Info */}
                     <div className="text-center sm:text-left flex-1 min-w-0">
-                        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 truncate">{displayName}</h1>
+                        <div className="flex items-center gap-1 mb-1 justify-center sm:justify-start">
+                            <h1 className="text-2xl sm:text-3xl font-bold text-white truncate">{displayName}</h1>
+                            <button
+                                onClick={() => setEditingName(true)}
+                                className="p-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 min-w-[44px] min-h-[44px] flex items-center justify-center shrink-0"
+                                aria-label="Edit display name"
+                                title="Edit display name"
+                            >
+                                <Pencil className="w-4 h-4" />
+                            </button>
+                        </div>
                         {email && (
                             <p className="text-white/60 text-sm mb-3 truncate">{email}</p>
                         )}
@@ -557,6 +569,20 @@ const AccountSettings = () => {
                     </p>
                 </div>
             </div>
+
+            <EditDisplayNameDialog
+                open={editingName}
+                currentName={displayName}
+                cooldown={authUser?.displayNameCooldown ?? null}
+                onClose={() => setEditingName(false)}
+                onSuccess={(newName, skipped) => {
+                    setSuccessMessage(
+                        skipped
+                            ? `Display name changed to "${newName}". 500 Essence spent to skip cooldown.`
+                            : `Display name changed to "${newName}".`,
+                    );
+                }}
+            />
         </div>
     );
 };

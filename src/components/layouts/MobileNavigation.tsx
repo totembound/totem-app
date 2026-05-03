@@ -170,7 +170,7 @@ const MobileNavigation: React.FC = () => {
                 />
               )}
               <MoreMenuItem
-                label="Settings"
+                label="Account Settings"
                 icon={Settings}
                 onClick={() => {
                   navigate('/account/settings');

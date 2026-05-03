@@ -61,7 +61,7 @@ describe('MobileNavigation', () => {
     expect(screen.getByText('Expeditions')).toBeInTheDocument();
     expect(screen.getByText('Forge')).toBeInTheDocument();
     expect(screen.getByText('Achievements')).toBeInTheDocument();
-    expect(screen.getByText('Settings')).toBeInTheDocument();
+    expect(screen.getByText('Account Settings')).toBeInTheDocument();
     expect(screen.getByText('Log Out')).toBeInTheDocument();
   });
 
@@ -116,7 +116,7 @@ describe('MobileNavigation', () => {
   it('should navigate to settings on Settings click', () => {
     render(<MobileNavigation />);
     fireEvent.click(screen.getByText('More'));
-    fireEvent.click(screen.getByText('Settings'));
+    fireEvent.click(screen.getByText('Account Settings'));
     expect(mockNavigate).toHaveBeenCalledWith('/account/settings');
   });
 

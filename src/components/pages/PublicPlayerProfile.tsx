@@ -85,7 +85,7 @@ const PublicPlayerProfile: React.FC = () => {
                     if (window.history.length > 1) navigate(-1);
                     else navigate('/');
                 }}
-                className="inline-flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-3"
+                className="inline-flex items-center gap-1 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white bg-white/80 dark:bg-gray-900/70 backdrop-blur-sm px-2.5 py-1 rounded-md mb-3"
             >
                 <ArrowLeft className="w-4 h-4" /> Back
             </button>
@@ -94,7 +94,9 @@ const PublicPlayerProfile: React.FC = () => {
                 {/* Banner + avatar — banner is the positioning context for the avatar.
                     Avatar is absolute, anchored to bottom-left and pulled half-down
                     out of the banner so it overlaps the banner/body boundary cleanly. */}
-                <div className="relative h-36 sm:h-56 w-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
+                <div className="relative h-36 sm:h-56 w-full">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-600 to-slate-700 dark:from-indigo-950 dark:via-purple-950 dark:to-slate-950" />
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(168,85,247,0.15),transparent_70%)]" />
                     {bannerSrc && (
                         <img
                             src={bannerSrc}
@@ -109,7 +111,7 @@ const PublicPlayerProfile: React.FC = () => {
                         avatar={profile.profile.avatar}
                         displayName={profile.displayName}
                         size="xl"
-                        className="absolute bottom-0 left-4 sm:left-6 translate-y-1/2 z-10 ring-4 ring-white dark:ring-gray-800 shadow-xl"
+                        className="absolute bottom-0 left-4 sm:left-6 translate-y-1/2 z-10 ring-4 ring-slate-200 dark:ring-gray-800 shadow-xl"
                     />
                 </div>
 

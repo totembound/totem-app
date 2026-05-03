@@ -8,7 +8,7 @@ import * as serviceWorkerRegistration from '../../serviceWorkerRegistration';
 import EditDisplayNameDialog from '../settings/EditDisplayNameDialog';
 import { ProfileEditor } from '../profile/ProfileEditor';
 import { Avatar } from '../profile/Avatar';
-import { resolveBannerImage } from '../../utils/avatar';
+import { initialsFor, resolveBannerImage } from '../../utils/avatar';
 import type { UserProfile } from '../../types/types';
 
 interface SubscriptionInfo {
@@ -53,7 +53,7 @@ const AccountSettings = () => {
     // Use authUser for profile info (displayName, email)
     const displayName = authUser?.displayName || 'Player';
     const email = authUser?.email || '';
-    const initials = displayName.slice(0, 2).toUpperCase();
+    const initials = initialsFor(displayName);
 
     const fetchSubscriptionStatus = async () => {
         setLoading(true);

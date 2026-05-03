@@ -77,3 +77,12 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 html.dark * {
     scrollbar-color: rgba(75, 85, 99, 0.6) transparent;
 }
+
+/* Wallpaper mode — toggled from the Home page. Hides the global footer
+   plus the GameBackground dimming/readability overlays so the user sees the
+   artwork unobstructed. The Home page itself swaps its content for a small
+   "exit wallpaper" badge. */
+body.wallpaper-mode footer,
+body.wallpaper-mode .wallpaper-mask {
+    display: none;
+}

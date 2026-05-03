@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import {
@@ -17,6 +17,8 @@ import {
   Hammer,
   Crown,
   BookOpenText,
+  Image as ImageIcon,
+  ArrowLeft,
 } from "lucide-react";
 import specialsData from "../data/specials.json";
 import { getCurrentMonth } from "../../utils/totems";
@@ -247,13 +249,49 @@ const PublicHome: React.FC = () => {
 
 // Component for logged-in users
 const LoggedInHome: React.FC = () => {
+  const [wallpaperMode, setWallpaperMode] = useState(false);
+
+  // Toggle a body class so global chrome (footer) can hide via CSS while
+  // wallpaper mode is active. Cleanup ensures the class never leaks if the
+  // user navigates away while in wallpaper mode.
+  useEffect(() => {
+    document.body.classList.toggle('wallpaper-mode', wallpaperMode);
+    return () => document.body.classList.remove('wallpaper-mode');
+  }, [wallpaperMode]);
+
+  if (wallpaperMode) {
+    return (
+      <div className="fixed inset-x-0 top-20 sm:top-32 z-40 flex justify-center pointer-events-none px-4">
+        <button
+          type="button"
+          onClick={() => setWallpaperMode(false)}
+          className="pointer-events-auto inline-flex items-center gap-2 bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Home
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-2 sm:p-4 md:p-6">
       {/* Top Section */}
       <div className="dark:border-gray-700">
-        <h1 className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 dark:text-white">
-          Welcome to TotemBound!
-        </h1>
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+            Welcome to TotemBound!
+          </h1>
+          <button
+            type="button"
+            onClick={() => setWallpaperMode(true)}
+            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white bg-white/80 dark:bg-gray-800/70 backdrop-blur-sm border border-gray-200 dark:border-gray-700 px-2.5 py-1.5 rounded-md"
+            title="Hide UI to view the background"
+          >
+            <ImageIcon className="w-4 h-4" />
+            <span className="hidden sm:inline">Show Wallpaper</span>
+          </button>
+        </div>
         <p className="text-gray-600 dark:text-gray-300 mb-4">
           Continue your mystical journey with your Totem companions.
         </p>

@@ -43,7 +43,7 @@ describe('UserMenu', () => {
     render(<UserMenu />);
     fireEvent.click(screen.getByText('TestPlayer'));
     expect(screen.getByText('Log Out')).toBeInTheDocument();
-    expect(screen.getByText('Settings')).toBeInTheDocument();
+    expect(screen.getByText('Account Settings')).toBeInTheDocument();
     expect(screen.getByText('test@example.com')).toBeInTheDocument();
   });
 

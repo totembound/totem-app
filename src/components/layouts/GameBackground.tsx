@@ -6,17 +6,16 @@ const GameBackground: React.FC = () => {
       text-gray-900 dark:text-gray-100">
 
       {/* Background image */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ 
-          backgroundImage: 'url(/totembound.png)',
-          filter: 'blur(1px)'
+        style={{
+          backgroundImage: 'url(/totembound.png)'
         }}
       />
 
       {/* Dimming overlay */}
-      <div className="absolute inset-0 bg-black/30 dark:bg-black/50" />
-      
+      <div className="absolute inset-0 bg-black/10 dark:bg-black/30" />
+
       {/* Background gradient for better readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gray-50/10 to-gray-50/20 
           dark:via-gray-900/10 dark:to-gray-900/20" />

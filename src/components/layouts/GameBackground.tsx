@@ -13,11 +13,12 @@ const GameBackground: React.FC = () => {
         }}
       />
 
-      {/* Dimming overlay */}
-      <div className="absolute inset-0 bg-black/10 dark:bg-black/30" />
+      {/* Dimming overlay — hidden in wallpaper mode (see index.css) so the
+          user can see the artwork unobstructed when they explicitly ask for it. */}
+      <div className="wallpaper-mask absolute inset-0 bg-black/10 dark:bg-black/30" />
 
-      {/* Background gradient for better readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gray-50/10 to-gray-50/20 
+      {/* Background gradient for better readability — also hidden in wallpaper mode. */}
+      <div className="wallpaper-mask absolute inset-0 bg-gradient-to-b from-transparent via-gray-50/10 to-gray-50/20
           dark:via-gray-900/10 dark:to-gray-900/20" />
 
     </div>

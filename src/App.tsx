@@ -63,6 +63,7 @@ import TutorialWizard from './components/guides/TutorialWizard';
 import { TutorialClaimsProvider } from './components/guides/useTutorialClaims';
 import TotemForge from './components/forge/TotemForge';
 import ElderSanctum from './components/sanctum/ElderSanctum';
+import KeepersVillage from './components/village/KeepersVillage';
 
 // Email/password auth only - wallet auth removed
 const AppRoutes: React.FC = () => {
@@ -102,6 +103,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/terms" element={<LegalDocument doc="terms" />} />
         <Route path="/privacy" element={<LegalDocument doc="privacy" />} />
         <Route index element={<Home />} />
+        <Route path="/keepers-village" element={<KeepersVillage />} />
 
         {/* Protected routes */}
         <Route path="players/:userId" element={

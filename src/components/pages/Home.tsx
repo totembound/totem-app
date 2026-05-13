@@ -19,6 +19,8 @@ import {
   BookOpenText,
   Image as ImageIcon,
   ArrowLeft,
+  Castle,
+  ScrollText,
 } from "lucide-react";
 import specialsData from "../data/specials.json";
 import { getCurrentMonth } from "../../utils/totems";
@@ -296,6 +298,42 @@ const LoggedInHome: React.FC = () => {
           Continue your mystical journey with your Totem companions.
         </p>
 
+        {/* Village hero card — flagship hub experience */}
+        <Link
+          to="/keepers-village"
+          className="group relative block w-full mb-6 overflow-hidden rounded-xl shadow-lg ring-1 ring-amber-500/40 hover:ring-amber-400/70 hover:shadow-[0_0_14px_1px_rgba(245,158,11,0.4)] transition-all"
+        >
+          <img
+            src="/village-background.png"
+            alt=""
+            className="block w-full h-28 sm:h-32 md:h-40 object-cover object-center transition-transform duration-500 group-hover:scale-[1.02]"
+            draggable={false}
+          />
+          {/* Stronger overlay — keeps the card readable on both light + dark backgrounds */}
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-900/70 to-slate-900/45" />
+          {/* Warm radial accent on the left so the panorama still shows through on the right */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_left,_rgba(217,119,6,0.18),_transparent_60%)]" />
+          <div className="absolute inset-0 flex items-center justify-between px-4 sm:px-6 md:px-8">
+            <div className="flex items-center gap-3 sm:gap-4 text-white">
+              <div className="shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-amber-500/20 ring-1 ring-amber-300/40 flex items-center justify-center backdrop-blur-sm">
+                <Castle className="w-5 h-5 sm:w-6 sm:h-6 text-amber-200 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]" />
+              </div>
+              <div>
+                <div className="text-base sm:text-lg md:text-xl font-bold drop-shadow-[0_1px_4px_rgba(0,0,0,0.95)]">
+                  Keeper&rsquo;s Village
+                </div>
+                <div className="text-xs sm:text-sm text-amber-100/95 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
+                  Explore your village hub
+                </div>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs sm:text-sm font-bold shadow-md group-hover:translate-x-0.5 transition-transform">
+              Visit
+              <span aria-hidden>→</span>
+            </span>
+          </div>
+        </Link>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Quick Actions — daily / utility */}
           <div className="bg-purple-100 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800/50">
@@ -304,13 +342,6 @@ const LoggedInHome: React.FC = () => {
             </h2>
             <div className="space-y-2">
               <Link
-                to="/totems"
-                className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-purple-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
-              >
-                <PawPrint className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                View Totems
-              </Link>
-              <Link
                 to="/rewards"
                 className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-purple-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
               >
@@ -318,26 +349,37 @@ const LoggedInHome: React.FC = () => {
                 Daily Rewards
               </Link>
               <Link
+                to="/totems"
+                className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-purple-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
+              >
+                <PawPrint className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                View Totems
+              </Link>
+              <div
+                aria-disabled="true"
+                title="Coming soon"
+                className="flex items-center gap-2 p-3 bg-white/60 dark:bg-gray-700/60 rounded-md text-gray-500 dark:text-gray-400 shadow-sm cursor-not-allowed"
+              >
+                <ScrollText className="w-5 h-5 text-purple-400 dark:text-purple-500" />
+                <span>Daily Quests</span>
+                <span className="ml-auto text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">
+                  Soon
+                </span>
+              </div>
+              <Link
                 to="/shop"
                 className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-purple-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
               >
                 <ShoppingBag className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 Visit Shop
               </Link>
-              <Link
-                to="/forge"
-                className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-purple-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
-              >
-                <Hammer className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                Totem Forge
-              </Link>
             </div>
           </div>
 
-          {/* Your Journey — progression / adventure */}
+          {/* Adventures — progression / challenges */}
           <div className="bg-blue-100 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800/50">
             <h2 className="text-xl font-semibold mb-3 text-blue-800 dark:text-blue-100">
-              Your Journey
+              Adventures
             </h2>
             <div className="space-y-2">
               <Link
@@ -353,6 +395,13 @@ const LoggedInHome: React.FC = () => {
               >
                 <Map className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                 <span>Expeditions</span>
+              </Link>
+              <Link
+                to="/forge"
+                className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
+              >
+                <Hammer className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                <span>Totem Forge</span>
               </Link>
               <Link
                 to="/sanctum"

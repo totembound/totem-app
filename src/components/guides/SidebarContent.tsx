@@ -2,6 +2,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { NavItemType } from "./codex/NavItems";
+import { withVillagePrefix } from "../village/villagePath";
 
 export interface CodexNavigationProps {
   items: NavItemType[];
@@ -60,17 +61,20 @@ const NavItem: React.FC<NavItemProps> = ({
   const [isOpen, setIsOpen] = useState(!!expanded);
   const location = useLocation();
   const hasChildren = React.Children.count(children) > 0;
+  // Trunk-aware: when navigating inside the village modal, rewrite /guides/...
+  // paths to /keepers-village/guides/... so links don't escape the modal.
+  const trunkPath = withVillagePrefix(location.pathname, path);
 
   // Check if current path or any child path is active
   const isActive =
-    location.pathname === path || location.pathname.startsWith(path + "/");
+    location.pathname === trunkPath || location.pathname.startsWith(trunkPath + "/");
 
   // Auto-expand if child is active
   useEffect(() => {
-    if (hasChildren && location.pathname.startsWith(path + "/")) {
+    if (hasChildren && location.pathname.startsWith(trunkPath + "/")) {
       setIsOpen(true);
     }
-  }, [location.pathname, hasChildren, path]);
+  }, [location.pathname, hasChildren, trunkPath]);
 
   const toggleOpen = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -97,7 +101,7 @@ const NavItem: React.FC<NavItemProps> = ({
       >
         {/* Left side (icon + text) is a navigation link */}
         <Link
-          to={path}
+          to={trunkPath}
           className="flex items-center flex-1 cursor-pointer"
           onClick={handleClick}
         >
@@ -146,11 +150,12 @@ const NavSubItem: React.FC<NavSubItemProps> = ({
   closeMobileMenu,
 }) => {
   const location = useLocation();
-  const isActive = location.pathname === path;
+  const trunkPath = withVillagePrefix(location.pathname, path);
+  const isActive = location.pathname === trunkPath;
 
   return (
     <Link
-      to={path}
+      to={trunkPath}
       className={`
         block py-2 px-4 rounded-md my-1
         ${

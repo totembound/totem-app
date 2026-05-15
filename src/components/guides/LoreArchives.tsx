@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ChevronDown, MapPin, Sparkles, X } from "lucide-react";
+import { withVillagePrefix } from "../village/villagePath";
 import GuidesHeader from "./GuidesHeader";
 import {
   DOMAIN_LORE,
@@ -23,11 +24,12 @@ const locationById = (id: number) => LOCATIONS.find((l) => l.id === id);
 const eraById = (id: EraId): Era | undefined => ERAS.find((e) => e.id === id);
 
 const LocationChip: React.FC<{ id: number }> = ({ id }) => {
+  const location = useLocation();
   const loc = locationById(id);
   if (!loc) return null;
   return (
     <Link
-      to={`/guides/codex/map?location=${id}`}
+      to={withVillagePrefix(location.pathname, `/guides/codex/map?location=${id}`)}
       className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium
         bg-purple-100 text-purple-800 hover:bg-purple-200
         dark:bg-purple-900/60 dark:text-purple-200 dark:hover:bg-purple-800

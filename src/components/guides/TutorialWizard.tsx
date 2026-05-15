@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, CheckCircle, Gift, Lock, Maximize2, Minus } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTutorialConfig } from './useTutorialConfig';
 import { useTutorialClaims } from './useTutorialClaims';
 import { useUser } from '../../contexts/UserContext';
 import { CURRENCY_NAMES } from '../../config/constants';
+import { withVillagePrefix } from '../village/villagePath';
 import TutorialCompleteModal from './TutorialCompleteModal';
 
 interface TutorialWizardProps {
@@ -24,6 +25,7 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
   } = useUser();
   const [isMinimized, setIsMinimized] = useState<boolean>(false);
   const [currentStep, setCurrentStep] = useState<number>(0);
+  const location = useLocation();
 
   const { comingSoon, totems } = useUser();
   const { tutorialSteps, areAllStepsComplete, stepActions } = useTutorialConfig();
@@ -106,7 +108,7 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
   return (
     <>
     {tutorialComplete && <TutorialCompleteModal onClose={dismissTutorialComplete} />}
-    <div className={`fixed sm:bottom-6 right-2 w-96 max-w-[calc(100vw-1rem)] bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden transition-all duration-300 ease-in-out z-50 border border-gray-200 dark:border-gray-700 ${
+    <div className={`tutorial-wizard fixed sm:bottom-6 right-2 w-96 max-w-[calc(100vw-1rem)] bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden transition-all duration-300 ease-in-out z-50 border border-gray-200 dark:border-gray-700 ${
       isMinimized ? 'h-auto' : ''} ${className}`}
       style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}>
       {/* Header */}
@@ -194,7 +196,7 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
                 <div className="h-6 mr-1">
                     {step.actionType === 'link' && step.actionUrl && (
                       <Link
-                        to={step.actionUrl}
+                        to={withVillagePrefix(location.pathname, step.actionUrl)}
                         state={linkState}
                         className="text-sm text-purple-500 hover:text-purple-400 hover:underline font-bold"
                         onClick={() => handleLinkClick(step)}

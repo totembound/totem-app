@@ -7,7 +7,7 @@ import {
 } from "../../../utils/totems";
 import { Rarity } from "../../../types/types";
 import { Brain, Dumbbell, Wind, Flame, Dna, Shuffle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { VillageLink as Link } from "../../village/VillageLink";
 
 const TotemCodex: React.FC = () => {
   const totems = AVAILABLE_SPECIES;

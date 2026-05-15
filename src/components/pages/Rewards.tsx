@@ -3,7 +3,8 @@ import { useGame } from '../../contexts/GameContext';
 import { useUser } from '../../contexts/UserContext';
 import { useAchievements } from '../../contexts/AchievementsContext';
 import { Calendar, Coins, Crown, Flame, Trophy, Lock, Gift, Package, Shield, Sparkles, TrendingUp, Zap } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { withVillagePrefix } from '../village/villagePath';
 import Tooltip from '../Tooltip';
 import TokensDisplay from '../TokensDisplay';
 import ProtectionDialog from '../ProtectionDialog';
@@ -39,6 +40,7 @@ const Rewards = () => {
     const { essenceBalance } = useUser();
     const { refreshAchievements, progress } = useAchievements();
     const navigate = useNavigate();
+    const location = useLocation();
     const [selectedLootItem, setSelectedLootItem] = useState<LootItem | null>(null);
 
     // Fetch reward status and loot items on page load (lazy — not loaded globally)
@@ -231,7 +233,7 @@ const Rewards = () => {
     const LockedOverlay: React.FC<LockedOverlayProps> = ({ children, achievementName }) => {
         const handleViewAchievement = () => {
             // Navigate to achievements page
-            navigate('/achievements', { 
+            navigate(withVillagePrefix(location.pathname, '/achievements'), {
                 state: { highlightAchievement: achievementName }  // Optional: Pass achievement name to highlight
             });
         };
@@ -501,7 +503,7 @@ const Rewards = () => {
                         </div>
 
                         <button
-                            onClick={() => navigate('/sanctum')}
+                            onClick={() => navigate(withVillagePrefix(location.pathname, '/sanctum'))}
                             className="w-full py-2 px-4 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors font-medium"
                         >
                             Visit Sanctum

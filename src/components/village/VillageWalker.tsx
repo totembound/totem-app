@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAtmosphere } from './atmosphere';
+import { playWispSfx } from './sfx';
 
 interface VillageWalkerProps {
   /** Y baseline 0-100 where the walker sits */
@@ -231,6 +232,7 @@ const VillageWalker: React.FC<VillageWalkerProps> = ({
       grabbedYPctRef.current = p.y;
       stateRef.current = 'grabbed';
       el.style.cursor = 'grabbing';
+      playWispSfx('grab');
     };
 
     const onPointerDown = (e: PointerEvent) => {
@@ -291,6 +293,7 @@ const VillageWalker: React.FC<VillageWalkerProps> = ({
         releaseAtMsRef.current = performance.now();
         stateRef.current = 'returning';
         el.style.cursor = 'grab';
+        playWispSfx('release');
         return;
       }
       // Released before long-press completed → cancel quietly. The user

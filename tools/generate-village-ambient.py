@@ -13,8 +13,9 @@ Layers (front-to-back):
   6. Water — barely-there mid-band noise, kept extremely subtle.
   7. Magical chimes — rare upper-register sine bursts (existing layer, kept faint).
 
-Output: PCM 16-bit, 44.1 kHz, mono WAV, ~30 seconds, with a 200 ms crossfade at
-the loop boundary so the loop is seamless when looped via <audio loop>.
+Output: 96 kbps CBR mono MP3, ~30 seconds, with a 200 ms crossfade at the loop
+boundary so the loop is seamless when looped via <audio loop>. The script
+writes an intermediate WAV that ffmpeg encodes into MP3 and then deletes.
 
 Run from repo root:
     python3 tools/generate-village-ambient.py
@@ -23,7 +24,9 @@ from __future__ import annotations
 
 import math
 import random
+import shutil
 import struct
+import subprocess
 import sys
 import wave
 from pathlib import Path
@@ -35,6 +38,11 @@ CROSSFADE_SEC = 0.2  # crossfade samples at the loop boundary
 CROSSFADE_N = int(SAMPLE_RATE * CROSSFADE_SEC)
 
 OUT = Path(__file__).resolve().parent.parent / "public" / "sounds" / "village" / "ambient.wav"
+OUT_MP3 = OUT.with_suffix(".mp3")
+# CBR 96k mono is plenty for a low-bandwidth ambient loop. Drops the file from
+# ~2.5 MB to ~360 KB while staying transparent for diffuse synth content like
+# this (no transients, no stereo image, narrow spectrum).
+MP3_BITRATE = "96k"
 
 
 def generate() -> list[float]:
@@ -58,25 +66,25 @@ def generate() -> list[float]:
     samples: list[float] = []
 
     # --- Sparse chime scheduling ---
-    # 4-6 chime events spread across the duration, each a damped sine in the
-    # upper register. Times in seconds.
-    n_chimes = rng.randint(3, 5)
+    # 1-2 brief upper-register sparkles. Faster decay + lower gain so it's a
+    # quick "shimmer" rather than a held bell tone.
+    n_chimes = rng.randint(1, 2)
     chime_pitches = [880.0, 988.0, 1175.0, 1318.0, 1568.0]  # A5, B5, D6, E6, G6
     chime_events: list[tuple[float, float, float]] = []  # (start_sec, freq, gain)
     for _ in range(n_chimes):
-        start = rng.uniform(2.0, DURATION_SEC - 4.0)
+        start = rng.uniform(2.0, DURATION_SEC - 3.0)
         freq = rng.choice(chime_pitches) * rng.uniform(0.99, 1.01)  # micro-detune
-        gain = rng.uniform(0.025, 0.045)
+        gain = rng.uniform(0.006, 0.012)
         chime_events.append((start, freq, gain))
 
     def chime_at(t: float) -> float:
         out = 0.0
         for start, freq, gain in chime_events:
             dt = t - start
-            if dt < 0 or dt > 3.5:
+            if dt < 0 or dt > 1.5:
                 continue
-            attack = min(1.0, dt / 0.05)
-            decay = math.exp(-dt * 0.7)
+            attack = min(1.0, dt / 0.04)
+            decay = math.exp(-dt * 1.8)
             out += gain * attack * decay * math.sin(2 * math.pi * freq * dt)
         return out
 
@@ -164,31 +172,29 @@ def generate() -> list[float]:
         return (a + b) * (0.6 + 0.4 * shape)
 
     # --- Melody motif ---
-    # Sparse notes from A natural minor (A, B, C, D, E, F, G), played at MIDI-ish
-    # frequencies in the A4 octave. Each note has a longish exponential decay so
-    # they bleed into each other. 3-4 notes over 30s.
+    # Sparse notes from A natural minor. Muted way down and given a much
+    # faster decay so the dominant elements are the stream + birds; the
+    # melody is now a barely-there occasional tonal hint rather than a
+    # foreground line.
     minor = [220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00, 440.00]  # A3-A4
-    n_notes = rng.randint(3, 4)
+    n_notes = rng.randint(2, 3)
     melody_events: list[tuple[float, float, float]] = []
     for _ in range(n_notes):
-        start = rng.uniform(3.0, DURATION_SEC - 5.0)
+        start = rng.uniform(3.0, DURATION_SEC - 3.0)
         freq = rng.choice(minor)
-        gain = rng.uniform(0.045, 0.07)
+        gain = rng.uniform(0.010, 0.016)
         melody_events.append((start, freq, gain))
 
     def melody_at(t: float) -> float:
         out = 0.0
         for start, freq, gain in melody_events:
             dt = t - start
-            if dt < 0 or dt > 4.5:
+            # Tighter window + faster exponential decay = short tonal flicker.
+            if dt < 0 or dt > 2.5:
                 continue
             attack = min(1.0, dt / 0.08)
-            decay = math.exp(-dt * 0.55)
-            # Add a quiet octave above for shimmer
-            out += gain * attack * decay * (
-                math.sin(2 * math.pi * freq * dt)
-                + 0.3 * math.sin(2 * math.pi * freq * 2 * dt)
-            )
+            decay = math.exp(-dt * 1.4)
+            out += gain * attack * decay * math.sin(2 * math.pi * freq * dt)
         return out
 
     def lfo(t: float, freq: float, depth: float) -> float:
@@ -264,12 +270,38 @@ def write_wav(samples: list[float], path: Path) -> None:
         w.writeframes(bytes(frames))
 
 
+def encode_mp3(wav: Path, mp3: Path) -> bool:
+    """Encode wav → mp3 via ffmpeg. Returns False if ffmpeg is missing."""
+    if not shutil.which("ffmpeg"):
+        print("ffmpeg not found on PATH; skipping mp3 encode.", file=sys.stderr)
+        return False
+    cmd = [
+        "ffmpeg", "-y", "-loglevel", "error",
+        "-i", str(wav),
+        "-codec:a", "libmp3lame",
+        "-b:a", MP3_BITRATE,
+        "-ac", "1",
+        str(mp3),
+    ]
+    subprocess.run(cmd, check=True)
+    return True
+
+
 def main() -> int:
     print(f"Generating {DURATION_SEC}s ambient @ {SAMPLE_RATE} Hz mono…")
     samples = generate()
+    # WAV is an intermediate build artifact only; ffmpeg needs a file to read
+    # from. We delete it after the mp3 is written so the repo only ships the
+    # production file. If ffmpeg is missing we keep the wav so the run still
+    # produces *something* playable and the user can install ffmpeg + rerun.
     write_wav(samples, OUT)
-    size_kb = OUT.stat().st_size / 1024
-    print(f"Wrote {OUT} ({size_kb:.0f} KB, {len(samples)} samples)")
+    if encode_mp3(OUT, OUT_MP3):
+        mp3_kb = OUT_MP3.stat().st_size / 1024
+        print(f"Wrote {OUT_MP3} ({mp3_kb:.0f} KB, {MP3_BITRATE})")
+        OUT.unlink()
+    else:
+        size_kb = OUT.stat().st_size / 1024
+        print(f"Wrote {OUT} ({size_kb:.0f} KB) — install ffmpeg to produce mp3", file=sys.stderr)
     return 0
 
 

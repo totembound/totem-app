@@ -30,28 +30,46 @@ const Home: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [wallpaperMode, setWallpaperMode] = useState(false);
 
-  // Check if user is logged in
   const isLoggedIn = isAuthenticated;
 
   useEffect(() => {
-    // If user is authenticated and was redirected here from a protected route
     if (isLoggedIn && location.state?.from) {
-      // Navigate back to their intended destination
       navigate(location.state.from.pathname);
     }
   }, [isLoggedIn, navigate, location]);
 
-  // Show different content based on login status
-  if (isLoggedIn) {
-    return <LoggedInHome />;
-  } else {
-    return <PublicHome />;
+  // body.wallpaper-mode hides global header/nav/footer via index.css. Cleanup
+  // ensures the class never leaks if the user navigates away while in mode.
+  useEffect(() => {
+    document.body.classList.toggle('wallpaper-mode', wallpaperMode);
+    return () => document.body.classList.remove('wallpaper-mode');
+  }, [wallpaperMode]);
+
+  if (wallpaperMode) {
+    return (
+      <div className="fixed inset-x-0 top-4 z-40 flex justify-center pointer-events-none px-4">
+        <button
+          type="button"
+          onClick={() => setWallpaperMode(false)}
+          className="pointer-events-auto inline-flex items-center gap-2 bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Home
+        </button>
+      </div>
+    );
   }
+
+  if (isLoggedIn) {
+    return <LoggedInHome onShowWallpaper={() => setWallpaperMode(true)} />;
+  }
+  return <PublicHome onShowWallpaper={() => setWallpaperMode(true)} />;
 };
 
 // Component for visitors who aren't logged in
-const PublicHome: React.FC = () => {
+const PublicHome: React.FC<{ onShowWallpaper: () => void }> = ({ onShowWallpaper }) => {
   const currentMonth = new Date().getUTCMonth() + 1;
   const currentMonthlySpecial = specialsData.monthlySpecials.find(
     (special) => special.month === currentMonth
@@ -59,7 +77,9 @@ const PublicHome: React.FC = () => {
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-2 sm:p-4 md:p-6">
-      {/* Hero Section — integrated split with featured totem (Option C) */}
+      {/* Hero Section — integrated split with featured totem (Option C).
+          Wallpaper button overlays the hero (top-right, z-10) so it doesn't
+          consume its own row of vertical space. */}
       <div className="mb-8 relative overflow-hidden rounded-2xl">
         {/* Full background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-950" />
@@ -151,10 +171,21 @@ const PublicHome: React.FC = () => {
 
       {/* How It Works */}
       <div className="mb-8">
-        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
-          <Info className="mr-2 text-purple-600 dark:text-purple-400" />
-          How TotemBound Works
-        </h2>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 flex items-center">
+            <Info className="mr-2 text-purple-600 dark:text-purple-400" />
+            How TotemBound Works
+          </h2>
+          <button
+            type="button"
+            onClick={onShowWallpaper}
+            className="shrink-0 inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-md transition-colors"
+            title="Hide UI to view the background"
+          >
+            <ImageIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Show Wallpaper</span>
+          </button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="mb-3 text-center">
@@ -250,32 +281,7 @@ const PublicHome: React.FC = () => {
 };
 
 // Component for logged-in users
-const LoggedInHome: React.FC = () => {
-  const [wallpaperMode, setWallpaperMode] = useState(false);
-
-  // Toggle a body class so global chrome (footer) can hide via CSS while
-  // wallpaper mode is active. Cleanup ensures the class never leaks if the
-  // user navigates away while in wallpaper mode.
-  useEffect(() => {
-    document.body.classList.toggle('wallpaper-mode', wallpaperMode);
-    return () => document.body.classList.remove('wallpaper-mode');
-  }, [wallpaperMode]);
-
-  if (wallpaperMode) {
-    return (
-      <div className="fixed inset-x-0 top-20 sm:top-32 z-40 flex justify-center pointer-events-none px-4">
-        <button
-          type="button"
-          onClick={() => setWallpaperMode(false)}
-          className="pointer-events-auto inline-flex items-center gap-2 bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Home
-        </button>
-      </div>
-    );
-  }
-
+const LoggedInHome: React.FC<{ onShowWallpaper: () => void }> = ({ onShowWallpaper }) => {
   return (
     <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-2 sm:p-4 md:p-6">
       {/* Top Section */}
@@ -286,7 +292,7 @@ const LoggedInHome: React.FC = () => {
           </h1>
           <button
             type="button"
-            onClick={() => setWallpaperMode(true)}
+            onClick={onShowWallpaper}
             className="shrink-0 inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white bg-white/80 dark:bg-gray-800/70 backdrop-blur-sm border border-gray-200 dark:border-gray-700 px-2.5 py-1.5 rounded-md"
             title="Hide UI to view the background"
           >

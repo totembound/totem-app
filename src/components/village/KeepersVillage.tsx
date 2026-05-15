@@ -333,12 +333,6 @@ const KeepersVillage: React.FC = () => {
     return false;
   }, []);
 
-  // Buildings sorted by horizontal position — used by arrow-key nav.
-  const sortedByX = useMemo(
-    () => [...buildings].sort((a, b) => a.labelAnchor.x - b.labelAnchor.x),
-    [buildings]
-  );
-
   const scrollToBuilding = (b: Building) => {
     const scroller = scrollerRef.current;
     const stage = stageRef.current;

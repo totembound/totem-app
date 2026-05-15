@@ -17,7 +17,7 @@ const TotemForge: React.FC = () => {
     <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Totem Forge</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">The Forge</h1>
         <p className="text-gray-600 dark:text-gray-400">Combine and craft to unlock powerful totems and items.</p>
       </div>
 

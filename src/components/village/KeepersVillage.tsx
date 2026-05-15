@@ -348,14 +348,6 @@ const KeepersVillage: React.FC = () => {
     scroller.scrollTo({ left: Math.max(0, targetX), behavior: 'smooth' });
   };
 
-  const stepBuilding = (dir: -1 | 1) => {
-    const idx = sortedByX.findIndex((b) => b.id === nearest);
-    const next = sortedByX[Math.max(0, Math.min(sortedByX.length - 1, idx + dir))];
-    if (next) {
-      scrollToBuilding(next);
-    }
-  };
-
   // Keyboard pan — jump by ~80% of the visible viewport (smooth scroll).
   // Independent of building positions so each press feels substantial relative to screen width.
   const panByViewport = (dir: -1 | 1) => {

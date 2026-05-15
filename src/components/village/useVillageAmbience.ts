@@ -49,7 +49,8 @@ export function useVillageAmbience(opts: {
 
   // Create the audio element once; clean up on unmount.
   useEffect(() => {
-    const a = new Audio(src);
+    const a = new Audio();
+    a.src = src;
     a.loop = true;
     a.preload = 'auto';
     a.volume = muted ? 0 : programmaticVolumeRef.current;

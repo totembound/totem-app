@@ -39,7 +39,8 @@ const SRC: Record<WispSfx, string> = {
 export function playWispSfx(kind: WispSfx, volume = 0.4): void {
   if (typeof window === 'undefined') return;
   if (isMuted()) return;
-  const a = new Audio(SRC[kind]);
+  const a = new Audio();
+  a.src = SRC[kind];
   a.volume = volume;
   void a.play().catch(() => {
     // Autoplay rejected (no user gesture yet) or file 404. The walker

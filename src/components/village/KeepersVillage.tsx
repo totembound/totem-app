@@ -1,8 +1,12 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { Lock, Volume2, VolumeX } from 'lucide-react';
 import AmbientFx from './AmbientFx';
 import VillageWalker from './VillageWalker';
 import { useVillageAmbience } from './useVillageAmbience';
+import { useVillageBadges } from './useVillageBadges';
+import VillageBuildingStrip from './VillageBuildingStrip';
+import { AtmosphereCtx, ModalAtmosphere, PRESETS, resolveAtmosphere } from './atmosphere';
 
 // Ambient animation registry — positioned in stage % coords (so they stick to their
 // building when the panorama side-scrolls). Tune via ?villageEdit=1 + screenshot iteration.
@@ -68,6 +72,9 @@ interface Building {
   badge?: number;
   locked?: boolean;
   lockMessage?: string;
+  /** Path under /keepers-village to navigate to when the label is tapped.
+   *  Omitted = no navigation yet (logs to console). */
+  modalPath?: string;
 }
 
 // Coordinates derived from village-background.png (1672×468). Tuned by visual inspection
@@ -78,67 +85,70 @@ const PLACEHOLDER_BUILDINGS: Building[] = [
     name: 'Library',
     hotspot: { x: 8, y: 30, width: 10, height: 30 },
     labelAnchor: { x: 15, y: 29 },
+    modalPath: 'guides',
   },
   {
     id: 'shrine',
     name: 'Shrine',
     hotspot: { x: 10, y: 62, width: 10, height: 30 },
     labelAnchor: { x: 16, y: 66 },
-    badge: 2,
+    modalPath: 'rewards',
   },
   {
     id: 'hall-of-legends',
     name: 'Hall of Legends',
     hotspot: { x: 20, y: 12, width: 15, height: 38 },
     labelAnchor: { x: 28, y: 14 },
+    modalPath: 'achievements',
   },
   {
     id: 'bazaar',
     name: 'Bazaar',
     hotspot: { x: 28, y: 51, width: 15, height: 32 },
     labelAnchor: { x: 36, y: 52 },
+    modalPath: 'shop',
   },
   {
     id: 'sanctuary',
     name: 'Sanctuary',
     hotspot: { x: 42, y: 16, width: 16, height: 34 },
     labelAnchor: { x: 53, y: 17 },
-    badge: 3,
+    modalPath: 'totems',
   },
   {
     id: 'hearthstone',
     name: 'Hearthstone',
     hotspot: { x: 43, y: 75, width: 12, height: 22 },
     labelAnchor: { x: 50, y: 82 },
+    modalPath: 'profile',
   },
   {
     id: 'forge',
     name: 'Totem Forge',
     hotspot: { x: 55, y: 54, width: 13, height: 30 },
     labelAnchor: { x: 67, y: 64 },
-    locked: true,
-    lockMessage: 'Own 3 totems of the same rarity',
+    modalPath: 'forge',
   },
   {
     id: 'elder-tower',
     name: 'Elder Tower',
     hotspot: { x: 78, y: 6, width: 8, height: 42 },
     labelAnchor: { x: 78, y: 20 },
-    locked: true,
-    lockMessage: 'Raise an Ascended totem',
+    modalPath: 'sanctum',
   },
   {
     id: 'arena',
     name: 'Arena',
     hotspot: { x: 62, y: 28, width: 12, height: 26 },
     labelAnchor: { x: 69, y: 32 },
-    badge: 1,
+    modalPath: 'challenges',
   },
   {
     id: 'trailhead',
     name: 'Trailhead',
     hotspot: { x: 83, y: 52, width: 9, height: 30 },
     labelAnchor: { x: 88, y: 56 },
+    modalPath: 'expeditions',
   },
 ];
 
@@ -149,16 +159,67 @@ const KeepersVillage: React.FC = () => {
   const [nearest, setNearest] = useState<string>(PLACEHOLDER_BUILDINGS[0].id);
   const [wrapperHeight, setWrapperHeight] = useState<number>(468);
 
+  const navigate = useNavigate();
+
   // Village ambient audio — single looping track, starts on first interaction
   // with the scroller (autoplay policy), pauses on unmount (route change).
   // Synthesized via tools/generate-village-ambient.py (run that script to
   // regenerate). Replace with a CC0 mp3/ogg if you have a preferred track —
   // just drop it at /public/sounds/village/ambient.{wav,mp3,ogg} and update.
-  const { muted: ambienceMuted, toggleMute: toggleAmbienceMute } = useVillageAmbience({
-    src: '/sounds/village/ambient.wav',
+  const ambienceVolume = 0.25;
+  const {
+    muted: ambienceMuted,
+    toggleMute: toggleAmbienceMute,
+    pause: pauseAmbience,
+    setGain: setAmbienceGain,
+    restore: restoreAmbience,
+  } = useVillageAmbience({
+    src: '/sounds/village/ambient.mp3',
     gestureTarget: scrollerRef,
-    volume: 0.25,
+    volume: ambienceVolume,
   });
+
+  // Live badge + lock state from app contexts (rewards, totems, expeditions,
+  // challenges). Merged over the static building config so labels show real
+  // counts without changing positions/labelAnchors.
+  const liveBadges = useVillageBadges();
+  const buildings = useMemo<Building[]>(
+    () => PLACEHOLDER_BUILDINGS.map((b) => ({ ...b, ...liveBadges[b.id] })),
+    [liveBadges]
+  );
+
+  // Atmosphere context — modals call set() to apply pause/audio behavior, clear() on unmount.
+  // Audio side-effects fire on every atmosphere transition.
+  const [atmosphere, setAtmosphereState] = useState<ModalAtmosphere | null>(null);
+  const setAtmosphere = useCallback((atm: ModalAtmosphere) => setAtmosphereState(atm), []);
+  const clearAtmosphere = useCallback(() => setAtmosphereState(null), []);
+  const atmosphereCtxValue = useMemo(
+    () => ({ current: atmosphere, set: setAtmosphere, clear: clearAtmosphere }),
+    [atmosphere, setAtmosphere, clearAtmosphere]
+  );
+
+  useEffect(() => {
+    const audio = atmosphere?.audio;
+    if (!audio) {
+      restoreAmbience();
+      return;
+    }
+    switch (audio.mode) {
+      case 'pause':
+        pauseAmbience();
+        break;
+      case 'duck':
+        setAmbienceGain(ambienceVolume * audio.gain, 150);
+        break;
+      case 'continue':
+        restoreAmbience();
+        break;
+      case 'swap':
+        // Phase 6 — themed audio swap not yet implemented; fall back to pause.
+        pauseAmbience();
+        break;
+    }
+  }, [atmosphere, ambienceVolume, pauseAmbience, setAmbienceGain, restoreAmbience]);
 
   // Default center on first load — the geographic middle of the panorama.
   // Tweak this 0–100 to bias the initial view (0 = far left of village, 100 = far right).
@@ -220,14 +281,19 @@ const KeepersVillage: React.FC = () => {
       const viewportH = window.innerHeight;
       // Bottom chrome above the wrapper bottom — measure the fixed mobile bottom nav directly
       // so the panorama hugs its top edge precisely (no slate gap, no clip behind it).
-      let bottomReserve = 40; // desktop footer band default
+      // No footer or mobile nav in village view — both are hidden by MainLayout
+      // when on /keepers-village/*. Reserve nothing at the bottom so the
+      // panorama fills to the viewport edge cleanly. We still scan for a fixed
+      // bottom nav as a safety net in case some other fixed UI (notification
+      // toast pinned to bottom, future bottom drawer) shows up.
+      let bottomReserve = 0;
       if (window.innerWidth < 640) {
         const mobileNav = Array.from(document.querySelectorAll('div, nav')).find((el) => {
           const cs = getComputedStyle(el as HTMLElement);
           const h = (el as HTMLElement).offsetHeight;
           return cs.position === 'fixed' && parseFloat(cs.bottom) === 0 && h > 30 && h < 120;
         }) as HTMLElement | undefined;
-        bottomReserve = mobileNav?.offsetHeight ?? 64;
+        bottomReserve = mobileNav?.offsetHeight ?? 0;
       }
       const available = viewportH - top - bottomReserve;
       // Floor at native panorama height (468) so the image isn't squished on small viewports.
@@ -269,8 +335,8 @@ const KeepersVillage: React.FC = () => {
 
   // Buildings sorted by horizontal position — used by arrow-key nav.
   const sortedByX = useMemo(
-    () => [...PLACEHOLDER_BUILDINGS].sort((a, b) => a.labelAnchor.x - b.labelAnchor.x),
-    []
+    () => [...buildings].sort((a, b) => a.labelAnchor.x - b.labelAnchor.x),
+    [buildings]
   );
 
   const scrollToBuilding = (b: Building) => {
@@ -417,9 +483,10 @@ const KeepersVillage: React.FC = () => {
   }, []);
 
   return (
+    <AtmosphereCtx.Provider value={atmosphereCtxValue}>
     <div
       ref={wrapperRef}
-      className="text-white bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 border-t border-amber-500/30 relative flex flex-col -mt-2 -mb-2 sm:-mt-3 sm:-mb-3"
+      className="text-white bg-slate-900 relative flex flex-col -mt-2 -mb-2 sm:-mt-3 sm:-mb-3"
       style={{
         // Break out of MainLayout's max-w-screen-xl + padding so the dark backdrop covers
         // the full viewport edge-to-edge. Vertical -m matches MainLayout's py-2/py-3.
@@ -461,6 +528,7 @@ const KeepersVillage: React.FC = () => {
       {/* Scroller — fills remaining vertical space inside the wrapper */}
       <div
         ref={scrollerRef}
+        data-village-pause-pointer={atmosphere?.pause.pointerEvents ? 'true' : undefined}
         className="village-scroller relative flex-1 min-h-0 w-full overflow-x-auto overflow-y-hidden sm:snap-x sm:snap-proximity shadow-xl"
         style={{
           scrollbarWidth: 'none',
@@ -471,6 +539,8 @@ const KeepersVillage: React.FC = () => {
         {/* Stage — h-full + aspect-ratio means width = height × 3.57 (panorama natural ratio) */}
         <div
           ref={stageRef}
+          data-village-pause-fx={atmosphere?.pause.ambientFx ? 'true' : undefined}
+          data-village-pause-paint={atmosphere?.pause.panoramaPaint ? 'true' : undefined}
           className="village-stage relative h-full"
           style={{ aspectRatio: '1672/468' }}
         >
@@ -486,6 +556,7 @@ const KeepersVillage: React.FC = () => {
           {AMBIENT_EFFECTS.map((fx) => (
             <AmbientFx
               key={fx.id}
+              id={fx.id}
               type={fx.type}
               xPct={fx.xPct}
               yPct={fx.yPct}
@@ -544,7 +615,7 @@ const KeepersVillage: React.FC = () => {
           )}
 
           {/* Snap targets — one per building, centered on labelAnchor.x */}
-          {PLACEHOLDER_BUILDINGS.map((b) => (
+          {buildings.map((b) => (
             <div
               key={`snap-${b.id}`}
               className="absolute top-0 h-full w-px snap-center pointer-events-none"
@@ -556,7 +627,7 @@ const KeepersVillage: React.FC = () => {
           {editMode && <GridOverlay />}
 
           {/* Building hotspots */}
-          {PLACEHOLDER_BUILDINGS.map((b) => (
+          {buildings.map((b) => (
             <button
               key={b.id}
               onClick={(e) => {
@@ -577,21 +648,40 @@ const KeepersVillage: React.FC = () => {
           ))}
 
           {/* Labels */}
-          {PLACEHOLDER_BUILDINGS.map((b) => (
+          {buildings.map((b) => (
             <BuildingLabel
               key={`label-${b.id}`}
               building={b}
               isNearest={nearest === b.id}
               onClick={() => {
-                // eslint-disable-next-line no-console
-                console.log('label tap:', b.id, '→ would navigate / open modal');
+                if (b.modalPath) {
+                  // Apply atmosphere synchronously BEFORE navigate so walker
+                  // rAF loops yield their frame budget before React reconciles
+                  // the modal — kills the open-jank window on mid-tier mobile.
+                  setAtmosphere(resolveAtmosphere(PRESETS.soft));
+                  navigate(`/keepers-village/${b.modalPath}`);
+                } else {
+                  // eslint-disable-next-line no-console
+                  console.log('label tap:', b.id, '→ no modalPath wired yet');
+                }
               }}
             />
           ))}
         </div>
       </div>
 
+      {/* Building info strip — pinned at bottom of village wrapper, swaps
+          content based on the currently-focused building (`nearest`). Provides
+          stats + Enter CTA for unlocked buildings, unlock criteria for locked. */}
+      <VillageBuildingStrip buildingId={nearest} />
+
+      {/* Modal-over-village outlet — child routes (e.g. /keepers-village/guides)
+          mount here. VillageModalShell uses fixed inset-0 so DOM order doesn't
+          matter, but placing the Outlet inside the layout root keeps React
+          Router's reconciliation tree consistent. */}
+      <Outlet />
     </div>
+    </AtmosphereCtx.Provider>
   );
 };
 

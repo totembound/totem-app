@@ -64,6 +64,7 @@ import { TutorialClaimsProvider } from './components/guides/useTutorialClaims';
 import TotemForge from './components/forge/TotemForge';
 import ElderSanctum from './components/sanctum/ElderSanctum';
 import KeepersVillage from './components/village/KeepersVillage';
+import VillageModalShell from './components/village/VillageModalShell';
 
 // Email/password auth only - wallet auth removed
 const AppRoutes: React.FC = () => {
@@ -103,7 +104,154 @@ const AppRoutes: React.FC = () => {
         <Route path="/terms" element={<LegalDocument doc="terms" />} />
         <Route path="/privacy" element={<LegalDocument doc="privacy" />} />
         <Route index element={<Home />} />
-        <Route path="/keepers-village" element={<KeepersVillage />} />
+        <Route path="/keepers-village" element={
+          // Village hub assumes a signed-in player (badges, balances, claim
+          // flows). Anonymous users hitting /keepers-village or any modal
+          // route under it get redirected to login. Standalone routes
+          // (/guides, /shop, etc.) keep their own access rules unchanged.
+          <Protected>
+            <KeepersVillage />
+          </Protected>
+        }>
+          {/* Modal-over-village routes — each leaf is wrapped in VillageModalShell
+              with its atmosphere preset + accessible label. Standalone routes
+              (e.g. /guides, /shop, /forge) remain unchanged below for direct
+              deep-link entry (bookmarks, marketing emails, post-Stripe redirects). */}
+          {/* Library — full guides subtree mirrored under village. SidebarContent
+              + Sidebar use withVillagePrefix() to rewrite NavItems' absolute
+              /guides/codex/* paths into /keepers-village/guides/codex/* when
+              the user is in this trunk, so internal nav stays inside the modal. */}
+          <Route path="guides" element={<VillageModalShell atmosphere="soft" modalTitle="Library" />}>
+            <Route index element={<Guides />} />
+            <Route path="tutorial" element={<Tutorial />} />
+            <Route path="how-to" element={<HowToGuides />} />
+            <Route path="codex">
+              <Route index element={<TotemCodex />} />
+              <Route path="totems">
+                <Route index element={<Totems />} />
+                <Route path="goose" element={<GooseTotem />} />
+                <Route path="otter" element={<OtterTotem />} />
+                <Route path="wolf" element={<WolfTotem />} />
+                <Route path="falcon" element={<FalconTotem />} />
+                <Route path="beaver" element={<BeaverTotem />} />
+                <Route path="deer" element={<DeerTotem />} />
+                <Route path="woodpecker" element={<WoodpeckerTotem />} />
+                <Route path="turtle" element={<TurtleTotem />} />
+                <Route path="bear" element={<BearTotem />} />
+                <Route path="raven" element={<RavenTotem />} />
+                <Route path="snake" element={<SnakeTotem />} />
+                <Route path="owl" element={<OwlTotem />} />
+              </Route>
+              <Route path="domains">
+                <Route index element={<Domains />} />
+                <Route path="air" element={<AirDomain />} />
+                <Route path="earth" element={<EarthDomain />} />
+                <Route path="water" element={<WaterDomain />} />
+                <Route path="fire" element={<FireDomain />} />
+                <Route path="spirit" element={<SpiritDomain />} />
+                <Route path="shadow" element={<ShadowDomain />} />
+              </Route>
+              <Route path="habitats" element={<Habitats />} />
+              <Route path="gear" element={<TotemGear />} />
+              <Route path="runes" element={<Runes />} />
+              <Route path="map" element={<WorldMap />} />
+            </Route>
+            <Route path="lore" element={<LoreArchives />} />
+          </Route>
+          <Route path="achievements" element={
+            <Protected>
+              <VillageModalShell atmosphere="soft" modalTitle="Hall of Legends">
+                <Achievements />
+              </VillageModalShell>
+            </Protected>
+          } />
+          <Route path="rewards" element={
+            <Protected>
+              <VillageModalShell atmosphere="soft" modalTitle="Shrine">
+                <Rewards />
+              </VillageModalShell>
+            </Protected>
+          } />
+          <Route path="shop" element={
+            <Protected>
+              <VillageModalShell atmosphere="soft" modalTitle="Bazaar">
+                <ShopInterface />
+              </VillageModalShell>
+            </Protected>
+          } />
+          <Route path="totems" element={
+            <Protected>
+              <VillageModalShell atmosphere="soft" modalTitle="Sanctuary">
+                <TotemGallery />
+              </VillageModalShell>
+            </Protected>
+          } />
+          <Route path="profile" element={
+            <Protected>
+              <VillageModalShell atmosphere="soft" modalTitle="Hearthstone">
+                <AccountSettings />
+              </VillageModalShell>
+            </Protected>
+          } />
+          <Route path="forge" element={
+            <Protected>
+              <VillageModalShell atmosphere="soft" modalTitle="Totem Forge">
+                <TotemForge />
+              </VillageModalShell>
+            </Protected>
+          } />
+          <Route path="sanctum" element={
+            <Protected>
+              <VillageModalShell atmosphere="soft" modalTitle="Elder Tower">
+                <ElderSanctum />
+              </VillageModalShell>
+            </Protected>
+          } />
+          <Route path="challenges" element={
+            <Protected>
+              <VillageModalShell atmosphere="soft" modalTitle="Arena">
+                <Challenges />
+              </VillageModalShell>
+            </Protected>
+          } />
+          <Route path="expeditions" element={
+            <Protected>
+              <VillageModalShell atmosphere="soft" modalTitle="Trailhead">
+                <Expeditions />
+              </VillageModalShell>
+            </Protected>
+          } />
+
+          {/* Marketing + legal — mirrored from standalone routes so UserMenu's
+              footer-row links open as modals when the user is in village. The
+              standalone /about, /roadmap, /terms, /privacy still serve as the
+              canonical URLs for sharing. */}
+          <Route path="about" element={
+            <VillageModalShell atmosphere="soft" modalTitle="About TotemBound">
+              <About />
+            </VillageModalShell>
+          } />
+          <Route path="roadmap" element={
+            <VillageModalShell atmosphere="soft" modalTitle="Roadmap">
+              <Roadmap />
+            </VillageModalShell>
+          } />
+          <Route path="terms" element={
+            <VillageModalShell atmosphere="soft" modalTitle="Terms of Service">
+              <LegalDocument doc="terms" />
+            </VillageModalShell>
+          } />
+          <Route path="privacy" element={
+            <VillageModalShell atmosphere="soft" modalTitle="Privacy Policy">
+              <LegalDocument doc="privacy" />
+            </VillageModalShell>
+          } />
+          <Route path="plans" element={
+            <VillageModalShell atmosphere="soft" modalTitle="Plans">
+              <Plans />
+            </VillageModalShell>
+          } />
+        </Route>
 
         {/* Protected routes */}
         <Route path="players/:userId" element={

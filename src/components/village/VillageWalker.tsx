@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useAtmosphere } from './atmosphere';
 
 interface VillageWalkerProps {
   /** Y baseline 0-100 where the walker sits */
@@ -57,6 +58,12 @@ const VillageWalker: React.FC<VillageWalkerProps> = ({
   const [reduced, setReduced] = useState(false);
   const elRef = useRef<HTMLDivElement | null>(null);
 
+  // Atmosphere — when modal-over-village pauses walkers, tick() early-returns.
+  // Use a ref so the rAF closure reads the current value without re-subscribing.
+  const { current: atmosphere } = useAtmosphere();
+  const pausedRef = useRef(false);
+  pausedRef.current = !!atmosphere?.pause.walkers;
+
   // State machine and ancillary data live in refs so we don't re-render every frame.
   const stateRef = useRef<WalkerState>('idle');
   const grabbedXPctRef = useRef(0);
@@ -102,6 +109,14 @@ const VillageWalker: React.FC<VillageWalkerProps> = ({
 
     let frame = 0;
     const tick = (now: number) => {
+      // Modal-over-village paused walkers — keep rAF alive so we resume cleanly,
+      // but skip all DOM writes. Walker patrol clock uses absolute time
+      // (startedAtMsRef) so when we resume, the next tick computes "where the
+      // walker would be NOW" and snaps without a visible jump.
+      if (pausedRef.current) {
+        frame = requestAnimationFrame(tick);
+        return;
+      }
       const state = stateRef.current;
       if (state === 'idle') {
         const p = patrolPos(now);

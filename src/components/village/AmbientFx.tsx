@@ -1,8 +1,12 @@
 import { useEffect, useId, useState } from 'react';
+import { useAtmosphere } from './atmosphere';
 
 type FxType = 'smoke' | 'mist' | 'sparkle' | 'shimmer' | 'star';
 
 interface AmbientFxProps {
+  /** Effect id from the AMBIENT_EFFECTS registry. Used by atmosphere.keepFxActive
+   *  to opt this effect out of pause when its building's modal is open. */
+  id?: string;
   type: FxType;
   /** Position center, % of parent stage */
   xPct: number;
@@ -30,6 +34,7 @@ const DEFAULTS: Record<FxType, { aspect: number; color: string }> = {
 };
 
 const AmbientFx: React.FC<AmbientFxProps> = ({
+  id,
   type,
   xPct,
   yPct,
@@ -42,6 +47,8 @@ const AmbientFx: React.FC<AmbientFxProps> = ({
 }) => {
   const [reduced, setReduced] = useState(false);
   const uid = useId().replace(/:/g, ''); // colons are invalid in SVG IDs
+  const { current: atmosphere } = useAtmosphere();
+  const keepActive = !!(id && atmosphere?.keepFxActive?.includes(id));
   useEffect(() => {
     setReduced(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   }, []);
@@ -282,7 +289,7 @@ const AmbientFx: React.FC<AmbientFxProps> = ({
 
   return (
     <div
-      className={className}
+      className={`${className ?? ''}${keepActive ? ' village-fx-keep' : ''}`}
       style={{
         position: 'absolute',
         left: `${xPct}%`,

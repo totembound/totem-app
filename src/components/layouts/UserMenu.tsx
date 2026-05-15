@@ -10,10 +10,12 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUser } from '../../contexts/UserContext';
-import { Award, ChevronDown, Crown, Gem, GraduationCap, LogOut, Settings, Shield, Sparkles } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { withVillagePrefix } from '../village/villagePath';
+import { Award, ChevronDown, Crown, Gem, GraduationCap, LogOut, MapPinned, Settings, Shield, Sparkles } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { CURRENCY_NAMES } from '../../config/constants';
 import { Avatar } from '../profile/Avatar';
 import { resolveBannerImage } from '../../utils/avatar';
@@ -46,15 +48,45 @@ export const UserMenu: React.FC = () => {
   const { user, logout } = useAuth();
   const { essenceBalance, gemsBalance, setTutorialWizardVisible } = useUser();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  // Dropdown is portal'd to document.body so it escapes the header's stacking
+  // context — otherwise the tutorial wizard (z-50, root child) renders on top
+  // of UserMenu (z-[60] but bounded by header's stacking context). Click-
+  // outside has to also exclude the portal'd dropdown since it's no longer a
+  // descendant of menuRef in the DOM.
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Anchor to the trigger button's right + bottom (avatar). The
+  // NotificationsPanel anchors to this same button so both dropdowns share
+  // the same x and y. clientWidth (not innerWidth) avoids the scrollbar
+  // offset on Chrome.
+  const [coords, setCoords] = useState<{ top: number; right: number } | null>(null);
+  useEffect(() => {
+    if (!isOpen) return;
+    const recalc = () => {
+      const r = buttonRef.current?.getBoundingClientRect();
+      if (!r) return;
+      const docWidth = document.documentElement.clientWidth;
+      setCoords({ top: r.bottom + 8, right: Math.max(8, docWidth - r.right) });
+    };
+    recalc();
+    window.addEventListener('resize', recalc);
+    window.addEventListener('scroll', recalc, true);
+    return () => {
+      window.removeEventListener('resize', recalc);
+      window.removeEventListener('scroll', recalc, true);
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
+      const target = event.target as Node;
+      const insideTrigger = menuRef.current?.contains(target);
+      const insideDropdown = dropdownRef.current?.contains(target);
+      if (!insideTrigger && !insideDropdown) setIsOpen(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -74,7 +106,7 @@ export const UserMenu: React.FC = () => {
   const tier = TIER_BADGE[tierKey];
 
   return (
-    <div className="relative sm:static" ref={menuRef}>
+    <div className="relative" ref={menuRef}>
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
@@ -96,12 +128,17 @@ export const UserMenu: React.FC = () => {
         />
       </button>
 
-      {isOpen && (
+      {isOpen && createPortal(
         <div
-          className="fixed top-12 right-4 left-4 sm:absolute sm:top-full sm:left-auto sm:right-0 mt-2 sm:w-72
+          ref={dropdownRef}
+          // Portal'd to body, fixed-positioned via inline coords. Width fixed
+          // at 288px (w-72) on every viewport with a small viewport-clamp so
+          // it doesn't overflow on very narrow screens.
+          className="fixed w-72 max-w-[calc(100vw-1rem)]
             bg-white dark:bg-gray-800 rounded-lg shadow-lg
             border border-gray-200 dark:border-gray-700
-            overflow-hidden z-50"
+            overflow-hidden z-[60]"
+          style={coords ? { top: coords.top, right: coords.right } : undefined}
         >
           {/* Banner strip with overlapping avatar */}
           <div className="relative h-20">
@@ -172,9 +209,31 @@ export const UserMenu: React.FC = () => {
 
           <div className="border-t border-gray-200 dark:border-gray-700" />
 
-          {/* Settings Link */}
+          {/* Keeper's Village — primary entry to the hub. Hidden when already
+              inside village (where it'd be a no-op). Divider after separates
+              navigation (where to go) from config/help actions below. */}
+          {!location.pathname.startsWith('/keepers-village') && (
+            <>
+              <Link
+                to="/keepers-village"
+                onClick={() => setIsOpen(false)}
+                className="w-full px-4 py-2 text-left flex items-center gap-2
+                  text-gray-700 dark:text-gray-300
+                  hover:bg-gray-50 dark:hover:bg-gray-700/50
+                  transition-colors"
+              >
+                <MapPinned size={16} className="text-gray-500 dark:text-gray-400" />
+                <span className="text-sm">Keeper's Village</span>
+              </Link>
+              <div className="border-t border-gray-200 dark:border-gray-700" />
+            </>
+          )}
+
+          {/* Account Settings — in village, route to /keepers-village/profile
+              which mounts AccountSettings inside the Hearthstone modal so the
+              user stays in the hub. Standalone routes use /account/settings. */}
           <Link
-            to="/account/settings"
+            to={location.pathname.startsWith('/keepers-village') ? '/keepers-village/profile' : '/account/settings'}
             onClick={() => setIsOpen(false)}
             className="w-full px-4 py-2 text-left flex items-center gap-2
               text-gray-700 dark:text-gray-300
@@ -213,7 +272,32 @@ export const UserMenu: React.FC = () => {
             <LogOut size={16} />
             <span className="text-sm">Log Out</span>
           </button>
-        </div>
+
+          {/* Footer-rows: discoverability for marketing + legal + community
+              links that the global Footer normally surfaces. Repeated here so
+              users in the village hub (where Footer is hidden) can still reach
+              them. Split into two semantic rows so the dot-separated lists
+              don't wrap awkwardly. */}
+          <div className="border-t border-gray-200 dark:border-gray-700 mt-1 px-4 pt-2.5 pb-2 text-[11px] text-gray-500 dark:text-gray-400">
+            <div className="flex items-center gap-x-2 gap-y-1">
+              <Link to={withVillagePrefix(location.pathname, '/about')} onClick={() => setIsOpen(false)} className="hover:text-gray-700 dark:hover:text-gray-200">About</Link>
+              <span aria-hidden>·</span>
+              <Link to={withVillagePrefix(location.pathname, '/roadmap')} onClick={() => setIsOpen(false)} className="hover:text-gray-700 dark:hover:text-gray-200">Roadmap</Link>
+              <span aria-hidden>·</span>
+              <Link to={withVillagePrefix(location.pathname, '/terms')} onClick={() => setIsOpen(false)} className="hover:text-gray-700 dark:hover:text-gray-200">Terms</Link>
+              <span aria-hidden>·</span>
+              <Link to={withVillagePrefix(location.pathname, '/privacy')} onClick={() => setIsOpen(false)} className="hover:text-gray-700 dark:hover:text-gray-200">Privacy</Link>
+            </div>
+            <div className="flex items-center gap-x-2 gap-y-1 mt-1">
+              <a href="https://discord.gg/MhKQC5E6xe" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 dark:hover:text-gray-200">Discord</a>
+              <span aria-hidden>·</span>
+              <a href="https://github.com/totembound" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 dark:hover:text-gray-200">GitHub</a>
+              <span aria-hidden>·</span>
+              <a href="https://x.com/totemboundhq" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 dark:hover:text-gray-200">X</a>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -84,6 +84,7 @@ function NotificationsPanel() {
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const filterButtonRef = useRef<HTMLButtonElement>(null);
   const [filteredNotifications, setFilteredNotifications] =
     useState(notifications);
@@ -91,6 +92,31 @@ function NotificationsPanel() {
   const [maxNotificationsInput, setMaxNotificationsInput] = useState(
     maxNotifications.toString()
   );
+
+  // Portal'd panel anchored to the rightmost header button (avatar / user
+  // menu trigger) — NOT the bell itself — so notifications + user menu
+  // share the same x and y position. clientWidth avoids scrollbar offset.
+  const [coords, setCoords] = useState<{ top: number; right: number } | null>(null);
+  useEffect(() => {
+    if (!openPanel) return;
+    const recalc = () => {
+      const btn = buttonRef.current;
+      if (!btn) return;
+      const header = btn.closest('header > div') as HTMLElement | null;
+      const headerBtns = header ? header.querySelectorAll('button') : null;
+      const rightmostBtn = headerBtns && headerBtns.length > 0 ? headerBtns[headerBtns.length - 1] : btn;
+      const r = rightmostBtn.getBoundingClientRect();
+      const docWidth = document.documentElement.clientWidth;
+      setCoords({ top: r.bottom + 8, right: Math.max(8, docWidth - r.right) });
+    };
+    recalc();
+    window.addEventListener('resize', recalc);
+    window.addEventListener('scroll', recalc, true);
+    return () => {
+      window.removeEventListener('resize', recalc);
+      window.removeEventListener('scroll', recalc, true);
+    };
+  }, [openPanel]);
 
   // Update filtered notifications when filter changes or notifications update
   useEffect(() => {
@@ -165,12 +191,12 @@ function NotificationsPanel() {
         return;
       }
 
-      if (
-        panelRef.current &&
-        !panelRef.current.contains(event.target as Node) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target as Node)
-      ) {
+      const target = event.target as Node;
+      const insideTrigger = panelRef.current?.contains(target);
+      const insideDropdown = dropdownRef.current?.contains(target);
+      // The panel is portal'd to body so it's not a descendant of panelRef.
+      // Check the dropdownRef separately to avoid closing when clicking inside.
+      if (!insideTrigger && !insideDropdown) {
         setOpenPanel(false);
         setShowFilterMenu(false);
       }
@@ -237,7 +263,7 @@ function NotificationsPanel() {
   };
 
   return (
-    <div className="relative sm:static" ref={panelRef}>
+    <div className="relative" ref={panelRef}>
       {/* Bell Icon Button */}
       <button
         ref={buttonRef}
@@ -259,15 +285,20 @@ function NotificationsPanel() {
         )}
       </button>
 
-      {/* Notifications Panel */}
-      {openPanel && (
+      {/* Notifications Panel — portal'd to body and fixed-positioned via JS
+          coords (mirrors UserMenu) so it escapes the header's stacking context
+          and aligns its right edge to the trigger button's right edge / page
+          max-width gutter regardless of viewport size. */}
+      {openPanel && createPortal(
         <div
+          ref={dropdownRef}
           onClick={(e) => e.stopPropagation()}
-          className="fixed top-12 right-4 left-4 sm:absolute sm:top-full sm:left-auto sm:right-0 mt-2
-            sm:w-80 md:w-96
+          className="fixed w-80 max-w-[calc(100vw-1rem)] md:w-96
             bg-white dark:bg-gray-800 shadow-lg rounded-lg border
-            border-gray-200 dark:border-gray-700 z-40 overflow-hidden"
+            border-gray-200 dark:border-gray-700 z-[60] overflow-hidden"
           style={{
+            top: coords?.top,
+            right: coords?.right,
             maxHeight: "calc(100vh - 4rem)",
           }}
         >
@@ -467,7 +498,8 @@ function NotificationsPanel() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Settings Modal - rendered via portal to avoid positioning issues */}

@@ -97,8 +97,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
                         <select
                             value={filters.species}
                             onChange={(e) => setFilters({...filters, species: e.target.value})}
-                            className="h-10 border rounded-lg px-3 text-sm 
-                                bg-white dark:bg-gray-800 dark:text-white
+                            className="h-10 border rounded-lg px-3 text-sm
+                                bg-white text-gray-900 dark:bg-gray-800 dark:text-white
                                 dark:border-gray-600"
                         >
                             <option value="">All Species</option>
@@ -114,8 +114,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
                         <select
                             value={filters.rarity}
                             onChange={(e) => setFilters({...filters, rarity: e.target.value})}
-                            className="h-10 border rounded-lg px-3 text-sm 
-                                bg-white dark:bg-gray-800 dark:text-white 
+                            className="h-10 border rounded-lg px-3 text-sm
+                                bg-white text-gray-900 dark:bg-gray-800 dark:text-white 
                                 dark:border-gray-600"
                         >
                             <option value="">All Rarities</option>
@@ -131,8 +131,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
                         <select
                             value={filters.stage}
                             onChange={(e) => setFilters({...filters, stage: e.target.value})}
-                            className="h-10 border rounded-lg px-3 text-sm 
-                                bg-white dark:bg-gray-800 dark:text-white 
+                            className="h-10 border rounded-lg px-3 text-sm
+                                bg-white text-gray-900 dark:bg-gray-800 dark:text-white 
                                 dark:border-gray-600"
                         >
                             <option value="">All Stages</option>
@@ -146,7 +146,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                             value={filters.affinity}
                             onChange={(e) => setFilters({...filters, affinity: e.target.value})}
                             className="hidden h-10 border rounded-lg px-3 text-sm 
-                                bg-white dark:bg-gray-800 dark:text-white 
+                                bg-white text-gray-900 dark:bg-gray-800 dark:text-white 
                                 dark:border-gray-600"
                         >
                             <option value="">All Affinities</option>
@@ -160,7 +160,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                             value={filters.domain}
                             onChange={(e) => setFilters({...filters, domain: e.target.value})}
                             className="hidden h-10 border rounded-lg px-3 text-sm 
-                                bg-white dark:bg-gray-800 dark:text-white 
+                                bg-white text-gray-900 dark:bg-gray-800 dark:text-white 
                                 dark:border-gray-600"
                         >
                             <option value="">All Domains</option>
@@ -178,7 +178,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                                 value={sortConfig.key}
                                 onChange={(e) => handleSortChange(e.target.value)}
                                 className="h-10 border rounded-lg px-3 text-sm 
-                                    bg-white dark:bg-gray-800 dark:text-white 
+                                    bg-white text-gray-900 dark:bg-gray-800 dark:text-white 
                                     dark:border-gray-600"
                             >
                                 {sortOptions.map(option => (
@@ -265,7 +265,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                                     value={filters.species}
                                     onChange={(e) => setFilters({...filters, species: e.target.value})}
                                     className="w-full h-12 border rounded-lg px-3 text-sm 
-                                        bg-white dark:bg-gray-700 dark:text-white 
+                                        bg-white text-gray-900 dark:bg-gray-700 dark:text-white 
                                         dark:border-gray-600"
                                 >
                                     <option value="">All Species</option>
@@ -287,7 +287,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                                     value={filters.rarity}
                                     onChange={(e) => setFilters({...filters, rarity: e.target.value})}
                                     className="w-full h-12 border rounded-lg px-3 text-sm 
-                                        bg-white dark:bg-gray-700 dark:text-white 
+                                        bg-white text-gray-900 dark:bg-gray-700 dark:text-white 
                                         dark:border-gray-600"
                                 >
                                     <option value="">All Rarities</option>
@@ -309,7 +309,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                                     value={filters.stage}
                                     onChange={(e) => setFilters({...filters, stage: e.target.value})}
                                     className="w-full h-12 border rounded-lg px-3 text-sm 
-                                        bg-white dark:bg-gray-700 dark:text-white 
+                                        bg-white text-gray-900 dark:bg-gray-700 dark:text-white 
                                         dark:border-gray-600"
                                 >
                                     <option value="">All Stages</option>
@@ -328,7 +328,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                                     value={filters.affinity}
                                     onChange={(e) => setFilters({...filters, affinity: e.target.value})}
                                     className="w-full h-12 border rounded-lg px-3 text-sm 
-                                        bg-white dark:bg-gray-700 dark:text-white 
+                                        bg-white text-gray-900 dark:bg-gray-700 dark:text-white 
                                         dark:border-gray-600"
                                 >
                                     <option value="">All Affinities</option>
@@ -347,7 +347,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                                     value={filters.domain}
                                     onChange={(e) => setFilters({...filters, domain: e.target.value})}
                                     className="w-full h-12 border rounded-lg px-3 text-sm 
-                                        bg-white dark:bg-gray-700 dark:text-white 
+                                        bg-white text-gray-900 dark:bg-gray-700 dark:text-white 
                                         dark:border-gray-600"
                                 >
                                     <option value="">All Domains</option>

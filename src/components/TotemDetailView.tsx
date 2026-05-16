@@ -514,7 +514,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
             />
 
             {/* Content area - no touch handlers on scroll container (fixes iOS swipe bug) */}
-            <div className="flex-1 overflow-y-auto md:overflow-hidden pb-16 sm:pb-0 overscroll-contain">
+            <div className="flex-1 min-h-0 overflow-y-auto md:overflow-hidden pb-16 sm:pb-0 overscroll-contain">
                 <div className="flex flex-col md:grid md:grid-cols-2 md:h-full">
                     {/* Left Column - Image, HUD, Actions */}
                     <div className="flex-shrink-0 md:overflow-y-auto md:overscroll-contain">

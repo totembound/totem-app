@@ -6,6 +6,7 @@
  */
 
 import type { AvatarRef, BannerRef, PublicPlayerProfile } from '../types/types';
+import type { DailyQuestSet, QuestClaimResponse } from '../types/quests';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/v1';
 
@@ -528,6 +529,16 @@ class ApiClient {
       newBalance: number;
     }>('POST', `/rewards/${type}/protection`, { tier });
   }
+
+  async getDailyQuests() {
+    return this.request<DailyQuestSet>('GET', '/rewards/quests');
+  }
+
+  async claimDailyQuests() {
+    return this.request<QuestClaimResponse>('POST', '/rewards/quests/claim');
+  }
+
+  // TODO Phase 3: previewUpcomingThemes() — preview /v1/rewards/quests/preview?days=N
 
   // ============================================
   // Challenge endpoints

@@ -201,6 +201,32 @@ class NotificationService {
   }
 
   /**
+   * Show notification for a single daily quest claim — small Essence toast.
+   */
+  async showQuestClaimed(data: { questName: string; essence: number }): Promise<void> {
+    const message = `Quest complete: ${data.questName} (+${data.essence} ${CURRENCY_NAMES.SOFT})`;
+    await this.showNotification(NotificationType.QUEST_CLAIMED, message, data, {
+      priority: NotificationPriority.LOW,
+    });
+  }
+
+  /**
+   * Show notification for full daily quest set + bonus claimed — the celebration.
+   */
+  async showQuestSetCompleted(data: { totalEssence: number; bonusEssence: number; questsCompleted: number; runesAwarded?: { lesser?: number; greater?: number; ancient?: number } | null }): Promise<void> {
+    let runeSuffix = '';
+    if (data.runesAwarded) {
+      if (data.runesAwarded.ancient) runeSuffix = ' +1 Ancient Rune';
+      else if (data.runesAwarded.greater) runeSuffix = ' +1 Greater Rune';
+      else if (data.runesAwarded.lesser) runeSuffix = ' +1 Lesser Rune';
+    }
+    const message = `Daily Quests complete! +${data.totalEssence} ${CURRENCY_NAMES.SOFT} (incl. ${data.bonusEssence} bonus)${runeSuffix}`;
+    await this.showNotification(NotificationType.QUEST_SET_COMPLETED, message, data, {
+      priority: NotificationPriority.HIGH,
+    });
+  }
+
+  /**
    * Show notification for reward claimed (daily/weekly)
    */
   async showRewardClaimed(data: RewardNotificationData): Promise<void> {

@@ -26,3 +26,14 @@ export function useVillageAwarePath(absPath: string): string {
   const { pathname } = useLocation();
   return withVillagePrefix(pathname, absPath);
 }
+
+/**
+ * True when the current route is the village hub or any of its modal-over-
+ * village children (eg. /keepers-village/profile, /keepers-village/players/:id).
+ * Use this when component behavior should branch on "am I inside the village
+ * trunk?" — e.g. layout/background tweaks, link rewriting decisions.
+ */
+export function useInVillage(): boolean {
+  const { pathname } = useLocation();
+  return pathname === VILLAGE_PREFIX || pathname.startsWith(`${VILLAGE_PREFIX}/`);
+}

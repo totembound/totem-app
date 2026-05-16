@@ -9,7 +9,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useUser } from '../../contexts/UserContext';
 import Header from './Header';
 import Footer from './Footer';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
+import { useInVillage } from '../village/villagePath';
 import GameBackground from './GameBackground';
 import AchievementEffectManager from '../effects/AchievementEffectManager';
 import ExpeditionEffectManager from '../effects/ExpeditionEffectManager';
@@ -20,12 +21,11 @@ import MobileNavigation from './MobileNavigation';
 export const MainLayout: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const { messageDialog, hideError, tutorialWizardVisible } = useUser();
-  const { pathname } = useLocation();
   // Hide secondary nav (DesktopNavigation + MobileNavigation) inside the village.
   // Header stays visible — UserMenu in the header is the catch-all for non-building
   // destinations (account settings, tutorial, logout) per the "user menu beyond the
   // 10 buildings" decision.
-  const inVillage = pathname === '/keepers-village' || pathname.startsWith('/keepers-village/');
+  const inVillage = useInVillage();
   const [isHeaderVisible, setIsHeaderVisible] = useState<boolean>(true);
   const [lastScrollY, setLastScrollY] = useState<number>(0);
 

@@ -149,22 +149,40 @@ const PublicPlayerProfile: React.FC = () => {
                     )}
                 </div>
 
-                {/* Stats footer — Totems / Challenges / Best Streak / Highest Stage */}
+                {/* Stats footer — Totems / Challenges / Best streak / Top Stage */}
                 <div className="border-t border-gray-200 dark:border-gray-700 grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-gray-200 dark:divide-gray-700">
                     <Stat label="Totems" value={profile.stats.totalTotems} />
                     <Stat label="Challenges" value={profile.stats.totalChallengesCompleted} />
-                    <Stat label="Best streak" value={profile.stats.bestLoginStreak} />
-                    <Stat label="Top stage" value={profile.stats.highestStageReached} />
+                    <Stat label="Best streak" value={profile.stats.bestDailyStreak} />
+                    <Stat label="Top stage" value={formatTopStage(profile.stats.highestStageReached, profile.stats.highestPrestigeReached)} />
                 </div>
             </div>
         </div>
     );
 };
 
-function Stat({ label, value }: { label: string; value: number }) {
+// Stage 0..3 -> "1".."4". Reaching Ascended (stage 4) caps the 1-5 scale at
+// "5". Earning XP past the prestige threshold transitions to "P1", "P2", …
+// — no upper bound, matches TotemDetailView's HUD treatment of prestige as
+// the post-Ascended progression. A player at fresh Ascended sees "5", not
+// "P0", because P0 is ambiguous ("zero prestige" reads like a downgrade).
+function formatTopStage(stage: number, prestige: number): string {
+    if (stage < 4) return String(stage + 1);
+    if (prestige === 0) return '5';
+    return `P${prestige}`;
+}
+
+function Stat({ label, value }: { label: string; value: number | string | undefined }) {
+    // Defensive fallback — if the API ever omits a field, render "0" instead
+    // of an empty tile. This is what caused the Best streak tile to look
+    // blank when bestDailyStreak wasn't yet wired up.
+    let display: string;
+    if (value === undefined || value === null) display = '0';
+    else if (typeof value === 'number') display = value.toLocaleString();
+    else display = value;
     return (
         <div className="text-center py-4 sm:py-5">
-            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{value.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{display}</p>
             <p className="mt-0.5 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</p>
         </div>
     );

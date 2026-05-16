@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useGame } from "../../contexts/GameContext";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import {
   UserPlus,
@@ -282,6 +283,8 @@ const PublicHome: React.FC<{ onShowWallpaper: () => void }> = ({ onShowWallpaper
 
 // Component for logged-in users
 const LoggedInHome: React.FC<{ onShowWallpaper: () => void }> = ({ onShowWallpaper }) => {
+  const navigate = useNavigate();
+  const { setDailyQuestWizardVisible } = useGame();
   return (
     <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-2 sm:p-4 md:p-6">
       {/* Top Section */}
@@ -361,17 +364,17 @@ const LoggedInHome: React.FC<{ onShowWallpaper: () => void }> = ({ onShowWallpap
                 <PawPrint className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                 View Totems
               </Link>
-              <div
-                aria-disabled="true"
-                title="Coming soon"
-                className="flex items-center gap-2 p-3 bg-white/60 dark:bg-gray-700/60 rounded-md text-gray-500 dark:text-gray-400 shadow-sm cursor-not-allowed"
+              <button
+                type="button"
+                onClick={() => {
+                  setDailyQuestWizardVisible(true);
+                  navigate('/rewards');
+                }}
+                className="w-full flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-purple-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
               >
-                <ScrollText className="w-5 h-5 text-purple-400 dark:text-purple-500" />
-                <span>Daily Quests</span>
-                <span className="ml-auto text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300">
-                  Soon
-                </span>
-              </div>
+                <ScrollText className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                Daily Quests
+              </button>
               <Link
                 to="/shop"
                 className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-purple-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
@@ -422,6 +425,13 @@ const LoggedInHome: React.FC<{ onShowWallpaper: () => void }> = ({ onShowWallpap
               >
                 <Trophy className="w-5 h-5 text-amber-500 dark:text-amber-400" />
                 <span>Achievements</span>
+              </Link>
+              <Link
+                to="/guides"
+                className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
+              >
+                <BookOpenText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <span>Guides</span>
               </Link>
             </div>
           </div>

@@ -21,8 +21,13 @@ const DEFAULT_VOLUME = 0.25; // mild — ambient should sit under everything
  */
 export function useVillageAmbience(opts: {
   src: string;
-  /** ref to the element whose first click/touchstart unlocks audio */
-  gestureTarget: React.RefObject<HTMLElement | null>;
+  /**
+   * Optional element-scoped fallback for the document gesture listener.
+   * Document-level pointerdown/touchstart is the primary unlock path; this
+   * ref adds a redundant element listener so the unlock still fires if a
+   * descendant calls stopPropagation() before the event reaches document.
+   */
+  gestureTarget?: React.RefObject<HTMLElement | null>;
   volume?: number;
 }) {
   const { src, gestureTarget, volume = DEFAULT_VOLUME } = opts;
@@ -41,13 +46,37 @@ export function useVillageAmbience(opts: {
   const wantsPlayingRef = useRef(true);
   const rampFrameRef = useRef(0);
 
+  const debugAudio =
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('audioDebug');
+
   const applyVolume = useCallback(() => {
     const a = audioRef.current;
     if (!a) return;
     a.volume = muted ? 0 : programmaticVolumeRef.current;
   }, [muted]);
 
-  // Create the audio element once; clean up on unmount.
+  const tryStart = useCallback(() => {
+    const a = audioRef.current;
+    if (!a || startedRef.current) return;
+    if (!wantsPlayingRef.current) return; // village asked us to stay paused
+    startedRef.current = true;
+    void a.play().catch((err) => {
+      startedRef.current = false;
+      // AbortError fires when cleanup pauses the element before play() resolves
+      // (common in React StrictMode dev double-mount). The second mount tries
+      // again and succeeds, so this is benign noise — don't log it.
+      if (err?.name === 'AbortError') return;
+      if (debugAudio) {
+        // eslint-disable-next-line no-console
+        console.warn('[village-ambience] play() rejected:', err?.name ?? err, err?.message ?? '');
+      }
+    });
+  }, [debugAudio]);
+
+  // Create the audio element once; clean up on unmount. Try play() immediately —
+  // most arrivals at /keepers-village come from a navigation click, which counts
+  // as a user gesture and unlocks autoplay. If play() rejects (NotAllowedError),
+  // the document-level gesture listeners below will pick it up on the next tap.
   useEffect(() => {
     const a = new Audio();
     a.src = src;
@@ -55,6 +84,7 @@ export function useVillageAmbience(opts: {
     a.preload = 'auto';
     a.volume = muted ? 0 : programmaticVolumeRef.current;
     audioRef.current = a;
+    tryStart();
     return () => {
       cancelAnimationFrame(rampFrameRef.current);
       a.pause();
@@ -70,28 +100,28 @@ export function useVillageAmbience(opts: {
     applyVolume();
   }, [muted, applyVolume]);
 
-  // Hook up the autoplay-unlock gesture listener once the target ref is set.
+  // Document-level gesture fallback. Any tap anywhere on the page unlocks audio
+  // (HUD, mute toggle, building labels, panorama scroll). pointerdown on a
+  // child bubbles up, so a single document listener covers every interaction.
+  // The optional `gestureTarget` ref attaches a redundant element-scoped
+  // listener as belt-and-suspenders against descendants that stopPropagation.
   useEffect(() => {
-    const target = gestureTarget.current;
-    if (!target) return;
-
-    const startIfPossible = () => {
-      const a = audioRef.current;
-      if (!a || startedRef.current) return;
-      if (!wantsPlayingRef.current) return; // village asked us to stay paused
-      startedRef.current = true;
-      void a.play().catch(() => {
-        startedRef.current = false;
-      });
-    };
-
-    target.addEventListener('pointerdown', startIfPossible, { passive: true });
-    target.addEventListener('touchstart', startIfPossible, { passive: true });
+    document.addEventListener('pointerdown', tryStart, { passive: true });
+    document.addEventListener('touchstart', tryStart, { passive: true });
+    const target = gestureTarget?.current;
+    if (target) {
+      target.addEventListener('pointerdown', tryStart, { passive: true });
+      target.addEventListener('touchstart', tryStart, { passive: true });
+    }
     return () => {
-      target.removeEventListener('pointerdown', startIfPossible);
-      target.removeEventListener('touchstart', startIfPossible);
+      document.removeEventListener('pointerdown', tryStart);
+      document.removeEventListener('touchstart', tryStart);
+      if (target) {
+        target.removeEventListener('pointerdown', tryStart);
+        target.removeEventListener('touchstart', tryStart);
+      }
     };
-  }, [gestureTarget]);
+  }, [gestureTarget, tryStart]);
 
   const toggleMute = useCallback(() => {
     setMuted((prev) => {

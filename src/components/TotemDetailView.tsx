@@ -534,6 +534,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                 activeEffect={activeEffect}
                                 onEffectComplete={() => setActiveEffect(null)}
                                 isOnExpedition={tokenIsOnExpedition}
+                                expeditionEndTime={expeditionEndTime}
                                 sanctum={currentAttributes.sanctum}
                             />
                         </div>

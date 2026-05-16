@@ -201,7 +201,9 @@ const TotemImageSection: React.FC<TotemImageSectionProps> = ({
                         <span className="font-medium">On Expedition</span>
                     </div>
                     <div className="bg-white/80 dark:bg-gray-900/80 text-blue-700 dark:text-blue-300 px-4 py-1 rounded-full mt-2 backdrop-blur-sm text-sm">
-                        {formatTimeRemaining(expeditionEndTime)}
+                        {expeditionEndTime > 0 && expeditionEndTime > Math.floor(Date.now() / 1000)
+                            ? formatTimeRemaining(expeditionEndTime)
+                            : 'Expedition complete'}
                     </div>
                 </div>
             )}

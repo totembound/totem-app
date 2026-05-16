@@ -62,7 +62,7 @@ const VillageModalShell: React.FC<VillageModalShellProps> = ({
             "Collapse All", Shop's filter row, Codex tabs). Leaf content
             below gets the full width. */}
         <div className="shrink-0 flex items-center justify-between gap-3 px-4 py-2.5 border-b border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-800/60">
-          <h2 className="text-sm sm:text-base font-semibold text-gray-800 dark:text-gray-100 truncate">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-100 truncate">
             {modalTitle ?? 'Village'}
           </h2>
           <button

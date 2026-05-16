@@ -4,6 +4,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   formatTokenAmount,
+  formatCompact,
   parseTokenAmount,
   formatTimeRemaining,
   splitWords,
@@ -34,6 +35,41 @@ describe('formatTokenAmount', () => {
   it('should handle negative numbers', () => {
     const result = formatTokenAmount(-500);
     expect(result).toBe('-500');
+  });
+});
+
+describe('formatCompact', () => {
+  it('passes small numbers through without notation', () => {
+    expect(formatCompact(0)).toBe('0');
+    expect(formatCompact(42)).toBe('42');
+    expect(formatCompact(999)).toBe('999');
+  });
+
+  it('uses K notation for thousands', () => {
+    expect(formatCompact(1000)).toBe('1K');
+    expect(formatCompact(1500)).toBe('1.5K');
+    expect(formatCompact(88880)).toBe('88.9K');
+    expect(formatCompact(886825)).toBe('886.8K');
+  });
+
+  it('uses M notation for millions', () => {
+    expect(formatCompact(1_000_000)).toBe('1M');
+    expect(formatCompact(1_500_000)).toBe('1.5M');
+    expect(formatCompact(12_300_000)).toBe('12.3M');
+  });
+
+  it('accepts string numeric input', () => {
+    expect(formatCompact('1500')).toBe('1.5K');
+    expect(formatCompact('0')).toBe('0');
+  });
+
+  it('returns "0" for NaN input', () => {
+    expect(formatCompact('not-a-number')).toBe('0');
+    expect(formatCompact(NaN)).toBe('0');
+  });
+
+  it('handles negative numbers', () => {
+    expect(formatCompact(-1500)).toBe('-1.5K');
   });
 });
 

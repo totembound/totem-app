@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { Lock, Volume2, VolumeX } from 'lucide-react';
+import { Lock, Map, Volume2, VolumeX, X } from 'lucide-react';
 import AmbientFx from './AmbientFx';
 import VillageWalker from './VillageWalker';
 import { useVillageAmbience } from './useVillageAmbience';
 import { useVillageBadges } from './useVillageBadges';
 import VillageBuildingStrip from './VillageBuildingStrip';
+import VillageCurrencyHUD from './VillageCurrencyHUD';
 import { AtmosphereCtx, ModalAtmosphere, PRESETS, resolveAtmosphere } from './atmosphere';
 
 // Ambient animation registry — positioned in stage % coords (so they stick to their
@@ -158,6 +159,7 @@ const KeepersVillage: React.FC = () => {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [nearest, setNearest] = useState<string>(PLACEHOLDER_BUILDINGS[0].id);
   const [wrapperHeight, setWrapperHeight] = useState<number>(468);
+  const [showMobileMap, setShowMobileMap] = useState(false);
 
   const navigate = useNavigate();
 
@@ -491,25 +493,69 @@ const KeepersVillage: React.FC = () => {
       />
       {/* Title row — gutters match the global header (px-2 sm:px-4) so the
           mini-map's right edge aligns with the header's right-most controls. */}
-      <div className="shrink-0 w-full max-w-screen-xl mx-auto px-2 sm:px-4 py-2 flex items-center gap-3">
-        <h1 className="text-lg sm:text-xl font-bold shrink-0">Keeper&rsquo;s Village</h1>
+      <div className="shrink-0 w-full max-w-screen-xl mx-auto px-2 sm:px-4 py-2 flex items-center gap-2 sm:gap-3">
+        <h1 className="text-lg sm:text-xl font-bold shrink-0">
+          <span className="sm:hidden">Village</span>
+          <span className="hidden sm:inline">Keeper&rsquo;s Village</span>
+        </h1>
+        <VillageCurrencyHUD className="mx-auto" />
         <button
           type="button"
           onClick={toggleAmbienceMute}
           aria-pressed={!ambienceMuted}
           aria-label={ambienceMuted ? 'Unmute village ambience' : 'Mute village ambience'}
           title={ambienceMuted ? 'Unmute village ambience' : 'Mute village ambience'}
-          className="ml-auto shrink-0 h-7 w-7 md:h-8 md:w-8 flex items-center justify-center rounded bg-slate-800/70 border border-amber-400/40 text-amber-200 hover:text-amber-100 hover:bg-slate-700/80 hover:border-amber-400/80 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400"
+          className="shrink-0 h-7 w-7 md:h-8 md:w-8 flex items-center justify-center rounded bg-slate-800/70 border border-amber-400/40 text-amber-200 hover:text-amber-100 hover:bg-slate-700/80 hover:border-amber-400/80 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400"
         >
           {ambienceMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
         </button>
-        <MiniMap scrollerRef={scrollerRef} stageRef={stageRef} />
+        <button
+          type="button"
+          onClick={() => setShowMobileMap(true)}
+          aria-label="Show village map"
+          title="Show village map"
+          className="sm:hidden shrink-0 h-7 w-7 flex items-center justify-center rounded bg-slate-800/70 border border-amber-400/40 text-amber-200 hover:text-amber-100 hover:bg-slate-700/80 hover:border-amber-400/80 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400"
+        >
+          <Map className="w-3.5 h-3.5" />
+        </button>
+        <div className="hidden sm:block">
+          <MiniMap scrollerRef={scrollerRef} stageRef={stageRef} />
+        </div>
         {editMode && (
           <span className="px-2 py-0.5 rounded bg-amber-500 text-black text-xs font-bold">
             EDIT MODE
           </span>
         )}
       </div>
+
+      {showMobileMap && (
+        <div
+          className="sm:hidden fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={() => setShowMobileMap(false)}
+          role="dialog"
+          aria-label="Village map"
+        >
+          <div
+            className="relative bg-slate-900 border border-amber-400/40 rounded-lg p-3 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setShowMobileMap(false)}
+              aria-label="Close map"
+              className="absolute -top-2 -right-2 h-7 w-7 flex items-center justify-center rounded-full bg-slate-800 border border-amber-400/40 text-amber-200 shadow-md hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+            <MiniMap
+              scrollerRef={scrollerRef}
+              stageRef={stageRef}
+              sizeClassName="w-[80vw] max-w-[420px] h-16"
+            />
+            <p className="mt-2 text-xs text-amber-200/70 text-center">Tap to jump</p>
+          </div>
+        </div>
+      )}
 
       {/* Scroller — fills remaining vertical space inside the wrapper */}
       <div
@@ -674,9 +720,10 @@ const KeepersVillage: React.FC = () => {
 interface MiniMapProps {
   scrollerRef: React.RefObject<HTMLDivElement>;
   stageRef: React.RefObject<HTMLDivElement>;
+  sizeClassName?: string;
 }
 
-const MiniMap: React.FC<MiniMapProps> = ({ scrollerRef, stageRef }) => {
+const MiniMap: React.FC<MiniMapProps> = ({ scrollerRef, stageRef, sizeClassName }) => {
   const [vp, setVp] = useState({ left: 0, right: 100 });
   const mapRef = useRef<HTMLDivElement>(null);
 
@@ -724,7 +771,7 @@ const MiniMap: React.FC<MiniMapProps> = ({ scrollerRef, stageRef }) => {
     <div
       ref={mapRef}
       onClick={handleClick}
-      className="block w-[180px] sm:w-[280px] md:w-[360px] cursor-pointer relative h-7 md:h-8 overflow-hidden rounded border border-amber-400/40 shadow-md hover:border-amber-400/80 transition-colors"
+      className={`block cursor-pointer relative overflow-hidden rounded border border-amber-400/40 shadow-md hover:border-amber-400/80 transition-colors ${sizeClassName ?? 'w-[180px] sm:w-[280px] md:w-[360px] h-7 md:h-8'}`}
       title="Click to jump to that part of the village"
     >
       <img

@@ -221,6 +221,13 @@ const AppRoutes: React.FC = () => {
               </VillageModalShell>
             </Protected>
           } />
+          <Route path="players/:userId" element={
+            <Protected>
+              <VillageModalShell atmosphere="soft" modalTitle="Player Profile" maxWidth="3xl">
+                <PublicPlayerProfile />
+              </VillageModalShell>
+            </Protected>
+          } />
 
           {/* Marketing + legal — mirrored from standalone routes so UserMenu's
               footer-row links open as modals when the user is in village. The

@@ -166,8 +166,11 @@ export interface PublicPlayerProfile {
     stats: {
         totalTotems: number;
         totalChallengesCompleted: number;
-        bestLoginStreak: number;
+        /** Longest daily-reward-claim streak (RewardsClaims.longestStreak). */
+        bestDailyStreak: number;
         highestStageReached: number;
+        /** Highest prestige across any stage-4 totem (0 if none, no upper bound). */
+        highestPrestigeReached: number;
     };
 }
 

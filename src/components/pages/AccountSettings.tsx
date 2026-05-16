@@ -334,7 +334,7 @@ const AccountSettings = () => {
                             </div>
                             {authUser?.id && (
                                 <Link
-                                    to={`/players/${authUser.id}`}
+                                    to={vp(`/players/${authUser.id}`)}
                                     className="inline-flex items-center gap-1 text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
                                 >
                                     <ArrowUpRight className="w-3.5 h-3.5" />

@@ -1,9 +1,10 @@
 import { CheckCircle, Gift, Lock } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useUser } from '../../contexts/UserContext';
 import { useState } from 'react';
 import { Step } from '../../types/types';
 import { CURRENCY_NAMES } from '../../config/constants';
+import { withVillagePrefix } from '../village/villagePath';
 
 interface TutorialPanelProps {
   title: string;
@@ -39,6 +40,7 @@ export default function TutorialPanel({
   const { comingSoon, totems, setTutorialWizardVisible, trackLink } = useUser();
   const [loading, setLoading] = useState(false);
   const current = !isComplete && !isLocked;
+  const location = useLocation();
 
   // Helper function to handle link clicks with tracking
   const handleLinkClick = (step: Step & { checkType?: string; checkParam?: string }) => {
@@ -122,7 +124,7 @@ export default function TutorialPanel({
               {!complete && step.actionType === 'link' && step.actionUrl && (
                 <Link
                   className="ml-2 text-purple-500 hover:text-purple-400 hover:underline font-bold"
-                  to={step.actionUrl}
+                  to={withVillagePrefix(location.pathname, step.actionUrl)}
                   state={linkState}
                   onClick={() => {
                     setTutorialWizardVisible(true);

@@ -1,15 +1,17 @@
 import { ChevronLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Tooltip from "../Tooltip";
+import { withVillagePrefix } from "../village/villagePath";
 
 const GuidesHeader = ({ title }: { title: string }) => {
+  const location = useLocation();
   return (
     <div className="flex items-center justify-between">
       <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
         {title}
       </h1>
       <Link
-        to="/guides"
+        to={withVillagePrefix(location.pathname, "/guides")}
         className="inline-flex items-center text-purple-500 hover:text-purple-400 text-sm font-medium"
       >
         <Tooltip content="Back to Guides">

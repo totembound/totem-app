@@ -25,7 +25,8 @@ vi.mock('./contexts/UserContext', () => ({
 vi.mock('./contexts/GameContext', () => ({
   GameProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="game-provider">{children}</div>
-  )
+  ),
+  useGame: () => ({ rewardsState: undefined }),
 }));
 
 // mock for app tests
@@ -64,6 +65,7 @@ vi.mock('react-router-dom', async () => {
     Outlet: () => <div data-testid="outlet">Outlet Content</div>,
     Navigate: () => null,
     useNavigate: () => vi.fn(),
+    useLocation: () => ({ pathname: '/', search: '', hash: '', state: null, key: 'default' }),
   };
 });
 

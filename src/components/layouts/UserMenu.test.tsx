@@ -25,6 +25,7 @@ vi.mock('react-router-dom', () => ({
     <a href={to} onClick={onClick} {...props}>{children}</a>
   ),
   useNavigate: () => mockNavigate,
+  useLocation: () => ({ pathname: '/', search: '', hash: '', state: null, key: 'default' }),
 }));
 
 import { UserMenu } from './UserMenu';

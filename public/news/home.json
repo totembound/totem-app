@@ -1,6 +1,18 @@
 {
     "items": [
       {
+        "id": "7",
+        "title": "Keeper's Village Hub Opens",
+        "emoji": "🏛️",
+        "content": "A panoramic spirit village is now your home base. Tap any building to enter — Sanctuary, Bazaar, Shrine, Forge, Elder Tower, Library, Hall of Legends, Arena, Trailhead, Hearthstone — all reachable from one immersive view.",
+        "date": "2026-05-13 00:00:00",
+        "cta": {
+          "text": "Visit the Village",
+          "link": "/keepers-village",
+          "external": false
+        }
+      },
+      {
         "id": "6",
         "title": "New Species Coming Soon",
         "emoji": "🪶",

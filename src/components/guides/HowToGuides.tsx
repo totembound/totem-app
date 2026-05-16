@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import GuidesHeader from "./GuidesHeader";
 import { ChevronDown, Search } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { VillageLink as Link } from "../village/VillageLink";
 import { CURRENCY_NAMES } from '../../config/constants';
 
 interface Guide {

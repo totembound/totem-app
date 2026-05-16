@@ -3,6 +3,7 @@
  */
 import { useUser } from '../../contexts/UserContext';
 import { useAchievements } from '../../contexts/AchievementsContext';
+import { useGame } from '../../contexts/GameContext';
 import { Step, TutorialStep, Species } from '../../types/types';
 import { CURRENCY_NAMES } from '../../config/constants';
 
@@ -24,6 +25,7 @@ export interface StepConfig {
   checkType: 'isConnected'
     | 'isSignedUp'
     | 'hasAchievement'
+    | 'hasClaimedDaily'
     | 'hasTotems'
     | 'hasTotemName'
     | 'hasAchievementProgress'
@@ -78,8 +80,11 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
       },
       {
         label: "Claim Daily Reward",
-        checkType: "hasAchievement",
-        checkParam: "login-progression",
+        // hasClaimedDaily reads streakStatus.streakDays which only increments
+        // on actual daily-reward claim. The previous check (login-progression
+        // achievement) was incremented at login time, so it falsely reported
+        // "claimed" for fresh users who had only logged in.
+        checkType: "hasClaimedDaily",
         actionType: "link",
         actionUrl: "/rewards",
         actionText: "Claim"
@@ -315,6 +320,7 @@ export const useTutorialConfig = () => {
     hasClickedLink
   } = useUser();
   const { getAchievementById } = useAchievements();
+  const { rewardsState } = useGame();
   // AchievementsContext loads achievements on mount — no need to refresh here.
   // The tutorial reads from the same context so data is always up-to-date.
 
@@ -357,6 +363,13 @@ export const useTutorialConfig = () => {
         return isSignedUp;
       case 'hasAchievement':
         return step.checkParam ? hasAchievement(step.checkParam) : false;
+      case 'hasClaimedDaily':
+        // streakDays > 0 means the user has claimed at least one daily reward
+        // and is mid-streak. After a missed day the API resets to 0, but
+        // bestStreak persists — fall back to that so a returning user who
+        // already finished step 1 doesn't see it re-open.
+        return (rewardsState?.streakStatus?.streakDays ?? 0) > 0
+          || (rewardsState?.streakStatus?.bestStreak ?? 0) > 0;
       case 'hasTotems':
         return totems?.length! > 0;
       case 'hasTotemName':

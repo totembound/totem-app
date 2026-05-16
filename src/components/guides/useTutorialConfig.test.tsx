@@ -28,6 +28,12 @@ const mockAchievementsContext = vi.hoisted(() => ({
   refreshAchievements: vi.fn(),
 }));
 
+const mockGameContext = vi.hoisted(() => ({
+  rewardsState: {
+    streakStatus: { streakDays: 0, bestStreak: 0 },
+  },
+}));
+
 // ============================================================================
 // MODULE MOCKS
 // ============================================================================
@@ -38,6 +44,10 @@ vi.mock('../../contexts/UserContext', () => ({
 
 vi.mock('../../contexts/AchievementsContext', () => ({
   useAchievements: () => mockAchievementsContext,
+}));
+
+vi.mock('../../contexts/GameContext', () => ({
+  useGame: () => mockGameContext,
 }));
 
 vi.mock('../../config/constants', () => ({
@@ -67,6 +77,7 @@ describe('useTutorialConfig', () => {
     ] as any;
     mockUserContext.hasClickedLink.mockReturnValue(false);
     mockAchievementsContext.getAchievementById.mockReturnValue(null);
+    mockGameContext.rewardsState = { streakStatus: { streakDays: 0, bestStreak: 0 } };
   });
 
   // =========================================================================
@@ -298,6 +309,34 @@ describe('useTutorialConfig', () => {
     it('unknown checkType: returns false', () => {
       const { result } = renderHook(() => useTutorialConfig());
       expect(result.current.checkStep({ label: 'test', checkType: 'unknownType' } as any)).toBe(false);
+    });
+
+    // -----------------------------------------------------------------------
+    // hasClaimedDaily — replaced the old 'login-progression' check so the
+    // step only completes when the user has actually claimed a daily reward,
+    // not when they've merely logged in. Regression coverage for that fix.
+    // -----------------------------------------------------------------------
+    it('hasClaimedDaily: returns false for a fresh user (streakDays=0, bestStreak=0)', () => {
+      const { result } = renderHook(() => useTutorialConfig());
+      expect(result.current.checkStep({ label: 'test', checkType: 'hasClaimedDaily' } as any)).toBe(false);
+    });
+
+    it('hasClaimedDaily: returns true mid-streak (streakDays>0)', () => {
+      mockGameContext.rewardsState = { streakStatus: { streakDays: 3, bestStreak: 3 } };
+      const { result } = renderHook(() => useTutorialConfig());
+      expect(result.current.checkStep({ label: 'test', checkType: 'hasClaimedDaily' } as any)).toBe(true);
+    });
+
+    it('hasClaimedDaily: returns true for a returning user who reset (streakDays=0, bestStreak>0)', () => {
+      mockGameContext.rewardsState = { streakStatus: { streakDays: 0, bestStreak: 7 } };
+      const { result } = renderHook(() => useTutorialConfig());
+      expect(result.current.checkStep({ label: 'test', checkType: 'hasClaimedDaily' } as any)).toBe(true);
+    });
+
+    it('hasClaimedDaily: safe when streakStatus is missing', () => {
+      mockGameContext.rewardsState = {} as any;
+      const { result } = renderHook(() => useTutorialConfig());
+      expect(result.current.checkStep({ label: 'test', checkType: 'hasClaimedDaily' } as any)).toBe(false);
     });
   });
 

@@ -1,8 +1,9 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import CodexSidebar from "./CodexSidebar";
 import { getDomainColor, getTotemDomainIcon } from "../../../utils/totems";
 import { Domain } from "../../../types/types";
+import { withVillagePrefix } from "../../village/villagePath";
 
 type DomainCardData = {
   domain: Domain;
@@ -57,10 +58,11 @@ const DOMAIN_CARDS: DomainCardData[] = [
 ];
 
 const DomainCard: React.FC<{ data: DomainCardData }> = ({ data }) => {
+  const location = useLocation();
   const name = `${Domain[data.domain]} Domain`;
   return (
     <Link
-      to={`/guides/codex/domains/${data.slug}`}
+      to={withVillagePrefix(location.pathname, `/guides/codex/domains/${data.slug}`)}
       className="group text-left rounded-2xl overflow-hidden border border-amber-200/70 dark:border-gray-700
         bg-gradient-to-br from-amber-50 to-white dark:from-gray-800 dark:to-gray-900
         shadow-md hover:shadow-xl hover:ring-2 hover:ring-purple-400 transition-all duration-200

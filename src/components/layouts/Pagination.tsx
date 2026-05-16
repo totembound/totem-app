@@ -30,19 +30,19 @@ export const Pagination: React.FC<PaginationProps> = ({
                 <button
                     onClick={() => onPageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="p-1.5 rounded hover:bg-gray-50 dark:hover:bg-gray-700 
-                        disabled:opacity-50 dark:text-gray-300"
+                    className="p-1.5 rounded hover:bg-gray-50 dark:hover:bg-gray-700
+                        disabled:opacity-50 text-gray-700 dark:text-gray-300"
                 >
                     <ChevronLeft size={18} />
                 </button>
-                <span className="text-sm px-2 dark:text-gray-300">
+                <span className="text-sm px-2 text-gray-700 dark:text-gray-300">
                     {currentPage} / {totalPages}
                 </span>
                 <button
                     onClick={() => onPageChange(currentPage + 1)}
                     disabled={currentPage >= totalPages}
-                    className="p-1.5 rounded hover:bg-gray-50 dark:hover:bg-gray-700 
-                        disabled:opacity-50 dark:text-gray-300"
+                    className="p-1.5 rounded hover:bg-gray-50 dark:hover:bg-gray-700
+                        disabled:opacity-50 text-gray-700 dark:text-gray-300"
                 >
                     <ChevronRight size={18} />
                 </button>

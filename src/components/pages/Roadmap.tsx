@@ -7,7 +7,8 @@
  */
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { withVillagePrefix } from '../village/villagePath';
 import {
   Check, Circle, Clock, Swords, Map,
   Zap, Crown, Star,
@@ -103,7 +104,8 @@ const quarters: Quarter[] = [
       { label: 'The Forge — fuse 3 totems of the same rarity into 1 of the next rarity', status: 'done', detail: 'Pure Fusion (same species) and Wild Fusion (mixed) modes with forge achievements' },
       { label: 'Elder Sanctum — seat stage 4+ totems for passive Essence & council missions', status: 'done', detail: '3 council seats, 9 tiered missions with rune drops, passive hourly Essence earnings with claim system' },
       // In progress
-      { label: 'Spirit Village — illustrated hub replaces nav bar with tappable buildings', status: 'in-progress', detail: '10 buildings with progressive unlock, ambient animations, and notification badges' },
+      { label: 'Spirit Village — illustrated hub replaces nav bar with tappable buildings', status: 'done', detail: '10 buildings with progressive unlock, ambient animations, and notification badges' },
+      { label: 'Daily Quests — rotating daily objectives with Essence and XP rewards', status: 'in-progress', detail: 'Action-oriented goals refreshed daily to give keepers a clear "what to do today" loop' },
       { label: 'Unlock remaining 2 totems (Raven, Snake)', status: 'in-progress' },
     ],
   },
@@ -177,6 +179,7 @@ const quarters: Quarter[] = [
 ];
 
 const Roadmap: React.FC = () => {
+  const location = useLocation();
   const doneCount = quarters[0].items.filter(i => i.status === 'done').length;
   const totalQ1 = quarters[0].items.length;
   const progressPercent = Math.round((doneCount / totalQ1) * 100);
@@ -320,7 +323,7 @@ const Roadmap: React.FC = () => {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
                 <Link
-                  to="/about"
+                  to={withVillagePrefix(location.pathname, "/about")}
                   className="inline-flex items-center px-5 py-2.5 border border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300 font-medium rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors"
                 >
                   Learn More

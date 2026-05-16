@@ -12,6 +12,17 @@ export const formatTokenAmount = (value: string | number): string => {
     return numValue.toLocaleString();
 };
 
+const compactFormatter = new Intl.NumberFormat('en', {
+    notation: 'compact',
+    maximumFractionDigits: 1,
+});
+
+export const formatCompact = (value: string | number): string => {
+    const numValue = typeof value === 'string' ? Number(value) : value;
+    if (isNaN(numValue)) return '0';
+    return compactFormatter.format(numValue);
+};
+
 /**
  * Parse a human readable amount to integer
  * @param value - Human readable value

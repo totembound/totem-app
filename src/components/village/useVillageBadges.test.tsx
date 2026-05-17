@@ -11,6 +11,11 @@ const mockGame = vi.hoisted(() => ({
   },
   expeditionState: { userExpeditions: [] as any[] },
   challengeState: {},
+  lootItems: [] as any[],
+  dailyQuests: null as any,
+}));
+const mockTutorialClaims = vi.hoisted(() => ({
+  claimStatus: {} as Record<string, boolean>,
 }));
 
 vi.mock('../../contexts/UserContext', () => ({
@@ -19,6 +24,10 @@ vi.mock('../../contexts/UserContext', () => ({
 
 vi.mock('../../contexts/GameContext', () => ({
   useGame: () => mockGame,
+}));
+
+vi.mock('../guides/useTutorialClaims', () => ({
+  useTutorialClaims: () => mockTutorialClaims,
 }));
 
 import { useVillageBadges } from './useVillageBadges';
@@ -35,6 +44,9 @@ describe('useVillageBadges', () => {
     };
     mockGame.expeditionState = { userExpeditions: [] };
     mockGame.challengeState = {};
+    mockGame.lootItems = [];
+    mockGame.dailyQuests = null;
+    mockTutorialClaims.claimStatus = {};
   });
 
   describe('shrine badge', () => {

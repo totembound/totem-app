@@ -819,9 +819,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (response.data?.reward) {
                 notificationService.showRewardClaimed({
                     rewardType: 'daily',
-                    amount: response.data.reward.amount || 0,
-                    streakDays: response.data.reward.streakDays,
-                    streakBonus: response.data.reward.streakBonus || 0,
+                    amount: response.data.reward.totalAmount || 0,
+                    streakDays: response.data.newStreak,
+                    streakBonus: response.data.reward.bonusAmount || 0,
                 });
             }
             notificationService.processAchievementsFromResponse((response.data as any)?.achievements);

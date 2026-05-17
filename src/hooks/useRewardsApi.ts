@@ -112,11 +112,14 @@ export const useRewardsApi = () => {
       const response = await apiClient.claimDailyReward();
 
       if (response.success && response.data) {
+        const amount = response.data.reward.totalAmount;
+        const streakDays = response.data.newStreak;
+
         // Show notification on success
         notificationService.showRewardClaimed({
           rewardType: 'daily',
-          amount: response.data.reward.amount,
-          streakDays: response.data.reward.streakDays,
+          amount,
+          streakDays,
         });
         notificationService.processAchievementsFromResponse((response.data as any).achievements);
 
@@ -125,8 +128,8 @@ export const useRewardsApi = () => {
 
         return {
           success: true,
-          amount: response.data.reward.amount,
-          streakDays: response.data.reward.streakDays,
+          amount,
+          streakDays,
           message: response.data.message,
         };
       }

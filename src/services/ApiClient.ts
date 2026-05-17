@@ -497,11 +497,22 @@ class ApiClient {
     return this.request<{
       success: boolean;
       reward: {
-        amount: number;
-        streakDays: number;
-        streakBonus: number;
+        type: string;
+        baseAmount: number;
+        streakAtClaim: number;
+        bonusPercent: number;
+        bonusAmount: number;
+        totalAmount: number;
+        tier?: string;
+        tierMultiplier?: number;
+        tierBonusPercent?: number;
       };
+      newStreak: number;
+      newBalance: number;
+      nextClaimTime: string;
+      nextClaimAt: string;
       message: string;
+      achievements?: unknown[];
     }>('POST', '/rewards/daily/claim');
   }
 

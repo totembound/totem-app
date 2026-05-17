@@ -470,6 +470,9 @@ class ApiClient {
 
   async getRewardStatus() {
     return this.request<{
+      tier?: string;
+      tierMultiplier?: number;
+      tierBonusPercent?: number;
       daily: {
         canClaim: boolean;
         streakDays: number;

@@ -10,6 +10,9 @@ import apiClient from '../services/ApiClient';
 import { notificationService } from '../services/NotificationService';
 
 export interface RewardStatus {
+  tier?: string;
+  tierMultiplier?: number;
+  tierBonusPercent?: number;
   daily: {
     canClaim: boolean;
     streakDays: number;
@@ -58,6 +61,9 @@ export const useRewardsApi = () => {
 
       if (response.success && response.data) {
         const status: RewardStatus = {
+          tier: response.data.tier,
+          tierMultiplier: response.data.tierMultiplier,
+          tierBonusPercent: response.data.tierBonusPercent,
           daily: {
             canClaim: response.data.daily.canClaim,
             streakDays: response.data.daily.streakDays,

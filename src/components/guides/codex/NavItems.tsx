@@ -4,7 +4,8 @@ import {
   Mountain,
   PawPrint,
   Shapes,
-  Compass
+  Compass,
+  Star
 } from "lucide-react";
 
 // Define types for our navigation structure
@@ -122,6 +123,11 @@ export const codexNavItems: NavItemType[] = [
     title: "Runes",
     icon: <Shapes size={18} />,
     path: "/guides/codex/runes",
+  },
+  {
+    title: "Traits",
+    icon: <Star size={18} />,
+    path: "/guides/codex/traits",
   },
   {
     title: "Map",

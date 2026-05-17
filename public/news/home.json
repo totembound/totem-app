@@ -1,6 +1,18 @@
 {
     "items": [
       {
+        "id": "8",
+        "title": "Daily Quests Are Here",
+        "emoji": "📜",
+        "content": "Five themed quest slots refresh every day — feed, train, challenge, or expedition. Finish them all to unlock a bonus pile of Essence plus a random Rune.",
+        "date": "2026-05-16 00:00:00",
+        "cta": {
+          "text": "View Daily Quests",
+          "link": "/rewards",
+          "external": false
+        }
+      },
+      {
         "id": "7",
         "title": "Keeper's Village Hub Opens",
         "emoji": "🏛️",

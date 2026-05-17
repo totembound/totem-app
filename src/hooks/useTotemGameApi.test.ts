@@ -34,6 +34,9 @@ vi.mock('../contexts/UserContext', () => ({
 vi.mock('../contexts/AchievementsContext', () => ({
   useAchievements: () => ({ applyUnlockedAchievements: vi.fn() }),
 }));
+vi.mock('../contexts/GameContext', () => ({
+  useGame: () => ({ mergeQuestProgress: vi.fn() }),
+}));
 
 import apiClient from '../services/ApiClient';
 

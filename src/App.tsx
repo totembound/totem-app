@@ -60,6 +60,8 @@ import SpiritDomain from './components/guides/codex/SpiritDomain';
 import ShadowDomain from './components/guides/codex/ShadowDomain';
 import WorldMap from './components/guides/codex/WorldMap';
 import TutorialWizard from './components/guides/TutorialWizard';
+import DailyQuestWizard from './components/quests/DailyQuestWizard';
+import DailyQuestsCelebration from './components/quests/DailyQuestsCelebration';
 import { TutorialClaimsProvider } from './components/guides/useTutorialClaims';
 import TotemForge from './components/forge/TotemForge';
 import ElderSanctum from './components/sanctum/ElderSanctum';
@@ -431,6 +433,8 @@ const App: React.FC = () => {
                   <AppRoutes />
                   <ServiceWorkerDialog/>
                   <TutorialWizard/>
+                  <DailyQuestWizard/>
+                  <DailyQuestsCelebration/>
                 </TutorialClaimsProvider>
               </AchievementsProvider>
             </GameProvider>

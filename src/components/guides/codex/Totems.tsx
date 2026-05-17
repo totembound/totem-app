@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import CodexSidebar from "./CodexSidebar";
 import { AVAILABLE_SPECIES } from "../../../config/constants";
 import {
@@ -8,9 +8,15 @@ import {
 import { Rarity } from "../../../types/types";
 import { Brain, Dumbbell, Wind, Flame, Dna, Shuffle } from "lucide-react";
 import { VillageLink as Link } from "../../village/VillageLink";
+import { useUser } from "../../../contexts/UserContext";
 
 const TotemCodex: React.FC = () => {
   const totems = AVAILABLE_SPECIES;
+  const { trackLink } = useUser();
+
+  useEffect(() => {
+    trackLink("codex_totem_link");
+  }, [trackLink]);
 
   return (
     <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg">

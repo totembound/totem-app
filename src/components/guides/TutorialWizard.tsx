@@ -37,7 +37,9 @@ const TutorialWizard: React.FC<TutorialWizardProps> = ({
     setCurrentStep(0);
   }, [isSignedUp]);
 
-  // Initialize to first unclaimed step when claim status loads
+  // One-shot snap-forward on initial mount/login only.
+  // Once user has seen their first step, leave them alone so they can use
+  // Previous/Next to review claimed steps and read past content.
   const [hasInitialized, setHasInitialized] = useState(false);
   useEffect(() => {
     if (hasInitialized || Object.keys(claimStatus).length === 0) return;

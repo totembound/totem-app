@@ -105,7 +105,7 @@ const quarters: Quarter[] = [
       { label: 'Elder Sanctum — seat stage 4+ totems for passive Essence & council missions', status: 'done', detail: '3 council seats, 9 tiered missions with rune drops, passive hourly Essence earnings with claim system' },
       // In progress
       { label: 'Spirit Village — illustrated hub replaces nav bar with tappable buildings', status: 'done', detail: '10 buildings with progressive unlock, ambient animations, and notification badges' },
-      { label: 'Daily Quests — rotating daily objectives with Essence and XP rewards', status: 'in-progress', detail: 'Action-oriented goals refreshed daily to give keepers a clear "what to do today" loop' },
+      { label: 'Daily Quests — rotating daily objectives with Essence and Rune rewards', status: 'done', detail: 'Five themed slots refreshed daily with an Essence + Rune completion bonus' },
       { label: 'Unlock remaining 2 totems (Raven, Snake)', status: 'in-progress' },
     ],
   },

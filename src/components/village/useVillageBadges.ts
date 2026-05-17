@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useUser } from '../../contexts/UserContext';
 import { useGame } from '../../contexts/GameContext';
+import { useTutorialClaims } from '../guides/useTutorialClaims';
 
 export interface BuildingBadgeState {
   badge?: number;
@@ -20,7 +21,8 @@ export interface BuildingBadgeState {
  */
 export function useVillageBadges(): Record<string, BuildingBadgeState> {
   const { totems } = useUser();
-  const { rewardsState, expeditionState, challengeState } = useGame();
+  const { rewardsState, expeditionState, challengeState, lootItems, dailyQuests } = useGame();
+  const { claimStatus } = useTutorialClaims();
 
   return useMemo(() => {
     // Badge UX rule: only show counts for ACTIONABLE state (claim available,
@@ -28,14 +30,25 @@ export function useVillageBadges(): Record<string, BuildingBadgeState> {
     // belong inside the modal — they pollute the village view because they
     // never go to zero. See plan/village-v2.md §Badge UX research notes.
 
-    // Shrine — claimable rewards (daily + weekly). Direct claim action ✓
-    // Weekly: API returns canClaimWeekly=true even when the weekly tier isn't
-    // yet unlocked for the player (gated by streak/tutorial progress). Gate on
-    // hasWeeklyUnlocked too so we don't show a phantom "1 ready" before the
-    // user can actually claim anything.
+    // Shrine — sum of everything claimable on the /rewards page:
+    //   - daily reward (when canClaimToday)
+    //   - weekly reward (when canClaimWeekly AND hasWeeklyUnlocked; the API
+    //     reports canClaim=true even before the tier is unlocked, so gate it)
+    //   - daily quest slots whose progress hit goal but aren't claimed yet,
+    //     plus the +1 bonus when all five are done and bonus not yet claimed
+    //   - loot boxes waiting to be opened
+    //   - unclaimed tutorial steps
+    const dailyReadyCount = rewardsState.streakStatus?.canClaimToday ? 1 : 0;
+    const weeklyReadyCount =
+      rewardsState.weeklyStatus?.canClaimWeekly && rewardsState.hasWeeklyUnlocked ? 1 : 0;
+    const questReadyCount = dailyQuests
+      ? dailyQuests.quests.filter(q => !q.claimed && q.progress >= q.goal).length +
+        (dailyQuests.bonus?.unlocked && !dailyQuests.bonus?.claimed ? 1 : 0)
+      : 0;
+    const lootReadyCount = lootItems.length;
+    const tutorialReadyCount = Object.values(claimStatus).filter(v => v === false).length;
     const shrineCount =
-      (rewardsState.streakStatus?.canClaimToday ? 1 : 0) +
-      (rewardsState.weeklyStatus?.canClaimWeekly && rewardsState.hasWeeklyUnlocked ? 1 : 0);
+      dailyReadyCount + weeklyReadyCount + questReadyCount + lootReadyCount + tutorialReadyCount;
 
     // Trailhead — expeditions ready to claim. Direct claim action ✓
     const trailheadCount = (expeditionState.userExpeditions ?? []).filter(
@@ -76,5 +89,5 @@ export function useVillageBadges(): Record<string, BuildingBadgeState> {
       'arena': {},            // raw attempts-remaining is confusing UX — show inside picker
       'trailhead': { badge: trailheadCount > 0 ? trailheadCount : undefined },
     };
-  }, [totems, rewardsState, expeditionState, challengeState]);
+  }, [totems, rewardsState, expeditionState, challengeState, lootItems, dailyQuests, claimStatus]);
 }

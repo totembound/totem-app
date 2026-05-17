@@ -13,8 +13,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUser } from '../../contexts/UserContext';
+import { useGame } from '../../contexts/GameContext';
 import { withVillagePrefix } from '../village/villagePath';
-import { Award, ChevronDown, Crown, Gem, GraduationCap, LogOut, MapPinned, Settings, Shield, Sparkles } from 'lucide-react';
+import { Award, ChevronDown, Crown, Gem, GraduationCap, LogOut, MapPinned, Settings, Shield, Sparkles, Target } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { CURRENCY_NAMES } from '../../config/constants';
 import { Avatar } from '../profile/Avatar';
@@ -47,6 +48,7 @@ const TIER_BADGE: Record<string, { label: string; className: string; Icon: typeo
 export const UserMenu: React.FC = () => {
   const { user, logout } = useAuth();
   const { essenceBalance, gemsBalance, setTutorialWizardVisible } = useUser();
+  const { setDailyQuestWizardVisible } = useGame();
   const navigate = useNavigate();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
@@ -257,6 +259,21 @@ export const UserMenu: React.FC = () => {
           >
             <GraduationCap size={16} className="text-gray-500 dark:text-gray-400" />
             <span className="text-sm">Show Tutorial</span>
+          </button>
+
+          {/* Show Daily Quests Wizard */}
+          <button
+            onClick={() => {
+              setDailyQuestWizardVisible(true);
+              setIsOpen(false);
+            }}
+            className="w-full px-4 py-2 text-left flex items-center gap-2
+              text-gray-700 dark:text-gray-300
+              hover:bg-gray-50 dark:hover:bg-gray-700/50
+              transition-colors"
+          >
+            <Target size={16} className="text-gray-500 dark:text-gray-400" />
+            <span className="text-sm">Show Daily Quests</span>
           </button>
 
           <div className="border-t border-gray-200 dark:border-gray-700" />

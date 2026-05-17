@@ -28,6 +28,21 @@ const howToGuides: Guide[] = [
     )
   },
   {
+    title: "How to Explore the Keeper's Village",
+    searchableText: "keepers village spirit village hub buildings tap navigate map home explore",
+    content: (
+      <div>
+        <p>The Keeper's Village is your living hub — every game area is a tappable building on the map:</p>
+        <ol className="list-decimal list-inside mt-2 space-y-1">
+          <li>Open the <Link to="/keepers-village" className="text-purple-500 underline font-medium">Keeper's Village</Link> from the top nav.</li>
+          <li>Tap a building to enter that area (Rewards, Shop, Challenges, Expeditions, and more).</li>
+          <li>Watch for <strong>notification badges</strong> on buildings — they signal unclaimed rewards or available actions.</li>
+          <li>Some buildings unlock progressively as you grow your collection and complete milestones.</li>
+        </ol>
+      </div>
+    )
+  },
+  {
     title: "How to Claim Daily Rewards",
     searchableText: "daily reward claim free token gift check-in spiritkeeper totem",
     content: (
@@ -38,6 +53,21 @@ const howToGuides: Guide[] = [
           <li>Click the <strong>"Claim Daily"</strong> button.</li>
           <li>Your {CURRENCY_NAMES.SOFT} will be added to your account instantly.</li>
           <li>Build your streak by claiming daily - bonuses increase with consistency!</li>
+        </ol>
+      </div>
+    )
+  },
+  {
+    title: "How to Complete Daily Quests",
+    searchableText: "daily quests rotating objectives essence rune bonus theme slots claim wizard",
+    content: (
+      <div>
+        <p>Daily Quests give you five themed objectives that refresh every day:</p>
+        <ol className="list-decimal list-inside mt-2 space-y-1">
+          <li>Open the <Link to="/rewards" className="text-purple-500 underline font-medium">Rewards</Link> page or tap the floating Daily Quests wizard.</li>
+          <li>Each quest tracks progress automatically as you play — feed, train, challenge, or send expeditions.</li>
+          <li>Click <strong>"Claim Rewards"</strong> on any completed slot to collect {CURRENCY_NAMES.SOFT}.</li>
+          <li>Finish all five for a bonus reward: extra {CURRENCY_NAMES.SOFT} plus a random Rune.</li>
         </ol>
       </div>
     )
@@ -114,6 +144,38 @@ const howToGuides: Guide[] = [
           <li>Choose up to 3 totems, including 1 captain, to form your expedition team.</li>
           <li>Click <strong>"Start Expedition"</strong> to begin the journey.</li>
           <li>Return later to collect rewards once the expedition is complete.</li>
+        </ol>
+      </div>
+    )
+  },
+  {
+    title: "How to Fuse Totems at the Forge",
+    searchableText: "forge fuse fusion totem rarity upgrade pure wild combine three same species mixed",
+    content: (
+      <div>
+        <p>The Forge lets you fuse three totems into a single, higher-rarity totem:</p>
+        <ol className="list-decimal list-inside mt-2 space-y-1">
+          <li>Visit the <Link to="/forge" className="text-purple-500 underline font-medium">Totem Forge</Link>.</li>
+          <li>Choose <strong>Pure Fusion</strong> (3 totems of the same species) or <strong>Wild Fusion</strong> (mixed species).</li>
+          <li>Select three totems of the same rarity from your collection.</li>
+          <li>Confirm the fusion to mint a new totem one rarity tier higher — the source totems are consumed.</li>
+          <li>Forge achievements unlock as you complete more fusions.</li>
+        </ol>
+      </div>
+    )
+  },
+  {
+    title: "How to Seat Elders in the Sanctum",
+    searchableText: "elder sanctum council seat stage 4 adult passive essence missions tenure claim bonus",
+    content: (
+      <div>
+        <p>The Elder Sanctum turns your most powerful totems into a passive {CURRENCY_NAMES.SOFT} engine:</p>
+        <ol className="list-decimal list-inside mt-2 space-y-1">
+          <li>Open the <Link to="/sanctum" className="text-purple-500 underline font-medium">Elder Sanctum</Link>.</li>
+          <li>Seat any Stage 4 (Adult) or higher totem in one of the three Council Seats.</li>
+          <li>Each seated Elder earns {CURRENCY_NAMES.SOFT} every hour, with tenure bonuses up to 1.5x.</li>
+          <li>Click <strong>"Claim"</strong> to collect accumulated earnings whenever you visit.</li>
+          <li>Send Elders on exclusive <strong>Council Missions</strong> for rune drops and rare rewards.</li>
         </ol>
       </div>
     )

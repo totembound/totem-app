@@ -6,6 +6,7 @@
  */
 
 import type { AvatarRef, BannerRef, PublicPlayerProfile } from '../types/types';
+import type { DailyQuestSet, QuestClaimResponse, QuestProgressUpdate } from '../types/quests';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/v1';
 
@@ -308,6 +309,7 @@ class ApiClient {
       statChanges: Record<string, number>;
       cooldown: { type: string; duration: number; readyAt: string };
       achievements?: Array<{ achievementId: string; milestone?: number; rewards?: { essence?: number; xp?: number } }>;
+      quests?: QuestProgressUpdate[];
       message: string;
       feedsToday: number;
       maxDaily: number;
@@ -324,6 +326,7 @@ class ApiClient {
       statChanges: Record<string, number>;
       cooldown: { type: string; duration: number; readyAt: string };
       achievements?: Array<{ achievementId: string; milestone?: number; rewards?: { essence?: number; xp?: number } }>;
+      quests?: QuestProgressUpdate[];
       message: string;
       newEssenceBalance: number;
     }>('POST', `/totems/${totemId}/train`);
@@ -338,6 +341,7 @@ class ApiClient {
       statChanges: Record<string, number>;
       cooldown: { type: string; duration: number; readyAt: string };
       achievements?: Array<{ achievementId: string; milestone?: number; rewards?: { essence?: number; xp?: number } }>;
+      quests?: QuestProgressUpdate[];
       message: string;
       newEssenceBalance: number;
     }>('POST', `/totems/${totemId}/treat`);
@@ -356,6 +360,7 @@ class ApiClient {
       };
       statBoosts: Record<string, number>;
       achievements?: Array<{ achievementId: string; milestone?: number; rewards?: { essence?: number; xp?: number } }>;
+      quests?: QuestProgressUpdate[];
       message: string;
     }>('POST', `/totems/${totemId}/evolve`);
   }
@@ -529,6 +534,16 @@ class ApiClient {
     }>('POST', `/rewards/${type}/protection`, { tier });
   }
 
+  async getDailyQuests() {
+    return this.request<DailyQuestSet>('GET', '/rewards/quests');
+  }
+
+  async claimDailyQuests() {
+    return this.request<QuestClaimResponse>('POST', '/rewards/quests/claim');
+  }
+
+  // TODO Phase 3: previewUpcomingThemes() — preview /v1/rewards/quests/preview?days=N
+
   // ============================================
   // Challenge endpoints
   // ============================================
@@ -601,6 +616,7 @@ class ApiClient {
         attemptsRemaining: number;
       };
       achievements?: Array<{ achievementId: string; milestone?: number; rewards?: { essence?: number; xp?: number } }>;
+      quests?: QuestProgressUpdate[];
       message: string;
     }>('POST', `/challenges/${challengeId}/complete`, { totemId, score });
   }
@@ -663,6 +679,7 @@ class ApiClient {
         happinessCost: number;
         totemId: string;
       };
+      quests?: QuestProgressUpdate[];
       message: string;
     }>('POST', `/expeditions/${expeditionId}/start`, { totemId: totemIds[0], totemIds });
   }
@@ -718,6 +735,7 @@ class ApiClient {
         milestone?: number;
         rewards?: { essence?: number; xp?: number };
       }>;
+      quests?: QuestProgressUpdate[];
       message: string;
     }>('POST', `/expeditions/${totemId}/claim`);
   }

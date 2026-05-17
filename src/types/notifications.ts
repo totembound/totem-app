@@ -30,6 +30,8 @@ export enum NotificationType {
     REWARD_CLAIMED = 'reward_claimed',
     PROTECTION_PURCHASED = 'protection_purchased',
     PROTECTION_USED = 'protection_used',
+    QUEST_CLAIMED = 'quest_claimed',
+    QUEST_SET_COMPLETED = 'quest_set_completed',
     
     // Loot notifications
     LOOT_CLAIMED = 'loot_claimed',
@@ -203,6 +205,17 @@ export enum NotificationType {
       type: NotificationType.PROTECTION_USED,
       scope: NotificationScope.PERSONAL,
       priority: NotificationPriority.MEDIUM
+    },
+    [NotificationType.QUEST_CLAIMED]: {
+      type: NotificationType.QUEST_CLAIMED,
+      scope: NotificationScope.PERSONAL,
+      priority: NotificationPriority.LOW,
+    },
+    [NotificationType.QUEST_SET_COMPLETED]: {
+      type: NotificationType.QUEST_SET_COMPLETED,
+      scope: NotificationScope.PERSONAL,
+      priority: NotificationPriority.HIGH,
+      autoOpen: true,
     },
     
     // Loot notifications

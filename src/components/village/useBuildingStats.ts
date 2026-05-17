@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUser } from '../../contexts/UserContext';
 import { useGame } from '../../contexts/GameContext';
+import { useTutorialClaims } from '../guides/useTutorialClaims';
 
 export interface BuildingStats {
   /** Primary stat line shown in the bottom strip — short, glanceable. */
@@ -19,7 +20,8 @@ export interface BuildingStats {
 export function useBuildingStats(buildingId: string): BuildingStats {
   const { user } = useAuth();
   const { totems, essenceBalance, gemsBalance } = useUser();
-  const { rewardsState, expeditionState, challengeState } = useGame();
+  const { rewardsState, expeditionState, challengeState, lootItems, dailyQuests } = useGame();
+  const { claimStatus } = useTutorialClaims();
 
   return useMemo<BuildingStats>(() => {
     switch (buildingId) {
@@ -28,16 +30,33 @@ export function useBuildingStats(buildingId: string): BuildingStats {
       }
 
       case 'shrine': {
+        // Roll up everything actionable on the /rewards page so the strip
+        // tells the player what's actually waiting, not just streak status.
         const dailyReady = rewardsState.streakStatus?.canClaimToday;
         // canClaimWeekly is true even when the weekly tier isn't unlocked yet —
         // gate on hasWeeklyUnlocked to match the badge logic.
         const weeklyReady =
           rewardsState.weeklyStatus?.canClaimWeekly && rewardsState.hasWeeklyUnlocked;
         const streak = rewardsState.streakStatus?.streakDays ?? 0;
-        if (dailyReady && weeklyReady) return { summary: `Day ${streak} streak · Daily + weekly ready` };
-        if (dailyReady) return { summary: `Day ${streak} streak · Daily reward ready` };
-        if (weeklyReady) return { summary: `Day ${streak} streak · Weekly reward ready` };
-        return { summary: `Day ${streak} streak · Next reward tomorrow` };
+        const questReady = dailyQuests
+          ? dailyQuests.quests.filter(q => !q.claimed && q.progress >= q.goal).length +
+            (dailyQuests.bonus?.unlocked && !dailyQuests.bonus?.claimed ? 1 : 0)
+          : 0;
+        const lootReady = lootItems.length;
+        const tutorialReady = Object.values(claimStatus).filter(v => v === false).length;
+
+        const parts: string[] = [];
+        if (dailyReady && weeklyReady) parts.push('Daily + weekly ready');
+        else if (dailyReady) parts.push('Daily reward ready');
+        else if (weeklyReady) parts.push('Weekly reward ready');
+        if (questReady > 0) parts.push(`${questReady} quest${questReady === 1 ? '' : 's'} ready`);
+        if (lootReady > 0) parts.push(`${lootReady} loot box${lootReady === 1 ? '' : 'es'}`);
+        if (tutorialReady > 0) parts.push(`${tutorialReady} tutorial step${tutorialReady === 1 ? '' : 's'}`);
+
+        if (parts.length === 0) {
+          return { summary: `Day ${streak} streak · Next reward tomorrow` };
+        }
+        return { summary: `Day ${streak} streak · ${parts.join(' · ')}` };
       }
 
       case 'hall-of-legends': {
@@ -138,5 +157,5 @@ export function useBuildingStats(buildingId: string): BuildingStats {
       default:
         return { summary: '' };
     }
-  }, [buildingId, totems, user, essenceBalance, gemsBalance, rewardsState, expeditionState, challengeState]);
+  }, [buildingId, totems, user, essenceBalance, gemsBalance, rewardsState, expeditionState, challengeState, lootItems, dailyQuests, claimStatus]);
 }

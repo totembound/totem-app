@@ -110,18 +110,13 @@ export const TUTORIAL_STEPS_CONFIG: TutorialStepConfig[] = [
         actionText: "Explore"
       },
       {
-        label: "Buy a Totem from Another Domain",
+        label: "Buy 2nd Totem",
         checkType: "hasAchievementProgress",
         checkParam: "collector_progression",
         checkParamNum: 2,
         actionType: "link",
         actionUrl: "/shop",
         actionText: "Shop"
-      },
-      {
-        label: "Become a Chosen Keeper",
-        checkType: "hasAchievement",
-        checkParam: "collector_progression"
       },
       {
         label: "Give it a Nickname (optional)",

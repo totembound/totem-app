@@ -647,22 +647,14 @@ const Achievements: React.FC = () => {
     const scrollToCategory = (category: AchievementCategory) => {
         const ref = categoryRefs[category]?.current;
         if (ref) {
-            // Get the page header height plus some padding
-            const headerOffset = 66; 
-
             if (!expandedCategories.has(category)){
                 toggleCategory(category);
             }
-            // Calculate the element's position relative to the viewport
-            const elementPosition = ref.getBoundingClientRect().top;
-            // Get the current scroll position
-            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-            // Smooth scroll to the adjusted position
-            window.scrollTo({
-                top: offsetPosition,
-                behavior: 'smooth'
-            });
+            // scrollIntoView walks up to the nearest scrollable ancestor — works
+            // both standalone (window) and inside the village modal (dialog body),
+            // unlike window.scrollTo which would only move the page underneath.
+            // scroll-margin-top on the target accounts for the sticky stats row.
+            ref.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     };
 

@@ -642,7 +642,8 @@ describe('GameContext', () => {
       mockApiClient.claimDailyReward.mockResolvedValue({
         success: true,
         data: {
-          reward: { amount: 100, streakDays: 4 },
+          reward: { totalAmount: 100, streakAtClaim: 4, bonusAmount: 0 },
+          newStreak: 4,
         },
       });
 

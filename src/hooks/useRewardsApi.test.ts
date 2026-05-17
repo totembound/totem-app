@@ -108,7 +108,8 @@ describe('useRewardsApi', () => {
       (apiClient.claimDailyReward as ReturnType<typeof vi.fn>).mockResolvedValue({
         success: true,
         data: {
-          reward: { amount: 100, streakDays: 6 },
+          reward: { totalAmount: 100, streakAtClaim: 6, bonusAmount: 0 },
+          newStreak: 6,
           message: 'Daily reward claimed!',
         },
       });

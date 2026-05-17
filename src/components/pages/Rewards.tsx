@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useGame } from '../../contexts/GameContext';
 import { useUser } from '../../contexts/UserContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useAchievements } from '../../contexts/AchievementsContext';
 import { Calendar, Coins, Crown, Flame, Trophy, Lock, Shield, TrendingUp, Zap } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -9,11 +10,13 @@ import Tooltip from '../Tooltip';
 import TokensDisplay from '../TokensDisplay';
 import ProtectionDialog from '../ProtectionDialog';
 import CountdownTimer from '../CountdownTimer';
+import TierBonusBadge from '../TierBonusBadge';
 import DailyQuestsCard from '../quests/DailyQuestsCard';
 import TutorialClaimsCard from '../quests/TutorialClaimsCard';
 import LootBoxesCard from '../quests/LootBoxesCard';
 import { CURRENCY_NAMES } from '../../config/constants';
 import { DAILY_REWARD, WEEKLY_REWARD } from '../../config/rewards';
+import { getTierMultiplier } from '../../config/tier-bonuses';
 
 interface AchievementLockProps {
     title: string;
@@ -32,7 +35,10 @@ interface LockedOverlayProps {
 const Rewards = () => {
     const { rewardsState, claimDailyReward, claimWeeklyReward, refreshRewardStatus } = useGame();
     const { essenceBalance } = useUser();
+    const { user } = useAuth();
     const { refreshAchievements, progress } = useAchievements();
+    const tier = user?.tier ?? 'free';
+    const tierMultiplier = getTierMultiplier(tier);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -71,19 +77,21 @@ const Rewards = () => {
     const protectionLabel = (charges: number) =>
         charges <= 1 ? 'Streak Saver Ready' : `Streak Saver x${charges}`;
 
-    // Daily bonus calculation (matches backend: 5% per day from day 2, max 100% at day 21)
+    // Daily bonus calculation (matches backend: tier × base × (1 + streak%);
+    // streak = 5% per day from day 2, max 100% at day 21)
     const dailyStreakDays = streakStatus?.streakDays || 0;
     const dailyBonusPercent = Math.min(Math.max(0, dailyStreakDays - 1) * 5, 100);
     const dailyBaseAmount = DAILY_REWARD.baseAmount;
-    const dailyNextClaim = Math.round(dailyBaseAmount * (1 + dailyBonusPercent / 100));
+    const dailyNextClaim = Math.round(dailyBaseAmount * tierMultiplier * (1 + dailyBonusPercent / 100));
     const dailyMaxDays = 21; // Day 21 = 100% bonus
     const dailyProgressPercent = Math.min(dailyStreakDays / dailyMaxDays, 1) * 100;
 
-    // Weekly bonus calculation (matches backend: 10% per week from week 2, max 100% at week 11)
+    // Weekly bonus calculation (matches backend: tier × base × (1 + streak%);
+    // streak = 10% per week from week 2, max 100% at week 11)
     const weeklyStreakWeeks = weeklyStatus?.weeklyStreak || 0;
     const weeklyBonusPercent = Math.min(Math.max(0, weeklyStreakWeeks - 1) * 10, 100);
     const weeklyBaseAmount = WEEKLY_REWARD.baseAmount;
-    const weeklyNextClaim = Math.round(weeklyBaseAmount * (1 + weeklyBonusPercent / 100));
+    const weeklyNextClaim = Math.round(weeklyBaseAmount * tierMultiplier * (1 + weeklyBonusPercent / 100));
     const weeklyMaxWeeks = 11; // Week 11 = 100% bonus
     const weeklyProgressPercent = Math.min(weeklyStreakWeeks / weeklyMaxWeeks, 1) * 100;
 
@@ -136,12 +144,15 @@ const Rewards = () => {
     };
 
     const weeklyCardContent = (<>
-        {/* Streak + Bonus summary */}
+        {/* Streak + Bonus summary (tier chip left of streak chip) */}
         <div className="flex items-center justify-between mb-3">
             <span className="text-2xl font-bold text-gray-900 dark:text-white">Week {weeklyStreakWeeks}</span>
-            <div className="flex items-center gap-1 text-sm font-semibold text-green-600 dark:text-green-400">
-                <TrendingUp className="w-3.5 h-3.5" />
-                +{weeklyBonusPercent}% Bonus
+            <div className="flex items-center gap-2">
+                <TierBonusBadge tier={tier} />
+                <div className="flex items-center gap-1 text-sm font-semibold text-green-600 dark:text-green-400">
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    +{weeklyBonusPercent}% Streak
+                </div>
             </div>
         </div>
 
@@ -291,12 +302,15 @@ const Rewards = () => {
                             }
                         </div>
 
-                        {/* Streak + Bonus summary */}
+                        {/* Streak + Bonus summary (tier chip left of streak chip) */}
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-2xl font-bold text-gray-900 dark:text-white">Day {dailyStreakDays}</span>
-                            <div className="flex items-center gap-1 text-sm font-semibold text-purple-600 dark:text-purple-400">
-                                <TrendingUp className="w-3.5 h-3.5" />
-                                +{dailyBonusPercent}% Bonus
+                            <div className="flex items-center gap-2">
+                                <TierBonusBadge tier={tier} />
+                                <div className="flex items-center gap-1 text-sm font-semibold text-purple-600 dark:text-purple-400">
+                                    <TrendingUp className="w-3.5 h-3.5" />
+                                    +{dailyBonusPercent}% Streak
+                                </div>
                             </div>
                         </div>
 

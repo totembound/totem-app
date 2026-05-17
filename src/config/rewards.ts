@@ -60,7 +60,7 @@ export const WEEKLY_REWARD: RecurringReward = {
     id: "rwd_weekly-bonus",
     name: "Weekly Bonus",
     description: "Earn bonus essence for consistent weekly participation!",
-    baseAmount: 200,
+    baseAmount: 100,
     intervalSeconds: 604800,
     streakBonusPercent: 10,
     maxStreakBonusPercent: 100,

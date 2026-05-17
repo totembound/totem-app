@@ -60,9 +60,6 @@ const DailyQuestWizard: React.FC = () => {
   const canClaim = !isStale && (claimableCount > 0 || (allComplete && !bonus.claimed));
   const allClaimed = quests.every(q => q.claimed) && bonus.claimed;
 
-  // Once everything is claimed for the day, don't keep showing the wizard.
-  if (allClaimed && !isStale) return null;
-
   return (
     <>
       {detailsQuest && <QuestDetailsModal quest={detailsQuest} onClose={() => setDetailsQuest(null)} />}
@@ -195,7 +192,7 @@ const DailyQuestWizard: React.FC = () => {
                     ? 'Refreshing…'
                     : canClaim
                       ? (allComplete && !bonus.claimed ? 'Claim All + Bonus' : `Claim ${claimableCount} Reward${claimableCount === 1 ? '' : 's'}`)
-                      : 'Keep playing to make progress'}
+                      : allClaimed ? 'All claimed — see you tomorrow' : 'Keep playing to make progress'}
                 </button>
               </div>
             </div>

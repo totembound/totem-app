@@ -31,7 +31,7 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const COMPLETE_SEEN_KEY = 'dq_complete_seen_for';
 
 const DailyQuestWizard: React.FC = () => {
-  const { isSignedUp } = useUser();
+  const { isSignedUp, tutorialWizardVisible } = useUser();
   const { dailyQuests, refreshDailyQuests, claimAllQuests, dailyQuestWizardVisible, setDailyQuestWizardVisible, lastQuestBonusRunes } = useGame();
   const [isMinimized, setIsMinimized] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
@@ -93,7 +93,7 @@ const DailyQuestWizard: React.FC = () => {
         />
       )}
       {detailsQuest && <QuestDetailsModal quest={detailsQuest} onClose={() => setDetailsQuest(null)} />}
-      {dailyQuestWizardVisible && (
+      {dailyQuestWizardVisible && !tutorialWizardVisible && (
         <div
           className="daily-quest-wizard fixed sm:bottom-6 right-2 w-96 max-w-[calc(100vw-1rem)] bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden transition-all duration-300 ease-in-out z-50 border border-gray-200 dark:border-gray-700"
           style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}

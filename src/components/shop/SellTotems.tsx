@@ -8,6 +8,7 @@ import { getRarityBadgeColor } from '../../utils/totems';
 import { useGame } from '../../contexts/GameContext';
 import { formatTimeRemaining } from '../../utils/formats';
 import { CURRENCY_NAMES, IPFS_GATEWAY_URL } from '../../config/constants';
+import TraitIconRow from '../traits/TraitIconRow';
 import apiClient from '../../services/ApiClient';
 import { notificationService } from '../../services/NotificationService';
 import { NotificationType } from '../../types/notifications';
@@ -105,7 +106,7 @@ const SellTotemCard: React.FC<SellTotemCardProps> = ({
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 mb-4">
+                <div className="grid grid-cols-2 gap-2 mb-2">
                     <div className="text-sm">
                         <span className="text-gray-600 dark:text-gray-400">Happiness: </span>
                         <span className="text-gray-900 dark:text-gray-100">{Number(totem.attributes.happiness)}%</span>
@@ -115,6 +116,14 @@ const SellTotemCard: React.FC<SellTotemCardProps> = ({
                         <span className="text-gray-900 dark:text-gray-100">{Number(totem.attributes.experience)}</span>
                     </div>
                 </div>
+
+                {/* Traits */}
+                {totem.traits && (
+                    <div className="flex items-center gap-2 mb-4 text-sm" onClick={(e) => e.stopPropagation()}>
+                        <span className="text-gray-600 dark:text-gray-400">Traits:</span>
+                        <TraitIconRow stage={totem.attributes.stage} traits={totem.traits} size={14} showLocked />
+                    </div>
+                )}
 
                 {/* Spacer to push bottom content down */}
                 <div className="flex-grow">

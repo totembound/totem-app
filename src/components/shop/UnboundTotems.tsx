@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Loader2, AlertTriangle } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { useUser } from '../../contexts/UserContext';
 import { Species, Rarity } from '../../types/types';
 import MessageDialog from '../MessageDialog';
@@ -11,6 +10,7 @@ import { CURRENCY_NAMES, IPFS_GATEWAY_URL } from '../../config/constants';
 import apiClient from '../../services/ApiClient';
 import { getTotemImageUrl, isSpeciesLoaded, getSpeciesName, getStageName } from '../../utils/species';
 import { notificationService } from '../../services/NotificationService';
+import TraitIconRow from '../traits/TraitIconRow';
 
 interface UnboundTotem {
     tokenId: string;
@@ -25,6 +25,7 @@ interface UnboundTotem {
     stage: number;
     displayName: string | null;
     prestigeLevel: number;
+    traits: { innate: string | null; learned: string | null; awakened: string | null } | null;
 }
 
 const SHOP_FEE = 100;
@@ -87,7 +88,7 @@ const UnboundTotemCard: React.FC<{
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-2 gap-2 mb-4">
+                <div className="grid grid-cols-2 gap-2 mb-2">
                     <div className="text-sm">
                         <span className="text-gray-600 dark:text-gray-400">Happiness: </span>
                         <span className="text-gray-900 dark:text-gray-100">{totem.happiness}%</span>
@@ -98,21 +99,17 @@ const UnboundTotemCard: React.FC<{
                     </div>
                 </div>
 
+                {/* Traits */}
+                {totem.traits && (
+                    <div className="flex items-center gap-2 mb-4 text-sm" onClick={(e) => e.stopPropagation()}>
+                        <span className="text-gray-600 dark:text-gray-400">Traits:</span>
+                        <TraitIconRow stage={totem.stage} traits={totem.traits} size={14} showLocked />
+                    </div>
+                )}
+
                 {/* Spacer to push bottom content down */}
                 <div className="flex-grow">
                     <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                        {totem.previousOwner && (
-                            <div className="flex justify-between items-center mb-2 text-sm">
-                                <span className="text-gray-600 dark:text-gray-400">Seller</span>
-                                <Link
-                                    to={`/players/${totem.previousOwner}`}
-                                    className="text-indigo-600 dark:text-indigo-400 hover:underline truncate max-w-[60%] text-right"
-                                    title={`View ${totem.sellerDisplayName}'s profile`}
-                                >
-                                    {totem.sellerDisplayName}
-                                </Link>
-                            </div>
-                        )}
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-gray-600 dark:text-gray-400">Purchase Price</span>
                             <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
@@ -178,7 +175,8 @@ const UnboundTotems: React.FC = () => {
                     experience: listing.totem?.experience ?? 0,
                     stage: listing.totem?.stage ?? 0,
                     displayName: listing.totem?.name || null,
-                    prestigeLevel: listing.totem?.prestigeLevel ?? 0
+                    prestigeLevel: listing.totem?.prestigeLevel ?? 0,
+                    traits: listing.totem?.traits || null,
                 }));
                 setUnboundTotems(listings);
                 setTotalItems(response.data.total || listings.length);

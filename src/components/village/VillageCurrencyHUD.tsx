@@ -14,17 +14,17 @@ interface CurrencyItemProps {
 
 const CurrencyItem: React.FC<CurrencyItemProps> = ({ Icon, iconColor, label, value }) => (
   <div className="flex items-center gap-1" title={label}>
-    <Icon className={`w-3 h-3 shrink-0 drop-shadow ${iconColor}`} />
-    <span className="text-xs font-bold text-amber-50 tabular-nums drop-shadow sm:hidden">
+    <Icon className={`w-4 h-4 shrink-0 drop-shadow ${iconColor}`} />
+    <span className="text-sm font-bold text-amber-50 tabular-nums drop-shadow sm:hidden">
       {formatCompact(value)}
     </span>
-    <span className="hidden sm:inline text-xs font-bold text-amber-50 tabular-nums drop-shadow">
+    <span className="hidden sm:inline text-sm font-bold text-amber-50 tabular-nums drop-shadow">
       {formatTokenAmount(value)}
     </span>
   </div>
 );
 
-const Divider: React.FC = () => <div className="hidden sm:block h-3 w-px bg-amber-400/30 shrink-0" />;
+const Divider: React.FC = () => <div className="hidden sm:block h-4 w-px bg-amber-400/30 shrink-0" />;
 
 const RUNE_TIERS = [
   { type: 'lesser' as const, dotClass: 'bg-blue-400', textClass: 'text-blue-300' },
@@ -55,11 +55,11 @@ const VillageCurrencyHUD: React.FC<{ className?: string }> = ({ className = '' }
       <div className="flex items-center gap-1" title="Runes (lesser / greater / ancient)">
         {RUNE_TIERS.map(({ type, dotClass, textClass }) => (
           <div key={type} className="flex items-center gap-0.5" title={`${type} rune`}>
-            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotClass}`} />
-            <span className={`text-xs font-bold tabular-nums drop-shadow sm:hidden ${textClass}`}>
+            <span className={`w-2 h-2 rounded-full shrink-0 ${dotClass}`} />
+            <span className={`text-sm font-bold tabular-nums drop-shadow sm:hidden ${textClass}`}>
               {formatCompact(runeBalances[type])}
             </span>
-            <span className={`hidden sm:inline text-xs font-bold tabular-nums drop-shadow ${textClass}`}>
+            <span className={`hidden sm:inline text-sm font-bold tabular-nums drop-shadow ${textClass}`}>
               {formatTokenAmount(runeBalances[type])}
             </span>
           </div>

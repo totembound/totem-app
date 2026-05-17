@@ -26,6 +26,7 @@ export interface UserContextType extends UserContextState {
     fetchTotems: () => Promise<void>;
     updateTotemNickname: (totemId: string, nickname: string | null) => void;
     updateTotemAttributes: (totemId: string, updates: { experience?: number; happiness?: number; stage?: number; nickname?: string | null; }) => void;
+    updateTotemTraits: (totemId: string, slot: 'innate' | 'learned' | 'awakened', traitId: string) => void;
 }
 
 export interface TotemUpdate {
@@ -179,6 +180,7 @@ export interface TotemAttributes {
     color: Color;
     rarity: Rarity;
     happiness: number;
+    hunger?: number;
     experience: number;
     stage: number;
     strength: number;
@@ -206,6 +208,11 @@ export interface TotemData {
     attributes: TotemAttributes;
     trackings: {
         [key in ActionType]?: ActionTracking
+    }
+    traits?: {
+        innate: string | null;
+        learned: string | null;
+        awakened: string | null;
     }
 }
 

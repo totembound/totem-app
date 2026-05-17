@@ -13,6 +13,7 @@ import DailyQuestsCard from '../quests/DailyQuestsCard';
 import TutorialClaimsCard from '../quests/TutorialClaimsCard';
 import LootBoxesCard from '../quests/LootBoxesCard';
 import { CURRENCY_NAMES } from '../../config/constants';
+import { DAILY_REWARD, WEEKLY_REWARD } from '../../config/rewards';
 
 interface AchievementLockProps {
     title: string;
@@ -73,7 +74,7 @@ const Rewards = () => {
     // Daily bonus calculation (matches backend: 5% per day from day 2, max 100% at day 21)
     const dailyStreakDays = streakStatus?.streakDays || 0;
     const dailyBonusPercent = Math.min(Math.max(0, dailyStreakDays - 1) * 5, 100);
-    const dailyBaseAmount = 10;
+    const dailyBaseAmount = DAILY_REWARD.baseAmount;
     const dailyNextClaim = Math.round(dailyBaseAmount * (1 + dailyBonusPercent / 100));
     const dailyMaxDays = 21; // Day 21 = 100% bonus
     const dailyProgressPercent = Math.min(dailyStreakDays / dailyMaxDays, 1) * 100;
@@ -81,7 +82,7 @@ const Rewards = () => {
     // Weekly bonus calculation (matches backend: 10% per week from week 2, max 100% at week 11)
     const weeklyStreakWeeks = weeklyStatus?.weeklyStreak || 0;
     const weeklyBonusPercent = Math.min(Math.max(0, weeklyStreakWeeks - 1) * 10, 100);
-    const weeklyBaseAmount = 100;
+    const weeklyBaseAmount = WEEKLY_REWARD.baseAmount;
     const weeklyNextClaim = Math.round(weeklyBaseAmount * (1 + weeklyBonusPercent / 100));
     const weeklyMaxWeeks = 11; // Week 11 = 100% bonus
     const weeklyProgressPercent = Math.min(weeklyStreakWeeks / weeklyMaxWeeks, 1) * 100;

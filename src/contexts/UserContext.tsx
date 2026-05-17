@@ -164,6 +164,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         color: totem.attributes?.color || 0,
                         rarity: totem.attributes?.rarity || 0,
                         happiness: totem.attributes?.happiness || 50,
+                        hunger: totem.attributes?.hunger ?? 100,
                         experience: totem.attributes?.experience || 0,
                         stage: totem.attributes?.stage || 0,
                         strength: totem.attributes?.strength || 10,
@@ -173,7 +174,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         prestigeLevel: totem.attributes?.prestigeLevel || 0,
                         ...(totem.attributes?.sanctum && { sanctum: totem.attributes.sanctum }),
                     },
-                    trackings: totem.trackings || {}
+                    trackings: totem.trackings || {},
+                    traits: totem.traits
+                        ? {
+                            innate: totem.traits.innate ?? null,
+                            learned: totem.traits.learned ?? null,
+                            awakened: totem.traits.awakened ?? null,
+                        }
+                        : undefined,
                 }));
 
                 setTotems(totemList);
@@ -218,6 +226,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         attributes: {
                             ...totem.attributes,
                             happiness: totemData.attributes?.happiness || totem.attributes.happiness,
+                            hunger: totemData.attributes?.hunger ?? totem.attributes.hunger,
                             experience: totemData.attributes?.experience || totem.attributes.experience,
                             stage: newStage,
                             nickname: totemData.attributes?.nickname || totem.attributes.nickname,
@@ -259,6 +268,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             attributes: {
                                 ...totem.attributes,
                                 happiness: totemData.attributes?.happiness || totem.attributes.happiness,
+                                hunger: totemData.attributes?.hunger ?? totem.attributes.hunger,
                                 experience: totemData.attributes?.experience || totem.attributes.experience,
                                 stage: totemData.attributes?.stage || totem.attributes.stage,
                                 nickname: totemData.attributes?.nickname || totem.attributes.nickname,
@@ -274,6 +284,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             attributes: {
                                 ...totem.attributes,
                                 happiness: totemData.attributes?.happiness || totem.attributes.happiness,
+                                hunger: totemData.attributes?.hunger ?? totem.attributes.hunger,
                                 experience: totemData.attributes?.experience || totem.attributes.experience,
                                 stage: totemData.attributes?.stage || totem.attributes.stage,
                                 nickname: totemData.attributes?.nickname || totem.attributes.nickname,
@@ -329,6 +340,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         color: colorId,
                         rarity: totemData.attributes?.rarity || 0,
                         happiness: totemData.attributes?.happiness || 50,
+                        hunger: totemData.attributes?.hunger ?? 100,
                         experience: totemData.attributes?.experience || 0,
                         stage,
                         strength: totemData.attributes?.strength || 10,
@@ -338,7 +350,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         prestigeLevel: totemData.attributes?.prestigeLevel || 0,
                         ...(totemData.attributes?.sanctum && { sanctum: totemData.attributes.sanctum }),
                     },
-                    trackings: totemData.trackings || {}
+                    trackings: totemData.trackings || {},
+                    traits: totemData.traits
+                        ? {
+                            innate: totemData.traits.innate ?? null,
+                            learned: totemData.traits.learned ?? null,
+                            awakened: totemData.traits.awakened ?? null,
+                        }
+                        : undefined,
                 };
 
                 setTotemCache(prev => new Map(prev.set(totemId, newTotem)));
@@ -371,6 +390,28 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             } : totem
         ));
     };
+
+    // Update a single trait slot on a totem in local state — used after the choose endpoint succeeds
+    // so the gallery card (and anywhere else reading from `totems`) reflects the new trait without refetching.
+    const updateTotemTraits = useCallback((
+        totemId: string,
+        slot: 'innate' | 'learned' | 'awakened',
+        traitId: string
+    ) => {
+        setTotems(prev => prev.map(totem => {
+            if (totem.id !== totemId) return totem;
+            const base = totem.traits ?? { innate: null, learned: null, awakened: null };
+            return { ...totem, traits: { ...base, [slot]: traitId } };
+        }));
+        setTotemCache(prev => {
+            const cached = prev.get(totemId);
+            if (!cached) return prev;
+            const base = cached.traits ?? { innate: null, learned: null, awakened: null };
+            const updated = new Map(prev);
+            updated.set(totemId, { ...cached, traits: { ...base, [slot]: traitId } });
+            return updated;
+        });
+    }, []);
 
     // Update totem attributes locally (no API call) - used for immediate UI updates after actions
     const updateTotemAttributes = useCallback((
@@ -564,6 +605,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 fetchTotems,
                 updateTotemNickname,
                 updateTotemAttributes,
+                updateTotemTraits,
                 addTotem,
                 removeTotem,
                 updateTotem,

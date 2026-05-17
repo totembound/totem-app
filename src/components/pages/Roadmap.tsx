@@ -86,6 +86,7 @@ const quarters: Quarter[] = [
       // Foundation
       { label: '12 totem species across Earth, Water & Air domains, each with 16 color variants', status: 'done' },
       { label: '6 rarity tiers — Common, Uncommon, Rare, Epic, Legendary & Limited', status: 'done' },
+      { label: '30 traits across Innate, Learned & Awakened tiers', status: 'done', detail: 'One random Innate at birth; choose Learned at Stage 3 and Awakened at Stage 5' },
       { label: 'Core gameplay — Feed, Train, Treat & 5-stage Evolution', status: 'done', detail: 'Daily care actions with cooldowns, XP, happiness, and stage thresholds' },
       // Content systems
       { label: 'Totem Shop — buy, sell & marketplace listings', status: 'done' },

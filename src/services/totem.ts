@@ -40,6 +40,7 @@ interface ApiTotemAttributes {
   color: number;
   rarity: number;
   happiness: number;
+  hunger: number;
   experience: number;
   stage: number;
   strength: number;
@@ -63,6 +64,12 @@ interface ApiTotemTrackings {
   } | undefined;
 }
 
+interface ApiTotemTraits {
+  innate: string | null;
+  learned: string | null;
+  awakened: string | null;
+}
+
 interface ApiTotem {
   id: string;
   displayName: string;
@@ -73,6 +80,7 @@ interface ApiTotem {
   domain: string;
   attributes: ApiTotemAttributes;
   trackings: ApiTotemTrackings;
+  traits?: ApiTotemTraits | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -232,6 +240,7 @@ function transformTotem(apiTotem: ApiTotem): TotemData {
       rarity: apiTotem.attributes.rarity as Rarity,
       // Dynamic data from API (stored in DynamoDB)
       happiness: apiTotem.attributes.happiness,
+      hunger: apiTotem.attributes.hunger ?? 100,
       experience: apiTotem.attributes.experience,
       stage: apiTotem.attributes.stage,
       strength: apiTotem.attributes.strength,
@@ -242,6 +251,13 @@ function transformTotem(apiTotem: ApiTotem): TotemData {
       ...(apiTotem.attributes.sanctum && { sanctum: apiTotem.attributes.sanctum }),
     },
     trackings,
+    traits: apiTotem.traits
+      ? {
+          innate: apiTotem.traits.innate ?? null,
+          learned: apiTotem.traits.learned ?? null,
+          awakened: apiTotem.traits.awakened ?? null,
+        }
+      : undefined,
   };
 }
 
@@ -336,6 +352,42 @@ export async function performTotemAction(
     };
   } catch (error) {
     console.error(`Error performing ${action}:`, error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Choose a trait for a totem's Learned or Awakened slot.
+ * Innate is set at creation and cannot be chosen.
+ */
+export async function chooseTrait(
+  totemId: string,
+  slot: 'learned' | 'awakened',
+  traitId: string
+): Promise<{ success: boolean; data?: { totemId: string; slot: string; traitId: string; traitName?: string }; error?: string; code?: string }> {
+  try {
+    const response = await apiRequest<{ totemId: string; slot: string; traitId: string; traitName?: string }>(
+      `/totems/${totemId}/traits/choose`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ slot, traitId }),
+      }
+    );
+
+    if (!response.success || !response.data) {
+      return {
+        success: false,
+        error: response.error?.message || 'Failed to choose trait',
+        code: response.error?.code,
+      };
+    }
+
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('Error choosing trait:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

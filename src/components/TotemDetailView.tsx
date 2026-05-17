@@ -14,6 +14,7 @@ import ExperienceEffect from './effects/ExperienceEffect';
 import { STAGE_THRESHOLDS, BASE_ELDER_XP, PRESTIGE_XP_REQUIREMENT } from '../config/constants';
 import { getTotemImageUrl, getStageName, getStageDescription } from '../utils/species';
 import { Heart, TrendingUp } from 'lucide-react';
+import { type TraitSlot } from '../config/traits';
 
 interface TotemDetailViewProps {
     totem: TotemData;
@@ -52,7 +53,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     canUseAction: externalCanUseAction,
     onUpdateTotemAttributes,
 }) => {
-    const { essenceBalance: essenceBalanceStr, setEssenceBalance } = useUser();
+    const { essenceBalance: essenceBalanceStr, setEssenceBalance, updateTotemTraits } = useUser();
     const gameApi = useTotemGameApi();
     const { isTotemAvailable, expeditionState, fetchTotemCooldowns, setTotemCooldowns, actionConfigs } = useGame();
     const { incrementAchievementProgress, refreshAchievements } = useAchievements();
@@ -70,6 +71,9 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     const [showExpEffect, setShowExpEffect] = useState(false);
     const [cooldowns, setCooldowns] = useState<Record<string, { onCooldown: boolean; readyAt: Date | null; remainingMs: number }>>({});
     const [, setTick] = useState(0); // Force re-render for countdown timer
+    // Optimistic override after a trait is chosen — avoids round-tripping to the parent
+    // for a refetch on what is a ~2-per-totem-lifetime event.
+    const [traitsOverride, setTraitsOverride] = useState<{ innate: string | null; learned: string | null; awakened: string | null } | null>(null);
     const dialogRef = useRef<HTMLDivElement>(null);
     const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -536,6 +540,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                 isOnExpedition={tokenIsOnExpedition}
                                 expeditionEndTime={expeditionEndTime}
                                 sanctum={currentAttributes.sanctum}
+                                traits={traitsOverride ?? totem.traits ?? null}
                             />
                         </div>
 
@@ -667,7 +672,10 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                         {/* Tab Content */}
                         <div className="pb-4 sm:pb-2">
                             {activeTab === 'stats' ? (
-                                <TotemStatsPanel attributes={currentAttributes} />
+                                <TotemStatsPanel
+                                    attributes={currentAttributes}
+                                    traits={traitsOverride ?? totem.traits ?? undefined}
+                                />
                             ) : (
                                 <TotemDetailsPanel
                                     stage={currentAttributes.stage}
@@ -678,6 +686,16 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                     domain={totem.domain}
                                     sanctum={currentAttributes.sanctum}
                                     isOnExpedition={tokenIsOnExpedition}
+                                    traits={traitsOverride ?? totem.traits ?? undefined}
+                                    totemId={totem.id}
+                                    totemName={currentAttributes.nickname || evolvedTotemData?.displayName || totem.displayName || stageName || totem.name || 'this totem'}
+                                    onTraitChosen={(slot: TraitSlot, traitId: string) => {
+                                        // Update local override for instant UI in this modal
+                                        const base = traitsOverride ?? totem.traits ?? { innate: null, learned: null, awakened: null };
+                                        setTraitsOverride({ ...base, [slot]: traitId });
+                                        // Push back to UserContext so the gallery card behind us refreshes too
+                                        updateTotemTraits(totem.id, slot, traitId);
+                                    }}
                                 />
                             )}
                         </div>

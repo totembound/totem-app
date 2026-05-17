@@ -10,6 +10,7 @@ import apiClient from '../services/ApiClient';
 import { notificationService } from '../services/NotificationService';
 import { useUser } from '../contexts/UserContext';
 import { useAchievements } from '../contexts/AchievementsContext';
+import { useGame } from '../contexts/GameContext';
 
 export interface GameActionResult {
   success: boolean;
@@ -48,6 +49,7 @@ export const useTotemGameApi = () => {
   const [error, setError] = useState<string | null>(null);
   const { totems } = useUser();
   const { applyUnlockedAchievements } = useAchievements();
+  const { mergeQuestProgress } = useGame();
 
   const setActionLoading = (action: string, isLoading: boolean) => {
     setLoading(prev => ({ ...prev, [action]: isLoading }));
@@ -82,6 +84,7 @@ export const useTotemGameApi = () => {
 
       if (response.success && response.data) {
         handleAchievementResult(totemId, response.data.achievements);
+        mergeQuestProgress(response.data.quests);
 
         return {
           success: true,
@@ -120,6 +123,7 @@ export const useTotemGameApi = () => {
 
       if (response.success && response.data) {
         handleAchievementResult(totemId, response.data.achievements);
+        mergeQuestProgress(response.data.quests);
 
         return {
           success: true,
@@ -156,6 +160,7 @@ export const useTotemGameApi = () => {
 
       if (response.success && response.data) {
         handleAchievementResult(totemId, response.data.achievements);
+        mergeQuestProgress(response.data.quests);
 
         return {
           success: true,
@@ -202,6 +207,7 @@ export const useTotemGameApi = () => {
           totemLabel: resolveTotemLabel(totemId),
         });
         handleAchievementResult(totemId, response.data.achievements);
+        mergeQuestProgress(response.data.quests);
 
         return {
           success: true,

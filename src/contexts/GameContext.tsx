@@ -11,6 +11,31 @@ import notificationService from '../services/NotificationService';
 import { ACTION_CONFIGS, TIME_WINDOWS, GAME_PARAMS } from '../config/game-config';
 import { isAvailableForAction } from '../utils/totem-availability';
 
+// Pure reducer: apply quest progress deltas to a quest set.
+// Lives at module scope so action callbacks can use it without ordering hazards
+// (useCallbacks declared before mergeQuestProgress would otherwise close over undef).
+function applyQuestProgressUpdates(
+    prev: DailyQuestSet | null,
+    updates: QuestProgressUpdate[] | undefined,
+): DailyQuestSet | null {
+    if (!prev) return prev;
+    if (!updates || !updates.length) return prev;
+    const bySlot: Record<number, number> = {};
+    updates.forEach(u => { bySlot[u.slot] = u.newProgress; });
+    const nextQuests = prev.quests.map(q => {
+        const np = bySlot[q.slot];
+        if (np == null) return q;
+        const progress = Math.min(np, q.goal);
+        return { ...q, progress, completed: progress >= q.goal };
+    });
+    const allClaimedOrComplete = nextQuests.every(q => q.claimed || q.progress >= q.goal);
+    return {
+        ...prev,
+        quests: nextQuests,
+        bonus: { ...prev.bonus, unlocked: allClaimedOrComplete },
+    };
+}
+
 export interface GameContextType {
     actionConfigs: Record<ActionType, ActionConfig>;
     timeWindows: {
@@ -88,7 +113,7 @@ export interface GameContextType {
     dailyQuestsError: string | null;
     refreshDailyQuests: (force?: boolean) => Promise<void>;
     claimAllQuests: () => Promise<boolean>;
-    mergeQuestProgress: (updates: QuestProgressUpdate[]) => void;
+    mergeQuestProgress: (updates: QuestProgressUpdate[] | undefined) => void;
     dailyQuestWizardVisible: boolean;
     setDailyQuestWizardVisible: (visible: boolean) => void;
     lastQuestBonusRunes: QuestRunesAwarded | null;
@@ -501,6 +526,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Push any unlocked achievements to the notifications bell
         notificationService.processAchievementsFromResponse(response.data?.achievements);
+
+        // Apply daily-quest progress deltas from the response (e.g. Iron Trial / Swift Trial / Wise Trial)
+        setDailyQuests(prev => applyQuestProgressUpdates(prev, response.data?.quests));
     }, [challengeState]);
 
     // Helper to convert UTC hours to seconds since day start
@@ -984,6 +1012,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           }
 
+          // Apply daily-quest progress deltas from the response (Skybound, etc.)
+          setDailyQuests(prev => applyQuestProgressUpdates(prev, response.data?.quests));
+
           // Refresh data
           await Promise.all([
             refreshExpeditions(),
@@ -1033,6 +1064,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           // Process any achievements earned from the claim
           notificationService.processAchievementsFromResponse(response.data?.achievements);
+
+          // Apply daily-quest progress deltas from the response (Twin Returns, etc.)
+          setDailyQuests(prev => applyQuestProgressUpdates(prev, response.data?.quests));
 
           // Update rune balances — use authoritative balance from API if available, else accumulate
           if (rewards?.newRuneBalances) {
@@ -1255,25 +1289,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, [updateBalances, dailyQuests]);
 
-    const mergeQuestProgress = useCallback((updates: QuestProgressUpdate[]) => {
+    const mergeQuestProgress = useCallback((updates: QuestProgressUpdate[] | undefined) => {
         if (!updates || !updates.length) return;
-        setDailyQuests(prev => {
-            if (!prev) return prev;
-            const bySlot: Record<number, number> = {};
-            updates.forEach(u => { bySlot[u.slot] = u.newProgress; });
-            const nextQuests = prev.quests.map(q => {
-                const np = bySlot[q.slot];
-                if (np == null) return q;
-                const progress = Math.min(np, q.goal);
-                return { ...q, progress, completed: progress >= q.goal };
-            });
-            const allClaimedOrComplete = nextQuests.every(q => q.claimed || q.progress >= q.goal);
-            return {
-                ...prev,
-                quests: nextQuests,
-                bonus: { ...prev.bonus, unlocked: allClaimedOrComplete },
-            };
-        });
+        setDailyQuests(prev => applyQuestProgressUpdates(prev, updates));
     }, []);
 
     useEffect(() => {

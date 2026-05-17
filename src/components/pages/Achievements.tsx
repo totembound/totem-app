@@ -269,9 +269,9 @@ const AchievementStatsRow: React.FC<AchievementStatsRowProps> = ({
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2 pb-6">
             {/* Horizontally-scrolling strip: keeps the 9 category dials on one row
                 inside narrow contexts (village modal) instead of wrapping to 3+
-                stacked rows. On wide viewports everything fits and the scroll is
-                inert. */}
-            <div className="flex flex-nowrap overflow-x-auto gap-2 -mx-2 px-2">
+                stacked rows. justify-between spreads them across the full width
+                when there's slack; once they overflow, the scroll takes over. */}
+            <div className="flex flex-nowrap justify-between overflow-x-auto gap-2 -mx-2 px-2">
                 {/* Total Progress */}
                 <div className="shrink-0 text-center">
                     <Tooltip

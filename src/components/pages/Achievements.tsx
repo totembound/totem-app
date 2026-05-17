@@ -267,10 +267,14 @@ const AchievementStatsRow: React.FC<AchievementStatsRowProps> = ({
 
     return (
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2 pb-6">
-            <div className="w-full grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
+            {/* Horizontally-scrolling strip: keeps the 9 category dials on one row
+                inside narrow contexts (village modal) instead of wrapping to 3+
+                stacked rows. On wide viewports everything fits and the scroll is
+                inert. */}
+            <div className="flex flex-nowrap overflow-x-auto gap-2 -mx-2 px-2">
                 {/* Total Progress */}
-                <div className="col-span-1 text-center">
-                    <Tooltip 
+                <div className="shrink-0 text-center">
+                    <Tooltip
                         content={`Total: ${totalCompleted} of ${totalAchievements} completed\n(includes all categories, achievements & milestones)`}
                     >
                         <div className="relative z-10">
@@ -285,18 +289,18 @@ const AchievementStatsRow: React.FC<AchievementStatsRowProps> = ({
                 </div>
                 {/* Category Progress */}
                 {stats.map(stat => {
-                    const percentage = stat.total > 0 
-                        ? Math.round((stat.completed / stat.total) * 100) 
+                    const percentage = stat.total > 0
+                        ? Math.round((stat.completed / stat.total) * 100)
                         : 0;
-                    
+
                     const Icon = categoryIcons[stat.category];
-                    
+
                     return (
-                        <Tooltip 
-                            key={stat.category} 
+                        <Tooltip
+                            key={stat.category}
                             content={`${categoryNames[stat.category]}: ${Math.round(stat.completed)} of ${stat.total} completed\n(includes achievements & milestones)`}
                         >
-                            <div className="relative z-10">
+                            <div className="relative z-10 shrink-0">
                                 <DialChart
                                     value={percentage}
                                     Icon={Icon}

@@ -357,13 +357,6 @@ const LoggedInHome: React.FC<{ onShowWallpaper: () => void }> = ({ onShowWallpap
                 <Gift className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
                 Daily Rewards
               </Link>
-              <Link
-                to="/totems"
-                className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-purple-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
-              >
-                <PawPrint className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                View Totems
-              </Link>
               <button
                 type="button"
                 onClick={() => {
@@ -376,11 +369,25 @@ const LoggedInHome: React.FC<{ onShowWallpaper: () => void }> = ({ onShowWallpap
                 Daily Quests
               </button>
               <Link
+                to="/totems"
+                className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-purple-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
+              >
+                <PawPrint className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                View Totems
+              </Link>
+              <Link
                 to="/shop"
                 className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-purple-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
               >
                 <ShoppingBag className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 Visit Shop
+              </Link>
+              <Link
+                to="/guides"
+                className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-purple-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
+              >
+                <BookOpenText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                Guides, Codex &amp; Lore
               </Link>
             </div>
           </div>
@@ -406,6 +413,13 @@ const LoggedInHome: React.FC<{ onShowWallpaper: () => void }> = ({ onShowWallpap
                 <span>Expeditions</span>
               </Link>
               <Link
+                to="/achievements"
+                className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
+              >
+                <Trophy className="w-5 h-5 text-amber-500 dark:text-amber-400" />
+                <span>Achievements</span>
+              </Link>
+              <Link
                 to="/forge"
                 className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
               >
@@ -419,34 +433,10 @@ const LoggedInHome: React.FC<{ onShowWallpaper: () => void }> = ({ onShowWallpap
                 <Crown className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                 <span>Elder Sanctum</span>
               </Link>
-              <Link
-                to="/achievements"
-                className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
-              >
-                <Trophy className="w-5 h-5 text-amber-500 dark:text-amber-400" />
-                <span>Achievements</span>
-              </Link>
-              <Link
-                to="/guides"
-                className="flex items-center gap-2 p-3 bg-white dark:bg-gray-700 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600 transition-colors text-gray-800 dark:text-gray-100 shadow-sm"
-              >
-                <BookOpenText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                <span>Guides</span>
-              </Link>
             </div>
           </div>
         </div>
 
-        {/* Guides & Lore — slim full-width link */}
-        <Link
-          to="/guides"
-          className="mt-4 flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-800 dark:text-gray-100 shadow-sm border border-gray-200 dark:border-gray-700"
-        >
-          <BookOpenText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-          <span>
-            New here? Browse the <strong>Guides, Codex & Lore</strong>
-          </span>
-        </Link>
       </div>
 
       {/* News & Updates Section */}

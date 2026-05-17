@@ -3,7 +3,6 @@ import { Flame, Minus, Maximize2, X, CheckCircle2, Gift, Zap, Sword, Wind, Mount
 import { useGame } from '../../contexts/GameContext';
 import { useUser } from '../../contexts/UserContext';
 import CountdownTimer from '../CountdownTimer';
-import DailyQuestsCompleteModal from './DailyQuestsCompleteModal';
 import QuestDetailsModal from './QuestDetailsModal';
 import { CURRENCY_NAMES } from '../../config/constants';
 import type { Affinity, Domain, DailyAction, DailyQuest } from '../../types/quests';
@@ -28,14 +27,10 @@ const ACTION_ICONS: Record<DailyAction, React.ComponentType<{ className?: string
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-const COMPLETE_SEEN_KEY = 'dq_complete_seen_for';
-
 const DailyQuestWizard: React.FC = () => {
   const { isSignedUp, tutorialWizardVisible } = useUser();
-  const { dailyQuests, refreshDailyQuests, claimAllQuests, dailyQuestWizardVisible, setDailyQuestWizardVisible, lastQuestBonusRunes } = useGame();
+  const { dailyQuests, refreshDailyQuests, claimAllQuests, dailyQuestWizardVisible, setDailyQuestWizardVisible } = useGame();
   const [isMinimized, setIsMinimized] = useState(false);
-  const [showComplete, setShowComplete] = useState(false);
-  const [completePayload, setCompletePayload] = useState<{ total: number; bonus: number; runes: typeof lastQuestBonusRunes } | null>(null);
   const [detailsQuest, setDetailsQuest] = useState<DailyQuest | null>(null);
 
   const todayUTC = new Date().toISOString().slice(0, 10);
@@ -45,28 +40,14 @@ const DailyQuestWizard: React.FC = () => {
     if (isSignedUp) refreshDailyQuests();
   }, [isSignedUp, refreshDailyQuests]);
 
-  // Fire celebration modal once per quest-set when bonus claimed flips true.
-  // Guard against UTC rollover: tie the seen-flag to the quest record's own date
-  // (dailyQuests.date), not new Date(). Otherwise yesterday's claimed bonus could
-  // re-fire the modal after midnight if a refresh hasn't yet landed today's set.
-  useEffect(() => {
-    if (!dailyQuests) return;
-    if (!dailyQuests.bonus.claimed) return;
-    if (dailyQuests.date !== todayUTC) return;
-    if (typeof window === 'undefined') return;
-    if (localStorage.getItem(COMPLETE_SEEN_KEY) === dailyQuests.date) return;
-    const total = dailyQuests.quests.reduce((s, q) => s + (q.claimed ? q.reward.essence : 0), 0)
-      + dailyQuests.bonus.reward.essence;
-    setCompletePayload({ total, bonus: dailyQuests.bonus.reward.essence, runes: lastQuestBonusRunes });
-    setShowComplete(true);
-    localStorage.setItem(COMPLETE_SEEN_KEY, dailyQuests.date);
-  }, [dailyQuests, todayUTC, lastQuestBonusRunes]);
+  // Celebration modal is owned by DailyQuestsCelebration (mounted at App level)
+  // so the bonus-claimed flip fires it regardless of whether the wizard is open.
 
   const close = () => setDailyQuestWizardVisible(false);
 
   if (!isSignedUp) return null;
   if (!dailyQuests) return null;
-  if (!dailyQuestWizardVisible && !showComplete) return null;
+  if (!dailyQuestWizardVisible) return null;
 
   const { theme, quests, bonus } = dailyQuests;
   const AffinityIcon = AFFINITY_ICONS[theme.affinity];
@@ -79,21 +60,10 @@ const DailyQuestWizard: React.FC = () => {
   const canClaim = !isStale && (claimableCount > 0 || (allComplete && !bonus.claimed));
   const allClaimed = quests.every(q => q.claimed) && bonus.claimed;
 
-  // Once everything is claimed for the day, don't keep showing the wizard.
-  if (allClaimed && !showComplete && !isStale) return null;
-
   return (
     <>
-      {showComplete && completePayload && (
-        <DailyQuestsCompleteModal
-          totalEssence={completePayload.total}
-          bonusEssence={completePayload.bonus}
-          runesAwarded={completePayload.runes}
-          onClose={() => setShowComplete(false)}
-        />
-      )}
       {detailsQuest && <QuestDetailsModal quest={detailsQuest} onClose={() => setDetailsQuest(null)} />}
-      {dailyQuestWizardVisible && !tutorialWizardVisible && (
+      {!tutorialWizardVisible && (
         <div
           className="daily-quest-wizard fixed sm:bottom-6 right-2 w-96 max-w-[calc(100vw-1rem)] bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden transition-all duration-300 ease-in-out z-50 border border-gray-200 dark:border-gray-700"
           style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}
@@ -222,7 +192,7 @@ const DailyQuestWizard: React.FC = () => {
                     ? 'Refreshing…'
                     : canClaim
                       ? (allComplete && !bonus.claimed ? 'Claim All + Bonus' : `Claim ${claimableCount} Reward${claimableCount === 1 ? '' : 's'}`)
-                      : 'Keep playing to make progress'}
+                      : allClaimed ? 'All claimed — see you tomorrow' : 'Keep playing to make progress'}
                 </button>
               </div>
             </div>

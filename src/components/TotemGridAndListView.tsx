@@ -4,6 +4,7 @@ import { Heart, MapPin, Sparkles, Swords, Landmark } from 'lucide-react';
 import { AFFINITY_ICONS, DOMAIN_ICONS, getRarityBadgeColor, getRarityBorderColor } from '../utils/totems';
 import { IPFS_GATEWAY_URL, STAGE_THRESHOLDS } from '../config/constants';
 import { formatTimeRemaining } from '../utils/formats';
+import TraitIconRow from './traits/TraitIconRow';
 
 interface TotemViewProps {
     nft: TotemData;
@@ -76,6 +77,16 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
                     {Rarity[nft.attributes.rarity]}
                 </span>
             </div>
+
+            {/* Trait icons - top-left of card, mirroring Rarity top-right (same height) */}
+            {nft.traits && (
+                <div
+                    className="absolute top-2 left-2 z-10 hidden sm:inline-flex items-center bg-white/90 dark:bg-opacity-80 dark:bg-gray-900 backdrop-blur-sm rounded-full px-1.5 py-0.5 border border-gray-200 dark:border-gray-700 shadow-sm leading-none"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <TraitIconRow stage={nft.attributes.stage} traits={nft.traits} size={12} showLocked />
+                </div>
+            )}
 
             {/* Image Section */}
             <div className="aspect-square relative overflow-hidden rounded-t-lg flex-shrink-0 mt-2">
@@ -231,6 +242,14 @@ export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelecte
                             className: "text-cyan-600 dark:text-cyan-400"
                         })}
                         <span className="truncate">{nft.domain}</span>
+                        {nft.traits && (
+                            <>
+                                <span className="mx-1">•</span>
+                                <span onClick={(e) => e.stopPropagation()} className="inline-flex items-center leading-none align-middle">
+                                    <TraitIconRow stage={nft.attributes.stage} traits={nft.traits} size={12} />
+                                </span>
+                            </>
+                        )}
                     </div>
                 </div>
 

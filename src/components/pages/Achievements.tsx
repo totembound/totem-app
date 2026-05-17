@@ -267,13 +267,9 @@ const AchievementStatsRow: React.FC<AchievementStatsRowProps> = ({
 
     return (
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2 pb-6">
-            {/* Horizontally-scrolling strip: keeps the 9 category dials on one row
-                inside narrow contexts (village modal) instead of wrapping to 3+
-                stacked rows. justify-between spreads them across the full width
-                when there's slack; once they overflow, the scroll takes over. */}
-            <div className="flex flex-nowrap justify-between overflow-x-auto gap-2 -mx-2 px-2">
+            <div className="w-full grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
                 {/* Total Progress */}
-                <div className="shrink-0 text-center">
+                <div className="text-center">
                     <Tooltip
                         content={`Total: ${totalCompleted} of ${totalAchievements} completed\n(includes all categories, achievements & milestones)`}
                     >
@@ -300,7 +296,7 @@ const AchievementStatsRow: React.FC<AchievementStatsRowProps> = ({
                             key={stat.category}
                             content={`${categoryNames[stat.category]}: ${Math.round(stat.completed)} of ${stat.total} completed\n(includes achievements & milestones)`}
                         >
-                            <div className="relative z-10 shrink-0">
+                            <div className="relative z-10">
                                 <DialChart
                                     value={percentage}
                                     Icon={Icon}

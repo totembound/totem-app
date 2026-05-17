@@ -64,7 +64,9 @@ export function useBuildingStats(buildingId: string): BuildingStats {
       }
 
       case 'bazaar': {
-        return { summary: `${essenceBalance} Essence · ${gemsBalance} Gems` };
+        const essence = (Number(essenceBalance) || 0).toLocaleString();
+        const gems = (Number(gemsBalance) || 0).toLocaleString();
+        return { summary: `${essence} Essence · ${gems} Gems` };
       }
 
       case 'sanctuary': {

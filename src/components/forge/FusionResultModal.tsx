@@ -34,7 +34,7 @@ const FusionResultModal: React.FC<FusionResultModalProps> = ({
   const colorName = getColorName(newTotem.colorId);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <div
         className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden
           animate-[fadeIn_0.3s_ease-out]"

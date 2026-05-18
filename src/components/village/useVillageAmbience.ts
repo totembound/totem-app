@@ -52,6 +52,11 @@ export function useVillageAmbience(opts: {
   const applyVolume = useCallback(() => {
     const a = audioRef.current;
     if (!a) return;
+    // iOS Safari (esp. PWA standalone) treats audio.volume as read-only — only
+    // the `muted` property and pause() actually silence playback. Set both so
+    // the user-toggleable mute works on iOS while desktop ducking via `volume`
+    // (setGain) keeps working everywhere else.
+    a.muted = muted;
     a.volume = muted ? 0 : programmaticVolumeRef.current;
   }, [muted]);
 
@@ -82,6 +87,7 @@ export function useVillageAmbience(opts: {
     a.src = src;
     a.loop = true;
     a.preload = 'auto';
+    a.muted = muted;
     a.volume = muted ? 0 : programmaticVolumeRef.current;
     audioRef.current = a;
     tryStart();

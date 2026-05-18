@@ -6,7 +6,7 @@ interface TutorialCompleteModalProps {
 
 export default function TutorialCompleteModal({ onClose }: TutorialCompleteModalProps) {
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center pt-8 sm:pt-0 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[70] flex items-start sm:items-center justify-center pt-8 sm:pt-0 overflow-y-auto">
       <div className="relative w-full max-w-sm mx-4 mb-4 animate-fade-in">
         <div className="absolute -inset-1">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur opacity-30 animate-pulse" />

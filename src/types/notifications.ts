@@ -114,7 +114,7 @@ export enum NotificationType {
       scope: NotificationScope.PERSONAL,
       priority: NotificationPriority.HIGH,
       sound: true,
-      autoOpen: true
+      autoOpen: false
     },
     [NotificationType.MILESTONE_UNLOCKED]: {
       type: NotificationType.MILESTONE_UNLOCKED,
@@ -133,7 +133,7 @@ export enum NotificationType {
       scope: NotificationScope.PERSONAL,
       priority: NotificationPriority.HIGH,
       sound: true,
-      autoOpen: true
+      autoOpen: false
     },
     [NotificationType.ATTRIBUTE_UPDATED]: {
       type: NotificationType.ATTRIBUTE_UPDATED,
@@ -180,14 +180,14 @@ export enum NotificationType {
       scope: NotificationScope.PERSONAL,
       priority: NotificationPriority.MEDIUM,
       expiresInDays: 3,
-      autoOpen: true,
+      autoOpen: false,
     },
     [NotificationType.EXPEDITION_REWARDS]: {
       type: NotificationType.EXPEDITION_REWARDS,
       scope: NotificationScope.PERSONAL,
       priority: NotificationPriority.HIGH,
-      expiresInDays: 3, 
-      autoOpen: true,
+      expiresInDays: 3,
+      autoOpen: false,
     },
 
     // Reward notifications
@@ -215,7 +215,7 @@ export enum NotificationType {
       type: NotificationType.QUEST_SET_COMPLETED,
       scope: NotificationScope.PERSONAL,
       priority: NotificationPriority.HIGH,
-      autoOpen: true,
+      autoOpen: false,
     },
     
     // Loot notifications
@@ -248,7 +248,7 @@ export enum NotificationType {
       scope: NotificationScope.PERSONAL,
       priority: NotificationPriority.HIGH,
       sound: true,
-      autoOpen: true
+      autoOpen: false
     },
     [NotificationType.BUNDLE_PURCHASED]: {
       type: NotificationType.BUNDLE_PURCHASED,

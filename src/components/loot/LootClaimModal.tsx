@@ -106,7 +106,7 @@ const LootClaimModal: React.FC<LootClaimModalProps> = ({ lootItem, onClose, onCl
 
     // Essence box result — simple inline display
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
+      <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 max-w-md w-full p-6 text-center">
           <div className="w-16 h-16 mx-auto mb-4 text-green-500">
             <CheckCircle className="w-full h-full" />

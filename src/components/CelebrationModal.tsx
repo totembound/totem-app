@@ -58,7 +58,7 @@ const CelebrationModal = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center pt-4 sm:pt-0 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[70] flex items-start sm:items-center justify-center pt-4 sm:pt-0 overflow-y-auto">
       <div className={`
         relative w-full max-w-lg transform transition-all
         bg-gradient-to-br ${getRarityColor(totem.attributes.rarity)}

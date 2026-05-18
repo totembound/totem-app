@@ -15,7 +15,7 @@ interface CurrencyItemProps {
 const CurrencyItem: React.FC<CurrencyItemProps> = ({ Icon, iconColor, label, value }) => (
   <div className="flex items-center gap-1" title={label}>
     <Icon className={`w-4 h-4 shrink-0 drop-shadow ${iconColor}`} />
-    <span className="text-sm font-bold text-amber-50 tabular-nums drop-shadow sm:hidden">
+    <span className="text-xs font-bold text-amber-50 tabular-nums drop-shadow sm:hidden">
       {formatCompact(value)}
     </span>
     <span className="hidden sm:inline text-sm font-bold text-amber-50 tabular-nums drop-shadow">
@@ -56,7 +56,7 @@ const VillageCurrencyHUD: React.FC<{ className?: string }> = ({ className = '' }
         {RUNE_TIERS.map(({ type, dotClass, textClass }) => (
           <div key={type} className="flex items-center gap-0.5" title={`${type} rune`}>
             <span className={`w-2 h-2 rounded-full shrink-0 ${dotClass}`} />
-            <span className={`text-sm font-bold tabular-nums drop-shadow sm:hidden ${textClass}`}>
+            <span className={`text-xs font-bold tabular-nums drop-shadow sm:hidden ${textClass}`}>
               {formatCompact(runeBalances[type])}
             </span>
             <span className={`hidden sm:inline text-sm font-bold tabular-nums drop-shadow ${textClass}`}>

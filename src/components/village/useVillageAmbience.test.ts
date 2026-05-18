@@ -17,6 +17,7 @@ class MockAudio {
   loop = false;
   preload = '';
   volume = 0;
+  muted = false;
   paused = true;
 
   play = vi.fn(() => {
@@ -180,6 +181,30 @@ describe('useVillageAmbience', () => {
 
       expect(result.current.muted).toBe(false);
       expect(window.localStorage.getItem('village-ambience-muted')).toBe('0');
+    });
+
+    // iOS Safari treats audio.volume as read-only — only the `muted` property
+    // (and pause()) actually silence playback in PWA mode. Without this, the
+    // mute icon flips but ambient audio keeps playing on iPhone.
+    it('sets audio.muted on the element when toggled (iOS PWA fix)', () => {
+      const { result } = renderHook(() => useVillageAmbience({ src: '/test.mp3' }));
+      expect(audioInstances[0].muted).toBe(false);
+
+      act(() => {
+        result.current.toggleMute();
+      });
+      expect(audioInstances[0].muted).toBe(true);
+
+      act(() => {
+        result.current.toggleMute();
+      });
+      expect(audioInstances[0].muted).toBe(false);
+    });
+
+    it('initializes audio.muted=true when previously muted (localStorage)', () => {
+      window.localStorage.setItem('village-ambience-muted', '1');
+      renderHook(() => useVillageAmbience({ src: '/test.mp3' }));
+      expect(audioInstances[0].muted).toBe(true);
     });
   });
 

@@ -51,7 +51,8 @@ export const STORAGE_KEYS = {
     notificationSound: "totem-notification-sound",
     maxNotifications: "totem-max-notifications",
     tutorialWizardVisible: 'totem-tutorialWizardVisible',
-    linkTracking: 'totem-link-tracking'
+    linkTracking: 'totem-link-tracking',
+    galleryPageSize: 'totem-gallery-page-size'
 };
 
 // Build AVAILABLE_SPECIES from JSON config (single source of truth)

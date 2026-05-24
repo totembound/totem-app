@@ -11,6 +11,8 @@ import { TotemGridCard, TotemListRow } from '../TotemGridAndListView';
 import Toolbar from '../layouts/GalleryToolbar';
 import TotemGalleryStats from './TotemGalleryStats';
 import { getTotemImageUrl } from '../../utils/species';
+import { getUserStorage, setUserStorage } from '../../utils/localStorage';
+import { STORAGE_KEYS } from '../../config/constants';
 
 type SortDirection = 'asc' | 'desc';
 type SortKey = 'created' | 'experience' | 'happiness' | 'stage';
@@ -19,6 +21,14 @@ interface SortConfig {
     key: SortKey;
     direction: SortDirection;
 }
+
+// Whole list is loaded client-side, so we default to showing everything and let
+// users scroll. Preference persists in localStorage (UI-only, stored globally).
+// Multiples of 12 fill the 2/3/4-column grid evenly at every breakpoint (no orphan row).
+// ALL_PAGE_SIZE is a sentinel that renders the entire (already cached) list on one page.
+const ALL_PAGE_SIZE = -1;
+const PAGE_SIZE_OPTIONS = [12, 24, 48, 96, ALL_PAGE_SIZE];
+const DEFAULT_PAGE_SIZE = ALL_PAGE_SIZE;
 
 const TotemGallery = () => {
     const location = useLocation();
@@ -96,7 +106,16 @@ const TotemGallery = () => {
         direction: 'desc'
     });
     const [showStats, setShowStats] = useState(false);
-    const itemsPerPage = 8;
+    const [itemsPerPage, setItemsPerPage] = useState<number>(() => {
+        const stored = getUserStorage<number>(STORAGE_KEYS.galleryPageSize, '', DEFAULT_PAGE_SIZE);
+        return PAGE_SIZE_OPTIONS.includes(stored) ? stored : DEFAULT_PAGE_SIZE;
+    });
+
+    const handlePageSizeChange = useCallback((size: number) => {
+        setItemsPerPage(size);
+        setCurrentPage(1);
+        setUserStorage(STORAGE_KEYS.galleryPageSize, '', size);
+    }, []);
 
     const sortTotems = (totems: TotemData[]) => {
         return [...totems].sort((a, b) => {
@@ -143,7 +162,15 @@ const TotemGallery = () => {
     });
 
     const sortedAndFilteredTotems = sortTotems(filteredTotems);
-    const totalPages = Math.max(1, Math.ceil(sortedAndFilteredTotems.length / itemsPerPage));
+    // "All" collapses to a single page covering the whole list.
+    const effectivePageSize = itemsPerPage === ALL_PAGE_SIZE
+        ? Math.max(1, sortedAndFilteredTotems.length)
+        : itemsPerPage;
+    const totalPages = Math.max(1, Math.ceil(sortedAndFilteredTotems.length / effectivePageSize));
+    const pageItems = sortedAndFilteredTotems.slice(
+        (currentPage - 1) * effectivePageSize,
+        currentPage * effectivePageSize
+    );
 
     // Navigation handlers
     const handlePrevTotem = () => {
@@ -164,6 +191,14 @@ const TotemGallery = () => {
     useEffect(() => {
         setCurrentPage(1);
     }, [filters]);
+
+    // Keep currentPage in range if the list shrinks (e.g. a totem is released
+    // while viewing a high page) so we never strand the user on a blank page.
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(totalPages);
+        }
+    }, [currentPage, totalPages]);
 
     // Preselect totem from navigation state (e.g., tutorial wizard link) — only once
     const hasConsumedPreselection = useRef(false);
@@ -243,6 +278,9 @@ const TotemGallery = () => {
                     totalPages={totalPages}
                     onPageChange={setCurrentPage}
                     totalItems={sortedAndFilteredTotems.length}
+                    itemsPerPage={itemsPerPage}
+                    pageSizeOptions={PAGE_SIZE_OPTIONS}
+                    onPageSizeChange={handlePageSizeChange}
                     filters={filters}
                     setFilters={setFilters}
                     sortConfig={sortConfig}
@@ -295,8 +333,7 @@ const TotemGallery = () => {
                     </div>
                 ) : !totemLoading && !totemError && sortedAndFilteredTotems.length > 0 && viewMode === 'grid' ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-2 md:gap-3">
-                        {sortedAndFilteredTotems
-                            .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                        {pageItems
                             .map((totem) => (
                                 <TotemGridCard
                                     key={totem.id}
@@ -312,8 +349,7 @@ const TotemGallery = () => {
                     </div>
                 ) : !totemLoading && !totemError && sortedAndFilteredTotems.length > 0 ? (
                     <div className="flex flex-col gap-1 sm:gap-2 md:gap-3">
-                        {sortedAndFilteredTotems
-                            .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                        {pageItems
                             .map((totem) => (
                                 <TotemListRow
                                     key={totem.id}

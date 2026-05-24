@@ -15,6 +15,7 @@ interface ChallengePanelProps {
     highScore: number;
     attemptsLeft: number;
     maxAttempts?: number;
+    maxScore?: number;
     requirements: {
         stage: number;
         strength: number;
@@ -33,6 +34,7 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
     highScore,
     attemptsLeft,
     maxAttempts = DEFAULT_MAX_DAILY_ATTEMPTS,
+    maxScore,
     requirements,
     onStart
 }) => {
@@ -41,11 +43,8 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
     const eligibleTotems = getEligibleTotems(id);
     const meetsRequirements = eligibleTotems.length > 0;
     const ESSENCE_BY_STAGE = [10, 15, 20] as const;
-    const XP_BY_STAGE = [20, 20, 30] as const;
-    // Trial (stage 0, balance) gets 5 Essence / 10 XP; affinity challenges use tier lookup
-    const isTrial = affinityType === 'balance';
-    const essenceReward = isTrial ? 5 : (ESSENCE_BY_STAGE[stage] ?? 20);
-    const maxExpReward = isTrial ? 10 : (XP_BY_STAGE[stage] ?? 30);
+    const essenceReward = ESSENCE_BY_STAGE[stage] ?? 20;
+    const maxExpReward = maxScore === 1000 ? 10 : maxScore === 3000 ? 30 : 20;
 
     const _getAffinityColor = () => {
         switch(affinityType) {

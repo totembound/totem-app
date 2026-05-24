@@ -197,6 +197,9 @@ const TotemGallery = () => {
                     updatedTotem.attributes.strength !== selectedTotem.attributes.strength ||
                     updatedTotem.attributes.agility !== selectedTotem.attributes.agility ||
                     updatedTotem.attributes.wisdom !== selectedTotem.attributes.wisdom ||
+                    updatedTotem.traits?.innate !== selectedTotem.traits?.innate ||
+                    updatedTotem.traits?.learned !== selectedTotem.traits?.learned ||
+                    updatedTotem.traits?.awakened !== selectedTotem.traits?.awakened ||
                     updatedTotem.image !== selectedTotem.image;
 
                 if (hasChanged) {

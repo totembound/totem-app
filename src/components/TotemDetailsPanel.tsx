@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Unlock, MapPin, Landmark, Lock } from 'lucide-react';
 import { Species, Color, Rarity } from '../types/types';
 import { AVAILABLE_SPECIES } from '../config/constants';
@@ -6,7 +6,6 @@ import { splitWords } from '../utils/formats';
 import { getTotemAffinityIcon, getTotemDomainIcon } from '../utils/totems';
 import { getTraitById, LEARNED_STAGE_GATE, AWAKENED_STAGE_GATE, type TraitSlot } from '../config/traits';
 import { TraitIcon, SLOT_COLOR_CLASSES, getTraitTooltipContent } from '../utils/traitIcons';
-import TraitPickerModal from './traits/TraitPickerModal';
 import Tooltip from './Tooltip';
 
 interface TotemDetailsPanelProps {
@@ -30,12 +29,8 @@ interface TotemDetailsPanelProps {
         learned: string | null;
         awakened: string | null;
     } | null;
-    /** Totem ID, required when traits are present (used by the choose endpoint). */
-    totemId?: string;
-    /** Display name for the totem (used in the picker modal title). */
-    totemName?: string;
-    /** Callback after a successful trait choice — parent should update state. */
-    onTraitChosen?: (slot: TraitSlot, traitId: string) => void;
+    /** Open the shared trait picker for a slot. When omitted, trait rows are read-only. */
+    onChooseTrait?: (slot: TraitSlot) => void;
 }
 
 const SLOT_LABEL: Record<TraitSlot, string> = {
@@ -61,12 +56,8 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
     isOnExpedition = false,
     stageDescription,
     traits,
-    totemId,
-    totemName,
-    onTraitChosen,
+    onChooseTrait,
 }) => {
-    const [pickerSlot, setPickerSlot] = useState<TraitSlot | null>(null);
-
     const getSpeciesDescription = (species: Species): string => {
         return AVAILABLE_SPECIES.find(s => s.species === species)?.desc || '';
     };
@@ -78,7 +69,7 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
         const def = getTraitById(traitId);
         const gate = SLOT_GATE[slot];
         const unlocked = stage >= gate;
-        const canChoose = unlocked && !traitId && slot !== 'innate' && !!totemId;
+        const canChoose = unlocked && !traitId && slot !== 'innate' && !!onChooseTrait;
         const tooltipContent = getTraitTooltipContent({ slot, traitId, unlocked, requiredStage: gate });
 
         // Left: tier name (Innate / Learned / Awakened). Right: the chosen trait
@@ -107,14 +98,16 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
             return (
                 <div key={slot} className="flex items-center justify-between gap-3">
                     {tierLabel}
-                    <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); setPickerSlot(slot); }}
-                        className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:underline"
-                    >
-                        <span className={`inline-block shrink-0 w-3 h-3 rounded-full border-2 border-dashed ${SLOT_COLOR_CLASSES[slot]}`} />
-                        Choose →
-                    </button>
+                    <Tooltip content={tooltipContent} position="top" interactiveChild>
+                        <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); onChooseTrait?.(slot); }}
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:underline"
+                        >
+                            <span className={`inline-block shrink-0 w-3 h-3 rounded-full border-2 border-dashed ${SLOT_COLOR_CLASSES[slot]}`} />
+                            Choose →
+                        </button>
+                    </Tooltip>
                 </div>
             );
         }
@@ -233,17 +226,6 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
                         {(['innate', 'learned', 'awakened'] as TraitSlot[]).map(renderTraitRow)}
                     </div>
                 </div>
-            )}
-
-            {/* Picker modal — opens when a Choose row is tapped */}
-            {pickerSlot && pickerSlot !== 'innate' && totemId && (
-                <TraitPickerModal
-                    totemId={totemId}
-                    totemName={totemName || 'this totem'}
-                    slot={pickerSlot}
-                    onClose={() => setPickerSlot(null)}
-                    onChosen={(traitId) => onTraitChosen?.(pickerSlot, traitId)}
-                />
             )}
         </div>
     );

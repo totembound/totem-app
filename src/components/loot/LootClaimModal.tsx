@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Sparkles, CheckCircle, ChevronDown } from 'lucide-react';
+import { X, Sparkles, Gift, CheckCircle, ChevronDown } from 'lucide-react';
 import { useGame, LootItem } from '../../contexts/GameContext';
 import { CURRENCY_NAMES, speciesConfig } from '../../config/constants';
 import { RARITIES } from '../../config/game-config';
@@ -8,6 +8,7 @@ import { Rarity } from '../../types/types';
 import notificationService from '../../services/NotificationService';
 import CelebrationModal from '../CelebrationModal';
 import { getTotemImageUrl } from '../../utils/species';
+import { splitWords } from '../../utils/formats';
 
 interface LootClaimModalProps {
   lootItem: LootItem;
@@ -21,6 +22,15 @@ const _RARITY_BG: Record<string, string> = {
   rare: 'bg-blue-50 dark:bg-blue-900/20',
   epic: 'bg-purple-50 dark:bg-purple-900/20',
   legendary: 'bg-yellow-50 dark:bg-yellow-900/20',
+};
+
+// Icon tint by box rarity so different boxes read distinctly in the header.
+const RARITY_ICON_COLOR: Record<string, string> = {
+  common: 'text-gray-400 dark:text-gray-500',
+  uncommon: 'text-emerald-500',
+  rare: 'text-blue-500',
+  epic: 'text-purple-500',
+  legendary: 'text-amber-500',
 };
 
 const availableSpecies = speciesConfig.species.filter((s: any) => s.available);
@@ -37,6 +47,9 @@ const LootClaimModal: React.FC<LootClaimModalProps> = ({ lootItem, onClose, onCl
   const isTotemBox = lootItem.box.type === 'totem_box';
   const isEssenceBox = lootItem.box.type === 'essence_box';
   const rarity = isTotemBox ? rarityMap[lootItem.box.config.rarityId || 0] : null;
+  // Totem boxes (icon 'egg') get a Gift icon; essence boxes get Sparkles — tinted by rarity.
+  const BoxIcon = lootItem.box.icon === 'egg' ? Gift : Sparkles;
+  const boxIconColor = RARITY_ICON_COLOR[lootItem.box.rarity] || 'text-purple-500';
   const selectedSpecies = availableSpecies.find((s: any) => s.id === selectedSpeciesId);
 
   const handleClaim = async () => {
@@ -94,7 +107,7 @@ const LootClaimModal: React.FC<LootClaimModalProps> = ({ lootItem, onClose, onCl
             image: totemImageUrl || species?.image || '',
             attributes: {
               rarity: totemResult.rarityId as Rarity,
-              displayName: `${totemResult.colorName || ''} ${totemResult.stageName || totemResult.speciesName}`.trim(),
+              displayName: `${splitWords(totemResult.colorName || '')} ${totemResult.stageName || totemResult.speciesName}`.trim(),
               stage: totemResult.stage || 0,
               domain: species?.domain || '',
             },
@@ -135,7 +148,7 @@ const LootClaimModal: React.FC<LootClaimModalProps> = ({ lootItem, onClose, onCl
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-purple-500" />
+            <BoxIcon className={`w-5 h-5 ${boxIconColor}`} />
             <h2 className="text-lg font-bold text-gray-900 dark:text-white">
               {lootItem.box.name}
             </h2>

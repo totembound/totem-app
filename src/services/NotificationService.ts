@@ -11,8 +11,9 @@ import {
   NotificationPriority,
 } from "../types/notifications";
 import { CURRENCY_NAMES } from "../config/constants";
-import { formatTokenAmount } from "../utils/formats";
+import { formatTokenAmount, splitWords } from "../utils/formats";
 import { getAchievementById } from "../config/achievements";
+import { LOOT_BOXES } from "../config/loot-boxes";
 
 /**
  * Data interfaces for different notification types
@@ -65,11 +66,20 @@ export interface ExpeditionNotificationData {
   score?: number;
 }
 
+export interface AchievementRewards {
+  essence?: number;
+  xp?: number;
+  newEssenceBalance?: number;
+  newTotemExp?: number;
+  lootBox?: { id: string; boxId: string; source?: string };
+  lootBoxes?: Array<{ id: string; boxId: string; source?: string }>;
+}
+
 export interface AchievementNotificationData {
   achievementId: string;
   achievementName: string;
   badgeUri?: string;
-  rewards?: { essence?: number; xp?: number };
+  rewards?: AchievementRewards;
 }
 
 export interface MilestoneNotificationData {
@@ -77,7 +87,7 @@ export interface MilestoneNotificationData {
   achievementName?: string;
   milestoneIndex: number;
   badgeUri?: string;
-  rewards?: { essence?: number; xp?: number };
+  rewards?: AchievementRewards;
 }
 
 export interface PurchaseNotificationData {
@@ -361,6 +371,18 @@ class NotificationService {
   }
 
   /**
+   * Format granted loot boxes into reward chips (e.g. "+Rare Totem Box").
+   * Handles both the one-time `lootBox` and the milestone `lootBoxes` array.
+   */
+  private lootBoxRewardParts(rewards?: AchievementRewards): string[] {
+    const boxes = rewards?.lootBoxes ?? (rewards?.lootBox ? [rewards.lootBox] : []);
+    return boxes
+      .map(b => LOOT_BOXES[b.boxId]?.name)
+      .filter((name): name is string => Boolean(name))
+      .map(name => `+${name}`);
+  }
+
+  /**
    * Show notification for achievement unlocked
    */
   async showAchievementUnlocked(data: AchievementNotificationData & { totemLabel?: string }): Promise<void> {
@@ -369,6 +391,7 @@ class NotificationService {
     const rewardParts: string[] = [];
     if (data.rewards?.essence) rewardParts.push(`+${data.rewards.essence} ${CURRENCY_NAMES.SOFT}`);
     if (data.rewards?.xp) rewardParts.push(`+${data.rewards.xp} XP`);
+    rewardParts.push(...this.lootBoxRewardParts(data.rewards));
     if (rewardParts.length > 0) message += ` ${rewardParts.join(', ')}`;
 
     await this.showNotification(NotificationType.ACHIEVEMENT_UNLOCKED, message, data, {
@@ -386,6 +409,7 @@ class NotificationService {
     const rewardParts: string[] = [];
     if (data.rewards?.essence) rewardParts.push(`+${data.rewards.essence} ${CURRENCY_NAMES.SOFT}`);
     if (data.rewards?.xp) rewardParts.push(`+${data.rewards.xp} XP`);
+    rewardParts.push(...this.lootBoxRewardParts(data.rewards));
     if (rewardParts.length > 0) message += ` ${rewardParts.join(', ')}`;
 
     await this.showNotification(NotificationType.MILESTONE_UNLOCKED, message, data, {
@@ -400,8 +424,9 @@ class NotificationService {
     let message: string;
 
     if (data.resultType === 'totem' && data.rarity && data.species) {
+      // colorName arrives raw from the server (e.g. "CrimsonRed"); split to "Crimson Red" for display.
       const totemName = data.colorName && data.stageName
-        ? `${data.colorName} ${data.stageName}`
+        ? `${splitWords(data.colorName)} ${data.stageName}`
         : `${data.rarity} ${data.species}`;
       message = `Opened ${data.boxName}: ${totemName} (${data.rarity} ${data.species})!`;
     } else if (data.resultType === 'essence' && data.amount) {
@@ -510,7 +535,7 @@ class NotificationService {
       achievementId: string;
       milestone?: number;
       newMilestones?: number[];
-      rewards?: { essence?: number; xp?: number };
+      rewards?: AchievementRewards;
     }>,
     totemLabel?: string
   ): Promise<void> {

@@ -33,7 +33,7 @@ interface LockedOverlayProps {
 }
 
 const Rewards = () => {
-    const { rewardsState, claimDailyReward, claimWeeklyReward, refreshRewardStatus } = useGame();
+    const { rewardsState, claimDailyReward, claimWeeklyReward, refreshRewardStatus, lootItems } = useGame();
     const { essenceBalance } = useUser();
     const { user } = useAuth();
     const { refreshAchievements, progress } = useAchievements();
@@ -60,6 +60,7 @@ const Rewards = () => {
     const isClaimLoading = rewardsState.isClaimLoading;
     // Derive unlock status from achievements context (already loaded, no extra API call)
     const hasWeeklyUnlocked = progress['ach_login-progression']?.unlockedMilestones[0] || false;
+    const hasLoot = lootItems.length > 0;
 
     // Check streak requirements + affordability (must afford the cheapest tier)
     const essenceNum = Number(essenceBalance) || 0;
@@ -264,6 +265,209 @@ const Rewards = () => {
         );
     };
 
+    // Inline cards extracted to consts so the grid order can adapt to loot state.
+    const dailyRewardsCard = (
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 h-full">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                    <Flame className="w-6 h-6 text-orange-500" />
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Daily Rewards</h2>
+                </div>
+                { !streakStatus?.canClaimToday &&
+                    <div className="text-xs text-gray-900 dark:text-white">
+                        <CountdownTimer
+                            option="midnight"
+                            onComplete={handleCountdownComplete}
+                        />
+                    </div>
+                }
+            </div>
+
+            {/* Streak + Bonus summary (tier chip left of streak chip) */}
+            <div className="flex items-center justify-between mb-3">
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">Day {dailyStreakDays}</span>
+                <div className="flex items-center gap-2">
+                    <TierBonusBadge tier={tier} />
+                    <div className="flex items-center gap-1 text-sm font-semibold text-purple-600 dark:text-purple-400">
+                        <TrendingUp className="w-3.5 h-3.5" />
+                        +{dailyBonusPercent}% Streak
+                    </div>
+                </div>
+            </div>
+
+            {/* Progress toward max bonus */}
+            <div className="mb-4">
+                <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2.5">
+                    <div
+                        className="bg-gradient-to-r from-purple-500 to-purple-400 h-2.5 rounded-full transition-all duration-500"
+                        style={{ width: `${dailyProgressPercent}%` }}
+                    />
+                </div>
+                <div className="flex justify-between mt-1">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {dailyStreakDays}/{dailyMaxDays} days to max
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {dailyBonusPercent < 100 ? `${100 - dailyBonusPercent}% to go` : 'MAX!'}
+                    </span>
+                </div>
+            </div>
+
+            {/* Next claim amount */}
+            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 mb-4">
+                <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Next claim</span>
+                    <div className="flex items-center gap-1">
+                        <Zap className="w-3.5 h-3.5 text-purple-500" />
+                        <span className="font-bold text-gray-900 dark:text-white">{dailyNextClaim}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">{CURRENCY_NAMES.SOFT}</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="space-y-3 mb-4">
+                <button
+                    onClick={handleDailyClaim}
+                    disabled={!streakStatus?.canClaimToday || isClaimLoading}
+                    className={`w-full py-2 px-4 rounded-lg transition-colors ${
+                        streakStatus?.canClaimToday
+                            ? 'bg-purple-500 hover:bg-purple-600 text-white'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                    {isClaimLoading ? 'Claiming...' : streakStatus?.canClaimToday ? 'Claim Daily' : 'Already Claimed'}
+                </button>
+                {dailyProtected ? (
+                    <button
+                        disabled
+                        className="w-full py-2 px-4 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed"
+                    >
+                        <Shield className="w-4 h-4" />
+                        {protectionLabel(dailyCharges)}
+                    </button>
+                ) : (
+                    <ProtectionDialog type="daily">
+                        <button
+                            className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={!canPurchaseDailyProtection}
+                        >
+                            Buy Protection
+                        </button>
+                    </ProtectionDialog>
+                )}
+            </div>
+
+            {/* Protection info */}
+            <div className="text-sm flex items-center mb-2">
+                <h3 className="text-gray-800 dark:text-gray-200">Streak Saver</h3>
+            </div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+                <ul className="space-y-1">
+                    <li>• Tier 1: 50 {CURRENCY_NAMES.SOFT} - 1 charge
+                        <span className="text-sm ml-2 text-gray-500">* 7-day streak</span>
+                    </li>
+                    <li>• Tier 2: 250 {CURRENCY_NAMES.SOFT} - 7 charges
+                        <span className="text-sm ml-2 text-gray-500">* 14-day streak</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    );
+
+    const weeklyRewardsCard = (
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 h-full">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                    <Calendar className="w-6 h-6 text-green-500" />
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Weekly Rewards</h2>
+                </div>
+                {!weeklyStatus?.canClaimWeekly && weeklyStatus?.nextClaimTime ? (
+                    <div className="text-xs text-gray-900 dark:text-white">
+                        <CountdownTimer
+                            endTime={weeklyStatus.nextClaimTime}
+                            onComplete={refreshRewardStatus}
+                        />
+                    </div>
+                ) : (
+                    <AchievementIcon unlocked={hasWeeklyUnlocked} name="Week Warrior" color="green" />
+                )}
+            </div>
+
+            {hasWeeklyUnlocked
+                ? weeklyCardContent
+                : <LockedOverlay achievementName="Week Warrior">
+                    {weeklyCardContent}
+                </LockedOverlay>
+            }
+        </div>
+    );
+
+    const elderSanctumCard = (
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 h-full flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                    <Crown className="w-6 h-6 text-amber-500" />
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Elder Sanctum</h2>
+                </div>
+            </div>
+
+            <div className="mb-6">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    Seat your most powerful totems on the Council of Elders to earn passive Essence over time.
+                </p>
+
+                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Coins className="w-4 h-4 text-amber-500" />
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">Passive Earnings</span>
+                    </div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                        Earn 0.5 Essence/hr per seated Elder, with tenure bonuses up to 1.5x
+                    </p>
+                </div>
+
+                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                    <p>• Requires Stage 4+ (Adult) totems</p>
+                    <p>• Up to 3 Council Seats available</p>
+                    <p>• Exclusive Council Missions</p>
+                </div>
+            </div>
+
+            <button
+                onClick={() => navigate(withVillagePrefix(location.pathname, '/sanctum'))}
+                className="w-full py-2 px-4 min-h-[44px] mt-auto bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors font-medium"
+            >
+                Visit Sanctum
+            </button>
+        </div>
+    );
+
+    // Loot boxes lead the page only when there's something to open (rare —
+    // usually just after account creation). The rest of the time the cards
+    // players actually come here for — daily rewards and quests — sit up top,
+    // and loot drops below the onboarding/tutorial claims. Stable keys keep
+    // LootBoxesCard from remounting (and re-fetching) when it changes position.
+    const orderedCards = hasLoot
+        ? [
+            { key: 'loot', node: <LootBoxesCard /> },
+            { key: 'daily', node: dailyRewardsCard },
+            { key: 'quests', node: <DailyQuestsCard /> },
+            { key: 'weekly', node: weeklyRewardsCard },
+            { key: 'tutorial', node: <TutorialClaimsCard /> },
+            { key: 'sanctum', node: elderSanctumCard },
+        ]
+        : [
+            { key: 'daily', node: dailyRewardsCard },
+            { key: 'quests', node: <DailyQuestsCard /> },
+            { key: 'weekly', node: weeklyRewardsCard },
+            { key: 'tutorial', node: <TutorialClaimsCard /> },
+            { key: 'loot', node: <LootBoxesCard /> },
+            { key: 'sanctum', node: elderSanctumCard },
+        ];
+
     return (
         <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg">
 
@@ -279,192 +483,11 @@ const Rewards = () => {
                 </div>
             </div>
 
-            {/* Main Cards */}
+            {/* Main Cards — order adapts to whether loot is waiting to be opened */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
-                    {/* Loot Boxes (slot 1) */}
-                    <LootBoxesCard />
-
-                    {/* Daily Rewards (slot 2) */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 h-full">
-                        {/* Header */}
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                                <Flame className="w-6 h-6 text-orange-500" />
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Daily Rewards</h2>
-                            </div>
-                            { !streakStatus?.canClaimToday &&
-                                <div className="text-xs text-gray-900 dark:text-white">
-                                    <CountdownTimer
-                                        option="midnight"
-                                        onComplete={handleCountdownComplete}
-                                    />
-                                </div>
-                            }
-                        </div>
-
-                        {/* Streak + Bonus summary (tier chip left of streak chip) */}
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-2xl font-bold text-gray-900 dark:text-white">Day {dailyStreakDays}</span>
-                            <div className="flex items-center gap-2">
-                                <TierBonusBadge tier={tier} />
-                                <div className="flex items-center gap-1 text-sm font-semibold text-purple-600 dark:text-purple-400">
-                                    <TrendingUp className="w-3.5 h-3.5" />
-                                    +{dailyBonusPercent}% Streak
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Progress toward max bonus */}
-                        <div className="mb-4">
-                            <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2.5">
-                                <div
-                                    className="bg-gradient-to-r from-purple-500 to-purple-400 h-2.5 rounded-full transition-all duration-500"
-                                    style={{ width: `${dailyProgressPercent}%` }}
-                                />
-                            </div>
-                            <div className="flex justify-between mt-1">
-                                <span className="text-xs text-gray-500 dark:text-gray-400">
-                                    {dailyStreakDays}/{dailyMaxDays} days to max
-                                </span>
-                                <span className="text-xs text-gray-500 dark:text-gray-400">
-                                    {dailyBonusPercent < 100 ? `${100 - dailyBonusPercent}% to go` : 'MAX!'}
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Next claim amount */}
-                        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 mb-4">
-                            <div className="flex items-center justify-between">
-                                <span className="text-sm text-gray-600 dark:text-gray-400">Next claim</span>
-                                <div className="flex items-center gap-1">
-                                    <Zap className="w-3.5 h-3.5 text-purple-500" />
-                                    <span className="font-bold text-gray-900 dark:text-white">{dailyNextClaim}</span>
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">{CURRENCY_NAMES.SOFT}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Buttons */}
-                        <div className="space-y-3 mb-4">
-                            <button
-                                onClick={handleDailyClaim}
-                                disabled={!streakStatus?.canClaimToday || isClaimLoading}
-                                className={`w-full py-2 px-4 rounded-lg transition-colors ${
-                                    streakStatus?.canClaimToday
-                                        ? 'bg-purple-500 hover:bg-purple-600 text-white'
-                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-                                } disabled:opacity-50 disabled:cursor-not-allowed`}
-                            >
-                                {isClaimLoading ? 'Claiming...' : streakStatus?.canClaimToday ? 'Claim Daily' : 'Already Claimed'}
-                            </button>
-                            {dailyProtected ? (
-                                <button
-                                    disabled
-                                    className="w-full py-2 px-4 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed"
-                                >
-                                    <Shield className="w-4 h-4" />
-                                    {protectionLabel(dailyCharges)}
-                                </button>
-                            ) : (
-                                <ProtectionDialog type="daily">
-                                    <button
-                                        className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        disabled={!canPurchaseDailyProtection}
-                                    >
-                                        Buy Protection
-                                    </button>
-                                </ProtectionDialog>
-                            )}
-                        </div>
-
-                        {/* Protection info */}
-                        <div className="text-sm flex items-center mb-2">
-                            <h3 className="text-gray-800 dark:text-gray-200">Streak Saver</h3>
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                            <ul className="space-y-1">
-                                <li>• Tier 1: 50 {CURRENCY_NAMES.SOFT} - 1 charge
-                                    <span className="text-sm ml-2 text-gray-500">* 7-day streak</span>
-                                </li>
-                                <li>• Tier 2: 250 {CURRENCY_NAMES.SOFT} - 7 charges
-                                    <span className="text-sm ml-2 text-gray-500">* 14-day streak</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    {/* Daily Quests (slot 3) */}
-                    <DailyQuestsCard />
-
-                    {/* Weekly Rewards (slot 4) */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 h-full">
-                        {/* Header */}
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                                <Calendar className="w-6 h-6 text-green-500" />
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Weekly Rewards</h2>
-                            </div>
-                            {!weeklyStatus?.canClaimWeekly && weeklyStatus?.nextClaimTime ? (
-                                <div className="text-xs text-gray-900 dark:text-white">
-                                    <CountdownTimer
-                                        endTime={weeklyStatus.nextClaimTime}
-                                        onComplete={refreshRewardStatus}
-                                    />
-                                </div>
-                            ) : (
-                                <AchievementIcon unlocked={hasWeeklyUnlocked} name="Week Warrior" color="green" />
-                            )}
-                        </div>
-
-                        {hasWeeklyUnlocked
-                            ? weeklyCardContent
-                            : <LockedOverlay achievementName="Week Warrior">
-                                {weeklyCardContent}
-                            </LockedOverlay>
-                        }
-                    </div>
-
-                    {/* Tutorial Claims (slot 5) */}
-                    <TutorialClaimsCard />
-
-                    {/* Elder Sanctum (slot 6) */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 h-full flex flex-col">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                                <Crown className="w-6 h-6 text-amber-500" />
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Elder Sanctum</h2>
-                            </div>
-                        </div>
-
-                        <div className="mb-6">
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                                Seat your most powerful totems on the Council of Elders to earn passive Essence over time.
-                            </p>
-
-                            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 mb-4">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <Coins className="w-4 h-4 text-amber-500" />
-                                    <span className="text-sm font-medium text-gray-900 dark:text-white">Passive Earnings</span>
-                                </div>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">
-                                    Earn 0.5 Essence/hr per seated Elder, with tenure bonuses up to 1.5x
-                                </p>
-                            </div>
-
-                            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                                <p>• Requires Stage 4+ (Adult) totems</p>
-                                <p>• Up to 3 Council Seats available</p>
-                                <p>• Exclusive Council Missions</p>
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={() => navigate(withVillagePrefix(location.pathname, '/sanctum'))}
-                            className="w-full py-2 px-4 min-h-[44px] mt-auto bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors font-medium"
-                        >
-                            Visit Sanctum
-                        </button>
-                    </div>
+                {orderedCards.map(card => (
+                    <React.Fragment key={card.key}>{card.node}</React.Fragment>
+                ))}
             </div>
     </div>
     );

@@ -112,6 +112,7 @@ const Challenges = () => {
                             const maxAttempts = apiChallenge?.maxDailyAttempts || DEFAULT_MAX_DAILY_ATTEMPTS;
                             const attemptsLeft = status?.attemptsRemaining ?? maxAttempts;
                             const requirements = apiChallenge?.requirements ?? challenge.requirements;
+                            const maxScore = apiChallenge?.maxScore ?? challenge.maxScore;
 
                             return (
                             <ChallengePanel
@@ -124,6 +125,7 @@ const Challenges = () => {
                                 highScore={Number(highScore)}
                                 attemptsLeft={attemptsLeft}
                                 maxAttempts={maxAttempts}
+                                maxScore={maxScore}
                                 requirements={requirements}
                                 onStart={() => setSelectedChallenge(challenge.id)}
                             />)

@@ -227,18 +227,18 @@ const SpiritPath: React.FC<SpiritPathProps> = ({
     if (!isWin) return 0; // No score for losing
     
     // Time bonus (proportional to time left)
-    const maxTimeBonus = 600; // 60% of max score
+    const maxTimeBonus = 1200; // 60% of max score
     const timeRatio = Math.max(0, gameSettings.timeLimit - timeElapsed) / gameSettings.timeLimit;
     const timeBonus = Math.round(timeRatio * maxTimeBonus);
-    
+
     // Move efficiency bonus (40% of max score)
-    const maxMoveBonus = 400; 
+    const maxMoveBonus = 800;
     const minPossibleMoves = gameSettings.gridSize - 1; // Minimum moves required (from start to end)
     const moveEfficiency = Math.max(0, 1 - ((movesCount - minPossibleMoves) / (gameSettings.gridSize * 2)));
     const moveBonus = Math.round(moveEfficiency * maxMoveBonus);
-    
-    // Cap total score at 1000
-    return Math.min(1000, timeBonus + moveBonus);
+
+    // Cap total score at 2000
+    return Math.min(2000, timeBonus + moveBonus);
   }, [gameSettings.timeLimit, gameSettings.gridSize]);
 
   // Initialize the grid

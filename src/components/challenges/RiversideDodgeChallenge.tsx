@@ -376,12 +376,14 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
             onTouchStart={() => applyPosition(pos)}
             onTouchEnd={() => returnToIdle()}
             onTouchCancel={() => returnToIdle()}
+            onContextMenu={e => e.preventDefault()}
           >
             <img
               src={BUTTON_IMAGE[pos]}
               alt={pos}
               className="w-full h-full object-contain"
               draggable={false}
+              style={{ WebkitTouchCallout: 'none' }}
             />
           </button>
         );
@@ -392,12 +394,16 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
   const renderGameContent = () => (
     <>
       <div className="rounded-lg mb-4">
-        <div className="relative w-full h-96 rounded-lg overflow-hidden select-none touch-none">
+        <div
+          className="relative w-full h-96 rounded-lg overflow-hidden select-none touch-none"
+          onContextMenu={e => e.preventDefault()}
+        >
           <img
             src="/challenges/Riverside-Background.png"
             alt="Riverside"
             className="absolute inset-0 w-full h-full object-cover pointer-events-none"
             draggable={false}
+            style={{ WebkitTouchCallout: 'none' }}
           />
 
           {gracePeriodActive && (
@@ -467,6 +473,7 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
               style={{
                 filter: gracePeriodActive ? 'grayscale(70%)' : 'none',
                 transition: 'filter 0.15s',
+                WebkitTouchCallout: 'none',
               }}
               draggable={false}
             />

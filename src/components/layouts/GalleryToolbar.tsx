@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
     LayoutGrid, 
     List, 
@@ -26,6 +26,9 @@ interface ToolbarProps {
     totalPages: number;
     onPageChange: (page: number) => void;
     totalItems: number;
+    itemsPerPage: number;
+    pageSizeOptions: number[];
+    onPageSizeChange: (size: number) => void;
     filters: any;
     setFilters: (filters: any) => void;
     sortConfig: SortConfig;
@@ -39,6 +42,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
     totalPages,
     onPageChange,
     totalItems,
+    itemsPerPage,
+    pageSizeOptions,
+    onPageSizeChange,
     filters,
     setFilters,
     sortConfig,
@@ -46,6 +52,37 @@ const Toolbar: React.FC<ToolbarProps> = ({
 }) => {
     const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
     const [isSortOpen, setIsSortOpen] = useState(false);
+    const filterCloseRef = useRef<HTMLButtonElement>(null);
+    const sortCloseRef = useRef<HTMLButtonElement>(null);
+
+    // Close whichever bottom sheet is open on Escape (matches the app's modal convention).
+    useEffect(() => {
+        if (!isMobileFiltersOpen && !isSortOpen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                setIsMobileFiltersOpen(false);
+                setIsSortOpen(false);
+            }
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [isMobileFiltersOpen, isSortOpen]);
+
+    // Move focus into each sheet on open and restore it to the trigger on close.
+    useEffect(() => {
+        if (!isMobileFiltersOpen) return;
+        const trigger = document.activeElement as HTMLElement | null;
+        filterCloseRef.current?.focus();
+        return () => trigger?.focus();
+    }, [isMobileFiltersOpen]);
+
+    useEffect(() => {
+        if (!isSortOpen) return;
+        const trigger = document.activeElement as HTMLElement | null;
+        sortCloseRef.current?.focus();
+        return () => trigger?.focus();
+    }, [isSortOpen]);
 
     const sortOptions = [
         { key: 'created', label: 'Date Acquired', icon: Clock },
@@ -205,9 +242,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
                         <div className="flex h-10 border rounded-lg dark:bg-gray-800 dark:border-gray-600">
                             <button
                                 onClick={() => setViewMode('grid')}
-                                className={`px-4 sm:px-3 flex items-center justify-center sm:justify-start gap-2 rounded-l-lg min-w-[64px] sm:min-w-0
-                                    ${viewMode === 'grid' 
-                                        ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400' 
+                                className={`px-3 flex items-center justify-center sm:justify-start gap-2 rounded-l-lg min-w-[44px] sm:min-w-0
+                                    ${viewMode === 'grid'
+                                        ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400'
                                         : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
                                     }`}
                                 title="Grid View"
@@ -217,9 +254,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
                             </button>
                             <button
                                 onClick={() => setViewMode('list')}
-                                className={`px-4 sm:px-3 flex items-center justify-center sm:justify-start gap-2 rounded-r-lg border-l min-w-[64px] sm:min-w-0
-                                    ${viewMode === 'list' 
-                                        ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400' 
+                                className={`px-3 flex items-center justify-center sm:justify-start gap-2 rounded-r-lg border-l min-w-[44px] sm:min-w-0
+                                    ${viewMode === 'list'
+                                        ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400'
                                         : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
                                     }`}
                                 title="List View"
@@ -229,12 +266,28 @@ const Toolbar: React.FC<ToolbarProps> = ({
                             </button>
                         </div>
 
+                        {/* Page Size Selector */}
+                        <select
+                            value={itemsPerPage}
+                            onChange={(e) => onPageSizeChange(Number(e.target.value))}
+                            title="Totems per page"
+                            aria-label="Totems per page"
+                            className="h-10 border rounded-lg px-2 text-sm
+                                bg-white text-gray-900 dark:bg-gray-800 dark:text-white
+                                dark:border-gray-600"
+                        >
+                            {pageSizeOptions.map(size => (
+                                <option key={size} value={size}>{size < 0 ? 'All' : `${size} / page`}</option>
+                            ))}
+                        </select>
+
                         {/* Pagination */}
-                        <Pagination 
+                        <Pagination
                             currentPage={currentPage}
                             totalPages={totalPages}
                             totalItems={totalItems}
                             onPageChange={onPageChange}
+                            compact
                         />
                     </div>
                 </div>
@@ -242,13 +295,22 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
             {/* Mobile Filters Panel */}
             {isMobileFiltersOpen && (
-                <div className="fixed inset-0 bg-black/50 z-50 lg:hidden">
+                <div
+                    className="fixed inset-0 bg-black/50 z-50 lg:hidden"
+                    onClick={() => setIsMobileFiltersOpen(false)}
+                >
                     <div className="fixed inset-x-0 w-full bg-white dark:bg-gray-800 rounded-t-2xl p-6 space-y-4 z-50"
-                        style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))' }}>
+                        style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))' }}
+                        onClick={(e) => e.stopPropagation()}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="gallery-filter-title">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold dark:text-white">Filter Totems</h3>
-                            <button 
+                            <h3 id="gallery-filter-title" className="text-lg font-semibold dark:text-white">Filter Totems</h3>
+                            <button
+                                ref={filterCloseRef}
                                 onClick={() => setIsMobileFiltersOpen(false)}
+                                aria-label="Close"
                                 className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                             >
                                 <X size={20} className="dark:text-white" />
@@ -357,23 +419,35 @@ const Toolbar: React.FC<ToolbarProps> = ({
                                 </select>
                             </div>
                             
-                            {/* Reset Filters Button */}
-                            <button 
-                                onClick={() => {
-                                    setFilters({
-                                        species: '',
-                                        rarity: '',
-                                        stage: '',
-                                        affinity: '',
-                                        domain: ''
-                                    });
-                                    setIsMobileFiltersOpen(false);
-                                }}
-                                className="w-full py-3 mt-4 bg-purple-600 text-white rounded-lg 
-                                    hover:bg-purple-700 transition-colors font-medium"
-                            >
-                                Reset Filters
-                            </button>
+                            {/* Action Buttons */}
+                            <div className="flex flex-col gap-2 pt-2">
+                                {/* Apply Filters Button (filters already applied live; this just closes) */}
+                                <button
+                                    onClick={() => setIsMobileFiltersOpen(false)}
+                                    className="w-full py-3 bg-purple-600 text-white rounded-lg
+                                        hover:bg-purple-700 transition-colors font-medium"
+                                >
+                                    Apply Filters
+                                </button>
+
+                                {/* Reset Filters Button */}
+                                <button
+                                    onClick={() => {
+                                        setFilters({
+                                            species: '',
+                                            rarity: '',
+                                            stage: '',
+                                            affinity: '',
+                                            domain: ''
+                                        });
+                                        setIsMobileFiltersOpen(false);
+                                    }}
+                                    className="w-full py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg
+                                        hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
+                                >
+                                    Reset Filters
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -381,13 +455,22 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
             {/* Mobile Sort Menu */}
             {isSortOpen && (
-                <div className="fixed inset-0 bg-black/50 z-50 lg:hidden">
+                <div
+                    className="fixed inset-0 bg-black/50 z-50 lg:hidden"
+                    onClick={() => setIsSortOpen(false)}
+                >
                     <div className="fixed inset-x-0 w-full bg-white dark:bg-gray-800 rounded-t-2xl p-6 z-50"
-                        style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))' }}>
+                        style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))' }}
+                        onClick={(e) => e.stopPropagation()}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="gallery-sort-title">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold dark:text-white">Sort Totems</h3>
-                            <button 
+                            <h3 id="gallery-sort-title" className="text-lg font-semibold dark:text-white">Sort Totems</h3>
+                            <button
+                                ref={sortCloseRef}
                                 onClick={() => setIsSortOpen(false)}
+                                aria-label="Close"
                                 className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                             >
                                 <X size={20} className="dark:text-white" />

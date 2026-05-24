@@ -10,6 +10,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 const mockUserContext = vi.hoisted(() => ({
   essenceBalance: '5000',
   setEssenceBalance: vi.fn(),
+  updateTotemTraits: vi.fn(),
 }));
 
 const mockGameApi = vi.hoisted(() => ({
@@ -99,13 +100,30 @@ vi.mock('./TotemImageSection', () => ({
   ),
 }));
 
-// Render no visible text so getByTestId is the best query
+// Surface the received traits so the leak regression test can assert on them.
 vi.mock('./TotemStatsPanel', () => ({
-  default: () => <div data-testid="stats-panel" />,
+  default: ({ traits }: any) => (
+    <div data-testid="stats-panel" data-learned={traits?.learned ?? 'none'} />
+  ),
 }));
 
+// Surface received traits and expose a button that opens the (lifted) picker.
 vi.mock('./TotemDetailsPanel', () => ({
-  default: () => <div data-testid="details-panel" />,
+  default: ({ traits, onChooseTrait }: any) => (
+    <div data-testid="details-panel" data-learned={traits?.learned ?? 'none'}>
+      <button onClick={() => onChooseTrait?.('learned')}>Choose Learned</button>
+    </div>
+  ),
+}));
+
+// The picker now lives in TotemDetailView; mock it to confirm a choice via onChosen.
+vi.mock('./traits/TraitPickerModal', () => ({
+  default: ({ slot, onChosen, onClose }: any) => (
+    <div data-testid="trait-picker" data-slot={slot}>
+      <button onClick={() => onChosen('trt_quick_learner')}>Confirm Trait</button>
+      <button onClick={onClose}>Cancel Picker</button>
+    </div>
+  ),
 }));
 
 vi.mock('./TotemActionBar', () => ({
@@ -435,5 +453,41 @@ describe('TotemDetailView', () => {
     render(<TotemDetailView {...defaultProps} />);
     const prevButtons = screen.getAllByRole('button', { name: 'Previous Totem' });
     expect(prevButtons.length).toBeGreaterThan(0);
+  });
+
+  // =========================================================================
+  // TRAITS — optimistic override must not leak across totems (regression)
+  // =========================================================================
+  it('does not carry a chosen trait over when paging to the next totem', async () => {
+    const totemA = makeTestTotem({
+      id: 'ttm_A',
+      traits: { innate: 'trt_brave', learned: null, awakened: null },
+    });
+    const totemB = makeTestTotem({
+      id: 'ttm_B',
+      traits: { innate: 'trt_clever', learned: null, awakened: null },
+    });
+
+    const { rerender } = render(<TotemDetailView {...defaultProps} totem={totemA} />);
+
+    // Open the Details tab and choose a learned trait for totem A via the shared picker.
+    await userEvent.click(screen.getByRole('button', { name: 'Details' }));
+    expect(screen.getByTestId('details-panel')).toHaveAttribute('data-learned', 'none');
+    await userEvent.click(screen.getByRole('button', { name: 'Choose Learned' }));
+    expect(screen.getByTestId('trait-picker')).toHaveAttribute('data-slot', 'learned');
+    await userEvent.click(screen.getByRole('button', { name: 'Confirm Trait' }));
+
+    // Optimistic override shows immediately for totem A; picker closes.
+    expect(screen.getByTestId('details-panel')).toHaveAttribute('data-learned', 'trt_quick_learner');
+    expect(screen.queryByTestId('trait-picker')).not.toBeInTheDocument();
+    expect(mockUserContext.updateTotemTraits).toHaveBeenCalledWith('ttm_A', 'learned', 'trt_quick_learner');
+
+    // Page to totem B (same mounted view, new totem prop) — the override must NOT bleed over.
+    rerender(<TotemDetailView {...defaultProps} totem={totemB} />);
+    expect(screen.getByTestId('details-panel')).toHaveAttribute('data-learned', 'none');
+
+    // Paging back to totem A keeps A's optimistic choice (scoped to its id).
+    rerender(<TotemDetailView {...defaultProps} totem={totemA} />);
+    expect(screen.getByTestId('details-panel')).toHaveAttribute('data-learned', 'trt_quick_learner');
   });
 });

@@ -66,7 +66,7 @@ export function getTraitTooltipContent(args: {
         return `${def.name} (${SLOT_LABEL[args.slot]}) — ${def.description}`;
     }
     if (args.unlocked && args.slot !== 'innate') {
-        return `${SLOT_LABEL[args.slot]} trait unchosen — pick one in the Details tab.`;
+        return `${SLOT_LABEL[args.slot]} trait unchosen — choose one.`;
     }
     if (args.requiredStage !== undefined) {
         return `${SLOT_LABEL[args.slot]} trait awakens at Stage ${args.requiredStage + 1}.`;

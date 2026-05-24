@@ -233,6 +233,7 @@ const ShopInterface = () => {
                   id: totemData.id,
                   name: totemData.speciesName || 'Totem',
                   image: getTotemImageUrl(totemData.speciesId, totemData.colorId, totemData.stage || 0),
+                  innateTraitId: totemData.traits?.innate,
                   attributes: {
                       species: totemData.speciesId,
                       color: totemData.colorId,
@@ -678,6 +679,7 @@ const ShopInterface = () => {
         <CelebrationModal
           type="purchase"
           totem={purchasedTotem}
+          innateTraitId={purchasedTotem.innateTraitId}
           onClose={() => setPurchasedTotem(null)}
         />
       )}

@@ -5,6 +5,14 @@ interface TooltipProps {
     content: string;
     children: React.ReactNode;
     position?: 'top' | 'bottom' | 'left' | 'right';
+    /**
+     * Set when the child is itself an interactive control (button/link). The
+     * trigger then renders as a passive hover container (no role="button",
+     * tabIndex, or click/key handlers) so we don't nest interactive elements —
+     * the child keeps its own click/focus behaviour while still getting the
+     * styled hover tooltip.
+     */
+    interactiveChild?: boolean;
 }
 
 interface PortalCoords {
@@ -18,7 +26,8 @@ const GAP = 8;
 const Tooltip: React.FC<TooltipProps> = ({
     content,
     children,
-    position = 'top'
+    position = 'top',
+    interactiveChild = false
 }) => {
     const [isVisible, setIsVisible] = useState(false);
     const [coords, setCoords] = useState<PortalCoords | null>(null);
@@ -117,20 +126,28 @@ const Tooltip: React.FC<TooltipProps> = ({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // When the child is interactive, the trigger stays a passive hover container
+    // (no role/tabIndex/click/key handlers) to avoid nesting interactive elements.
+    const interactiveProps = interactiveChild
+        ? {}
+        : {
+            onClick: () => setIsVisible(!isVisible),
+            role: 'button' as const,
+            tabIndex: 0,
+            onKeyDown: (e: React.KeyboardEvent) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    setIsVisible(!isVisible);
+                }
+            },
+        };
+
     return (
         <div
             ref={triggerRef}
             className="relative inline-block"
             onMouseEnter={() => setIsVisible(true)}
             onMouseLeave={() => setIsVisible(false)}
-            onClick={() => setIsVisible(!isVisible)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    setIsVisible(!isVisible);
-                }
-            }}
+            {...interactiveProps}
         >
             {children}
             {isVisible && createPortal(

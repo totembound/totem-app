@@ -21,6 +21,8 @@ interface TotemStatsPanelProps {
         learned: string | null;
         awakened: string | null;
     } | null;
+    /** Open the shared trait picker for a slot. When omitted, unchosen rows are read-only. */
+    onChooseTrait?: (slot: TraitSlot) => void;
 }
 
 const SLOT_LABEL: Record<TraitSlot, string> = {
@@ -35,7 +37,7 @@ const SLOT_GATE: Record<TraitSlot, number> = {
     awakened: AWAKENED_STAGE_GATE,
 };
 
-const TotemStatsPanel: React.FC<TotemStatsPanelProps> = ({ attributes, traits }) => {
+const TotemStatsPanel: React.FC<TotemStatsPanelProps> = ({ attributes, traits, onChooseTrait }) => {
     const calculateXPProgress = (attributes: TotemAttributes): XPProgress => {
         const { experience, stage } = attributes;
         
@@ -189,7 +191,8 @@ const TotemStatsPanel: React.FC<TotemStatsPanelProps> = ({ attributes, traits })
                 </div>
             </div>
 
-            {/* Traits — compact read-only view. Choose interaction lives on the Details tab.
+            {/* Traits — unchosen unlocked slots are tappable to open the shared picker (when
+                onChooseTrait is provided); the same picker is reachable from the Details tab.
                 Once Phase 2 effects ship, each filled row will also show its modifier (e.g. "+10% XP train"). */}
             {traits && (
                 <div>
@@ -227,14 +230,37 @@ const TotemStatsPanel: React.FC<TotemStatsPanelProps> = ({ attributes, traits })
                             }
 
                             if (unlocked && slot !== 'innate') {
+                                const chipInner = (
+                                    <>
+                                        <div className={`w-7 h-7 shrink-0 rounded-full border-2 border-dashed ${SLOT_COLOR_CLASSES[slot]}`} />
+                                        <div className="min-w-0 text-left">
+                                            <div className={`text-xs ${SLOT_COLOR_CLASSES[slot]}`}>{SLOT_LABEL[slot]}</div>
+                                            <div className="font-medium text-sm text-amber-700 dark:text-amber-300">
+                                                {onChooseTrait ? 'Choose →' : 'Unchosen'}
+                                            </div>
+                                        </div>
+                                    </>
+                                );
+                                // Choosable: a real button inside <Tooltip interactiveChild> so it
+                                // gets the same styled DOM tooltip as the other chips without nesting
+                                // interactive elements. Read-only state uses the standard Tooltip.
+                                if (onChooseTrait) {
+                                    return (
+                                        <Tooltip key={slot} content={tooltipContent} position="top" interactiveChild>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => { e.stopPropagation(); onChooseTrait(slot); }}
+                                                className="w-full p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg flex items-center gap-3 border border-dashed border-amber-300 dark:border-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/40 hover:border-amber-400 dark:hover:border-amber-600 transition-colors"
+                                            >
+                                                {chipInner}
+                                            </button>
+                                        </Tooltip>
+                                    );
+                                }
                                 return (
                                     <Tooltip key={slot} content={tooltipContent} position="top">
                                         <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg flex items-center gap-3 border border-dashed border-amber-300 dark:border-amber-700 cursor-help">
-                                            <div className={`w-7 h-7 shrink-0 rounded-full border-2 border-dashed ${SLOT_COLOR_CLASSES[slot]}`} />
-                                            <div className="min-w-0">
-                                                <div className={`text-xs ${SLOT_COLOR_CLASSES[slot]}`}>{SLOT_LABEL[slot]}</div>
-                                                <div className="font-medium text-sm text-amber-700 dark:text-amber-300">Unchosen</div>
-                                            </div>
+                                            {chipInner}
                                         </div>
                                     </Tooltip>
                                 );

@@ -9,6 +9,7 @@ import TotemDetailHeader from './TotemDetailHeader';
 import TotemImageSection from './TotemImageSection';
 import TotemStatsPanel from './TotemStatsPanel';
 import TotemDetailsPanel from './TotemDetailsPanel';
+import TraitPickerModal from './traits/TraitPickerModal';
 import TotemActionBar from './TotemActionBar';
 import ExperienceEffect from './effects/ExperienceEffect';
 import { STAGE_THRESHOLDS, BASE_ELDER_XP, PRESTIGE_XP_REQUIREMENT } from '../config/constants';
@@ -72,8 +73,27 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     const [cooldowns, setCooldowns] = useState<Record<string, { onCooldown: boolean; readyAt: Date | null; remainingMs: number }>>({});
     const [, setTick] = useState(0); // Force re-render for countdown timer
     // Optimistic override after a trait is chosen — avoids round-tripping to the parent
-    // for a refetch on what is a ~2-per-totem-lifetime event.
-    const [traitsOverride, setTraitsOverride] = useState<{ innate: string | null; learned: string | null; awakened: string | null } | null>(null);
+    // for a refetch on what is a ~2-per-totem-lifetime event. Scoped to the totem it was
+    // made for (totemId) so a choice on one totem can't bleed into the next when the user
+    // pages/swipes through the gallery without remounting this view.
+    const [traitsOverride, setTraitsOverride] = useState<{
+        totemId: string;
+        traits: { innate: string | null; learned: string | null; awakened: string | null };
+    } | null>(null);
+
+    // The override only applies to the totem it was captured for; otherwise fall back to
+    // the totem's own traits. This makes navigation leak-proof without a reset effect
+    // (and avoids the one-frame flash a post-render reset would cause).
+    const effectiveTraits = useMemo(() => {
+        if (traitsOverride && traitsOverride.totemId === totem.id) {
+            return traitsOverride.traits;
+        }
+        return totem.traits ?? null;
+    }, [traitsOverride, totem.id, totem.traits]);
+
+    // Trait picker is owned here (not in a tab panel) so both the Stats and Details
+    // tabs can open it through one shared instance — single source of truth.
+    const [pickerSlot, setPickerSlot] = useState<TraitSlot | null>(null);
     const dialogRef = useRef<HTMLDivElement>(null);
     const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -404,6 +424,20 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
 
     const currentAttributes = totem.attributes;
     const currentTrackings = totem.trackings || {};
+    const totemName = currentAttributes.nickname || evolvedTotemData?.displayName || totem.displayName || stageName || totem.name || 'this totem';
+
+    // Apply a successful trait choice: optimistic in-modal override (tagged with the
+    // totem id so it can't bleed across navigation) plus a push to UserContext so the
+    // gallery card behind us refreshes. Shared by both tabs via the lifted picker.
+    const handleTraitChosen = useCallback((slot: TraitSlot, traitId: string) => {
+        setTraitsOverride(prev => {
+            const base = (prev && prev.totemId === totem.id ? prev.traits : totem.traits)
+                ?? { innate: null, learned: null, awakened: null };
+            return { totemId: totem.id, traits: { ...base, [slot]: traitId } };
+        });
+        updateTotemTraits(totem.id, slot, traitId);
+        setPickerSlot(null);
+    }, [totem.id, totem.traits, updateTotemTraits]);
 
     const canEvolve = currentAttributes.experience >= STAGE_THRESHOLDS[currentAttributes.stage + 1];
     const trainExp = Number(actionConfigs[ActionType.Train]?.experienceGain);
@@ -414,9 +448,11 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
         }
     }, [totem, onClose]);
 
-    // Clear error when totem changes (dialog reopened)
+    // Clear transient per-totem UI when the totem changes (paged/swiped or dialog reopened):
+    // any error, and any open trait picker (so it can't end up targeting the wrong totem).
     useEffect(() => {
         setError(null);
+        setPickerSlot(null);
     }, [totem.id]);
 
     // Swipe gesture handlers for prev/next navigation
@@ -540,7 +576,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                 isOnExpedition={tokenIsOnExpedition}
                                 expeditionEndTime={expeditionEndTime}
                                 sanctum={currentAttributes.sanctum}
-                                traits={traitsOverride ?? totem.traits ?? null}
+                                traits={effectiveTraits}
                             />
                         </div>
 
@@ -674,7 +710,8 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                             {activeTab === 'stats' ? (
                                 <TotemStatsPanel
                                     attributes={currentAttributes}
-                                    traits={traitsOverride ?? totem.traits ?? undefined}
+                                    traits={effectiveTraits ?? undefined}
+                                    onChooseTrait={setPickerSlot}
                                 />
                             ) : (
                                 <TotemDetailsPanel
@@ -686,22 +723,25 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                     domain={totem.domain}
                                     sanctum={currentAttributes.sanctum}
                                     isOnExpedition={tokenIsOnExpedition}
-                                    traits={traitsOverride ?? totem.traits ?? undefined}
-                                    totemId={totem.id}
-                                    totemName={currentAttributes.nickname || evolvedTotemData?.displayName || totem.displayName || stageName || totem.name || 'this totem'}
-                                    onTraitChosen={(slot: TraitSlot, traitId: string) => {
-                                        // Update local override for instant UI in this modal
-                                        const base = traitsOverride ?? totem.traits ?? { innate: null, learned: null, awakened: null };
-                                        setTraitsOverride({ ...base, [slot]: traitId });
-                                        // Push back to UserContext so the gallery card behind us refreshes too
-                                        updateTotemTraits(totem.id, slot, traitId);
-                                    }}
+                                    traits={effectiveTraits ?? undefined}
+                                    onChooseTrait={setPickerSlot}
                                 />
                             )}
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Trait picker — single shared instance opened by either tab's "Choose" affordance */}
+            {pickerSlot && pickerSlot !== 'innate' && (
+                <TraitPickerModal
+                    totemId={totem.id}
+                    totemName={totemName}
+                    slot={pickerSlot}
+                    onClose={() => setPickerSlot(null)}
+                    onChosen={(traitId) => handleTraitChosen(pickerSlot, traitId)}
+                />
+            )}
         </div>
     );
 };

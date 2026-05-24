@@ -3,9 +3,11 @@ import { Sparkles, X } from 'lucide-react';
 import { Rarity } from '../types/types';
 import { getRarityColor } from '../utils/totems';
 import { IPFS_GATEWAY_URL } from '../config/constants';
+import { getTraitById } from '../config/traits';
+import { TraitIcon } from '../utils/traitIcons';
 
 interface CelebrationModalProps {
-  totem: { 
+  totem: {
     name: string;
     image: string;
     attributes: {
@@ -14,17 +16,21 @@ interface CelebrationModalProps {
       stage?: number;
       domain?: string;
     }
-  }; 
+  };
   type: 'purchase' | 'evolution' | 'loot_claim';
+  /** Innate trait id for a freshly-acquired totem — shown as a corner badge. */
+  innateTraitId?: string | null;
   onClose: () => void;
 }
 
-const CelebrationModal = ({ 
-  totem, 
+const CelebrationModal = ({
+  totem,
   type,
-  onClose 
+  innateTraitId,
+  onClose
 }: CelebrationModalProps) => {
-  
+  const innateTrait = getTraitById(innateTraitId);
+
   // Animation effect on mount
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -104,12 +110,25 @@ const CelebrationModal = ({
 
           {/* NFT Display */}
           <div className="relative aspect-square rounded-lg overflow-hidden mb-6">
-            <img 
+            <img
               src={totem.image.replace('ipfs://', IPFS_GATEWAY_URL)}
               alt={totem.name}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+
+            {/* Innate trait badge — the trait this totem was born with (corner overlay) */}
+            {innateTrait && (
+              <div
+                className="absolute top-2 left-2 z-10 inline-flex items-center gap-1.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-full pl-1.5 pr-2.5 py-1 border border-stone-200 dark:border-gray-700 shadow-md"
+                title={`Born trait: ${innateTrait.name}`}
+              >
+                <TraitIcon traitId={innateTrait.id} size={14} colorBySlot />
+                <span className="text-xs font-medium text-stone-700 dark:text-stone-200">
+                  {innateTrait.name}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* NFT Info */}

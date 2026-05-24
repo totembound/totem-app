@@ -99,6 +99,7 @@ const LootClaimModal: React.FC<LootClaimModalProps> = ({ lootItem, onClose, onCl
               domain: species?.domain || '',
             },
           }}
+          innateTraitId={totemResult.traits?.innate}
           onClose={() => { onClaimed(); onClose(); }}
         />
       );

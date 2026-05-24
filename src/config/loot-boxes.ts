@@ -43,12 +43,25 @@ export const LOOT_BOXES: Record<string, LootBoxDefinition> = {
             randomized: ["color"],
         },
     },
+    epic_totem_box: {
+        id: "epic_totem_box",
+        name: "Epic Totem Box",
+        description: "Contains an Epic totem. Choose your species!",
+        icon: "egg",
+        rarity: "epic",
+        type: "totem_box",
+        config: {
+            rarityId: 3,
+            userChooses: ["species"],
+            randomized: ["color"],
+        },
+    },
     essence_box_small: {
         id: "essence_box_small",
         name: "Small Essence Box",
         description: "Contains 200-500 Essence",
         icon: "sparkles",
-        rarity: "common",
+        rarity: "uncommon",
         type: "essence_box",
         config: {
             minAmount: 200,
@@ -67,6 +80,20 @@ export const LOOT_BOXES: Record<string, LootBoxDefinition> = {
         config: {
             minAmount: 1000,
             maxAmount: 2500,
+            userChooses: [],
+            randomized: ["amount"],
+        },
+    },
+    essence_box_huge: {
+        id: "essence_box_huge",
+        name: "Huge Essence Box",
+        description: "Contains 3000-5000 Essence",
+        icon: "sparkles",
+        rarity: "epic",
+        type: "essence_box",
+        config: {
+            minAmount: 3000,
+            maxAmount: 5000,
             userChooses: [],
             randomized: ["amount"],
         },

@@ -44,6 +44,7 @@ const FusionWorkshop: React.FC<FusionWorkshopProps> = ({ onBack }) => {
       rarityId: number;
       stage: number;
       image: string;
+      traits?: { innate: string | null; learned: string | null; awakened: string | null };
     };
     achievements: Array<{ achievementId: string; milestone?: number; rewards?: { essence?: number; xp?: number } }>;
   } | null>(null);

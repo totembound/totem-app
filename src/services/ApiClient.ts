@@ -891,6 +891,7 @@ class ApiClient {
           wisdom: number;
           happiness: number;
         };
+        traits?: { innate: string | null; learned: string | null; awakened: string | null };
         image: string;
         createdAt: string;
       };
@@ -1154,7 +1155,19 @@ class ApiClient {
   async purchaseBundle(bundleId: number) {
     return this.request<{
       bundle: { name: string; essence: number };
-      totem: { id: string; name: string; rarityId: number; image?: string };
+      totem: {
+        id: string;
+        speciesId: number;
+        speciesName: string;
+        colorId: number;
+        rarityId: number;
+        rarityName: string;
+        stage: number;
+        experience: number;
+        stats: { strength: number; agility: number; wisdom: number; happiness: number };
+        traits?: { innate: string | null; learned: string | null; awakened: string | null };
+        image?: string;
+      };
       gemsSpent: number;
       essenceReceived: number;
       newGemsBalance: number;
@@ -1186,6 +1199,7 @@ class ApiClient {
           happiness: number;
           hunger: number;
         };
+        traits?: { innate: string | null; learned: string | null; awakened: string | null };
         image: string;
         createdAt: string;
       };
@@ -1254,6 +1268,7 @@ class ApiClient {
             happiness: number;
             hunger: number;
           };
+          traits?: { innate: string | null; learned: string | null; awakened: string | null };
         };
         amount?: number;
         newBalance?: number;

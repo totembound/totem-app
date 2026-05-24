@@ -2,6 +2,8 @@ import React from 'react';
 import { X, Sparkles, Star, Flame, Palette } from 'lucide-react';
 import { getRarityColor } from '../../utils/totems';
 import { getColorName } from '../../utils/species';
+import { getTraitById } from '../../config/traits';
+import { TraitIcon } from '../../utils/traitIcons';
 
 interface FusionResultModalProps {
   fusionType: 'pure' | 'wild';
@@ -13,6 +15,11 @@ interface FusionResultModalProps {
     rarityId: number;
     stage: number;
     image: string;
+    traits?: {
+      innate: string | null;
+      learned: string | null;
+      awakened: string | null;
+    };
   };
   achievements: Array<{
     achievementId: string;
@@ -32,6 +39,7 @@ const FusionResultModal: React.FC<FusionResultModalProps> = ({
 }) => {
   const rarityColor = getRarityColor(newTotem.rarityId);
   const colorName = getColorName(newTotem.colorId);
+  const innateTrait = getTraitById(newTotem.traits?.innate);
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
@@ -71,6 +79,20 @@ const FusionResultModal: React.FC<FusionResultModalProps> = ({
                 className="w-full h-full object-cover"
               />
             </div>
+
+            {/* Innate trait badge — the trait this totem was forged with */}
+            {innateTrait && (
+              <div
+                className="absolute -top-2 -left-2 inline-flex items-center gap-1 bg-white dark:bg-gray-800
+                  rounded-full pl-1 pr-2 py-0.5 border border-stone-200 dark:border-gray-700 shadow-md"
+                title={`Born trait: ${innateTrait.name}`}
+              >
+                <TraitIcon traitId={innateTrait.id} size={13} colorBySlot />
+                <span className="text-[11px] font-medium text-stone-700 dark:text-stone-200">
+                  {innateTrait.name}
+                </span>
+              </div>
+            )}
           </div>
 
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">

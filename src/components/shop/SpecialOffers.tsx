@@ -66,6 +66,7 @@ const SpecialOffers: React.FC<SpecialOffersViewProps> = ({ onPurchased }) => {
                     id: totem.id,
                     name: totem.speciesName || 'Totem',
                     image: getTotemImageUrl(totem.speciesId, totem.colorId, stage),
+                    innateTraitId: totem.traits?.innate,
                     attributes: {
                         species: totem.speciesId, color: totem.colorId,
                         rarity: totem.rarityId,

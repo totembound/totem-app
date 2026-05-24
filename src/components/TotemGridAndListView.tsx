@@ -45,7 +45,7 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
             <div className="absolute top-2 right-2 z-10 flex items-center">
                 <span className={`
                     inline-flex items-center max-w-[80px] h-[18px]
-                    px-1.5 text-xs leading-none font-medium rounded-full border
+                    px-1.5 text-[9px] lg:text-xs leading-none font-medium rounded-full border
                     shadow-sm backdrop-blur-sm bg-opacity-90 bg-white dark:bg-opacity-80 dark:bg-gray-900
                     ${getRarityBadgeColor(nft.attributes.rarity)}
                 `}>

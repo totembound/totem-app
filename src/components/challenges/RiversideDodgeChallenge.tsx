@@ -373,9 +373,9 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
             onMouseDown={() => applyPosition(pos)}
             onMouseUp={returnToIdle}
             onMouseLeave={returnToIdle}
-            onTouchStart={e => { e.preventDefault(); applyPosition(pos); }}
-            onTouchEnd={e => { e.preventDefault(); returnToIdle(); }}
-            onTouchCancel={e => { e.preventDefault(); returnToIdle(); }}
+            onTouchStart={() => applyPosition(pos)}
+            onTouchEnd={() => returnToIdle()}
+            onTouchCancel={() => returnToIdle()}
           >
             <img
               src={BUTTON_IMAGE[pos]}

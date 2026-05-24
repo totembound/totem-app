@@ -72,7 +72,7 @@ export const CHALLENGES: ChallengeDefinition[] = [
     {
         id: "chl_riverside-dodge",
         name: "Riverside Dodge",
-        description: "Evade piranhas leaping from the river. Dodge HIGH, MIDDLE, or LOW — but the controls are inverted.",
+        description: "Evade piranhas leaping from the river. Agility extends your reaction window, giving you more time to read each incoming strike.",
         type: "agility",
         affinity: "agility",
         image: "/challenges/Riverside-Background.png",

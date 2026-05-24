@@ -30,11 +30,14 @@ const GAME_DURATION = 30;
 const MAX_GAP = 1300;
 const MIN_GAP = 400;
 const SHRINK_STEP = 150;
+const TW_SHRINK_STEP = 40;
+const MIN_TW = 700;
 const GRACE_PERIOD_DURATION = 900;
 const JUMP_MAX_DURATION = 1500;
 const POINTS_PER_DODGE = 50;
 const MAX_SCORE = 1000;
 const TRANSITION_DURATION = 40; // ms — purely visual, hitbox logic uses ref
+const ARRIVAL_FRACTION = 0.82; // fraction of telegraphWindow when piranha visually reaches player (matches 82% keyframe)
 
 // Inverted scheme: button label → dodge position → attack height it counters
 const CORRECT_DODGE: Record<AttackHeight, DodgePosition> = {
@@ -59,19 +62,19 @@ const OTTER_SPRITE: Record<DisplaySprite, string> = {
   t3:   '/challenges/Riverside-Otter-Transition-3.png', // duck ↔ flat
 };
 
-// Uniform scale factor: idle canvas 659×856, target render height 120px → scale ≈ 0.1402.
-// Applied to every sprite's canvas dims so body mass looks consistent across all poses.
-// Ground poses anchor at bottom:'77px' (feet at canvas bottom after trimming empty space).
+// Scale factor ~0.25 applied to normalized power-of-2 canvas dims (512, 768).
+// All sprites exported at 512×512, 512×768 (portrait), or 768×512 (landscape).
+// Ground poses anchor at bottom:'77px' — tune if otter feet don't sit on the waterline.
 interface SpriteRenderConfig { w: number; h: number; bottom?: string; top?: string }
 
 const SPRITE_CONFIG: Record<DisplaySprite, SpriteRenderConfig> = {
-  idle: { w:  92, h: 120, bottom: '77px' },
-  jump: { w:  98, h: 144, top:    '28%'  },
-  duck: { w: 118, h:  48, bottom: '77px' },
-  flat: { w: 173, h:  29, bottom: '77px' },
-  t1:   { w:  90, h: 175, top:    '28%'  },
-  t2:   { w: 142, h:  82, bottom: '77px' },
-  t3:   { w: 198, h:  40, bottom: '77px' },
+  idle: { w: 128, h: 128, bottom: '77px' },  // 512×512 — reference (feet at 88px from floor)
+  jump: { w: 128, h: 192, top:    '18%'  },  // 512×768
+  duck: { w: 220, h: 147, bottom: '48px' },  // 768×512 — 40px padding below feet at this scale
+  flat: { w: 197, h: 197, bottom: '15px' },  // 512×512 — 74px padding below feet at this scale
+  t1:   { w: 128, h: 192, top:    '18%'  },  // 512×768
+  t2:   { w: 192, h: 128, bottom: '60px' },  // 768×512 — 28px padding below feet
+  t3:   { w: 192, h: 128, bottom: '45px' },  // 768×512 — 43px padding below feet
 };
 
 // Returns the sprite sequence to display for a position transition (ends on the target sprite).
@@ -90,7 +93,7 @@ function getTransitionSequence(from: DodgePosition, to: DodgePosition): DisplayS
 }
 
 const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
-  difficulty: _difficulty = 1,
+  difficulty = 1,
   agility = 10,
   onComplete = (score: number) => console.log('Challenge complete:', score),
 }) => {
@@ -100,7 +103,6 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
   const [otterPosition, setOtterPosition] = useState<DodgePosition>('idle');
   const [activeAttack, setActiveAttack] = useState<ActiveAttack | null>(null);
   const [gracePeriodActive, setGracePeriodActive] = useState(false);
-  const [showMissFeedback, setShowMissFeedback] = useState(false);
   const [displaySprite, setDisplaySprite] = useState<DisplaySprite>('idle');
 
   // Refs shadow all state consumed inside timer callbacks
@@ -115,13 +117,17 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
   const endTimeRef = useRef<number | null>(null);
   const attackSchedulerRef = useRef<number | null>(null);
   const arrivalCheckRef = useRef<number | null>(null);
+  const removalTimerRef = useRef<number | null>(null);
   const jumpCapTimerRef = useRef<number | null>(null);
   const gracePeriodTimerRef = useRef<number | null>(null);
-  const missFeedbackTimerRef = useRef<number | null>(null);
   const transitionTimerRef = useRef<number | null>(null);
 
   // Higher agility gives more reaction time per attack — piranha crosses slower
   const telegraphWindow = Math.max(600, 1400 - (agility - 10) * 40);
+  // Difficulty shifts the starting TW down — higher difficulty = faster piranhas from the start.
+  // A miss resets to startingTW (not the agility max) so difficulty stays relevant throughout.
+  const startingTW = Math.max(MIN_TW, telegraphWindow - (difficulty - 1) * 200);
+  const currentTWRef = useRef(startingTW);
 
   useEffect(() => { gameStateRef.current = gameState; }, [gameState]);
   useEffect(() => { otterPositionRef.current = otterPosition; }, [otterPosition]);
@@ -131,9 +137,9 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
     if (timerRef.current) { window.clearInterval(timerRef.current); timerRef.current = null; }
     if (attackSchedulerRef.current) { window.clearTimeout(attackSchedulerRef.current); attackSchedulerRef.current = null; }
     if (arrivalCheckRef.current) { window.clearTimeout(arrivalCheckRef.current); arrivalCheckRef.current = null; }
+    if (removalTimerRef.current) { window.clearTimeout(removalTimerRef.current); removalTimerRef.current = null; }
     if (jumpCapTimerRef.current) { window.clearTimeout(jumpCapTimerRef.current); jumpCapTimerRef.current = null; }
     if (gracePeriodTimerRef.current) { window.clearTimeout(gracePeriodTimerRef.current); gracePeriodTimerRef.current = null; }
-    if (missFeedbackTimerRef.current) { window.clearTimeout(missFeedbackTimerRef.current); missFeedbackTimerRef.current = null; }
     if (transitionTimerRef.current) { window.clearTimeout(transitionTimerRef.current); transitionTimerRef.current = null; }
   }, []);
 
@@ -152,24 +158,19 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
     if (gameStateRef.current !== 'playing') return;
 
     const height = HEIGHTS[Math.floor(Math.random() * HEIGHTS.length)];
+    const tw = currentTWRef.current;
     const attack: ActiveAttack = {
       id: nextAttackIdRef.current++,
       height,
-      telegraphWindow,
+      telegraphWindow: tw,
       sprite: PIRANHA_SPRITES[Math.floor(Math.random() * PIRANHA_SPRITES.length)],
     };
     setActiveAttack(attack);
 
-    // Piranha reaches player hitbox after telegraphWindow ms — evaluate dodge here
+    // Evaluate dodge when piranha visually reaches the player (ARRIVAL_FRACTION of animation)
     arrivalCheckRef.current = window.setTimeout(() => {
       if (gameStateRef.current !== 'playing') return;
-      setActiveAttack(null);
-
-      if (gracePeriodRef.current) {
-        // Attack passes through with no consequence during invincibility window
-        attackSchedulerRef.current = window.setTimeout(launchAttack, currentIntervalRef.current);
-        return;
-      }
+      if (gracePeriodRef.current) return; // attack passes through; removal timer schedules next
 
       const correctDodge = otterPositionRef.current === CORRECT_DODGE[height];
       const partialDodge = height === 'HIGH' && otterPositionRef.current === 'flat';
@@ -180,28 +181,31 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
         scoreRef.current = newScore;
         setScore(newScore);
         currentIntervalRef.current = Math.max(MIN_GAP, currentIntervalRef.current - SHRINK_STEP);
+        currentTWRef.current = Math.max(MIN_TW, currentTWRef.current - TW_SHRINK_STEP);
         if (newScore >= MAX_SCORE) {
           handleGameEnd();
           return;
         }
       } else {
         currentIntervalRef.current = MAX_GAP;
+        currentTWRef.current = startingTW;
         gracePeriodRef.current = true;
         setGracePeriodActive(true);
-        setShowMissFeedback(true);
 
         if (gracePeriodTimerRef.current) window.clearTimeout(gracePeriodTimerRef.current);
         gracePeriodTimerRef.current = window.setTimeout(() => {
           gracePeriodRef.current = false;
           setGracePeriodActive(false);
         }, GRACE_PERIOD_DURATION);
-
-        if (missFeedbackTimerRef.current) window.clearTimeout(missFeedbackTimerRef.current);
-        missFeedbackTimerRef.current = window.setTimeout(() => setShowMissFeedback(false), 600);
       }
+    }, Math.round(tw * ARRIVAL_FRACTION));
 
+    // Remove piranha and schedule next attack after full exit animation completes
+    removalTimerRef.current = window.setTimeout(() => {
+      if (gameStateRef.current !== 'playing') return;
+      setActiveAttack(null);
       attackSchedulerRef.current = window.setTimeout(launchAttack, currentIntervalRef.current);
-    }, telegraphWindow);
+    }, tw);
   }, [telegraphWindow, handleGameEnd]);
 
   const initializeGame = useCallback(() => {
@@ -211,6 +215,7 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
     otterPositionRef.current = 'idle';
     gracePeriodRef.current = false;
     currentIntervalRef.current = MAX_GAP;
+    currentTWRef.current = startingTW;
     nextAttackIdRef.current = 1;
 
     setScore(0);
@@ -219,7 +224,6 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
     setDisplaySprite('idle');
     setActiveAttack(null);
     setGracePeriodActive(false);
-    setShowMissFeedback(false);
 
     endTimeRef.current = Date.now() + GAME_DURATION * 1000;
     gameStateRef.current = 'playing';
@@ -323,6 +327,12 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
     idle: '',
   };
 
+  const BUTTON_SIZE: Record<'jump' | 'duck' | 'flat', number> = {
+    jump: 66,
+    duck: 72,
+    flat: 74,
+  };
+
   const handleButtonTouchMove = useCallback((e: React.TouchEvent) => {
     if (gameStateRef.current !== 'playing') return;
     const touch = e.touches[0];
@@ -352,8 +362,8 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
               background: 'none',
               border: 'none',
               padding: 0,
-              height: 72,
-              width: 72,
+              height: BUTTON_SIZE[pos],
+              width: BUTTON_SIZE[pos],
               filter: active
                 ? 'brightness(1.25) drop-shadow(0 0 8px rgba(255,255,255,0.85))'
                 : 'brightness(0.8)',
@@ -394,18 +404,6 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
             <div className="absolute inset-0 bg-red-500 opacity-10 animate-pulse z-20 pointer-events-none" />
           )}
 
-          {showMissFeedback && (
-            <div
-              className="absolute left-1/2 top-1/3 z-30 pointer-events-none text-red-400 text-3xl font-bold"
-              style={{
-                transform: 'translate(-50%, -50%)',
-                textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-                animation: 'missFlash 0.6s ease-out forwards',
-              }}
-            >
-              MISS!
-            </div>
-          )}
 
           {/* Subtle lane guide lines */}
           {(['HIGH', 'MIDDLE', 'LOW'] as AttackHeight[]).map(h => (
@@ -465,7 +463,7 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
             <img
               src={OTTER_SPRITE[displaySprite]}
               alt="Otter"
-              className="w-full h-full"
+              className="w-full h-full object-contain"
               style={{
                 filter: gracePeriodActive ? 'grayscale(70%)' : 'none',
                 transition: 'filter 0.15s',
@@ -494,16 +492,13 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
         @keyframes piranhaArc {
           0%   { transform: translateY(-50%) translateX(900px) translateY(40px); }
           45%  { transform: translateY(-50%) translateX(350px) translateY(-25px); }
-          100% { transform: translateY(-50%) translateX(50px)  translateY(0px); }
+          82%  { transform: translateY(-50%) translateX(50px)  translateY(0px); }
+          100% { transform: translateY(-50%) translateX(-120px) translateY(0px); }
         }
         @keyframes telegraphPulse {
           0%   { opacity: 0.5; box-shadow: 0 0 4px 2px rgba(56,189,248,0.4); }
           50%  { opacity: 1;   box-shadow: 0 0 14px 7px rgba(56,189,248,0.9); }
           100% { opacity: 0.6; box-shadow: 0 0 6px 3px rgba(56,189,248,0.5); }
-        }
-        @keyframes missFlash {
-          0%   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-          100% { opacity: 0; transform: translate(-50%, -50%) scale(1.4); }
         }
       `}</style>
       {renderGameContent()}

@@ -44,6 +44,13 @@ body {
     height: 6px;
 }
 
+/* Village panorama scroller — Chrome-friendly scrollbar hide. The inline
+   scrollbarWidth: 'none' only works in Firefox; this rule covers webkit
+   browsers (Chrome/Safari/Edge). */
+.village-scroller::-webkit-scrollbar {
+    display: none;
+}
+
 ::-webkit-scrollbar-track {
     background: transparent;
 }
@@ -77,3 +84,184 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 html.dark * {
     scrollbar-color: rgba(75, 85, 99, 0.6) transparent;
 }
+
+/* Wallpaper mode — toggled from the Home page. Hides global chrome (header,
+   top + mobile nav, footer) plus the GameBackground dimming/readability
+   overlays so the user sees the artwork unobstructed. The Home page itself
+   swaps its content for a small "exit wallpaper" badge. */
+body.wallpaper-mode header,
+body.wallpaper-mode nav,
+body.wallpaper-mode footer,
+body.wallpaper-mode .tutorial-wizard,
+body.wallpaper-mode .wallpaper-mask {
+    display: none;
+}
+
+/* Wallpaper mode: <main> is in normal flow above the fixed game-background
+   layer and would intercept every click/drag/scroll, even though it visually
+   only contains the small back button. Make it pass-through; the back button
+   itself sets pointer-events-auto so it stays clickable. */
+body.wallpaper-mode main {
+    pointer-events: none;
+}
+
+/* Wallpaper mode: render the background image at its natural aspect (height
+   filling the viewport, width preserving ratio) and let the user pan
+   horizontally to see the parts that get cropped on narrower viewports
+   (mobile or small desktop windows). Touch-action panning enables native
+   swipe; click-drag + wheel + arrow keys handled in GameBackground.tsx. */
+body.wallpaper-mode .game-background-root {
+    pointer-events: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+    cursor: grab;
+}
+body.wallpaper-mode .game-background-image {
+    position: relative;
+    inset: auto;
+    width: auto;
+    height: 100vh;
+    max-width: none;
+    object-fit: contain;
+    object-position: left center;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+/* Bump scrollbar size in wallpaper mode so it's discoverable + clickable;
+   the global 6px is too thin to grab when the user wants to drag the bar. */
+body.wallpaper-mode .game-background-root::-webkit-scrollbar {
+    height: 12px;
+}
+body.wallpaper-mode .game-background-root::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 6px;
+}
+body.wallpaper-mode .game-background-root::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   Village ambient effect keyframes — used by AmbientFx.tsx and VillageWalker.
+   prefers-reduced-motion is gated in the component, so these run unconditionally.
+   -------------------------------------------------------------------------- */
+/* Two sway variants so adjacent puffs don't move identically. -A drifts left,
+   -B drifts right. Combined with feTurbulence on the parent group, the
+   silhouettes become wispy rather than circular. */
+@keyframes village-smoke-rise-A {
+    0%   { transform: translate(0, 0) scale(0.55); opacity: 0; }
+    12%  { opacity: 0.5; }
+    35%  { transform: translate(-3px, -50px) scale(1.05); opacity: 0.55; }
+    65%  { transform: translate(-7px, -110px) scale(1.6); opacity: 0.35; }
+    90%  { transform: translate(-12px, -160px) scale(2.2); opacity: 0.06; }
+    100% { transform: translate(-14px, -170px) scale(2.4); opacity: 0; }
+}
+@keyframes village-smoke-rise-B {
+    0%   { transform: translate(0, 0) scale(0.5); opacity: 0; }
+    12%  { opacity: 0.55; }
+    35%  { transform: translate(4px, -55px) scale(1.1); opacity: 0.6; }
+    65%  { transform: translate(9px, -115px) scale(1.7); opacity: 0.4; }
+    90%  { transform: translate(14px, -160px) scale(2.3); opacity: 0.08; }
+    100% { transform: translate(16px, -170px) scale(2.5); opacity: 0; }
+}
+@keyframes village-mist-drift {
+    0%   { transform: translate(-12px, 0) scale(1, 1); opacity: 0.5; }
+    50%  { transform: translate(14px, -4px) scale(1.06, 1.04); opacity: 0.75; }
+    100% { transform: translate(-12px, 0) scale(1, 1); opacity: 0.5; }
+}
+@keyframes village-mist-orb {
+    0%   { transform: translate(0, 0); opacity: 0.55; }
+    25%  { transform: translate(40px, -8px); opacity: 0.95; }
+    50%  { transform: translate(70px, 6px); opacity: 0.7; }
+    75%  { transform: translate(30px, 10px); opacity: 0.95; }
+    100% { transform: translate(0, 0); opacity: 0.55; }
+}
+@keyframes village-sparkle-pulse {
+    0%   { transform: scale(0.3); opacity: 0; }
+    25%  { opacity: 0.85; }
+    100% { transform: scale(1.4); opacity: 0; }
+}
+@keyframes village-sparkle-core {
+    0%, 100% { transform: scale(0.85); opacity: 0.85; }
+    50%      { transform: scale(1.15); opacity: 1; }
+}
+/* Waterfall splash: three trajectory variants so droplets fan out — center
+   bursts straight up, L drifts up-and-left, R drifts up-and-right. Combined
+   with feTurbulence the cluster looks like wispy water spray. */
+@keyframes village-splash-C {
+    0%   { transform: translate(0, 0) scale(0.3); opacity: 0; }
+    20%  { opacity: 0.85; }
+    65%  { transform: translate(0, -16px) scale(1.4); opacity: 0.45; }
+    100% { transform: translate(0, -28px) scale(1.9); opacity: 0; }
+}
+@keyframes village-splash-L {
+    0%   { transform: translate(0, 0) scale(0.3); opacity: 0; }
+    20%  { opacity: 0.8; }
+    65%  { transform: translate(-9px, -14px) scale(1.3); opacity: 0.4; }
+    100% { transform: translate(-16px, -22px) scale(1.8); opacity: 0; }
+}
+@keyframes village-splash-R {
+    0%   { transform: translate(0, 0) scale(0.3); opacity: 0; }
+    20%  { opacity: 0.8; }
+    65%  { transform: translate(9px, -14px) scale(1.3); opacity: 0.4; }
+    100% { transform: translate(16px, -22px) scale(1.8); opacity: 0; }
+}
+@keyframes village-walker-halo {
+    0%, 100% { opacity: 0.3; transform: scale(0.92); }
+    50%      { opacity: 0.55; transform: scale(1.1); }
+}
+
+/* Star twinkle: flashes from invisible → bright → invisible with a slight
+   rotation so the cross seems to spin into existence. The diagonal pair
+   uses a phase-shifted variant so the 8 rays don't all pulse together. */
+@keyframes village-star-twinkle {
+    0%, 100% { transform: scale(0) rotate(-12deg); opacity: 0; }
+    35%      { transform: scale(1.05) rotate(0deg); opacity: 1; }
+    55%      { transform: scale(0.85) rotate(4deg); opacity: 0.95; }
+    75%      { transform: scale(0.4) rotate(8deg); opacity: 0.5; }
+}
+@keyframes village-star-twinkle-diag {
+    0%, 100% { transform: scale(0) rotate(33deg); opacity: 0; }
+    40%      { transform: scale(0.9) rotate(45deg); opacity: 0.8; }
+    60%      { transform: scale(0.7) rotate(50deg); opacity: 0.7; }
+    80%      { transform: scale(0.3) rotate(57deg); opacity: 0.3; }
+}
+@keyframes village-star-glow {
+    0%, 100% { opacity: 0; transform: scale(0.4); }
+    40%      { opacity: 0.85; transform: scale(1.2); }
+    70%      { opacity: 0.4; transform: scale(0.9); }
+}
+@keyframes village-star-core {
+    0%, 100% { opacity: 0; transform: scale(0); }
+    35%      { opacity: 1; transform: scale(1.4); }
+    55%      { opacity: 0.85; transform: scale(1); }
+    80%      { opacity: 0.2; transform: scale(0.4); }
+}
+@keyframes village-walker-core {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-2px); }
+}
+
+/* --------------------------------------------------------------------------
+   Modal-over-village pause rules — driven by data attributes set on the stage
+   and scroller from KeepersVillage's atmosphere context. Each modal route
+   declares an atmosphere preset (soft/hard/claim) which toggles these.
+   See plan/village-v2.md §Performance — Modal-Over-Village.
+   -------------------------------------------------------------------------- */
+/* pause-fx: freeze every CSS/SVG animation under the stage so smoke/mist/
+   sparkle/star/walker-halo all stop. Saves the GPU from re-rasterizing the
+   feTurbulence filters under a modal that the user can't see. */
+[data-village-pause-fx="true"] *           { animation-play-state: paused; }
+/* keepFxActive escape hatch: AmbientFx adds .village-fx-keep on its outer
+   wrapper when its id is in the modal's keepFxActive list. Higher specificity
+   (attribute + class) beats the pause rule above so building-owned ambient
+   (forge smoke when Forge modal is open) keeps drifting. */
+[data-village-pause-fx="true"] .village-fx-keep,
+[data-village-pause-fx="true"] .village-fx-keep * { animation-play-state: running; }
+/* pause-paint: hard mode evicts the panorama from the render tree entirely,
+   freeing the full frame budget for an intensive modal (canvas mini-game). */
+[data-village-pause-paint="true"]          { content-visibility: hidden; }
+/* pause-pointer: block the scroller's drag-pan from claiming touch events
+   that should belong to the modal. */
+[data-village-pause-pointer="true"]        { pointer-events: none; }

@@ -34,7 +34,7 @@ export const DAILY_REWARD: RecurringReward = {
     id: "rwd_daily-login",
     name: "Daily Login",
     description: "Claim essence every day and build your streak!",
-    baseAmount: 10,
+    baseAmount: 30,
     intervalSeconds: 86400,
     streakBonusPercent: 5,
     maxStreakBonusPercent: 100,

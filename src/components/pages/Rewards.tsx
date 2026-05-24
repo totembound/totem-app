@@ -1,16 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useGame } from '../../contexts/GameContext';
 import { useUser } from '../../contexts/UserContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useAchievements } from '../../contexts/AchievementsContext';
-import { Calendar, Coins, Crown, Flame, Trophy, Lock, Gift, Package, Shield, Sparkles, TrendingUp, Zap } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Calendar, Coins, Crown, Flame, Trophy, Lock, Shield, TrendingUp, Zap } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { withVillagePrefix } from '../village/villagePath';
 import Tooltip from '../Tooltip';
 import TokensDisplay from '../TokensDisplay';
 import ProtectionDialog from '../ProtectionDialog';
 import CountdownTimer from '../CountdownTimer';
-import LootClaimModal from '../loot/LootClaimModal';
+import TierBonusBadge from '../TierBonusBadge';
+import DailyQuestsCard from '../quests/DailyQuestsCard';
+import TutorialClaimsCard from '../quests/TutorialClaimsCard';
+import LootBoxesCard from '../quests/LootBoxesCard';
 import { CURRENCY_NAMES } from '../../config/constants';
-import type { LootItem } from '../../contexts/GameContext';
+import { DAILY_REWARD, WEEKLY_REWARD } from '../../config/rewards';
+import { getTierMultiplier } from '../../config/tier-bonuses';
 
 interface AchievementLockProps {
     title: string;
@@ -26,26 +32,20 @@ interface LockedOverlayProps {
     achievementName: string;
 }
 
-const RARITY_BORDER: Record<string, string> = {
-    common: 'border-gray-400',
-    uncommon: 'border-green-500',
-    rare: 'border-blue-500',
-    epic: 'border-purple-500',
-    legendary: 'border-yellow-500',
-};
-
 const Rewards = () => {
-    const { rewardsState, claimDailyReward, claimWeeklyReward, refreshRewardStatus, lootItems, fetchLootItems } = useGame();
+    const { rewardsState, claimDailyReward, claimWeeklyReward, refreshRewardStatus } = useGame();
     const { essenceBalance } = useUser();
+    const { user } = useAuth();
     const { refreshAchievements, progress } = useAchievements();
+    const tier = user?.tier ?? 'free';
+    const tierMultiplier = getTierMultiplier(tier);
     const navigate = useNavigate();
-    const [selectedLootItem, setSelectedLootItem] = useState<LootItem | null>(null);
+    const location = useLocation();
 
-    // Fetch reward status and loot items on page load (lazy — not loaded globally)
+    // Fetch reward status on page load (lazy — not loaded globally)
     useEffect(() => {
         refreshRewardStatus();
-        fetchLootItems();
-    }, [refreshRewardStatus, fetchLootItems]);
+    }, [refreshRewardStatus]);
 
     // Callback when countdown timer reaches zero - refresh reward status
     const handleCountdownComplete = async () => {
@@ -77,19 +77,21 @@ const Rewards = () => {
     const protectionLabel = (charges: number) =>
         charges <= 1 ? 'Streak Saver Ready' : `Streak Saver x${charges}`;
 
-    // Daily bonus calculation (matches backend: 5% per day from day 2, max 100% at day 21)
+    // Daily bonus calculation (matches backend: tier × base × (1 + streak%);
+    // streak = 5% per day from day 2, max 100% at day 21)
     const dailyStreakDays = streakStatus?.streakDays || 0;
     const dailyBonusPercent = Math.min(Math.max(0, dailyStreakDays - 1) * 5, 100);
-    const dailyBaseAmount = 10;
-    const dailyNextClaim = Math.round(dailyBaseAmount * (1 + dailyBonusPercent / 100));
+    const dailyBaseAmount = DAILY_REWARD.baseAmount;
+    const dailyNextClaim = Math.round(dailyBaseAmount * tierMultiplier * (1 + dailyBonusPercent / 100));
     const dailyMaxDays = 21; // Day 21 = 100% bonus
     const dailyProgressPercent = Math.min(dailyStreakDays / dailyMaxDays, 1) * 100;
 
-    // Weekly bonus calculation (matches backend: 10% per week from week 2, max 100% at week 11)
+    // Weekly bonus calculation (matches backend: tier × base × (1 + streak%);
+    // streak = 10% per week from week 2, max 100% at week 11)
     const weeklyStreakWeeks = weeklyStatus?.weeklyStreak || 0;
     const weeklyBonusPercent = Math.min(Math.max(0, weeklyStreakWeeks - 1) * 10, 100);
-    const weeklyBaseAmount = 100;
-    const weeklyNextClaim = Math.round(weeklyBaseAmount * (1 + weeklyBonusPercent / 100));
+    const weeklyBaseAmount = WEEKLY_REWARD.baseAmount;
+    const weeklyNextClaim = Math.round(weeklyBaseAmount * tierMultiplier * (1 + weeklyBonusPercent / 100));
     const weeklyMaxWeeks = 11; // Week 11 = 100% bonus
     const weeklyProgressPercent = Math.min(weeklyStreakWeeks / weeklyMaxWeeks, 1) * 100;
 
@@ -142,12 +144,15 @@ const Rewards = () => {
     };
 
     const weeklyCardContent = (<>
-        {/* Streak + Bonus summary */}
+        {/* Streak + Bonus summary (tier chip left of streak chip) */}
         <div className="flex items-center justify-between mb-3">
             <span className="text-2xl font-bold text-gray-900 dark:text-white">Week {weeklyStreakWeeks}</span>
-            <div className="flex items-center gap-1 text-sm font-semibold text-green-600 dark:text-green-400">
-                <TrendingUp className="w-3.5 h-3.5" />
-                +{weeklyBonusPercent}% Bonus
+            <div className="flex items-center gap-2">
+                <TierBonusBadge tier={tier} />
+                <div className="flex items-center gap-1 text-sm font-semibold text-green-600 dark:text-green-400">
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    +{weeklyBonusPercent}% Streak
+                </div>
             </div>
         </div>
 
@@ -231,7 +236,7 @@ const Rewards = () => {
     const LockedOverlay: React.FC<LockedOverlayProps> = ({ children, achievementName }) => {
         const handleViewAchievement = () => {
             // Navigate to achievements page
-            navigate('/achievements', { 
+            navigate(withVillagePrefix(location.pathname, '/achievements'), {
                 state: { highlightAchievement: achievementName }  // Optional: Pass achievement name to highlight
             });
         };
@@ -274,68 +279,12 @@ const Rewards = () => {
                 </div>
             </div>
 
-            {/* Unclaimed Loot Section */}
-            {lootItems.length > 0 && (
-                <div className="mb-6">
-                    <div className="flex items-center gap-2 mb-3">
-                        <Package className="w-5 h-5 text-purple-500" />
-                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                            Unclaimed Loot
-                        </h2>
-                        <span className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 text-xs font-semibold px-2 py-0.5 rounded-full">
-                            {lootItems.length}
-                        </span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                        {lootItems.map((item) => (
-                            <div
-                                key={item.id}
-                                className={`bg-white dark:bg-gray-800 rounded-lg p-4 border-2 ${RARITY_BORDER[item.box.rarity] || 'border-gray-200 dark:border-gray-700'} hover:shadow-md transition-shadow`}
-                            >
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                                        {item.box.icon === 'egg' ? (
-                                            <Gift className="w-5 h-5 text-purple-500" />
-                                        ) : (
-                                            <Sparkles className="w-5 h-5 text-yellow-500" />
-                                        )}
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
-                                            {item.box.name}
-                                        </h3>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                                            {item.box.rarity} | {item.source}
-                                        </p>
-                                    </div>
-                                </div>
-                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
-                                    {item.box.description}
-                                </p>
-                                <button
-                                    onClick={() => setSelectedLootItem(item)}
-                                    className="w-full py-2 px-3 bg-purple-500 hover:bg-purple-600 text-white text-sm font-medium rounded-lg transition-colors"
-                                >
-                                    Open
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Loot Claim Modal */}
-            {selectedLootItem && (
-                <LootClaimModal
-                    lootItem={selectedLootItem}
-                    onClose={() => setSelectedLootItem(null)}
-                    onClaimed={() => fetchLootItems()}
-                />
-            )}
-
             {/* Main Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-fr">
-                    {/* Daily Rewards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
+                    {/* Loot Boxes (slot 1) */}
+                    <LootBoxesCard />
+
+                    {/* Daily Rewards (slot 2) */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 h-full">
                         {/* Header */}
                         <div className="flex items-center justify-between mb-4">
@@ -353,12 +302,15 @@ const Rewards = () => {
                             }
                         </div>
 
-                        {/* Streak + Bonus summary */}
+                        {/* Streak + Bonus summary (tier chip left of streak chip) */}
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-2xl font-bold text-gray-900 dark:text-white">Day {dailyStreakDays}</span>
-                            <div className="flex items-center gap-1 text-sm font-semibold text-purple-600 dark:text-purple-400">
-                                <TrendingUp className="w-3.5 h-3.5" />
-                                +{dailyBonusPercent}% Bonus
+                            <div className="flex items-center gap-2">
+                                <TierBonusBadge tier={tier} />
+                                <div className="flex items-center gap-1 text-sm font-semibold text-purple-600 dark:text-purple-400">
+                                    <TrendingUp className="w-3.5 h-3.5" />
+                                    +{dailyBonusPercent}% Streak
+                                </div>
                             </div>
                         </div>
 
@@ -441,7 +393,10 @@ const Rewards = () => {
                         </div>
                     </div>
 
-                    {/* Weekly Rewards */}
+                    {/* Daily Quests (slot 3) */}
+                    <DailyQuestsCard />
+
+                    {/* Weekly Rewards (slot 4) */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 h-full">
                         {/* Header */}
                         <div className="flex items-center justify-between mb-4">
@@ -469,8 +424,11 @@ const Rewards = () => {
                         }
                     </div>
 
-                    {/* Elder Sanctum */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 h-full">
+                    {/* Tutorial Claims (slot 5) */}
+                    <TutorialClaimsCard />
+
+                    {/* Elder Sanctum (slot 6) */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 h-full flex flex-col">
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
                                 <Crown className="w-6 h-6 text-amber-500" />
@@ -493,7 +451,7 @@ const Rewards = () => {
                                 </p>
                             </div>
 
-                            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-6">
+                            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                                 <p>• Requires Stage 4+ (Adult) totems</p>
                                 <p>• Up to 3 Council Seats available</p>
                                 <p>• Exclusive Council Missions</p>
@@ -501,8 +459,8 @@ const Rewards = () => {
                         </div>
 
                         <button
-                            onClick={() => navigate('/sanctum')}
-                            className="w-full py-2 px-4 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors font-medium"
+                            onClick={() => navigate(withVillagePrefix(location.pathname, '/sanctum'))}
+                            className="w-full py-2 px-4 min-h-[44px] mt-auto bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors font-medium"
                         >
                             Visit Sanctum
                         </button>

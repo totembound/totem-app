@@ -25,6 +25,7 @@ vi.mock('react-router-dom', () => ({
     <a href={to} onClick={onClick} {...props}>{children}</a>
   ),
   useNavigate: () => mockNavigate,
+  useLocation: () => ({ pathname: '/', search: '', hash: '', state: null, key: 'default' }),
 }));
 
 import { UserMenu } from './UserMenu';
@@ -43,7 +44,7 @@ describe('UserMenu', () => {
     render(<UserMenu />);
     fireEvent.click(screen.getByText('TestPlayer'));
     expect(screen.getByText('Log Out')).toBeInTheDocument();
-    expect(screen.getByText('Settings')).toBeInTheDocument();
+    expect(screen.getByText('Account Settings')).toBeInTheDocument();
     expect(screen.getByText('test@example.com')).toBeInTheDocument();
   });
 

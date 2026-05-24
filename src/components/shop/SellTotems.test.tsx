@@ -83,15 +83,22 @@ vi.mock('../layouts/Pagination', () => ({
   ),
 }));
 
-vi.mock('lucide-react', () => ({
-  ArrowUpDown: ({ className }: any) => <span className={className}>sort</span>,
-  Clock: () => <span>clock</span>,
-  Heart: () => <span>heart</span>,
-  Loader2: ({ className }: any) => <span className={className}>loading</span>,
-  MapPin: ({ className }: any) => <span className={className}>pin</span>,
-  Sparkles: () => <span>sparkles</span>,
-  Info: () => <span>info</span>,
-}));
+// Partial mock — real lucide-react is the source so transitive imports (e.g. trait icons)
+// keep working, but a handful of icons used by the component itself are replaced with
+// text spans so assertions can target them.
+vi.mock('lucide-react', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('lucide-react')>();
+  return {
+    ...actual,
+    ArrowUpDown: ({ className }: any) => <span className={className}>sort</span>,
+    Clock: () => <span>clock</span>,
+    Heart: () => <span>heart</span>,
+    Loader2: ({ className }: any) => <span className={className}>loading</span>,
+    MapPin: ({ className }: any) => <span className={className}>pin</span>,
+    Sparkles: () => <span>sparkles</span>,
+    Info: () => <span>info</span>,
+  };
+});
 
 // ============================================================================
 // TEST DATA

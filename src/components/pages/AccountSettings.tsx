@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { Award, Crown, Loader2, CheckCircle, XCircle, CreditCard, Gift, Gem, Sparkles, Shield, ArrowUpRight, Clock, Zap, Star, Pencil, User as UserIcon } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { withVillagePrefix } from '../village/villagePath';
 import apiClient from '../../services/ApiClient';
 import * as serviceWorkerRegistration from '../../serviceWorkerRegistration';
 import EditDisplayNameDialog from '../settings/EditDisplayNameDialog';
 import { ProfileEditor } from '../profile/ProfileEditor';
 import { Avatar } from '../profile/Avatar';
-import { resolveBannerImage } from '../../utils/avatar';
+import { initialsFor, resolveBannerImage } from '../../utils/avatar';
 import type { UserProfile } from '../../types/types';
 
 interface SubscriptionInfo {
@@ -37,6 +38,8 @@ interface BonusStatus {
 const AccountSettings = () => {
     const { updateBalances, essenceBalance, gemsBalance, totems } = useUser();
     const { isAuthenticated, user: authUser } = useAuth();
+    const location = useLocation();
+    const vp = (path: string) => withVillagePrefix(location.pathname, path);
     const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null);
     const [bonusStatus, setBonusStatus] = useState<BonusStatus | null>(null);
     const [loading, setLoading] = useState(true);
@@ -53,7 +56,7 @@ const AccountSettings = () => {
     // Use authUser for profile info (displayName, email)
     const displayName = authUser?.displayName || 'Player';
     const email = authUser?.email || '';
-    const initials = displayName.slice(0, 2).toUpperCase();
+    const initials = initialsFor(displayName);
 
     const fetchSubscriptionStatus = async () => {
         setLoading(true);
@@ -331,7 +334,7 @@ const AccountSettings = () => {
                             </div>
                             {authUser?.id && (
                                 <Link
-                                    to={`/players/${authUser.id}`}
+                                    to={vp(`/players/${authUser.id}`)}
                                     className="inline-flex items-center gap-1 text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
                                 >
                                     <ArrowUpRight className="w-3.5 h-3.5" />
@@ -448,7 +451,7 @@ const AccountSettings = () => {
                                         Upgrade to Premium or VIP to earn monthly bonuses, exclusive totems, and daily reward multipliers.
                                     </p>
                                     <Link
-                                        to="/plans"
+                                        to={vp("/plans")}
                                         className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg transition-all font-medium text-sm shadow-sm"
                                     >
                                         <Award className="w-4 h-4" />
@@ -572,7 +575,7 @@ const AccountSettings = () => {
                                     ))}
                                 </ul>
                                 <Link
-                                    to="/plans"
+                                    to={vp("/plans")}
                                     className="block w-full text-center px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg transition-all font-medium text-sm shadow-sm"
                                 >
                                     View Plans
@@ -610,7 +613,7 @@ const AccountSettings = () => {
                                 </ul>
                                 {currentTier === 'premium' && (
                                     <Link
-                                        to="/plans"
+                                        to={vp("/plans")}
                                         className="flex items-center justify-center gap-2 w-full mt-5 px-4 py-2.5 border border-amber-400 dark:border-amber-600 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors text-sm font-medium"
                                     >
                                         <Crown className="w-4 h-4" />
@@ -631,7 +634,7 @@ const AccountSettings = () => {
                             Purchase Gems to exchange for Essence, buy bundles, and more.
                         </p>
                         <Link
-                            to="/shop"
+                            to={vp("/shop")}
                             className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm font-medium"
                         >
                             Visit Shop

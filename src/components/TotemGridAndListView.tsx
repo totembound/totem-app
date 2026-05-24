@@ -4,6 +4,7 @@ import { Heart, MapPin, Sparkles, Swords, Landmark } from 'lucide-react';
 import { AFFINITY_ICONS, DOMAIN_ICONS, getRarityBadgeColor, getRarityBorderColor } from '../utils/totems';
 import { IPFS_GATEWAY_URL, STAGE_THRESHOLDS } from '../config/constants';
 import { formatTimeRemaining } from '../utils/formats';
+import TraitIconRow from './traits/TraitIconRow';
 
 interface TotemViewProps {
     nft: TotemData;
@@ -40,42 +41,48 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
                 relative hover:z-10 h-full flex flex-col
             `}
         >
-            {/* Status Badge - top left */}
-            {isOnExpedition && !nft.attributes.sanctum?.seated && (
-                <div className="absolute top-2 left-2 z-20">
-                    <span className="bg-blue-600 text-white text-[9px] sm:text-xs font-medium px-1.5 py-0.5 rounded-full shadow-md flex items-center gap-0.5">
-                        <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                        <span className="hidden sm:inline">On Expedition</span>
-                    </span>
-                </div>
-            )}
-            {nft.attributes.sanctum?.onMission && (
-                <div className="absolute top-2 left-2 z-20">
-                    <span className="bg-blue-600 text-white text-[9px] sm:text-xs font-medium px-1.5 py-0.5 rounded-full shadow-md flex items-center gap-0.5">
-                        <Swords className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                        <span className="hidden sm:inline">On Mission</span>
-                    </span>
-                </div>
-            )}
-            {nft.attributes.sanctum?.seated && !nft.attributes.sanctum?.onMission && (
-                <div className="absolute top-2 left-2 z-20">
-                    <span className="bg-blue-600 text-white text-[9px] sm:text-xs font-medium px-1.5 py-0.5 rounded-full shadow-md flex items-center gap-0.5">
-                        <Landmark className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                        <span className="hidden sm:inline">Seated</span>
-                    </span>
-                </div>
-            )}
-
             {/* Rarity Badge - Absolute positioned over image */}
-            <div className="absolute top-2 right-2 z-10 hidden sm:block">
+            <div className="absolute top-2 right-2 z-10 flex items-center">
                 <span className={`
-                    px-1.5 py-0.5 text-[10px] sm:text-xs font-medium rounded-full border
+                    inline-flex items-center max-w-[80px] h-[18px]
+                    px-1.5 text-xs leading-none font-medium rounded-full border
                     shadow-sm backdrop-blur-sm bg-opacity-90 bg-white dark:bg-opacity-80 dark:bg-gray-900
                     ${getRarityBadgeColor(nft.attributes.rarity)}
                 `}>
-                    {Rarity[nft.attributes.rarity]}
+                    <span className="truncate">{Rarity[nft.attributes.rarity]}</span>
                 </span>
             </div>
+
+            {/* Trait pill + status badge — single row at top-left. Two separate
+                pills so they read as distinct info; gap keeps them visually split. */}
+            {(() => {
+                const status = isOnExpedition && !nft.attributes.sanctum?.seated
+                    ? { Icon: MapPin, label: 'On Expedition' }
+                    : nft.attributes.sanctum?.onMission
+                    ? { Icon: Swords, label: 'On Mission' }
+                    : nft.attributes.sanctum?.seated
+                    ? { Icon: Landmark, label: 'Seated' }
+                    : null;
+                if (!nft.traits && !status) return null;
+                return (
+                    <div className="absolute top-2 left-2 z-20 flex items-center gap-1">
+                        {nft.traits && (
+                            <div
+                                className="inline-flex items-center h-[18px] bg-white/90 dark:bg-opacity-80 dark:bg-gray-900 backdrop-blur-sm rounded-full px-1.5 border border-gray-200 dark:border-gray-700 shadow-sm leading-none"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <TraitIconRow stage={nft.attributes.stage} traits={nft.traits} size={12} showLocked />
+                            </div>
+                        )}
+                        {status && (
+                            <span className="bg-blue-600 text-white text-[9px] lg:text-xs font-medium px-1.5 h-[18px] rounded-full shadow-md border border-transparent inline-flex items-center gap-0.5 leading-none">
+                                <status.Icon className="w-3 h-3" />
+                                <span className="hidden lg:inline">{status.label}</span>
+                            </span>
+                        )}
+                    </div>
+                );
+            })()}
 
             {/* Image Section */}
             <div className="aspect-square relative overflow-hidden rounded-t-lg flex-shrink-0 mt-2">
@@ -231,6 +238,14 @@ export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelecte
                             className: "text-cyan-600 dark:text-cyan-400"
                         })}
                         <span className="truncate">{nft.domain}</span>
+                        {nft.traits && (
+                            <>
+                                <span className="mx-1">•</span>
+                                <span onClick={(e) => e.stopPropagation()} className="inline-flex items-center leading-none align-middle">
+                                    <TraitIconRow stage={nft.attributes.stage} traits={nft.traits} size={12} />
+                                </span>
+                            </>
+                        )}
                     </div>
                 </div>
 

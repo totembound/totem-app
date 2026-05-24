@@ -330,8 +330,13 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
             onClick={onClose}
           ></div>
 
-          {/* Dialog - full screen on mobile, centered modal on desktop */}
-          <div className="relative w-full h-full sm:h-auto sm:max-w-2xl sm:max-h-[calc(100vh-2rem)] bg-white dark:bg-gray-800 sm:rounded-lg shadow-xl flex flex-col overflow-hidden">
+          {/* Dialog - full screen on mobile, centered modal on desktop. Inline
+              paddingBottom respects the iPhone home-indicator safe area so
+              the action buttons don't get clipped on full-screen mobile mode. */}
+          <div
+            className="relative w-full h-full sm:h-auto sm:max-w-2xl sm:max-h-[calc(100vh-2rem)] bg-white dark:bg-gray-800 sm:rounded-lg shadow-xl flex flex-col overflow-hidden"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+          >
               {/* Header */}
               <div className="flex-shrink-0 flex items-center justify-between p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">

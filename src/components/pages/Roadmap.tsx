@@ -7,7 +7,8 @@
  */
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { withVillagePrefix } from '../village/villagePath';
 import {
   Check, Circle, Clock, Swords, Map,
   Zap, Crown, Star,
@@ -85,6 +86,7 @@ const quarters: Quarter[] = [
       // Foundation
       { label: '12 totem species across Earth, Water & Air domains, each with 16 color variants', status: 'done' },
       { label: '6 rarity tiers — Common, Uncommon, Rare, Epic, Legendary & Limited', status: 'done' },
+      { label: '30 traits across Innate, Learned & Awakened tiers', status: 'done', detail: 'One random Innate at birth; choose Learned at Stage 3 and Awakened at Stage 5' },
       { label: 'Core gameplay — Feed, Train, Treat & 5-stage Evolution', status: 'done', detail: 'Daily care actions with cooldowns, XP, happiness, and stage thresholds' },
       // Content systems
       { label: 'Totem Shop — buy, sell & marketplace listings', status: 'done' },
@@ -103,7 +105,8 @@ const quarters: Quarter[] = [
       { label: 'The Forge — fuse 3 totems of the same rarity into 1 of the next rarity', status: 'done', detail: 'Pure Fusion (same species) and Wild Fusion (mixed) modes with forge achievements' },
       { label: 'Elder Sanctum — seat stage 4+ totems for passive Essence & council missions', status: 'done', detail: '3 council seats, 9 tiered missions with rune drops, passive hourly Essence earnings with claim system' },
       // In progress
-      { label: 'Spirit Village — illustrated hub replaces nav bar with tappable buildings', status: 'in-progress', detail: '10 buildings with progressive unlock, ambient animations, and notification badges' },
+      { label: 'Spirit Village — illustrated hub replaces nav bar with tappable buildings', status: 'done', detail: '10 buildings with progressive unlock, ambient animations, and notification badges' },
+      { label: 'Daily Quests — rotating daily objectives with Essence and Rune rewards', status: 'done', detail: 'Five themed slots refreshed daily with an Essence + Rune completion bonus' },
       { label: 'Unlock remaining 2 totems (Raven, Snake)', status: 'in-progress' },
     ],
   },
@@ -177,6 +180,7 @@ const quarters: Quarter[] = [
 ];
 
 const Roadmap: React.FC = () => {
+  const location = useLocation();
   const doneCount = quarters[0].items.filter(i => i.status === 'done').length;
   const totalQ1 = quarters[0].items.length;
   const progressPercent = Math.round((doneCount / totalQ1) * 100);
@@ -320,7 +324,7 @@ const Roadmap: React.FC = () => {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
                 <Link
-                  to="/about"
+                  to={withVillagePrefix(location.pathname, "/about")}
                   className="inline-flex items-center px-5 py-2.5 border border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300 font-medium rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors"
                 >
                   Learn More

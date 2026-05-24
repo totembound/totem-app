@@ -10,6 +10,9 @@ import apiClient from '../services/ApiClient';
 import { notificationService } from '../services/NotificationService';
 
 export interface RewardStatus {
+  tier?: string;
+  tierMultiplier?: number;
+  tierBonusPercent?: number;
   daily: {
     canClaim: boolean;
     streakDays: number;
@@ -58,6 +61,9 @@ export const useRewardsApi = () => {
 
       if (response.success && response.data) {
         const status: RewardStatus = {
+          tier: response.data.tier,
+          tierMultiplier: response.data.tierMultiplier,
+          tierBonusPercent: response.data.tierBonusPercent,
           daily: {
             canClaim: response.data.daily.canClaim,
             streakDays: response.data.daily.streakDays,
@@ -106,11 +112,14 @@ export const useRewardsApi = () => {
       const response = await apiClient.claimDailyReward();
 
       if (response.success && response.data) {
+        const amount = response.data.reward.totalAmount;
+        const streakDays = response.data.newStreak;
+
         // Show notification on success
         notificationService.showRewardClaimed({
           rewardType: 'daily',
-          amount: response.data.reward.amount,
-          streakDays: response.data.reward.streakDays,
+          amount,
+          streakDays,
         });
         notificationService.processAchievementsFromResponse((response.data as any).achievements);
 
@@ -119,8 +128,8 @@ export const useRewardsApi = () => {
 
         return {
           success: true,
-          amount: response.data.reward.amount,
-          streakDays: response.data.reward.streakDays,
+          amount,
+          streakDays,
           message: response.data.message,
         };
       }

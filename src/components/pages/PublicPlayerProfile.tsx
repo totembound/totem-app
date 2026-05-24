@@ -85,7 +85,7 @@ const PublicPlayerProfile: React.FC = () => {
                     if (window.history.length > 1) navigate(-1);
                     else navigate('/');
                 }}
-                className="inline-flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-3"
+                className="inline-flex items-center gap-1 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white bg-white/80 dark:bg-gray-900/70 backdrop-blur-sm px-2.5 py-1 rounded-md mb-3"
             >
                 <ArrowLeft className="w-4 h-4" /> Back
             </button>
@@ -94,7 +94,9 @@ const PublicPlayerProfile: React.FC = () => {
                 {/* Banner + avatar — banner is the positioning context for the avatar.
                     Avatar is absolute, anchored to bottom-left and pulled half-down
                     out of the banner so it overlaps the banner/body boundary cleanly. */}
-                <div className="relative h-36 sm:h-56 w-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
+                <div className="relative h-36 sm:h-56 w-full">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-600 to-slate-700 dark:from-indigo-950 dark:via-purple-950 dark:to-slate-950" />
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(168,85,247,0.15),transparent_70%)]" />
                     {bannerSrc && (
                         <img
                             src={bannerSrc}
@@ -109,7 +111,7 @@ const PublicPlayerProfile: React.FC = () => {
                         avatar={profile.profile.avatar}
                         displayName={profile.displayName}
                         size="xl"
-                        className="absolute bottom-0 left-4 sm:left-6 translate-y-1/2 z-10 ring-4 ring-white dark:ring-gray-800 shadow-xl"
+                        className="absolute bottom-0 left-4 sm:left-6 translate-y-1/2 z-10 ring-4 ring-slate-200 dark:ring-gray-800 shadow-xl"
                     />
                 </div>
 
@@ -147,22 +149,40 @@ const PublicPlayerProfile: React.FC = () => {
                     )}
                 </div>
 
-                {/* Stats footer — Totems / Challenges / Best Streak / Highest Stage */}
+                {/* Stats footer — Totems / Challenges / Best streak / Top Stage */}
                 <div className="border-t border-gray-200 dark:border-gray-700 grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-gray-200 dark:divide-gray-700">
                     <Stat label="Totems" value={profile.stats.totalTotems} />
                     <Stat label="Challenges" value={profile.stats.totalChallengesCompleted} />
-                    <Stat label="Best streak" value={profile.stats.bestLoginStreak} />
-                    <Stat label="Top stage" value={profile.stats.highestStageReached} />
+                    <Stat label="Best streak" value={profile.stats.bestDailyStreak} />
+                    <Stat label="Top stage" value={formatTopStage(profile.stats.highestStageReached, profile.stats.highestPrestigeReached)} />
                 </div>
             </div>
         </div>
     );
 };
 
-function Stat({ label, value }: { label: string; value: number }) {
+// Stage 0..3 -> "1".."4". Reaching Ascended (stage 4) caps the 1-5 scale at
+// "5". Earning XP past the prestige threshold transitions to "P1", "P2", …
+// — no upper bound, matches TotemDetailView's HUD treatment of prestige as
+// the post-Ascended progression. A player at fresh Ascended sees "5", not
+// "P0", because P0 is ambiguous ("zero prestige" reads like a downgrade).
+function formatTopStage(stage: number, prestige: number): string {
+    if (stage < 4) return String(stage + 1);
+    if (prestige === 0) return '5';
+    return `P${prestige}`;
+}
+
+function Stat({ label, value }: { label: string; value: number | string | undefined }) {
+    // Defensive fallback — if the API ever omits a field, render "0" instead
+    // of an empty tile. This is what caused the Best streak tile to look
+    // blank when bestDailyStreak wasn't yet wired up.
+    let display: string;
+    if (value === undefined || value === null) display = '0';
+    else if (typeof value === 'number') display = value.toLocaleString();
+    else display = value;
     return (
         <div className="text-center py-4 sm:py-5">
-            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{value.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{display}</p>
             <p className="mt-0.5 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</p>
         </div>
     );

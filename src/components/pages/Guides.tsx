@@ -3,30 +3,34 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 const About: React.FC = () => {
+  // Relative hrefs so the same component works under both /guides (standalone)
+  // and /keepers-village/guides (modal-over-village). React Router resolves
+  // the relative path against the parent route, so 'tutorial' becomes
+  // /guides/tutorial OR /keepers-village/guides/tutorial depending on entry.
   const cards = [
     {
       title: "Spiritkeeper’s Path",
       description: "Begin your Totem’s journey. Learn core mechanics and earn early achievements.",
       image: '/guides/spiritkeepers-path-banner.jpg',
-      href: '/guides/tutorial'
+      href: 'tutorial'
     },
     {
       title: "How-To Guides",
       description: "Master Challenges, Expeditions, Runes, and Evolution.",
       image: '/guides/how-to-banner.jpg',
-      href: '/guides/how-to',
+      href: 'how-to',
     },
     {
       title: "Totem Codex",
       description: "Explore all known Totems, their domains, affinities, and spirit traits.",
       image: '/guides/totem-codex-banner.jpg',
-      href: '/guides/codex',
+      href: 'codex',
     },
     {
       title: "Lore Archives",
       description: "Dive into the history of TotemBound and ancient spirit tales.",
       image: '/guides/lore-banner.jpg',
-      href: '/guides/lore',
+      href: 'lore',
     },
   ];
 

@@ -3,12 +3,38 @@ import React, { createContext, useContext, useCallback, useEffect, useState, use
 import { useUser } from './UserContext';
 import { useAuth } from './AuthContext';
 import { ActionType, ActionConfig, TimeWindows, GameParameters, TotemAttributes, ActionTracking, ChallengeState, ChallengeInfo, ChallengeStatus, TotemData, StreakStatus, WeeklyStatus, RewardsState, RuneBalances, ExpeditionState, ExpeditionRewardsData } from '../types/types';
+import type { DailyQuestSet, QuestProgressUpdate, QuestRunesAwarded } from '../types/quests';
 import { CooldownStatus } from '../hooks/useTotemGameApi';
 import { getTotemStage } from '../utils/totems';
 import apiClient from '../services/ApiClient';
 import notificationService from '../services/NotificationService';
 import { ACTION_CONFIGS, TIME_WINDOWS, GAME_PARAMS } from '../config/game-config';
 import { isAvailableForAction } from '../utils/totem-availability';
+
+// Pure reducer: apply quest progress deltas to a quest set.
+// Lives at module scope so action callbacks can use it without ordering hazards
+// (useCallbacks declared before mergeQuestProgress would otherwise close over undef).
+function applyQuestProgressUpdates(
+    prev: DailyQuestSet | null,
+    updates: QuestProgressUpdate[] | undefined,
+): DailyQuestSet | null {
+    if (!prev) return prev;
+    if (!updates || !updates.length) return prev;
+    const bySlot: Record<number, number> = {};
+    updates.forEach(u => { bySlot[u.slot] = u.newProgress; });
+    const nextQuests = prev.quests.map(q => {
+        const np = bySlot[q.slot];
+        if (np == null) return q;
+        const progress = Math.min(np, q.goal);
+        return { ...q, progress, completed: progress >= q.goal };
+    });
+    const allClaimedOrComplete = nextQuests.every(q => q.claimed || q.progress >= q.goal);
+    return {
+        ...prev,
+        quests: nextQuests,
+        bonus: { ...prev.bonus, unlocked: allClaimedOrComplete },
+    };
+}
 
 export interface GameContextType {
     actionConfigs: Record<ActionType, ActionConfig>;
@@ -80,6 +106,17 @@ export interface GameContextType {
     getTotemCooldowns: (totemId: string) => CooldownStatus | null;
     setTotemCooldowns: (totemId: string, cooldowns: CooldownStatus) => void;
     fetchTotemCooldowns: (totemId: string) => Promise<CooldownStatus | null>;
+
+    // Daily Quests
+    dailyQuests: DailyQuestSet | null;
+    dailyQuestsLoading: boolean;
+    dailyQuestsError: string | null;
+    refreshDailyQuests: (force?: boolean) => Promise<void>;
+    claimAllQuests: () => Promise<boolean>;
+    mergeQuestProgress: (updates: QuestProgressUpdate[] | undefined) => void;
+    dailyQuestWizardVisible: boolean;
+    setDailyQuestWizardVisible: (visible: boolean) => void;
+    lastQuestBonusRunes: QuestRunesAwarded | null;
 }
 
 export interface MissionClaimResult {
@@ -195,6 +232,15 @@ const GameContext = createContext<GameContextType>({
       getTotemCooldowns: () => null,
       setTotemCooldowns: () => {},
       fetchTotemCooldowns: async () => null,
+      dailyQuests: null,
+      dailyQuestsLoading: false,
+      dailyQuestsError: null,
+      refreshDailyQuests: async () => {},
+      claimAllQuests: async () => false,
+      mergeQuestProgress: () => {},
+      dailyQuestWizardVisible: true,
+      setDailyQuestWizardVisible: () => {},
+      lastQuestBonusRunes: null,
 });
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -230,6 +276,25 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     const [activeExpeditionEffect, setActiveExpeditionEffect] = useState<ExpeditionRewardsData | null>(null);
+
+    const [dailyQuests, setDailyQuests] = useState<DailyQuestSet | null>(null);
+    const [dailyQuestsLoading, setDailyQuestsLoading] = useState<boolean>(false);
+    const [dailyQuestsError, setDailyQuestsError] = useState<string | null>(null);
+    const [lastQuestBonusRunes, setLastQuestBonusRunes] = useState<QuestRunesAwarded | null>(null);
+    const dailyQuestsLoadedDateRef = useRef<string | null>(null);
+    const [dailyQuestWizardVisible, setDailyQuestWizardVisibleState] = useState<boolean>(() => {
+        if (typeof window === 'undefined') return true;
+        const todayUTC = new Date().toISOString().slice(0, 10);
+        return localStorage.getItem('dq_wizard_dismissed_for') !== todayUTC;
+    });
+    const setDailyQuestWizardVisible = useCallback((visible: boolean) => {
+        if (typeof window !== 'undefined') {
+            const todayUTC = new Date().toISOString().slice(0, 10);
+            if (visible) localStorage.removeItem('dq_wizard_dismissed_for');
+            else localStorage.setItem('dq_wizard_dismissed_for', todayUTC);
+        }
+        setDailyQuestWizardVisibleState(visible);
+    }, []);
     const [lootItems, setLootItems] = useState<LootItem[]>([]);
 
     // Per-totem cooldown cache - persists across navigation, single source of truth
@@ -461,6 +526,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Push any unlocked achievements to the notifications bell
         notificationService.processAchievementsFromResponse(response.data?.achievements);
+
+        // Apply daily-quest progress deltas from the response (e.g. Iron Trial / Swift Trial / Wise Trial)
+        setDailyQuests(prev => applyQuestProgressUpdates(prev, response.data?.quests));
     }, [challengeState]);
 
     // Helper to convert UTC hours to seconds since day start
@@ -707,6 +775,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // PWA visibility change: when app comes back to foreground, check if UTC date
     // rolled over and invalidate reward cache so next visit to Rewards page re-fetches.
     // Also invalidates cooldown cache on date change.
+    // Daily-quests rollover handling lives near refreshDailyQuests definition below.
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
@@ -750,9 +819,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (response.data?.reward) {
                 notificationService.showRewardClaimed({
                     rewardType: 'daily',
-                    amount: response.data.reward.amount || 0,
-                    streakDays: response.data.reward.streakDays,
-                    streakBonus: response.data.reward.streakBonus || 0,
+                    amount: response.data.reward.totalAmount || 0,
+                    streakDays: response.data.newStreak,
+                    streakBonus: response.data.reward.bonusAmount || 0,
                 });
             }
             notificationService.processAchievementsFromResponse((response.data as any)?.achievements);
@@ -943,6 +1012,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           }
 
+          // Apply daily-quest progress deltas from the response (Skybound, etc.)
+          setDailyQuests(prev => applyQuestProgressUpdates(prev, response.data?.quests));
+
           // Refresh data
           await Promise.all([
             refreshExpeditions(),
@@ -992,6 +1064,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           // Process any achievements earned from the claim
           notificationService.processAchievementsFromResponse(response.data?.achievements);
+
+          // Apply daily-quest progress deltas from the response (Twin Returns, etc.)
+          setDailyQuests(prev => applyQuestProgressUpdates(prev, response.data?.quests));
 
           // Update rune balances — use authoritative balance from API if available, else accumulate
           if (rewards?.newRuneBalances) {
@@ -1141,12 +1216,113 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setActiveExpeditionEffect(null);
     }, []);
 
+    const refreshDailyQuests = useCallback(async (force = false) => {
+        if (!apiClient.isAuthenticated()) return;
+        const todayUTC = new Date().toISOString().slice(0, 10);
+        if (!force && dailyQuestsLoadedDateRef.current === todayUTC && dailyQuests) return;
+        setDailyQuestsLoading(true);
+        setDailyQuestsError(null);
+        try {
+            const res = await apiClient.getDailyQuests();
+            if (res.success && res.data) {
+                setDailyQuests(res.data);
+                dailyQuestsLoadedDateRef.current = todayUTC;
+            } else {
+                setDailyQuestsError(res.error?.message || 'Failed to load daily quests');
+            }
+        } catch (err) {
+            setDailyQuestsError((err as Error).message);
+        } finally {
+            setDailyQuestsLoading(false);
+        }
+    }, [dailyQuests]);
+
+    const claimAllQuests = useCallback(async () => {
+        if (!apiClient.isAuthenticated()) return false;
+        try {
+            const res = await apiClient.claimDailyQuests();
+            if (!res.success || !res.data) return false;
+            const data = res.data;
+            const claimedIds = new Set(data.claimed.map(c => c.questId));
+            // Stash runes FIRST so the Celebration component's effect sees them
+            // on the same render that picks up the bonus.claimed flip below.
+            // Otherwise the modal fires with runes=null and the per-day seen-flag
+            // prevents a re-fire when the rune state arrives.
+            if (data.bonusClaimed && data.runesAwarded) {
+                setLastQuestBonusRunes(data.runesAwarded);
+                getUserRuneBalances();
+            }
+            setDailyQuests(prev => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    quests: prev.quests.map(q => claimedIds.has(q.id) ? { ...q, claimed: true } : q),
+                    bonus: { ...prev.bonus, claimed: prev.bonus.claimed || data.bonusClaimed },
+                };
+            });
+            if (data.totalEssenceAwarded > 0) {
+                await updateBalances();
+            }
+            // Use the pre-claim snapshot for quest names — claimed list is the same regardless.
+            const snapshot = dailyQuests;
+            for (const entry of data.claimed) {
+                const quest = snapshot?.quests.find(q => q.id === entry.questId);
+                if (quest) {
+                    notificationService.showQuestClaimed({ questName: quest.name, essence: entry.reward.essence });
+                }
+            }
+            if (data.bonusClaimed && snapshot) {
+                notificationService.showQuestSetCompleted({
+                    totalEssence: data.totalEssenceAwarded,
+                    bonusEssence: snapshot.bonus.reward.essence,
+                    questsCompleted: snapshot.quests.length,
+                    runesAwarded: data.runesAwarded,
+                });
+            }
+            // Surface achievement milestone unlocks (ach_quest-set-master, ach_theme-master)
+            // that fire server-side inside batchClaim — uses the same pipeline as action handlers.
+            notificationService.processAchievementsFromResponse(data.achievements);
+            return true;
+        } catch (err) {
+            setDailyQuestsError((err as Error).message);
+            return false;
+        }
+    }, [updateBalances, dailyQuests]);
+
+    const mergeQuestProgress = useCallback((updates: QuestProgressUpdate[] | undefined) => {
+        if (!updates || !updates.length) return;
+        setDailyQuests(prev => applyQuestProgressUpdates(prev, updates));
+    }, []);
+
     useEffect(() => {
         // Initial load: only fetch expeditions (needed by /totems for "on expedition" badge).
         // Rewards, runes, and challenges are loaded lazily when their pages mount.
         if (!apiClient.isAuthenticated()) return;
         refreshExpeditions();
     }, [address, refreshExpeditions]);
+
+    // Daily Quests UTC-rollover guardrails — needed when a tab stays open across
+    // midnight (visibilitychange won't fire) or when the user re-focuses the tab.
+    // Cheap: a single string compare on a 60s interval; clears cache + refetches.
+    useEffect(() => {
+        const flushIfRolled = () => {
+            const todayUTC = new Date().toISOString().slice(0, 10);
+            if (dailyQuestsLoadedDateRef.current && dailyQuestsLoadedDateRef.current !== todayUTC) {
+                dailyQuestsLoadedDateRef.current = null;
+                setDailyQuests(null);
+                if (apiClient.isAuthenticated()) refreshDailyQuests(true);
+            }
+        };
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') flushIfRolled();
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        const interval = setInterval(flushIfRolled, 60_000);
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            clearInterval(interval);
+        };
+    }, [refreshDailyQuests]);
 
     // Clear user-specific state when user logs out or changes
     useEffect(() => {
@@ -1170,6 +1346,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 ...prev,
                 userExpeditions: []
             }));
+            dailyQuestsLoadedDateRef.current = null;
+            setDailyQuests(null);
         }
     }, [address]);
     
@@ -1214,6 +1392,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             getTotemCooldowns,
             setTotemCooldowns,
             fetchTotemCooldowns,
+            dailyQuests,
+            dailyQuestsLoading,
+            dailyQuestsError,
+            refreshDailyQuests,
+            claimAllQuests,
+            mergeQuestProgress,
+            dailyQuestWizardVisible,
+            setDailyQuestWizardVisible,
+            lastQuestBonusRunes,
         }}>
             {children}
         </GameContext.Provider>

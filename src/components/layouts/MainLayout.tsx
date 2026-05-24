@@ -10,6 +10,7 @@ import { useUser } from '../../contexts/UserContext';
 import Header from './Header';
 import Footer from './Footer';
 import { Outlet } from 'react-router-dom';
+import { useInVillage } from '../village/villagePath';
 import GameBackground from './GameBackground';
 import AchievementEffectManager from '../effects/AchievementEffectManager';
 import ExpeditionEffectManager from '../effects/ExpeditionEffectManager';
@@ -20,6 +21,11 @@ import MobileNavigation from './MobileNavigation';
 export const MainLayout: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const { messageDialog, hideError, tutorialWizardVisible } = useUser();
+  // Hide secondary nav (DesktopNavigation + MobileNavigation) inside the village.
+  // Header stays visible — UserMenu in the header is the catch-all for non-building
+  // destinations (account settings, tutorial, logout) per the "user menu beyond the
+  // 10 buildings" decision.
+  const inVillage = useInVillage();
   const [isHeaderVisible, setIsHeaderVisible] = useState<boolean>(true);
   const [lastScrollY, setLastScrollY] = useState<number>(0);
 
@@ -86,8 +92,8 @@ export const MainLayout: React.FC = () => {
         }`}
       >
         <Header />
-        {/* Game navigation - only shown when authenticated */}
-        {isAuthenticated && (
+        {/* Game navigation - only shown when authenticated and not in village */}
+        {isAuthenticated && !inVillage && (
           <div className="hidden sm:block">
             <DesktopNavigation />
           </div>
@@ -100,12 +106,19 @@ export const MainLayout: React.FC = () => {
         </div>
       </main>
 
-      <div className="relative">
-        <Footer />
-      </div>
+      {/* Footer hidden in village hub — the immersive panorama owns the
+          viewport. Anything in the footer that the user might need (links,
+          legal) is reachable from the standalone routes outside village. */}
+      {!inVillage && (
+        <div className="relative">
+          <Footer />
+        </div>
+      )}
 
-      {/* Mobile Navigation - Fixed at Bottom */}
-      {isAuthenticated && <MobileNavigation />}
+      {/* Mobile Navigation - Fixed at Bottom. Hidden in village so the panorama
+          owns the viewport on mobile too; UserMenu in the header covers
+          non-building destinations (account/tutorial/logout). */}
+      {isAuthenticated && !inVillage && <MobileNavigation />}
 
       <div className="z-50 relative">
         <MessageDialog

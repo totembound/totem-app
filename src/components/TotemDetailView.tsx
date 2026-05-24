@@ -14,6 +14,7 @@ import ExperienceEffect from './effects/ExperienceEffect';
 import { STAGE_THRESHOLDS, BASE_ELDER_XP, PRESTIGE_XP_REQUIREMENT } from '../config/constants';
 import { getTotemImageUrl, getStageName, getStageDescription } from '../utils/species';
 import { Heart, TrendingUp } from 'lucide-react';
+import { type TraitSlot } from '../config/traits';
 
 interface TotemDetailViewProps {
     totem: TotemData;
@@ -52,7 +53,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     canUseAction: externalCanUseAction,
     onUpdateTotemAttributes,
 }) => {
-    const { essenceBalance: essenceBalanceStr, setEssenceBalance } = useUser();
+    const { essenceBalance: essenceBalanceStr, setEssenceBalance, updateTotemTraits } = useUser();
     const gameApi = useTotemGameApi();
     const { isTotemAvailable, expeditionState, fetchTotemCooldowns, setTotemCooldowns, actionConfigs } = useGame();
     const { incrementAchievementProgress, refreshAchievements } = useAchievements();
@@ -70,6 +71,9 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     const [showExpEffect, setShowExpEffect] = useState(false);
     const [cooldowns, setCooldowns] = useState<Record<string, { onCooldown: boolean; readyAt: Date | null; remainingMs: number }>>({});
     const [, setTick] = useState(0); // Force re-render for countdown timer
+    // Optimistic override after a trait is chosen — avoids round-tripping to the parent
+    // for a refetch on what is a ~2-per-totem-lifetime event.
+    const [traitsOverride, setTraitsOverride] = useState<{ innate: string | null; learned: string | null; awakened: string | null } | null>(null);
     const dialogRef = useRef<HTMLDivElement>(null);
     const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -476,7 +480,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     return (
         <div
             ref={dialogRef}
-            className="flex flex-col h-full bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 w-full"
+            className="flex flex-col flex-1 min-h-0 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 w-full"
         >
             {showEvolutionCelebration && evolvedTotemData && (
                 <CelebrationModal
@@ -513,11 +517,16 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                 currentIndex={currentIndex}
             />
 
-            {/* Content area - no touch handlers on scroll container (fixes iOS swipe bug) */}
-            <div className="flex-1 overflow-y-auto md:overflow-hidden pb-16 sm:pb-0 overscroll-contain">
-                <div className="flex flex-col md:grid md:grid-cols-2 md:h-full">
+            {/* Content area - whole area scrolls as one block when content exceeds
+                the modal cap. Previously had independent column scrolling at md+
+                (md:overflow-hidden on this container, md:overflow-y-auto on each
+                column, md:h-full on the grid) which required a fixed parent
+                height. Switching to single-scroll lets the modal size to content
+                on tall windows without leaving stretched whitespace inside columns. */}
+            <div className="flex-1 min-h-0 overflow-y-auto pb-16 sm:pb-0 overscroll-contain">
+                <div className="flex flex-col md:grid md:grid-cols-2">
                     {/* Left Column - Image, HUD, Actions */}
-                    <div className="flex-shrink-0 md:overflow-y-auto md:overscroll-contain">
+                    <div className="flex-shrink-0">
                         {/* Image - swipe handlers ONLY here, not on scroll container */}
                         <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
                             <TotemImageSection
@@ -529,7 +538,9 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                 activeEffect={activeEffect}
                                 onEffectComplete={() => setActiveEffect(null)}
                                 isOnExpedition={tokenIsOnExpedition}
+                                expeditionEndTime={expeditionEndTime}
                                 sanctum={currentAttributes.sanctum}
+                                traits={traitsOverride ?? totem.traits ?? null}
                             />
                         </div>
 
@@ -624,8 +635,8 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                         </div>
                     </div>
 
-                    {/* Right Column - Stats/Details (scrollable on mobile, visible on desktop) */}
-                    <div className="px-2 sm:px-4 py-2 border-t border-gray-200 dark:border-gray-700 md:border-t-0 md:border-l md:overflow-y-auto">
+                    {/* Right Column - Stats/Details */}
+                    <div className="px-2 sm:px-4 py-2 border-t border-gray-200 dark:border-gray-700 md:border-t-0 md:border-l">
                         {/* Brief Intro - Stage-specific description */}
                         <div className="mb-2 min-h-10">
                             <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -661,7 +672,10 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                         {/* Tab Content */}
                         <div className="pb-4 sm:pb-2">
                             {activeTab === 'stats' ? (
-                                <TotemStatsPanel attributes={currentAttributes} />
+                                <TotemStatsPanel
+                                    attributes={currentAttributes}
+                                    traits={traitsOverride ?? totem.traits ?? undefined}
+                                />
                             ) : (
                                 <TotemDetailsPanel
                                     stage={currentAttributes.stage}
@@ -672,6 +686,16 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                     domain={totem.domain}
                                     sanctum={currentAttributes.sanctum}
                                     isOnExpedition={tokenIsOnExpedition}
+                                    traits={traitsOverride ?? totem.traits ?? undefined}
+                                    totemId={totem.id}
+                                    totemName={currentAttributes.nickname || evolvedTotemData?.displayName || totem.displayName || stageName || totem.name || 'this totem'}
+                                    onTraitChosen={(slot: TraitSlot, traitId: string) => {
+                                        // Update local override for instant UI in this modal
+                                        const base = traitsOverride ?? totem.traits ?? { innate: null, learned: null, awakened: null };
+                                        setTraitsOverride({ ...base, [slot]: traitId });
+                                        // Push back to UserContext so the gallery card behind us refreshes too
+                                        updateTotemTraits(totem.id, slot, traitId);
+                                    }}
                                 />
                             )}
                         </div>

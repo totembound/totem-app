@@ -30,6 +30,8 @@ export enum NotificationType {
     REWARD_CLAIMED = 'reward_claimed',
     PROTECTION_PURCHASED = 'protection_purchased',
     PROTECTION_USED = 'protection_used',
+    QUEST_CLAIMED = 'quest_claimed',
+    QUEST_SET_COMPLETED = 'quest_set_completed',
     
     // Loot notifications
     LOOT_CLAIMED = 'loot_claimed',
@@ -112,7 +114,7 @@ export enum NotificationType {
       scope: NotificationScope.PERSONAL,
       priority: NotificationPriority.HIGH,
       sound: true,
-      autoOpen: true
+      autoOpen: false
     },
     [NotificationType.MILESTONE_UNLOCKED]: {
       type: NotificationType.MILESTONE_UNLOCKED,
@@ -131,7 +133,7 @@ export enum NotificationType {
       scope: NotificationScope.PERSONAL,
       priority: NotificationPriority.HIGH,
       sound: true,
-      autoOpen: true
+      autoOpen: false
     },
     [NotificationType.ATTRIBUTE_UPDATED]: {
       type: NotificationType.ATTRIBUTE_UPDATED,
@@ -178,14 +180,14 @@ export enum NotificationType {
       scope: NotificationScope.PERSONAL,
       priority: NotificationPriority.MEDIUM,
       expiresInDays: 3,
-      autoOpen: true,
+      autoOpen: false,
     },
     [NotificationType.EXPEDITION_REWARDS]: {
       type: NotificationType.EXPEDITION_REWARDS,
       scope: NotificationScope.PERSONAL,
       priority: NotificationPriority.HIGH,
-      expiresInDays: 3, 
-      autoOpen: true,
+      expiresInDays: 3,
+      autoOpen: false,
     },
 
     // Reward notifications
@@ -203,6 +205,17 @@ export enum NotificationType {
       type: NotificationType.PROTECTION_USED,
       scope: NotificationScope.PERSONAL,
       priority: NotificationPriority.MEDIUM
+    },
+    [NotificationType.QUEST_CLAIMED]: {
+      type: NotificationType.QUEST_CLAIMED,
+      scope: NotificationScope.PERSONAL,
+      priority: NotificationPriority.LOW,
+    },
+    [NotificationType.QUEST_SET_COMPLETED]: {
+      type: NotificationType.QUEST_SET_COMPLETED,
+      scope: NotificationScope.PERSONAL,
+      priority: NotificationPriority.HIGH,
+      autoOpen: false,
     },
     
     // Loot notifications
@@ -235,7 +248,7 @@ export enum NotificationType {
       scope: NotificationScope.PERSONAL,
       priority: NotificationPriority.HIGH,
       sound: true,
-      autoOpen: true
+      autoOpen: false
     },
     [NotificationType.BUNDLE_PURCHASED]: {
       type: NotificationType.BUNDLE_PURCHASED,

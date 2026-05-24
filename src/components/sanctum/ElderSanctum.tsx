@@ -176,7 +176,7 @@ const ElderSanctum: React.FC = () => {
       <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg">
         <Header />
         <div className="flex items-center justify-center min-h-[200px]">
-          <div className="animate-pulse text-gray-400 dark:text-gray-500">Loading Elder Sanctum...</div>
+          <div className="animate-pulse text-gray-400 dark:text-gray-500">Loading Sanctum...</div>
         </div>
       </div>
     );
@@ -190,7 +190,7 @@ const ElderSanctum: React.FC = () => {
           <Crown className="w-12 h-12 text-gray-300 dark:text-gray-600" />
           <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-300">No Ascended Totems</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">
-            The Elder Sanctum requires Stage 4+ (Adult) totems with 3,500+ XP.
+            The Sanctum requires Stage 4+ (Adult) totems with 3,500+ XP.
             Train your totems to unlock this feature.
           </p>
         </div>
@@ -285,7 +285,7 @@ const Header: React.FC = () => (
   <div className="mb-6 space-y-4 sm:space-y-0">
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-4">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Elder Sanctum</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Sanctum</h1>
         <p className="text-gray-600 dark:text-gray-400">Seat your Elders. Earn passive Essence. Lead Council Missions.</p>
       </div>
       <TokensDisplay />

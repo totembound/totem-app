@@ -1,8 +1,9 @@
 import { Menu, X } from "lucide-react";
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { NavItemType } from "./codex/NavItems";
 import { SidebarContent } from "./SidebarContent";
+import { withVillagePrefix } from "../village/villagePath";
 
 // Define a type for sidebar metadata
 export interface SidebarConfig {
@@ -21,6 +22,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ config }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
   // Toggle mobile menu
   const toggleMobileMenu = () => {
@@ -64,7 +66,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config }) => {
         >
           <div className="p-4 font-bold text-xl flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
             <Link
-              to={config.backLink?.path || "/"}
+              to={withVillagePrefix(location.pathname, config.backLink?.path || "/")}
               onClick={closeMobileMenu}
               className="hover:opacity-80 transition-opacity"
             >

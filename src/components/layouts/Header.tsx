@@ -51,8 +51,8 @@ const Header: React.FC = () => {
     <>
       {/* Mobile Streak Tracker — only surfaces when there's something to claim */}
       {isAuthenticated && showStreakTracker && canClaimToday && (
-        <div data-testid="mobile-streak-banner" className="md:hidden absolute top-0 left-0 right-0 z-50 bg-purple-500 text-white px-4 py-2 shadow-lg">
-          <div className="flex items-center justify-between">
+        <div data-testid="mobile-streak-banner" className="md:hidden absolute top-0 left-0 right-0 z-50 bg-purple-500 text-white px-4 h-14 shadow-lg">
+          <div className="flex items-center justify-between h-full">
             <div className="flex items-center gap-2">
               <Flame className="w-4 h-4" />
               <span className="text-sm font-medium">

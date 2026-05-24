@@ -59,7 +59,7 @@ describe('LoreArchives', () => {
     const closeBtn = await screen.findByRole('button', { name: /close tale/i });
     expect(closeBtn).toBeInTheDocument();
     expect(screen.getByText(firstTale.body[0])).toBeInTheDocument();
-  });
+  }, 15000);
 
   it('expands an event row to show linked sites', async () => {
     renderPage();

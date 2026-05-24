@@ -100,7 +100,9 @@ export function ProfileEditor({ displayName, onSaved, onError, onCommit }: Profi
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Banner
                 </label>
-                <div className="relative h-24 sm:h-32 rounded-lg overflow-hidden bg-gradient-to-br from-indigo-400 via-purple-500 to-pink-500">
+                <div className="relative h-24 sm:h-32 rounded-lg overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-600 to-slate-700 dark:from-indigo-950 dark:via-purple-950 dark:to-slate-950" />
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(168,85,247,0.15),transparent_70%)]" />
                     {bannerSrc && (
                         <img src={bannerSrc} alt="" className="absolute inset-0 w-full h-full object-cover" />
                     )}

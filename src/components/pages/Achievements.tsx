@@ -269,8 +269,8 @@ const AchievementStatsRow: React.FC<AchievementStatsRowProps> = ({
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2 pb-6">
             <div className="w-full grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
                 {/* Total Progress */}
-                <div className="col-span-1 text-center">
-                    <Tooltip 
+                <div className="text-center">
+                    <Tooltip
                         content={`Total: ${totalCompleted} of ${totalAchievements} completed\n(includes all categories, achievements & milestones)`}
                     >
                         <div className="relative z-10">
@@ -285,15 +285,15 @@ const AchievementStatsRow: React.FC<AchievementStatsRowProps> = ({
                 </div>
                 {/* Category Progress */}
                 {stats.map(stat => {
-                    const percentage = stat.total > 0 
-                        ? Math.round((stat.completed / stat.total) * 100) 
+                    const percentage = stat.total > 0
+                        ? Math.round((stat.completed / stat.total) * 100)
                         : 0;
-                    
+
                     const Icon = categoryIcons[stat.category];
-                    
+
                     return (
-                        <Tooltip 
-                            key={stat.category} 
+                        <Tooltip
+                            key={stat.category}
                             content={`${categoryNames[stat.category]}: ${Math.round(stat.completed)} of ${stat.total} completed\n(includes achievements & milestones)`}
                         >
                             <div className="relative z-10">
@@ -643,22 +643,14 @@ const Achievements: React.FC = () => {
     const scrollToCategory = (category: AchievementCategory) => {
         const ref = categoryRefs[category]?.current;
         if (ref) {
-            // Get the page header height plus some padding
-            const headerOffset = 66; 
-
             if (!expandedCategories.has(category)){
                 toggleCategory(category);
             }
-            // Calculate the element's position relative to the viewport
-            const elementPosition = ref.getBoundingClientRect().top;
-            // Get the current scroll position
-            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-            // Smooth scroll to the adjusted position
-            window.scrollTo({
-                top: offsetPosition,
-                behavior: 'smooth'
-            });
+            // scrollIntoView walks up to the nearest scrollable ancestor — works
+            // both standalone (window) and inside the village modal (dialog body),
+            // unlike window.scrollTo which would only move the page underneath.
+            // scroll-margin-top on the target accounts for the sticky stats row.
+            ref.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     };
 

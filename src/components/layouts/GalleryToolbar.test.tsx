@@ -74,28 +74,25 @@ describe('GalleryToolbar — mobile filter sheet', () => {
     });
 
     it('closes when tapping the dimmed area outside the sheet', () => {
-        const { container } = renderToolbar();
+        renderToolbar();
         fireEvent.click(screen.getByRole('button', { name: 'Filter' }));
-        expect(screen.getByRole('heading', { name: 'Filter Totems' })).toBeInTheDocument();
+        const dialog = screen.getByRole('dialog', { name: 'Filter Totems' });
 
-        // The overlay is the dimmed full-screen layer wrapping the sheet.
-        const overlay = container.querySelector('.bg-black\\/50') as HTMLElement;
-        expect(overlay).toBeTruthy();
-        fireEvent.click(overlay);
-        expect(screen.queryByRole('heading', { name: 'Filter Totems' })).not.toBeInTheDocument();
+        // The dimmed overlay is the dialog's wrapper; tapping it closes the sheet.
+        fireEvent.click(dialog.parentElement as HTMLElement);
+        expect(screen.queryByRole('dialog', { name: 'Filter Totems' })).not.toBeInTheDocument();
     });
 });
 
 describe('GalleryToolbar — mobile sort sheet', () => {
     it('closes when tapping the dimmed area outside the sheet', () => {
-        const { container } = renderToolbar();
+        renderToolbar();
         fireEvent.click(screen.getByRole('button', { name: 'Sort' }));
-        expect(screen.getByRole('heading', { name: 'Sort Totems' })).toBeInTheDocument();
+        const dialog = screen.getByRole('dialog', { name: 'Sort Totems' });
 
-        const overlay = container.querySelector('.bg-black\\/50') as HTMLElement;
-        expect(overlay).toBeTruthy();
-        fireEvent.click(overlay);
-        expect(screen.queryByRole('heading', { name: 'Sort Totems' })).not.toBeInTheDocument();
+        // The dimmed overlay is the dialog's wrapper; tapping it closes the sheet.
+        fireEvent.click(dialog.parentElement as HTMLElement);
+        expect(screen.queryByRole('dialog', { name: 'Sort Totems' })).not.toBeInTheDocument();
     });
 });
 

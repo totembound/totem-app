@@ -15,6 +15,7 @@ import DrumDanceChallenge from './DrumDanceChallenge';
 import RuneCraftingChallenge from './RuneCraftingChallenge';
 import StarMapChallenge from './StarMapChallenge';
 import GardenPestControlChallenge from './GardenPestPatrolChallenge';
+import RiversideDodgeChallenge from './RiversideDodgeChallenge';
 
 interface ChallengeGameProps {
     challengeId: string;
@@ -170,7 +171,14 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
                         onComplete={handleScore}
                     />
                 )}
-                {challengeType === 'agility' && challengeId === 'chl_spirit-path' && (
+                {challengeType === 'agility' && challengeId === 'chl_riverside-dodge' && (
+                    <RiversideDodgeChallenge
+                        agility={attributes.agility}
+                        difficulty={difficulty}
+                        onComplete={handleScore}
+                    />
+                )}
+                {challengeType === 'balance' && challengeId === 'chl_spirit-path' && (
                     <SpiritPathChallenge
                         agility={attributes.agility}
                         difficulty={difficulty}

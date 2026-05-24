@@ -38,33 +38,38 @@ const LootBoxesCard: React.FC = () => {
 
       {/* Body */}
       {hasItems ? (
-        <div className="space-y-2 flex-1 mb-4 overflow-y-auto max-h-[260px] pr-1">
-          {lootItems.map(item => (
-            <div
-              key={item.id}
-              className={`rounded-lg p-3 border-2 ${RARITY_BORDER[item.box.rarity] || 'border-gray-200 dark:border-gray-700'} bg-gray-50 dark:bg-gray-900/30`}
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-9 h-9 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
-                  {item.box.icon === 'egg' ? (
-                    <Gift className="w-4 h-4 text-purple-500" />
-                  ) : (
-                    <Sparkles className="w-4 h-4 text-yellow-500" />
-                  )}
+        // Wrapper fills the card height (set by the sibling cards via auto-rows-fr).
+        // The list is absolutely positioned so it fills + scrolls without adding to
+        // the card's intrinsic height — so loot never stretches the whole row taller.
+        <div className="relative flex-1 min-h-0 mb-1">
+          <div className="absolute inset-0 space-y-2 overflow-y-auto pr-1">
+            {lootItems.map(item => (
+              <div
+                key={item.id}
+                className={`rounded-lg p-3 border-2 ${RARITY_BORDER[item.box.rarity] || 'border-gray-200 dark:border-gray-700'} bg-gray-50 dark:bg-gray-900/30`}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-9 h-9 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
+                    {item.box.icon === 'egg' ? (
+                      <Gift className="w-4 h-4 text-purple-500" />
+                    ) : (
+                      <Sparkles className="w-4 h-4 text-yellow-500" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{item.box.name}</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 capitalize truncate">{item.box.rarity} · {item.source}</p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedLootItem(item)}
+                    className="py-1.5 px-3 bg-purple-500 hover:bg-purple-600 text-white text-xs font-medium rounded-lg transition-colors shrink-0"
+                  >
+                    Open
+                  </button>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{item.box.name}</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 capitalize truncate">{item.box.rarity} · {item.source}</p>
-                </div>
-                <button
-                  onClick={() => setSelectedLootItem(item)}
-                  className="py-1.5 px-3 bg-purple-500 hover:bg-purple-600 text-white text-xs font-medium rounded-lg transition-colors shrink-0"
-                >
-                  Open
-                </button>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center text-center py-6 mb-4">

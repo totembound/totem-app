@@ -3,23 +3,26 @@ import CodexSidebar from "./CodexSidebar";
 import { getTraitsBySlot, type TraitSlot } from "../../../config/traits";
 import { TraitIcon, SLOT_COLOR_CLASSES } from "../../../utils/traitIcons";
 
-const SLOT_HEADERS: { slot: TraitSlot; title: string; subtitle: string; theme: string }[] = [
+const SLOT_HEADERS: { slot: TraitSlot; title: string; subtitle: string; category: string; theme: string }[] = [
   {
     slot: "innate",
     title: "Innate",
     subtitle: "What it was born with",
+    category: "Passive",
     theme: "from-stone-50 to-stone-100 dark:from-slate-800 dark:to-slate-900 border-stone-200 dark:border-slate-700",
   },
   {
     slot: "learned",
     title: "Learned",
     subtitle: "Chosen at Stage 3 (Adult)",
+    category: "Active",
     theme: "from-blue-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 border-blue-200 dark:border-slate-600",
   },
   {
     slot: "awakened",
     title: "Awakened",
     subtitle: "Chosen at Stage 5 (Ascended)",
+    category: "Passive",
     theme: "from-amber-50 to-violet-50 dark:from-slate-700 dark:to-slate-800 border-amber-200 dark:border-slate-600",
   },
 ];
@@ -40,10 +43,15 @@ const Traits: React.FC = () => {
             are permanent.
           </p>
 
-          {SLOT_HEADERS.map(({ slot, title, subtitle, theme }) => (
+          {SLOT_HEADERS.map(({ slot, title, subtitle, category, theme }) => (
             <section key={slot} className="mb-8">
               <div className={`bg-gradient-to-r ${theme} rounded-lg p-4 mb-3 border`}>
-                <h2 className={`text-xl font-bold ${SLOT_COLOR_CLASSES[slot]}`}>{title}</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className={`text-xl font-bold ${SLOT_COLOR_CLASSES[slot]}`}>{title}</h2>
+                  <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-white/60 dark:bg-gray-900/40 text-gray-600 dark:text-gray-300">
+                    {category}
+                  </span>
+                </div>
                 <p className="text-sm text-gray-600 dark:text-slate-300">{subtitle}</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -60,19 +68,9 @@ const Traits: React.FC = () => {
                       <p className="text-sm text-gray-600 dark:text-gray-300 italic mt-0.5">
                         "{t.description}"
                       </p>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-                          {t.category === "passive" ? "Passive" : "Active"}
-                        </span>
-                        {t.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
+                      <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400 mt-1.5">
+                        {t.effect}
+                      </p>
                     </div>
                   </div>
                 ))}

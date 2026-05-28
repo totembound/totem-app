@@ -536,16 +536,19 @@ class ApiClient {
     }>('POST', '/rewards/weekly/claim');
   }
 
-  async purchaseProtection(type: 'daily' | 'weekly', tier: number) {
+  /**
+   * Buy streak protection charges. Pass `quantity` to add a specific number of
+   * charges, or omit it to fill all the way to the per-type cap.
+   */
+  async purchaseProtection(type: 'daily' | 'weekly', quantity?: number) {
     return this.request<{
       rewardType: string;
-      tier: number;
       cost: number;
       chargesAdded: number;
       protectionCharges: number;
       maxCharges: number;
       newBalance: number;
-    }>('POST', `/rewards/${type}/protection`, { tier });
+    }>('POST', `/rewards/${type}/protection`, quantity != null ? { quantity } : {});
   }
 
   async getDailyQuests() {
@@ -960,29 +963,6 @@ class ApiClient {
       total: number;
       hasMore: boolean;
     }>('GET', `/shop/listings${queryString ? '?' + queryString : ''}`);
-  }
-
-  /**
-   * Get user's own marketplace listings
-   */
-  async getMyListings(status?: 'active' | 'sold' | 'cancelled' | 'all') {
-    const params = status ? `?status=${status}` : '';
-    return this.request<{
-      listings: Array<{
-        id: string;
-        totemId: string;
-        sellPrice: number;
-        status: string;
-        listedAt: string;
-        totemData: {
-          speciesId: number;
-          colorId: number;
-          rarityId: number;
-          name: string;
-          stage: number;
-        };
-      }>;
-    }>('GET', `/shop/my-listings${params}`);
   }
 
   /**

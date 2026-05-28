@@ -78,7 +78,7 @@ export interface GameContextType {
     getUserStreak: () => Promise<StreakStatus | undefined>;
     claimDailyReward: () => Promise<boolean>;
     claimWeeklyReward: () => Promise<boolean>;
-    purchaseProtection: (type: 'daily' | 'weekly', tier: number) => Promise<boolean>;
+    purchaseProtection: (type: 'daily' | 'weekly', quantity?: number) => Promise<boolean>;
     refreshRewardStatus: () => Promise<void>;
 
     setNickname: (totemId: string, newName: string) => Promise<void>;
@@ -889,9 +889,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const purchaseProtection = async (type: 'daily' | 'weekly', tier: number) => {
+    const purchaseProtection = async (type: 'daily' | 'weekly', quantity?: number) => {
         try {
-            const response = await apiClient.purchaseProtection(type, tier);
+            const response = await apiClient.purchaseProtection(type, quantity);
 
             if (!response.success) {
                 console.error("Error purchasing protection:", response.error);

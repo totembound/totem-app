@@ -14,7 +14,7 @@ import TierBonusBadge from '../TierBonusBadge';
 import DailyQuestsCard from '../quests/DailyQuestsCard';
 import TutorialClaimsCard from '../quests/TutorialClaimsCard';
 import LootBoxesCard from '../quests/LootBoxesCard';
-import { CURRENCY_NAMES } from '../../config/constants';
+import { CURRENCY_NAMES, STREAK_PROTECTION } from '../../config/constants';
 import { DAILY_REWARD, WEEKLY_REWARD } from '../../config/rewards';
 import { getTierMultiplier } from '../../config/tier-bonuses';
 
@@ -62,21 +62,27 @@ const Rewards = () => {
     const hasWeeklyUnlocked = progress['ach_login-progression']?.unlockedMilestones[0] || false;
     const hasLoot = lootItems.length > 0;
 
-    // Check streak requirements + affordability (must afford the cheapest tier)
+    // Streak Saver charges are consumable and bought to top up toward a cap, so
+    // the buy button stays available until the player is actually full.
     const essenceNum = Number(essenceBalance) || 0;
-    const DAILY_MIN_COST = 50;   // Tier 1 daily protection
-    const WEEKLY_MIN_COST = 500; // Only weekly tier
-    const canPurchaseDailyProtection = (streakStatus?.streakDays || 0) >= 7 && essenceNum >= DAILY_MIN_COST;
-    const canPurchaseWeeklyProtection = (weeklyStatus?.weeklyStreak || 0) >= 4 && essenceNum >= WEEKLY_MIN_COST;
+    const DAILY_MAX = STREAK_PROTECTION.daily.maxCharges;
+    const WEEKLY_MAX = STREAK_PROTECTION.weekly.maxCharges;
 
-    // Active protection state (server-authoritative). Charges are consumable —
-    // the badge shows how many "Streak Saver" charges the player has banked.
     const dailyCharges = streakStatus?.protectionCharges || 0;
     const weeklyCharges = weeklyStatus?.protectionCharges || 0;
-    const dailyProtected = !!streakStatus?.isProtected || dailyCharges > 0;
-    const weeklyProtected = !!weeklyStatus?.isProtected || weeklyCharges > 0;
-    const protectionLabel = (charges: number) =>
-        charges <= 1 ? 'Streak Saver Ready' : `Streak Saver x${charges}`;
+    const dailyFull = dailyCharges >= DAILY_MAX;
+    const weeklyFull = weeklyCharges >= WEEKLY_MAX;
+
+    // Can buy when: streak requirement met, can afford at least one charge, and
+    // there's headroom below the cap.
+    const canPurchaseDailyProtection =
+        (streakStatus?.streakDays || 0) >= STREAK_PROTECTION.daily.requiredStreak
+        && essenceNum >= STREAK_PROTECTION.daily.costPerCharge
+        && !dailyFull;
+    const canPurchaseWeeklyProtection =
+        (weeklyStatus?.weeklyStreak || 0) >= STREAK_PROTECTION.weekly.requiredStreak
+        && essenceNum >= STREAK_PROTECTION.weekly.costPerCharge
+        && !weeklyFull;
 
     // Daily bonus calculation (matches backend: tier × base × (1 + streak%);
     // streak = 5% per day from day 2, max 100% at day 21)
@@ -200,21 +206,22 @@ const Rewards = () => {
             >
                 {isClaimLoading ? 'Claiming...' : weeklyStatus?.canClaimWeekly ? 'Claim Weekly' : 'Already Claimed'}
             </button>
-            {weeklyProtected ? (
+            {weeklyFull ? (
                 <button
                     disabled
                     className="w-full py-2 px-4 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed"
                 >
                     <Shield className="w-4 h-4" />
-                    {protectionLabel(weeklyCharges)}
+                    Streak Saver Full (x{weeklyCharges})
                 </button>
             ) : (
                 <ProtectionDialog type="weekly">
                     <button
-                        className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={!canPurchaseWeeklyProtection}
                     >
-                        Buy Protection
+                        <Shield className="w-4 h-4" />
+                        {weeklyCharges > 0 ? `Refill Streak Saver (${weeklyCharges}/${WEEKLY_MAX})` : 'Buy Streak Saver'}
                     </button>
                 </ProtectionDialog>
             )}
@@ -226,8 +233,8 @@ const Rewards = () => {
         </div>
         <div className="text-sm text-gray-600 dark:text-gray-400">
             <ul className="space-y-1">
-                <li>• 500 {CURRENCY_NAMES.SOFT} - 2 charges
-                    <span className="text-sm ml-2 text-gray-500">* 4-week streak</span>
+                <li className="whitespace-nowrap">• 250 {CURRENCY_NAMES.SOFT}/charge — max {WEEKLY_MAX}
+                    <span className="ml-2 text-gray-500">4-week streak</span>
                 </li>
             </ul>
         </div>
@@ -339,21 +346,22 @@ const Rewards = () => {
                 >
                     {isClaimLoading ? 'Claiming...' : streakStatus?.canClaimToday ? 'Claim Daily' : 'Already Claimed'}
                 </button>
-                {dailyProtected ? (
+                {dailyFull ? (
                     <button
                         disabled
                         className="w-full py-2 px-4 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed"
                     >
                         <Shield className="w-4 h-4" />
-                        {protectionLabel(dailyCharges)}
+                        Streak Saver Full (x{dailyCharges})
                     </button>
                 ) : (
                     <ProtectionDialog type="daily">
                         <button
-                            className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={!canPurchaseDailyProtection}
                         >
-                            Buy Protection
+                            <Shield className="w-4 h-4" />
+                            {dailyCharges > 0 ? `Refill Streak Saver (${dailyCharges}/${DAILY_MAX})` : 'Buy Streak Saver'}
                         </button>
                     </ProtectionDialog>
                 )}
@@ -365,11 +373,11 @@ const Rewards = () => {
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">
                 <ul className="space-y-1">
-                    <li>• Tier 1: 50 {CURRENCY_NAMES.SOFT} - 1 charge
-                        <span className="text-sm ml-2 text-gray-500">* 7-day streak</span>
+                    <li className="whitespace-nowrap">• Tier 1: 50 {CURRENCY_NAMES.SOFT} — 1 charge
+                        <span className="ml-2 text-gray-500">7-day streak</span>
                     </li>
-                    <li>• Tier 2: 250 {CURRENCY_NAMES.SOFT} - 7 charges
-                        <span className="text-sm ml-2 text-gray-500">* 14-day streak</span>
+                    <li className="whitespace-nowrap">• Tier 2: 250 {CURRENCY_NAMES.SOFT} — {DAILY_MAX} charges
+                        <span className="ml-2 text-gray-500">save 100</span>
                     </li>
                 </ul>
             </div>

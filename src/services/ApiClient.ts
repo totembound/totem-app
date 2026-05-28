@@ -1004,19 +1004,6 @@ class ApiClient {
   }
 
   /**
-   * Cancel an active listing
-   */
-  async cancelListing(totemId: string) {
-    return this.request<{
-      totem: {
-        id: string;
-        name: string;
-      };
-      message: string;
-    }>('POST', '/shop/cancel', { totemId });
-  }
-
-  /**
    * Get shop configuration (fees, limits)
    */
   async getShopConfig() {

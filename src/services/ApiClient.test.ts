@@ -938,22 +938,6 @@ describe('ApiClient', () => {
       expect(JSON.parse(options.body)).toEqual({ totemId: 'ttm_2' });
     });
 
-    it('cancelListing should POST /shop/cancel with totemId', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: () => Promise.resolve({ success: true, data: { message: 'Listing cancelled' } }),
-      });
-
-      const result = await apiClient.cancelListing('ttm_1');
-      expect(result.success).toBe(true);
-
-      const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/shop/cancel');
-      expect(options.method).toBe('POST');
-      expect(JSON.parse(options.body)).toEqual({ totemId: 'ttm_1' });
-    });
-
     it('getShopConfig should GET /shop/config', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,

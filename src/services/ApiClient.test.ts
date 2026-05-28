@@ -724,11 +724,11 @@ describe('ApiClient', () => {
       expect(options.method).toBe('POST');
     });
 
-    it('purchaseProtection should POST /rewards/:type/protection with tier', async () => {
+    it('purchaseProtection should POST /rewards/:type/protection with quantity', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: () => Promise.resolve({ success: true, data: { rewardType: 'daily', tier: 1 } }),
+        json: () => Promise.resolve({ success: true, data: { rewardType: 'daily', chargesAdded: 1 } }),
       });
 
       const result = await apiClient.purchaseProtection('daily', 1);
@@ -737,7 +737,20 @@ describe('ApiClient', () => {
       const [url, options] = mockFetch.mock.calls[0];
       expect(url).toContain('/rewards/daily/protection');
       expect(options.method).toBe('POST');
-      expect(JSON.parse(options.body)).toEqual({ tier: 1 });
+      expect(JSON.parse(options.body)).toEqual({ quantity: 1 });
+    });
+
+    it('purchaseProtection should send empty body to fill to cap when no quantity', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ success: true, data: { rewardType: 'daily', chargesAdded: 7 } }),
+      });
+
+      await apiClient.purchaseProtection('daily');
+
+      const [, options] = mockFetch.mock.calls[0];
+      expect(JSON.parse(options.body)).toEqual({});
     });
 
     it('purchaseProtection should work with weekly type', async () => {

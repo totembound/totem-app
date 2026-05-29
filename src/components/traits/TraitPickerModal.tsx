@@ -120,7 +120,7 @@ const TraitPickerModal: React.FC<TraitPickerModalProps> = ({
                         ))}
                     </div>
                     <p className="text-xs text-stone-400 dark:text-stone-500 mt-4 italic text-center">
-                        Effects coming soon — for now, traits are flavor and identity.
+                        Trait effects apply immediately. Tap a card to see what it does.
                     </p>
                 </div>
             </div>

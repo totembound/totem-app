@@ -45,6 +45,44 @@ const SLOT_GATE: Record<TraitSlot, number> = {
     awakened: AWAKENED_STAGE_GATE,
 };
 
+/**
+ * Tier theme — earth for Innate, study for Learned, gold for Awakened.
+ * Class strings are kept literal so Tailwind picks them up at build time.
+ */
+const TIER_THEME: Record<TraitSlot, {
+    cardBg: string;
+    cardBorder: string;
+    halo: string;
+    pillBg: string;
+    chipBg: string;
+    chipText: string;
+}> = {
+    innate: {
+        cardBg: 'bg-gradient-to-br from-stone-900/70 to-stone-800/40 dark:from-stone-900/80 dark:to-stone-800/40',
+        cardBorder: 'border-stone-300/40 dark:border-stone-700/70',
+        halo: 'bg-stone-400/20 dark:bg-stone-300/15',
+        pillBg: 'bg-stone-200/90 text-stone-700 ring-1 ring-stone-400/40 dark:bg-stone-800/90 dark:text-stone-200 dark:ring-stone-600/40',
+        chipBg: 'bg-stone-100/80 ring-1 ring-stone-400/40 dark:bg-stone-900/60 dark:ring-stone-600/50',
+        chipText: 'text-stone-800 dark:text-stone-100',
+    },
+    learned: {
+        cardBg: 'bg-gradient-to-br from-blue-950/40 to-blue-900/20 dark:from-blue-950/60 dark:to-blue-900/30',
+        cardBorder: 'border-blue-300/40 dark:border-blue-800/70',
+        halo: 'bg-blue-400/25 dark:bg-blue-500/25',
+        pillBg: 'bg-blue-200/90 text-blue-800 ring-1 ring-blue-400/40 dark:bg-blue-900/80 dark:text-blue-100 dark:ring-blue-700/40',
+        chipBg: 'bg-blue-100/80 ring-1 ring-blue-400/40 dark:bg-blue-950/60 dark:ring-blue-700/50',
+        chipText: 'text-blue-900 dark:text-blue-100',
+    },
+    awakened: {
+        cardBg: 'bg-gradient-to-br from-amber-950/40 to-amber-900/20 dark:from-amber-950/60 dark:to-amber-900/30',
+        cardBorder: 'border-amber-300/50 dark:border-amber-700/70',
+        halo: 'bg-amber-400/30 dark:bg-amber-500/30',
+        pillBg: 'bg-amber-200/90 text-amber-900 ring-1 ring-amber-400/50 dark:bg-amber-800/80 dark:text-amber-100 dark:ring-amber-600/50',
+        chipBg: 'bg-amber-100/80 ring-1 ring-amber-400/50 dark:bg-amber-950/60 dark:ring-amber-600/50',
+        chipText: 'text-amber-900 dark:text-amber-100',
+    },
+};
+
 const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
     stage,
     species,
@@ -64,64 +102,121 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
 
     const description = stageDescription || getSpeciesDescription(species);
 
-    const renderTraitRow = (slot: TraitSlot) => {
+    const renderTraitCard = (slot: TraitSlot) => {
         const traitId = traits?.[slot] ?? null;
         const def = getTraitById(traitId);
         const gate = SLOT_GATE[slot];
         const unlocked = stage >= gate;
         const canChoose = unlocked && !traitId && slot !== 'innate' && !!onChooseTrait;
         const tooltipContent = getTraitTooltipContent({ slot, traitId, unlocked, requiredStage: gate });
+        const theme = TIER_THEME[slot];
 
-        // Left: tier name (Innate / Learned / Awakened). Right: the chosen trait
-        // (icon + name) or the choose CTA / lock state.
-        const tierLabel = (
-            <span className={`text-sm text-gray-600 dark:text-gray-400`}>
+        // Slot pill — always rendered in the body column, so all three pills
+        // line up vertically across mobile rows and along the top of desktop cards.
+        const slotPill = (
+            <span className={`inline-flex items-center text-[10px] font-bold uppercase tracking-[0.12em] px-2 py-0.5 rounded-full ${theme.pillBg}`}>
                 {SLOT_LABEL[slot]}
             </span>
         );
 
-        if (def) {
-            return (
-                <div key={slot} className="flex items-center justify-between gap-3">
-                    {tierLabel}
-                    <Tooltip content={tooltipContent} position="top">
-                        <span className="inline-flex items-center gap-1.5 cursor-help">
-                            <TraitIcon traitId={def.id} size={16} colorBySlot className="shrink-0" />
-                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{def.name}</span>
-                        </span>
-                    </Tooltip>
+        // Icon medallion — circle with tier-colored halo glow behind the lucide icon.
+        // Sized by viewport: 44px on mobile rows, 56px on desktop cards.
+        const iconMedallion = (centerContent: React.ReactNode) => (
+            <div className="relative shrink-0 w-11 h-11 sm:w-14 sm:h-14 flex items-center justify-center">
+                <span className={`absolute inset-0 rounded-full blur-xl ${theme.halo}`} aria-hidden />
+                <span className={`relative inline-flex items-center justify-center w-11 h-11 sm:w-14 sm:h-14 rounded-full ${theme.cardBg} ring-1 ${theme.cardBorder}`}>
+                    {centerContent}
+                </span>
+            </div>
+        );
+
+        // Card shell:
+        //   mobile (<sm): horizontal row, fixed-width icon column on the left so
+        //     all three pills line up flush at the same x position.
+        //   desktop (sm+): vertical card, pill + medallion centered on top, body
+        //     stacked with breathing room.
+        const cardShell = (icon: React.ReactNode, body: React.ReactNode) => (
+            <div
+                key={slot}
+                className={`relative overflow-hidden flex flex-row sm:flex-col items-start sm:items-stretch gap-3 sm:gap-3 p-3 sm:p-4 rounded-xl border ${theme.cardBg} ${theme.cardBorder} shadow-sm hover:shadow-md transition-shadow min-w-0`}
+            >
+                {/* Icon — left column on mobile, top-center on desktop */}
+                <div className="shrink-0 sm:flex sm:justify-center">{icon}</div>
+                {/* Body */}
+                <div className="flex-1 min-w-0 flex flex-col gap-1.5 sm:items-center sm:text-center">
+                    {slotPill}
+                    {body}
                 </div>
+            </div>
+        );
+
+        if (def) {
+            const isPassive = def.category === 'passive';
+            return cardShell(
+                iconMedallion(
+                    <>
+                        <TraitIcon traitId={def.id} size={26} colorBySlot className="shrink-0 sm:hidden" />
+                        <TraitIcon traitId={def.id} size={30} colorBySlot className="shrink-0 hidden sm:inline-block" />
+                    </>,
+                ),
+                <>
+                    {/* Name on its own line so it never wraps with the category tag. */}
+                    <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-50 leading-tight break-words">
+                        {def.name}
+                    </div>
+                    <div className="text-[10px] uppercase tracking-[0.15em] text-gray-500 dark:text-gray-400 font-medium">
+                        {isPassive ? 'Passive' : 'Active'}
+                    </div>
+                    {/* Effect chip — tier-tinted callout instead of bare green text. */}
+                    <div className={`mt-1 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${theme.chipBg} ${theme.chipText} w-fit sm:mx-auto break-words text-left sm:text-center`}>
+                        {def.effect}
+                    </div>
+                    {/* Flavor as a quoted inscription. Smart quotes added if not already. */}
+                    <div className="text-[11px] text-gray-500 dark:text-gray-400 italic mt-1 break-words leading-snug">
+                        &ldquo;{def.description.replace(/[“”"]/g, '').replace(/\.$/, '')}.&rdquo;
+                    </div>
+                </>,
             );
         }
 
         if (canChoose) {
-            return (
-                <div key={slot} className="flex items-center justify-between gap-3">
-                    {tierLabel}
+            return cardShell(
+                iconMedallion(
+                    <span className={`inline-block w-6 h-6 sm:w-9 sm:h-9 rounded-full border-2 border-dashed ${SLOT_COLOR_CLASSES[slot]}`} />,
+                ),
+                <>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Unlocked &mdash; awaiting your choice
+                    </div>
                     <Tooltip content={tooltipContent} position="top" interactiveChild>
                         <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); onChooseTrait?.(slot); }}
-                            className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:underline"
+                            className={`mt-1 inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${theme.chipBg} ${theme.chipText} hover:brightness-110 transition`}
                         >
-                            <span className={`inline-block shrink-0 w-3 h-3 rounded-full border-2 border-dashed ${SLOT_COLOR_CLASSES[slot]}`} />
-                            Choose →
+                            Choose a {SLOT_LABEL[slot].toLowerCase()} trait →
                         </button>
                     </Tooltip>
-                </div>
+                </>,
             );
         }
 
-        return (
-            <div key={slot} className="flex items-center justify-between gap-3 py-0.5">
-                {tierLabel}
-                <Tooltip content={tooltipContent} position="top">
-                    <span className="inline-flex items-center gap-1.5 cursor-help text-sm text-gray-500 dark:text-gray-400">
-                        <Lock size={14} className="shrink-0 text-gray-400 dark:text-gray-500" />
-                        {slot === 'innate' ? 'Unknown' : `Stage ${gate + 1}`}
-                    </span>
-                </Tooltip>
-            </div>
+        return cardShell(
+            iconMedallion(
+                <Lock size={18} className="text-gray-400 dark:text-gray-500" aria-hidden />,
+            ),
+            <Tooltip content={tooltipContent} position="top">
+                <div className="cursor-help">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 leading-tight mt-1">
+                        {slot === 'innate' ? 'Unknown' : 'Awakens at'}
+                    </div>
+                    {slot !== 'innate' && (
+                        <div className="text-sm font-semibold text-gray-700 dark:text-gray-200 mt-0.5">
+                            Stage {gate + 1}
+                        </div>
+                    )}
+                </div>
+            </Tooltip>,
         );
     };
 
@@ -218,12 +313,14 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
                 </div>
             </div>
 
-            {/* Traits — own section, styled to match Properties */}
+            {/* Traits — stacked rows on mobile, 3-column cards on desktop.
+                Container matches the Properties panel above (same bg + padding)
+                so the section reads as one panel-width. */}
             {traits && (
                 <div>
                     <h3 className="text-md font-semibold mb-2">Traits</h3>
-                    <div className="space-y-1.5 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-                        {(['innate', 'learned', 'awakened'] as TraitSlot[]).map(renderTraitRow)}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                        {(['innate', 'learned', 'awakened'] as TraitSlot[]).map(renderTraitCard)}
                     </div>
                 </div>
             )}

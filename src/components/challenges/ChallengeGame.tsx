@@ -54,6 +54,11 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
     const [showSuccess, setShowSuccess] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
     const [showScoreEffect, setShowScoreEffect] = useState(false);
+    // Actual rewards from the server (folds in trait bonuses like Clever,
+    // Skilled Fighter score-boost, Persistent happiness, Mentor aura XP).
+    // Falls back to the client estimate until the response lands.
+    const [actualXp, setActualXp] = useState<number | null>(null);
+    const [actualHappiness, setActualHappiness] = useState<number | null>(null);
 
     // Get current challenge status
     const userStatus: ChallengeStatus = challengeState.userStatus[challengeId] || {
@@ -104,7 +109,11 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
             setIsSubmitting(true);
             setError('');
             
-            await completeChallenge(challengeId, tokenId, bestScore);
+            const rewards = await completeChallenge(challengeId, tokenId, bestScore);
+            if (rewards) {
+                setActualXp(rewards.xpEarned);
+                setActualHappiness(rewards.happinessEarned);
+            }
             await refreshAchievements();
             setShowScoreEffect(true);
 
@@ -229,8 +238,8 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
                 )}
                 {/* Score effect overlay */}
                 {showScoreEffect && (
-                    <ExperienceEffect 
-                        exp={exp}
+                    <ExperienceEffect
+                        exp={actualXp ?? exp}
                         onComplete={() => setShowScoreEffect(false)}
                     />
                 )}
@@ -259,7 +268,7 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
                           d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <p className="ml-3 text-sm text-green-700 dark:text-green-200">
-                        Challenge completed! Score: {bestScore}. You get EXP: {exp}, Happiness: 10
+                        Challenge completed! Score: {bestScore}. You get EXP: {actualXp ?? exp}, Happiness: {actualHappiness ?? 10}
                     </p>
                 </div>
             )}

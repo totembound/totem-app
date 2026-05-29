@@ -615,6 +615,7 @@ class ApiClient {
       totemId: string;
       score: number;
       xpEarned: number;
+      happinessEarned: number;
       essenceEarned: number;
       newEssenceBalance: number | null;
       totem: {

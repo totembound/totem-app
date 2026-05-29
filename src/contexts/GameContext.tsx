@@ -71,7 +71,7 @@ export interface GameContextType {
     getEligibleTotems: (challengeId: string) => TotemData[];
     canAttemptChallenge: (challengeId: string, totemId: string) => boolean;
     getChallengeStatus: (challengeId: string) => string;
-    completeChallenge: (challengeId: string, tokenId: string, score: number) => Promise<void>;
+    completeChallenge: (challengeId: string, tokenId: string, score: number) => Promise<{ xpEarned: number; happinessEarned: number; essenceEarned: number } | void>;
 
     // rewards
     rewardsState: RewardsState;
@@ -529,6 +529,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Apply daily-quest progress deltas from the response (e.g. Iron Trial / Swift Trial / Wise Trial)
         setDailyQuests(prev => applyQuestProgressUpdates(prev, response.data?.quests));
+
+        // Return the actual rewards so the UI animation reflects trait bonuses
+        // (Clever / Mentor aura / Persistent / Merchant's Eye) rather than the
+        // client-side score-only estimate.
+        return {
+            xpEarned: response.data?.xpEarned ?? 0,
+            happinessEarned: response.data?.happinessEarned ?? 0,
+            essenceEarned: response.data?.essenceEarned ?? 0,
+        };
     }, [challengeState]);
 
     // Helper to convert UTC hours to seconds since day start

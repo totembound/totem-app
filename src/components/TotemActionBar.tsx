@@ -2,12 +2,16 @@ import React from 'react';
 import { Coffee, Heart, Dumbbell, Sparkles, Clock, Loader2 } from 'lucide-react';
 import { TotemAttributes, ActionType, ActionTracking, ActionConfig } from '../types/types';
 import { CURRENCY_NAMES } from '../config/constants';
+import { TotemTraits } from '../config/traits';
+import { resolveTraitBonusesForTotem } from '../utils/traitBonuses';
 
 interface TotemActionBarProps {
     attributes: TotemAttributes;
     actionConfigs: Record<ActionType, ActionConfig>;
     actionTracking: Partial<Record<ActionType, ActionTracking>>;
     essenceBalance: number;
+    /** Trait IDs on the acting totem — drives the effective-cost preview. */
+    traits?: TotemTraits | null;
     isTotemOnExpedition?: boolean;
     busyReason?: string;
     canUseAction: (
@@ -35,6 +39,7 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
     actionConfigs,
     actionTracking,
     essenceBalance,
+    traits = null,
     isTotemOnExpedition = false,
     busyReason,
     canUseAction,
@@ -47,7 +52,22 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
     onEvolve,
     canEvolve,
 }) => {
-    const getEssenceCost = (cost: number): number => cost;
+    // Map ActionType → resolver scope. Returns base + effective cost so we can
+    // strike through the original when a trait (e.g. Thrifty) discounts it.
+    const ACTION_SCOPE: Record<number, 'feed' | 'train' | 'treat' | null> = {
+        [ActionType.Feed]: 'feed',
+        [ActionType.Train]: 'train',
+        [ActionType.Treat]: 'treat',
+        [ActionType.Evolve]: null,
+        [ActionType.None]: null,
+    };
+    const getEffectiveCost = (type: ActionType, baseCost: number) => {
+        const scope = ACTION_SCOPE[type];
+        if (!scope || baseCost <= 0) return { baseCost, effectiveCost: baseCost, discounted: false };
+        const bonuses = resolveTraitBonusesForTotem(traits, { action: scope });
+        const effectiveCost = Math.floor(baseCost * bonuses.essenceCostMultiplier);
+        return { baseCost, effectiveCost, discounted: effectiveCost < baseCost };
+    };
 
     // Get busy status message
     const expeditionStatusMessage = isTotemOnExpedition
@@ -62,7 +82,8 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
         handler: () => void,
         canUse: boolean
     ) => {
-        const actionCost = getEssenceCost(actionConfigs[type]?.cost || 0);
+        const { baseCost, effectiveCost, discounted } = getEffectiveCost(type, actionConfigs[type]?.cost || 0);
+        const actionCost = effectiveCost;
         const hasEnoughBalance = essenceBalance >= actionCost;
         const hasMinHappiness = attributes.happiness >= (actionConfigs[type]?.minHappiness || 0);
     
@@ -134,7 +155,12 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
                         <div className="flex flex-col items-center">
                             <span className="text-sm font-medium">{label}</span>
                             <span className="text-xs flex items-center gap-1">
-                                <Sparkles size={12} className="text-yellow-500" /> {actionCost} {CURRENCY_NAMES.SOFT}
+                                <Sparkles size={12} className="text-yellow-500" />
+                                {discounted && (
+                                    <span className="text-stone-400 dark:text-stone-500 line-through mr-0.5">{baseCost}</span>
+                                )}
+                                <span className={discounted ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : ''}>{actionCost}</span>
+                                <span>{CURRENCY_NAMES.SOFT}</span>
                             </span>
                         </div>
                     </button>

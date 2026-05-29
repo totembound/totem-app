@@ -70,6 +70,10 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     const [activeEffect, setActiveEffect] = useState<'treat' | 'feed' | 'train' | null>(null);
     const [activeTab, setActiveTab] = useState<'stats' | 'details'>('stats');
     const [showExpEffect, setShowExpEffect] = useState(false);
+    // Actual XP from the action response — drives the animation popup so trait
+    // bonuses (Quick Learner, Mentor aura, …) show the real number, not the
+    // static base value from action config.
+    const [lastXpGained, setLastXpGained] = useState<number | null>(null);
     const [cooldowns, setCooldowns] = useState<Record<string, { onCooldown: boolean; readyAt: Date | null; remainingMs: number }>>({});
     const [, setTick] = useState(0); // Force re-render for countdown timer
     // Optimistic override after a trait is chosen — avoids round-tripping to the parent
@@ -356,6 +360,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
             }
 
             if (result.xpGained) {
+                setLastXpGained(result.xpGained);
                 setShowExpEffect(true);
                 // Auto-hide XP animation after 2 seconds
                 setTimeout(() => setShowExpEffect(false), 2000);
@@ -582,7 +587,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
 
                         {showExpEffect && (
                             <ExperienceEffect
-                                exp={trainExp}
+                                exp={lastXpGained ?? trainExp}
                                 onComplete={() => setShowExpEffect(false)}
                             />
                         )}
@@ -649,6 +654,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                                 actionConfigs={actionConfigs}
                                 actionTracking={currentTrackings}
                                 essenceBalance={essenceBalance}
+                                traits={totem.traits ?? null}
                                 canUseAction={canUseAction}
                                 getActionStatus={getActionStatus}
                                 getNextFeedWindow={getNextFeedWindow}

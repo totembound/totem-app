@@ -72,73 +72,81 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
         const canChoose = unlocked && !traitId && slot !== 'innate' && !!onChooseTrait;
         const tooltipContent = getTraitTooltipContent({ slot, traitId, unlocked, requiredStage: gate });
 
-        // Slot pill — small tag at the top of each card.
+        // Slot pill — small tag rendered top-center on desktop, inline on mobile.
         const slotPill = (
             <span className={`inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${SLOT_COLOR_CLASSES[slot]}`}>
                 {SLOT_LABEL[slot]}
             </span>
         );
 
-        // Common card shell — header strip with pill, then the body.
-        const cardShell = (children: React.ReactNode) => (
-            <div key={slot} className="flex flex-col gap-1.5 p-2.5 rounded-lg bg-white/40 dark:bg-gray-900/30 border border-gray-200 dark:border-gray-700 min-w-0">
-                <div className="flex items-center justify-center">{slotPill}</div>
-                {children}
+        // Shell:
+        // - mobile (<sm): horizontal row, icon left, content right, pill inline
+        // - desktop (sm+): vertical card, pill centered on top, content stacked
+        const cardShell = (icon: React.ReactNode, content: React.ReactNode) => (
+            <div
+                key={slot}
+                className="flex flex-row sm:flex-col items-start sm:items-stretch gap-3 sm:gap-1.5 p-2.5 rounded-lg bg-white/40 dark:bg-gray-900/30 border border-gray-200 dark:border-gray-700 min-w-0"
+            >
+                {/* Desktop-only top pill strip */}
+                <div className="hidden sm:flex items-center justify-center">{slotPill}</div>
+                {/* Icon — left column on mobile, top-center on desktop */}
+                <div className="shrink-0 sm:flex sm:justify-center">{icon}</div>
+                {/* Body */}
+                <div className="flex-1 min-w-0 flex flex-col gap-0.5 sm:items-center sm:text-center">
+                    {/* Mobile-only inline pill above name */}
+                    <div className="sm:hidden">{slotPill}</div>
+                    {content}
+                </div>
             </div>
         );
 
         if (def) {
             return cardShell(
-                <div className="flex flex-col items-center text-center gap-1 min-w-0">
-                    <TraitIcon traitId={def.id} size={32} colorBySlot className="shrink-0" />
-                    <div className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-tight break-words">
-                        {def.name}
+                <TraitIcon traitId={def.id} size={28} colorBySlot className="shrink-0" />,
+                <>
+                    <div className="flex items-baseline gap-2 flex-wrap sm:justify-center">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-tight">
+                            {def.name}
+                        </span>
+                        <span className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            {def.category}
+                        </span>
                     </div>
-                    <div className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                        {def.category}
-                    </div>
-                    <div className="text-xs text-emerald-700 dark:text-emerald-400 font-medium mt-0.5 break-words">
+                    <div className="text-xs text-emerald-700 dark:text-emerald-400 font-medium break-words">
                         {def.effect}
                     </div>
-                    <div className="text-[11px] text-gray-500 dark:text-gray-400 italic mt-0.5 break-words">
+                    <div className="text-[11px] text-gray-500 dark:text-gray-400 italic break-words">
                         {def.description}
                     </div>
-                </div>,
+                </>,
             );
         }
 
         if (canChoose) {
             return cardShell(
-                <div className="flex flex-col items-center text-center gap-1.5 min-w-0">
-                    <span className={`inline-block shrink-0 w-8 h-8 rounded-full border-2 border-dashed ${SLOT_COLOR_CLASSES[slot]}`} />
-                    <div className="text-xs text-gray-500 dark:text-gray-400">Unlocked</div>
+                <span className={`inline-block shrink-0 w-7 h-7 rounded-full border-2 border-dashed ${SLOT_COLOR_CLASSES[slot]}`} />,
+                <>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">Unlocked — awaiting your choice</div>
                     <Tooltip content={tooltipContent} position="top" interactiveChild>
                         <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); onChooseTrait?.(slot); }}
-                            className="text-xs font-medium text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:underline"
+                            className="text-xs font-medium text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:underline text-left sm:text-center"
                         >
                             Choose →
                         </button>
                     </Tooltip>
-                </div>,
+                </>,
             );
         }
 
         return cardShell(
+            <span className="inline-flex items-center justify-center shrink-0 w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-700">
+                <Lock size={14} className="text-gray-400 dark:text-gray-500" />
+            </span>,
             <Tooltip content={tooltipContent} position="top">
-                <div className="flex flex-col items-center text-center gap-1.5 min-w-0 cursor-help">
-                    <span className="inline-flex items-center justify-center shrink-0 w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700">
-                        <Lock size={16} className="text-gray-400 dark:text-gray-500" />
-                    </span>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 leading-tight">
-                        {slot === 'innate' ? 'Unknown' : `Awakens at`}
-                    </div>
-                    {slot !== 'innate' && (
-                        <div className="text-xs font-medium text-gray-600 dark:text-gray-300">
-                            Stage {gate + 1}
-                        </div>
-                    )}
+                <div className="text-xs text-gray-500 dark:text-gray-400 cursor-help">
+                    {slot === 'innate' ? 'Unknown' : `Awakens at Stage ${gate + 1}`}
                 </div>
             </Tooltip>,
         );
@@ -237,11 +245,11 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
                 </div>
             </div>
 
-            {/* Traits — 3-column card layout, mirrors the slot triple. */}
+            {/* Traits — stacked rows on mobile, 3-column cards on desktop. */}
             {traits && (
                 <div>
                     <h3 className="text-md font-semibold mb-2">Traits</h3>
-                    <div className="grid grid-cols-3 gap-2 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
                         {(['innate', 'learned', 'awakened'] as TraitSlot[]).map(renderTraitCard)}
                     </div>
                 </div>

@@ -189,17 +189,23 @@ export const getRarityColor = (rarity: Rarity) => {
 };
 
 export function getRarityBonusStat(rarity: Rarity): number {
-    if (rarity === Rarity.Common || rarity === Rarity.Uncommon) {
+    if (rarity === Rarity.Common) {
         return 0;
     }
-    if (rarity === Rarity.Rare) {
+    if (rarity === Rarity.Uncommon) {
         return 1;
     }
-    if (rarity === Rarity.Epic || rarity === Rarity.Limited) {
+    if (rarity === Rarity.Rare) {
         return 2;
     }
-    if (rarity === Rarity.Legendary) {
+    if (rarity === Rarity.Epic) {
+        return 3;
+    }
+    if (rarity === Rarity.Limited) {
         return 4;
+    }
+    if (rarity === Rarity.Legendary) {
+        return 6;
     }
     return 0;
 }

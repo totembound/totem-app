@@ -28,24 +28,24 @@ describe('getRarityBonusStat', () => {
     expect(getRarityBonusStat(Rarity.Common)).toBe(0);
   });
 
-  it('should return 0 for Uncommon', () => {
-    expect(getRarityBonusStat(Rarity.Uncommon)).toBe(0);
+  it('should return 1 for Uncommon', () => {
+    expect(getRarityBonusStat(Rarity.Uncommon)).toBe(1);
   });
 
-  it('should return 1 for Rare', () => {
-    expect(getRarityBonusStat(Rarity.Rare)).toBe(1);
+  it('should return 2 for Rare', () => {
+    expect(getRarityBonusStat(Rarity.Rare)).toBe(2);
   });
 
-  it('should return 2 for Epic', () => {
-    expect(getRarityBonusStat(Rarity.Epic)).toBe(2);
+  it('should return 3 for Epic', () => {
+    expect(getRarityBonusStat(Rarity.Epic)).toBe(3);
   });
 
-  it('should return 2 for Limited', () => {
-    expect(getRarityBonusStat(Rarity.Limited)).toBe(2);
+  it('should return 4 for Limited', () => {
+    expect(getRarityBonusStat(Rarity.Limited)).toBe(4);
   });
 
-  it('should return 4 for Legendary', () => {
-    expect(getRarityBonusStat(Rarity.Legendary)).toBe(4);
+  it('should return 6 for Legendary', () => {
+    expect(getRarityBonusStat(Rarity.Legendary)).toBe(6);
   });
 });
 
@@ -81,16 +81,16 @@ describe('getSpeciesBaseStats', () => {
   it('should add rarity bonus to all stats', () => {
     const commonStats = getSpeciesBaseStats(Species.Bear, Rarity.Common);
     const rareStats = getSpeciesBaseStats(Species.Bear, Rarity.Rare);
-    expect(rareStats.strength).toBe(commonStats.strength + 1);
-    expect(rareStats.wisdom).toBe(commonStats.wisdom + 1);
-    expect(rareStats.agility).toBe(commonStats.agility + 1);
+    expect(rareStats.strength).toBe(commonStats.strength + 2);
+    expect(rareStats.wisdom).toBe(commonStats.wisdom + 2);
+    expect(rareStats.agility).toBe(commonStats.agility + 2);
   });
 
-  it('should apply legendary bonus (+4)', () => {
+  it('should apply legendary bonus (+6)', () => {
     const stats = getSpeciesBaseStats(Species.Wolf, Rarity.Legendary);
-    expect(stats.strength).toBe(11 + 4);
-    expect(stats.agility).toBe(8 + 4);
-    expect(stats.wisdom).toBe(5 + 4);
+    expect(stats.strength).toBe(11 + 6);
+    expect(stats.agility).toBe(8 + 6);
+    expect(stats.wisdom).toBe(5 + 6);
   });
 
   it('should return None species with zero base stats', () => {
@@ -420,6 +420,6 @@ describe('getSpeciesInfo', () => {
 
   it('should apply rarity bonus to stats', () => {
     const info = getSpeciesInfo(Species.Falcon, Rarity.Epic);
-    expect(info.agility).toBe(12 + 2); // base + epic bonus
+    expect(info.agility).toBe(12 + 3); // base + epic bonus
   });
 });

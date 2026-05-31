@@ -14,6 +14,7 @@ import TotemActionBar from './TotemActionBar';
 import ExperienceEffect from './effects/ExperienceEffect';
 import { STAGE_THRESHOLDS, BASE_ELDER_XP, PRESTIGE_XP_REQUIREMENT } from '../config/constants';
 import { getTotemImageUrl, getStageName, getStageDescription } from '../utils/species';
+import { getRarityHaloShadow } from '../utils/totems';
 import { Heart, TrendingUp } from 'lucide-react';
 import { type TraitSlot } from '../config/traits';
 
@@ -521,7 +522,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     return (
         <div
             ref={dialogRef}
-            className="flex flex-col flex-1 min-h-0 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 w-full"
+            className={`flex flex-col flex-1 min-h-0 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 ${getRarityHaloShadow(currentAttributes.rarity)} w-full`}
         >
             {showEvolutionCelebration && evolvedTotemData && (
                 <CelebrationModal

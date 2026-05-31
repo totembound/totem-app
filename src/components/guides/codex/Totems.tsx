@@ -240,7 +240,7 @@ const TotemCodex: React.FC = () => {
                 </td>
                 <td className="px-1 py-2">15%</td>
                 <td className="px-1 py-2">Standard</td>
-                <td className="px-1 py-2 text-gray-500">—</td>
+                <td className="px-1 py-2 text-green-600 dark:text-green-400">+1 all stats</td>
                 <td className="px-1 py-2">Slightly rarer palette</td>
               </tr>
               <tr
@@ -256,7 +256,7 @@ const TotemCodex: React.FC = () => {
                 </td>
                 <td className="px-1 py-2">7%</td>
                 <td className="px-1 py-2">Unique full name</td>
-                <td className="px-1 py-2 text-green-600 dark:text-green-400">+1 all stats</td>
+                <td className="px-1 py-2 text-green-600 dark:text-green-400">+2 all stats</td>
                 <td className="px-1 py-2">Unique color scheme</td>
               </tr>
               <tr
@@ -272,29 +272,11 @@ const TotemCodex: React.FC = () => {
                 </td>
                 <td className="px-1 py-2">2.5%</td>
                 <td className="px-1 py-2">Unique full name</td>
-                <td className="px-1 py-2 text-green-600 dark:text-green-400">+2 all stats</td>
+                <td className="px-1 py-2 text-green-600 dark:text-green-400">+3 all stats</td>
                 <td className="px-1 py-2">Unique color scheme</td>
               </tr>
               <tr
                 className="bg-gray-100 dark:bg-gray-800 hover:bg-purple-100 dark:hover:bg-purple-800/30
-                    transition-colors duration-150"
-              >
-                <td className="px-1 py-2">
-                  <span
-                    className={`font-medium ${getRarityFontColor(
-                      Rarity.Legendary
-                    )}`}
-                  >
-                    Legendary
-                  </span>
-                </td>
-                <td className="px-1 py-2">0.5%</td>
-                <td className="px-1 py-2">Mythical names</td>
-                <td className="px-1 py-2 text-green-600 dark:text-green-400">+4 all stats</td>
-                <td className="px-1 py-2">Visual aura, unlockable lore</td>
-              </tr>
-              <tr
-                className="bg-gray-50 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-purple-800/30
                     transition-colors duration-150"
               >
                 <td className="px-1 py-2">
@@ -308,10 +290,28 @@ const TotemCodex: React.FC = () => {
                 </td>
                 <td className="px-1 py-2">*</td>
                 <td className="px-1 py-2">Seasonal names</td>
-                <td className="px-1 py-2 text-green-600 dark:text-green-400">+2 all stats</td>
+                <td className="px-1 py-2 text-green-600 dark:text-green-400">+4 all stats</td>
                 <td className="px-1 py-2">
                   Limited edition colors (season-tied), rarest cosmetics
                 </td>
+              </tr>
+              <tr
+                className="bg-gray-50 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-purple-800/30
+                    transition-colors duration-150"
+              >
+                <td className="px-1 py-2">
+                  <span
+                    className={`font-medium ${getRarityFontColor(
+                      Rarity.Legendary
+                    )}`}
+                  >
+                    Legendary
+                  </span>
+                </td>
+                <td className="px-1 py-2">0.5%</td>
+                <td className="px-1 py-2">Mythical names</td>
+                <td className="px-1 py-2 text-green-600 dark:text-green-400">+6 all stats</td>
+                <td className="px-1 py-2">Visual aura, unlockable lore</td>
               </tr>
             </tbody>
           </table>
@@ -418,14 +418,14 @@ const TotemCodex: React.FC = () => {
                 <td className="px-1 py-2">Requires 81 original totems — the ultimate forge</td>
               </tr>
               <tr className="bg-gray-100 dark:bg-gray-800 transition-colors duration-150">
-                <td className="px-1 py-2"><span className={`font-medium ${getRarityFontColor(Rarity.Legendary)}`}>Legendary</span></td>
-                <td className="px-1 py-2 text-gray-500">—</td>
-                <td className="px-1 py-2 text-gray-500">Cannot be forged (highest tier)</td>
-              </tr>
-              <tr className="bg-gray-50 dark:bg-gray-700 transition-colors duration-150">
                 <td className="px-1 py-2"><span className={`font-medium ${getRarityFontColor(Rarity.Limited)}`}>Limited</span></td>
                 <td className="px-1 py-2 text-gray-500">—</td>
                 <td className="px-1 py-2 text-gray-500">Special editions are never consumed</td>
+              </tr>
+              <tr className="bg-gray-50 dark:bg-gray-700 transition-colors duration-150">
+                <td className="px-1 py-2"><span className={`font-medium ${getRarityFontColor(Rarity.Legendary)}`}>Legendary</span></td>
+                <td className="px-1 py-2 text-gray-500">—</td>
+                <td className="px-1 py-2 text-gray-500">Cannot be forged (highest tier)</td>
               </tr>
             </tbody>
           </table>

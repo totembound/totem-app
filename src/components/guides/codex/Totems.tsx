@@ -6,7 +6,7 @@ import {
   getSpeciesBaseStats,
 } from "../../../utils/totems";
 import { Rarity } from "../../../types/types";
-import { Brain, Dumbbell, Wind, Flame, Dna, Shuffle } from "lucide-react";
+import { Brain, Dumbbell, Wind, Flame, Dna, Shuffle, Tag } from "lucide-react";
 import { VillageLink as Link } from "../../village/VillageLink";
 import { useUser } from "../../../contexts/UserContext";
 
@@ -315,6 +315,42 @@ const TotemCodex: React.FC = () => {
               </tr>
             </tbody>
           </table>
+
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-500 mt-6 flex items-center gap-2">
+            <Tag size={20} className="text-amber-500" />
+            Traits
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-2 mb-3">
+            Every totem carries up to three traits — small flavor tags with real
+            gameplay effects that make two totems of the same species feel
+            meaningfully different. Each slot unlocks at a different stage and
+            tunes a different part of how that totem plays.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+            <div className="p-3 rounded-lg border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-900/30">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Innate</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                Random at birth — the nature your totem was born with. Small personal boosts (3–10%).
+              </p>
+            </div>
+            <div className="p-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Learned</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                Your pick at Stage 3 (Adult) — what your totem studied. Stronger, focused rewards (~10%).
+              </p>
+            </div>
+            <div className="p-3 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Awakened</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                Your pick at Stage 5 (Ascended) — endgame identity. Most carry an Aura that buffs the expedition team.
+              </p>
+            </div>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            <Link to="/guides/codex/traits" className="text-amber-600 dark:text-amber-400 hover:underline">
+              See the full Traits codex →
+            </Link>
+          </p>
 
           <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-500 mt-6 flex items-center gap-2">
             <Flame size={20} className="text-orange-500" />

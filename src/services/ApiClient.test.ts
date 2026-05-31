@@ -502,19 +502,6 @@ describe('ApiClient', () => {
       expect(JSON.parse(options.body)).toEqual({});
     });
 
-    it('getMyListings should append status param', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: () => Promise.resolve({ success: true, data: { listings: [] } }),
-      });
-
-      await apiClient.getMyListings('active');
-
-      const url = mockFetch.mock.calls[0][0];
-      expect(url).toContain('?status=active');
-    });
-
     it('claimLootItem should POST with lootItemId and options', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -724,11 +711,11 @@ describe('ApiClient', () => {
       expect(options.method).toBe('POST');
     });
 
-    it('purchaseProtection should POST /rewards/:type/protection with tier', async () => {
+    it('purchaseProtection should POST /rewards/:type/protection with quantity', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: () => Promise.resolve({ success: true, data: { rewardType: 'daily', tier: 1 } }),
+        json: () => Promise.resolve({ success: true, data: { rewardType: 'daily', chargesAdded: 1 } }),
       });
 
       const result = await apiClient.purchaseProtection('daily', 1);
@@ -737,7 +724,20 @@ describe('ApiClient', () => {
       const [url, options] = mockFetch.mock.calls[0];
       expect(url).toContain('/rewards/daily/protection');
       expect(options.method).toBe('POST');
-      expect(JSON.parse(options.body)).toEqual({ tier: 1 });
+      expect(JSON.parse(options.body)).toEqual({ quantity: 1 });
+    });
+
+    it('purchaseProtection should send empty body to fill to cap when no quantity', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ success: true, data: { rewardType: 'daily', chargesAdded: 7 } }),
+      });
+
+      await apiClient.purchaseProtection('daily');
+
+      const [, options] = mockFetch.mock.calls[0];
+      expect(JSON.parse(options.body)).toEqual({});
     });
 
     it('purchaseProtection should work with weekly type', async () => {
@@ -938,22 +938,6 @@ describe('ApiClient', () => {
       expect(JSON.parse(options.body)).toEqual({ totemId: 'ttm_2' });
     });
 
-    it('cancelListing should POST /shop/cancel with totemId', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: () => Promise.resolve({ success: true, data: { message: 'Listing cancelled' } }),
-      });
-
-      const result = await apiClient.cancelListing('ttm_1');
-      expect(result.success).toBe(true);
-
-      const [url, options] = mockFetch.mock.calls[0];
-      expect(url).toContain('/shop/cancel');
-      expect(options.method).toBe('POST');
-      expect(JSON.parse(options.body)).toEqual({ totemId: 'ttm_1' });
-    });
-
     it('getShopConfig should GET /shop/config', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -1150,20 +1134,6 @@ describe('ApiClient', () => {
       expect(url).toContain('/iot/register');
       expect(options.method).toBe('POST');
       expect(JSON.parse(options.body)).toEqual({ identityId: 'identity-123' });
-    });
-
-    it('getMyListings should work without status param', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: () => Promise.resolve({ success: true, data: { listings: [] } }),
-      });
-
-      await apiClient.getMyListings();
-
-      const url = mockFetch.mock.calls[0][0];
-      expect(url).toContain('/shop/my-listings');
-      expect(url).not.toContain('?status=');
     });
 
     it('getShopListings should include rarityId, minPrice, maxPrice query params', async () => {

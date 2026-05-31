@@ -17,6 +17,33 @@ export const CURRENCY_NAMES = {
   PREMIUM: 'Gems',        // Premium currency (purchased)
 } as const;
 
+// Streak Saver (protection) economy. Charges are consumable and bought to
+// top up toward a per-type cap, so players can refill after spending some.
+// Mirror of totem-api PROTECTION_CONFIG — keep in sync; server is authoritative.
+export const STREAK_PROTECTION = {
+  daily: {
+    costPerCharge: 50,
+    maxCharges: 7,
+    requiredStreak: 7,
+    // Buying a full week of cover in one go is discounted.
+    bulk: { quantity: 7, cost: 250 },
+  },
+  weekly: {
+    costPerCharge: 250,
+    maxCharges: 2,
+    requiredStreak: 4,
+  },
+} as const;
+
+// Cost to add `quantity` Streak Saver charges of a given type (mirrors backend).
+export function streakProtectionCost(type: 'daily' | 'weekly', quantity: number): number {
+  const cfg = STREAK_PROTECTION[type];
+  if ('bulk' in cfg && cfg.bulk && quantity === cfg.bulk.quantity) {
+    return cfg.bulk.cost;
+  }
+  return quantity * cfg.costPerCharge;
+}
+
 // Challenge defaults
 export const DEFAULT_MAX_DAILY_ATTEMPTS = 5;
 

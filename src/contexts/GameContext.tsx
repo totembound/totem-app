@@ -71,14 +71,14 @@ export interface GameContextType {
     getEligibleTotems: (challengeId: string) => TotemData[];
     canAttemptChallenge: (challengeId: string, totemId: string) => boolean;
     getChallengeStatus: (challengeId: string) => string;
-    completeChallenge: (challengeId: string, tokenId: string, score: number) => Promise<void>;
+    completeChallenge: (challengeId: string, tokenId: string, score: number) => Promise<{ xpEarned: number; happinessEarned: number; essenceEarned: number } | void>;
 
     // rewards
     rewardsState: RewardsState;
     getUserStreak: () => Promise<StreakStatus | undefined>;
     claimDailyReward: () => Promise<boolean>;
     claimWeeklyReward: () => Promise<boolean>;
-    purchaseProtection: (type: 'daily' | 'weekly', tier: number) => Promise<boolean>;
+    purchaseProtection: (type: 'daily' | 'weekly', quantity?: number) => Promise<boolean>;
     refreshRewardStatus: () => Promise<void>;
 
     setNickname: (totemId: string, newName: string) => Promise<void>;
@@ -529,6 +529,15 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Apply daily-quest progress deltas from the response (e.g. Iron Trial / Swift Trial / Wise Trial)
         setDailyQuests(prev => applyQuestProgressUpdates(prev, response.data?.quests));
+
+        // Return the actual rewards so the UI animation reflects trait bonuses
+        // (Clever / Mentor aura / Persistent / Merchant's Eye) rather than the
+        // client-side score-only estimate.
+        return {
+            xpEarned: response.data?.xpEarned ?? 0,
+            happinessEarned: response.data?.happinessEarned ?? 0,
+            essenceEarned: response.data?.essenceEarned ?? 0,
+        };
     }, [challengeState]);
 
     // Helper to convert UTC hours to seconds since day start
@@ -889,9 +898,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const purchaseProtection = async (type: 'daily' | 'weekly', tier: number) => {
+    const purchaseProtection = async (type: 'daily' | 'weekly', quantity?: number) => {
         try {
-            const response = await apiClient.purchaseProtection(type, tier);
+            const response = await apiClient.purchaseProtection(type, quantity);
 
             if (!response.success) {
                 console.error("Error purchasing protection:", response.error);

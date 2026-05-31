@@ -1,14 +1,14 @@
 import React, { useEffect, useRef } from 'react';
-import { MapPin, Star, Swords, Landmark } from 'lucide-react';
+import { MapPin, Swords, Landmark } from 'lucide-react';
 import { Rarity, Species } from '../types/types';
 import ActionEffect from './effects/ActionEffect';
-import { getRarityBadgeColor } from '../utils/totems';
+import { getRarityBadgeColor, getRarityGlow, getRarityHaloShadow } from '../utils/totems';
 import { formatTimeRemaining } from '../utils/formats';
 import { IPFS_GATEWAY_URL } from '../config/constants';
 import TraitIconRow from './traits/TraitIconRow';
 
 // Map species to their habitat backgrounds
-const HABITAT_BACKGROUNDS: Record<Species, string> = {
+const _HABITAT_BACKGROUNDS: Record<Species, string> = {
     [Species.Goose]: 'bg-gradient-to-b from-blue-400 to-blue-600 dark:from-blue-900 dark:to-blue-950',
     [Species.Otter]: 'bg-gradient-to-b from-blue-300 to-cyan-600 dark:from-blue-800 dark:to-cyan-950',
     [Species.Wolf]: 'bg-gradient-to-b from-gray-300 to-gray-500 dark:from-gray-700 dark:to-gray-900',
@@ -92,7 +92,6 @@ const TotemImageSection: React.FC<TotemImageSectionProps> = ({
     species,
     rarity,
     stage,
-    prestigeLevel,
     imageUrl,
     activeEffect,
     isOnExpedition = false,
@@ -101,9 +100,6 @@ const TotemImageSection: React.FC<TotemImageSectionProps> = ({
     onEffectComplete,
     traits,
 }) => {
-    //const habitatBackground = HABITAT_BACKGROUNDS[species] || HABITAT_BACKGROUNDS[Species.None];
-    //const habitatElement = HABITAT_ELEMENTS[species] || null;
-    const habitatBackground = HABITAT_BACKGROUNDS[Species.None];
     // Clean up IPFS URL if needed
     const cleanImageUrl = imageUrl.replace('ipfs://', IPFS_GATEWAY_URL);
 
@@ -145,15 +141,15 @@ const TotemImageSection: React.FC<TotemImageSectionProps> = ({
     
     return (
         <div className={`
-            aspect-square overflow-hidden relative 
-            ${habitatBackground}
+            aspect-square overflow-hidden relative
+            bg-white dark:bg-gray-900
+            ${getRarityHaloShadow(rarity)}
             transition-all duration-300
         `}>
-            {/* Habitat elements in the background */}
-            <div className="absolute inset-0 z-0 overflow-hidden">
-                
-            </div>
-            
+            {/* Rarity-colored gradient glow IS the backdrop — mirrors the gallery cards
+                so rarity reads consistently. (Replaces the old neutral gray habitat bg.) */}
+            <div className={`absolute inset-0 z-0 bg-gradient-to-t ${getRarityGlow(rarity)} to-transparent`} aria-hidden="true" />
+
             {/* Main image - scaled to 80% and centered */}
             <div className="absolute inset-0 flex items-center justify-center z-10">
                 <img
@@ -171,45 +167,45 @@ const TotemImageSection: React.FC<TotemImageSectionProps> = ({
                 onComplete={onEffectComplete}
             />
             
-            {/* Status Overlay — On Mission */}
-            {sanctum?.onMission && (
-                <div className="absolute top-2/3 left-0 right-0 z-20 flex flex-col items-center">
-                    <div className="bg-blue-600/80 dark:bg-blue-800/90 text-white px-4 py-2 rounded-full backdrop-blur-sm flex items-center gap-2 shadow-lg">
-                        <Swords className="w-5 h-5 animate-pulse" />
-                        <span className="font-medium">On Mission</span>
-                    </div>
-                    {sanctum.missionEndsAt && (
-                        <div className="bg-white/80 dark:bg-gray-900/80 text-blue-700 dark:text-blue-300 px-4 py-1 rounded-full mt-2 backdrop-blur-sm text-sm">
-                            {new Date(sanctum.missionEndsAt).getTime() > Date.now()
+            {/* Status banner — bottom-of-image overlay, translucent, matching the
+                gallery card. Mission takes priority over seated; expedition shows when
+                not seated. Only one renders at a time. */}
+            {(() => {
+                const status = sanctum?.onMission
+                    ? {
+                        Icon: Swords,
+                        label: 'On Mission',
+                        time: sanctum.missionEndsAt
+                            ? (new Date(sanctum.missionEndsAt).getTime() > Date.now()
                                 ? formatTimeRemaining(Math.floor(new Date(sanctum.missionEndsAt).getTime() / 1000))
-                                : 'Mission complete'}
-                        </div>
-                    )}
-                </div>
-            )}
-            {/* Status Overlay — Seated (not on mission) */}
-            {sanctum?.seated && !sanctum?.onMission && (
-                <div className="absolute top-2/3 left-0 right-0 z-20 flex flex-col items-center">
-                    <div className="bg-blue-600/80 dark:bg-blue-800/90 text-white px-4 py-2 rounded-full backdrop-blur-sm flex items-center gap-2 shadow-lg">
-                        <Landmark className="w-5 h-5" />
-                        <span className="font-medium">Seated</span>
-                    </div>
-                </div>
-            )}
-            {/* Status Overlay — On Expedition (not seated) */}
-            {isOnExpedition && !sanctum?.seated && (
-                <div className="absolute top-2/3 left-0 right-0 z-20 flex flex-col items-center">
-                    <div className="bg-blue-600/80 dark:bg-blue-800/90 text-white px-4 py-2 rounded-full backdrop-blur-sm flex items-center gap-2 shadow-lg">
-                        <MapPin className="w-5 h-5 animate-pulse" />
-                        <span className="font-medium">On Expedition</span>
-                    </div>
-                    <div className="bg-white/80 dark:bg-gray-900/80 text-blue-700 dark:text-blue-300 px-4 py-1 rounded-full mt-2 backdrop-blur-sm text-sm">
-                        {expeditionEndTime > 0 && expeditionEndTime > Math.floor(Date.now() / 1000)
+                                : 'Mission complete')
+                            : null,
+                    }
+                    : sanctum?.seated
+                    ? { Icon: Landmark, label: 'Seated', time: null }
+                    : isOnExpedition
+                    ? {
+                        Icon: MapPin,
+                        label: 'On Expedition',
+                        time: expeditionEndTime > 0 && expeditionEndTime > Math.floor(Date.now() / 1000)
                             ? formatTimeRemaining(expeditionEndTime)
-                            : 'Expedition complete'}
+                            : 'Expedition complete',
+                    }
+                    : null;
+                if (!status) return null;
+                return (
+                    <div className="absolute bottom-0 inset-x-0 z-20 flex items-center justify-center gap-2 bg-blue-600/55 backdrop-blur-sm text-white text-sm font-medium px-3 py-2 leading-none">
+                        <status.Icon className="w-4 h-4 flex-shrink-0 animate-pulse" />
+                        <span>{status.label}</span>
+                        {status.time && (
+                            <>
+                                <span className="opacity-60">·</span>
+                                <span className="font-normal">{status.time}</span>
+                            </>
+                        )}
                     </div>
-                </div>
-            )}
+                );
+            })()}
                     
             {/* Stage Badge — stage name (e.g. "Newborn") implies the stage number, so we skip the redundant "1/5" counter. */}
             <div className="absolute top-3 left-3 z-20">
@@ -236,13 +232,6 @@ const TotemImageSection: React.FC<TotemImageSectionProps> = ({
                 </span>
             </div>
 
-            {/* Prestige Badge */}
-            {prestigeLevel > 0 && (
-                <div className="absolute top-3 right-3 bg-purple-700/80 text-white px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm flex items-center gap-1 z-20">
-                    <Star size={14} className="text-yellow-300" />
-                    <span>Prestige {prestigeLevel}</span>
-                </div>
-            )}
         </div>
     );
 };

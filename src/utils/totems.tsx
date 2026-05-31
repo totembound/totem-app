@@ -142,6 +142,33 @@ export const getRarityBorderColor = (rarity: Rarity) => {
     return colors[rarity] || colors[Rarity.Common];
 };
 
+// Rarity-colored gradient glow that sits BEHIND the hero art (Genshin's
+// gold-for-5★ trick). Rarity reads from the card border + this backdrop, keeping
+// the footer neutral for legibility. Returns a `bg-gradient-to-t from-...` class
+// meant for an absolutely-positioned overlay under the totem image.
+export const getRarityGlow = (rarity: Rarity): string => {
+    switch (rarity) {
+        case Rarity.Common: return 'from-slate-400/10';
+        case Rarity.Uncommon: return 'from-green-400/25 dark:from-green-500/20';
+        case Rarity.Rare: return 'from-blue-400/30 dark:from-blue-500/25';
+        case Rarity.Epic: return 'from-purple-400/30 dark:from-purple-500/25';
+        case Rarity.Legendary: return 'from-orange-400/40 dark:from-orange-500/30';
+        case Rarity.Limited: return 'from-yellow-400/40 dark:from-yellow-500/30';
+        default: return 'from-slate-400/10';
+    }
+};
+
+// The two rarest tiers earn an extra premium cue beyond border + glow: a soft
+// colored outer glow ring (Hearthstone reserves a distinct treatment for its top
+// tier). Returns '' for the common tiers so the grid stays calm.
+export const getRarityHaloShadow = (rarity: Rarity): string => {
+    switch (rarity) {
+        case Rarity.Legendary: return 'shadow-[0_0_14px_-2px_rgba(251,146,60,0.55)]';
+        case Rarity.Limited: return 'shadow-[0_0_14px_-2px_rgba(250,204,21,0.55)]';
+        default: return '';
+    }
+};
+
 export const getRarityColor = (rarity: Rarity) => {
     switch (rarity) {
         case Rarity.Common:
@@ -162,17 +189,23 @@ export const getRarityColor = (rarity: Rarity) => {
 };
 
 export function getRarityBonusStat(rarity: Rarity): number {
-    if (rarity === Rarity.Common || rarity === Rarity.Uncommon) {
+    if (rarity === Rarity.Common) {
         return 0;
     }
-    if (rarity === Rarity.Rare) {
+    if (rarity === Rarity.Uncommon) {
         return 1;
     }
-    if (rarity === Rarity.Epic || rarity === Rarity.Limited) {
+    if (rarity === Rarity.Rare) {
         return 2;
     }
-    if (rarity === Rarity.Legendary) {
+    if (rarity === Rarity.Epic) {
+        return 3;
+    }
+    if (rarity === Rarity.Limited) {
         return 4;
+    }
+    if (rarity === Rarity.Legendary) {
+        return 6;
     }
     return 0;
 }

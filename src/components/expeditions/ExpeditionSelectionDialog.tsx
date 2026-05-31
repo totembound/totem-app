@@ -330,12 +330,12 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
             onClick={onClose}
           ></div>
 
-          {/* Dialog - full screen on mobile, centered modal on desktop. Inline
-              paddingBottom respects the iPhone home-indicator safe area so
-              the action buttons don't get clipped on full-screen mobile mode. */}
+          {/* Dialog - full screen on mobile, centered modal on desktop. The
+              iPhone home-indicator safe area is handled by the pinned footer
+              below, so its background bleeds to the screen edge and the buttons
+              clear the indicator (rather than leaving a bg strip under the bar). */}
           <div
             className="relative w-full h-full sm:h-auto sm:max-w-2xl sm:max-h-[calc(100vh-2rem)] bg-white dark:bg-gray-800 sm:rounded-lg shadow-xl flex flex-col overflow-hidden"
-            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
           >
               {/* Header */}
               <div className="flex-shrink-0 flex items-center justify-between p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
@@ -352,7 +352,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
 
               {/* Scrollable content */}
               <div className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-6">
-              <div className="relative h-64">
+              <div className="relative h-32 sm:h-64">
                 {expedition.image && (
                     <img 
                         src={expedition.image || '/expeditions/placeholder.png'}
@@ -456,7 +456,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
 
               {/* Totem Selection List */}
               <div className="mb-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-64 overflow-y-scroll overscroll-contain p-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 min-h-[14rem] max-h-[44vh] overflow-y-auto overscroll-contain p-1" style={{ WebkitOverflowScrolling: 'touch' }}>
                 {filteredTotems.length > 0 ? (
                     filteredTotems.map((totem) => {
                     const isSelected = selectedTotems.includes(totem.id);
@@ -592,9 +592,19 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                 </div>
               </div>
 
-              {/* Team Summary */}
-              <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                <div className="flex justify-between items-center">
+              </div>{/* End scrollable content */}
+
+              {/* Pinned footer — team summary + actions stay visible regardless
+                  of how far the totem list is scrolled (the list has its own
+                  bounded scroll, so on tall screens the summary would otherwise
+                  get trapped below it). flex-col-reverse puts Start on top /
+                  Cancel below on mobile; desktop keeps Cancel-left / Start-right. */}
+              <div
+                className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+              >
+                {/* Team Summary */}
+                <div className="flex justify-between items-center mx-3 sm:mx-4 mt-3 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
                   <span className="font-medium text-gray-800 dark:text-gray-200">
                     Selected: {selectedTotems.length}/3
                   </span>
@@ -603,34 +613,33 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                     {captain ? (hasMatchingDomain(captain) ? "✓" : "✗") : "—"}
                   </span>
                 </div>
-              </div>
 
-              {/* Actions */}
-              <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4 pb-2">
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleStartExpedition}
-                  disabled={!canStartExpedition() || isSubmitting}
-                  className={`px-4 py-2 rounded-lg text-white
-                    ${
-                      canStartExpedition() && !isSubmitting
-                        ? "bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-500"
-                        : "bg-gray-300 dark:bg-gray-700 cursor-not-allowed"
-                    }
-                  `}
-                >
-                  {isSubmitting
-                    ? "Starting..."
-                    : `Start Expedition (${formatTokenAmount(expedition.essenceCost)} ${CURRENCY_NAMES.SOFT})`}
-                </button>
+                {/* Actions */}
+                <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 p-3 sm:p-4">
+                  <button
+                    onClick={onClose}
+                    className="w-full sm:w-auto px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleStartExpedition}
+                    disabled={!canStartExpedition() || isSubmitting}
+                    className={`w-full sm:w-auto px-4 py-2 rounded-lg text-white
+                      ${
+                        canStartExpedition() && !isSubmitting
+                          ? "bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-500"
+                          : "bg-gray-300 dark:bg-gray-700 cursor-not-allowed"
+                      }
+                    `}
+                  >
+                    {isSubmitting
+                      ? "Starting..."
+                      : `Start Expedition (${formatTokenAmount(expedition.essenceCost)} ${CURRENCY_NAMES.SOFT})`}
+                  </button>
+                </div>
               </div>
-              </div>{/* End scrollable content */}
           </div>{/* End dialog */}
         </div>
       )}

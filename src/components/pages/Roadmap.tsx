@@ -107,7 +107,7 @@ const quarters: Quarter[] = [
       // In progress
       { label: 'Spirit Village — illustrated hub replaces nav bar with tappable buildings', status: 'done', detail: '10 buildings with progressive unlock, ambient animations, and notification badges' },
       { label: 'Daily Quests — rotating daily objectives with Essence and Rune rewards', status: 'done', detail: 'Five themed slots refreshed daily with an Essence + Rune completion bonus' },
-      { label: 'Unlock remaining 2 totems (Raven, Snake)', status: 'in-progress' },
+      { label: 'Unlock final totem (Snake)', status: 'in-progress' },
     ],
   },
   {

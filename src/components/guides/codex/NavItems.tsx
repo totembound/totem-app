@@ -5,7 +5,9 @@ import {
   PawPrint,
   Shapes,
   Compass,
-  Star
+  Star,
+  Swords,
+  Map as MapIcon
 } from "lucide-react";
 
 // Define types for our navigation structure
@@ -79,6 +81,11 @@ export const codexNavItems: NavItemType[] = [
     ],
   },
   {
+    title: "Traits",
+    icon: <Star size={18} />,
+    path: "/guides/codex/traits",
+  },
+  {
     title: "Domains",
     icon: <Globe size={18} />,
     path: "/guides/codex/domains",
@@ -115,9 +122,19 @@ export const codexNavItems: NavItemType[] = [
     path: "/guides/codex/habitats",
   },
   {
-    title: "Gear",
-    icon: <Backpack size={18} />,
-    path: "/guides/codex/gear",
+    title: "Map",
+    icon: <Compass size={18} />,
+    path: "/guides/codex/map",
+  },
+  {
+    title: "Challenges",
+    icon: <Swords size={18} />,
+    path: "/guides/codex/challenges",
+  },
+  {
+    title: "Expeditions",
+    icon: <MapIcon size={18} />,
+    path: "/guides/codex/expeditions",
   },
   {
     title: "Runes",
@@ -125,13 +142,8 @@ export const codexNavItems: NavItemType[] = [
     path: "/guides/codex/runes",
   },
   {
-    title: "Traits",
-    icon: <Star size={18} />,
-    path: "/guides/codex/traits",
-  },
-  {
-    title: "Map",
-    icon: <Compass size={18} />,
-    path: "/guides/codex/map",
+    title: "Gear",
+    icon: <Backpack size={18} />,
+    path: "/guides/codex/gear",
   },
 ];

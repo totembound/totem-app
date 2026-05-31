@@ -2,6 +2,96 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes maze-fog-a {
+  0%, 100% { transform: translate(0, 0) scale(1);         opacity: 0.8; }
+  35%      { transform: translate(4%, -4%) scale(1.06);   opacity: 1;   }
+  70%      { transform: translate(-3%, 4%) scale(0.95);   opacity: 0.6; }
+}
+@keyframes maze-fog-b {
+  0%, 100% { transform: translate(0, 0) scale(1.04);      opacity: 0.5; }
+  45%      { transform: translate(-4%, 3%) scale(0.96);   opacity: 0.75; }
+  80%      { transform: translate(3%, -4%) scale(1.06);   opacity: 0.35; }
+}
+.maze-fog-wisp {
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(10, 3, 20, 1)   0%,
+    rgba(10, 3, 20, 1)   65%,
+    rgba(10, 3, 20, 0.3) 85%,
+    rgba(10, 3, 20, 0)   100%
+  );
+  filter: blur(5px);
+  animation: maze-fog-a 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+.maze-fog-wisp-alt {
+  background: radial-gradient(
+    circle at 40% 60%,
+    rgba(12, 4, 22, 1)   0%,
+    rgba(12, 4, 22, 1)   65%,
+    rgba(12, 4, 22, 0.3) 85%,
+    rgba(12, 4, 22, 0)   100%
+  );
+  filter: blur(5px);
+  animation: maze-fog-b 3.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes wisp-float {
+  0%, 100% { transform: translate(0,     0);    }
+  20%       { transform: translate(2px,  -3px); }
+  45%       { transform: translate(-2px, -1px); }
+  70%       { transform: translate(2px,  2px);  }
+  85%       { transform: translate(-1px, -2px); }
+}
+@keyframes wisp-pulse {
+  0%, 100% { opacity: 0.65; transform: scale(1);    }
+  50%       { opacity: 1;    transform: scale(1.22); }
+}
+@keyframes wisp-morph {
+  0%, 100% { border-radius: 50%; }
+  20%       { border-radius: 58% 42% 55% 45% / 45% 55% 48% 52%; }
+  40%       { border-radius: 42% 58% 45% 55% / 55% 45% 52% 48%; }
+  60%       { border-radius: 55% 45% 58% 42% / 42% 58% 45% 55%; }
+  80%       { border-radius: 45% 55% 42% 58% / 58% 42% 55% 45%; }
+}
+@keyframes wisp-flicker {
+  0%, 100% { opacity: 1;    transform: scale(1);    }
+  25%       { opacity: 0.8; transform: scale(0.88); }
+  55%       { opacity: 1;   transform: scale(1.1);  }
+  75%       { opacity: 0.9; transform: scale(0.95); }
+}
+.wisp-float   { animation: wisp-float   3.5s ease-in-out infinite; }
+.wisp-pulse   { animation: wisp-pulse   2.8s ease-in-out infinite; }
+.wisp-morph   { animation: wisp-morph   4.2s ease-in-out infinite; }
+.wisp-flicker { animation: wisp-flicker 1.6s ease-in-out infinite; }
+
+@keyframes portal-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1);    }
+  50%       { opacity: 1;   transform: scale(1.2);  }
+}
+@keyframes portal-morph {
+  0%, 100% { border-radius: 50%; }
+  20%       { border-radius: 52% 48% 56% 44% / 44% 56% 46% 54%; }
+  40%       { border-radius: 44% 56% 46% 54% / 56% 44% 54% 46%; }
+  60%       { border-radius: 56% 44% 50% 50% / 46% 54% 50% 50%; }
+  80%       { border-radius: 48% 52% 44% 56% / 54% 46% 56% 44%; }
+}
+@keyframes portal-spin {
+  from { transform: rotate(0deg);   }
+  to   { transform: rotate(360deg); }
+}
+@keyframes portal-flicker {
+  0%, 100% { opacity: 1;    transform: scale(1);    }
+  30%       { opacity: 0.7; transform: scale(1.12); }
+  60%       { opacity: 0.9; transform: scale(0.9);  }
+  80%       { opacity: 0.8; transform: scale(1.06); }
+}
+.portal-pulse   { animation: portal-pulse   3.2s ease-in-out infinite; }
+.portal-morph   { animation: portal-morph   5.0s ease-in-out infinite; }
+.portal-spin    { animation: portal-spin    8.0s linear     infinite; }
+.portal-flicker { animation: portal-flicker 2.2s ease-in-out infinite; }
+
 @keyframes idle-breathe {
   0%, 100% {
     transform: scale(1) translateY(0);

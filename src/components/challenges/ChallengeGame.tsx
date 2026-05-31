@@ -16,6 +16,7 @@ import RuneCraftingChallenge from './RuneCraftingChallenge';
 import StarMapChallenge from './StarMapChallenge';
 import GardenPestControlChallenge from './GardenPestPatrolChallenge';
 import RiversideDodgeChallenge from './RiversideDodgeChallenge';
+import FogMazeChallenge from './FogMazeChallenge';
 
 interface ChallengeGameProps {
     challengeId: string;
@@ -216,6 +217,12 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
                 {challengeType === 'wisdom' && challengeId === 'chl_spirit-weaving' && (
                     <RuneCraftingChallenge
                         wisdom={attributes.wisdom}
+                        difficulty={difficulty}
+                        onComplete={handleScore}
+                    />
+                )}
+                {challengeType === 'balance' && challengeId === 'chl_spirit-labyrinth' && (
+                    <FogMazeChallenge
                         difficulty={difficulty}
                         onComplete={handleScore}
                     />

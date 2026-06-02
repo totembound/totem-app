@@ -48,6 +48,8 @@ const TotemGallery = () => {
         updates: {
             experience?: number;
             happiness?: number;
+            hunger?: number;
+            hungerAsOf?: string;
             stage?: number;
             nickname?: string | null;
             displayName?: string;
@@ -78,6 +80,8 @@ const TotemGallery = () => {
                         ...prev.attributes,
                         ...(updates.experience !== undefined && { experience: updates.experience }),
                         ...(updates.happiness !== undefined && { happiness: updates.happiness }),
+                        ...(updates.hunger !== undefined && { hunger: updates.hunger }),
+                        ...(updates.hungerAsOf !== undefined && { hungerAsOf: updates.hungerAsOf }),
                         ...(updates.stage !== undefined && { stage: updates.stage }),
                         ...(updates.nickname !== undefined && { nickname: updates.nickname }),
                         ...(updates.strength !== undefined && { strength: updates.strength }),

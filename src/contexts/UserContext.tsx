@@ -165,6 +165,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         rarity: totem.attributes?.rarity || 0,
                         happiness: totem.attributes?.happiness || 50,
                         hunger: totem.attributes?.hunger ?? 100,
+                        hungerAsOf: totem.attributes?.hungerAsOf,
+                        hungerDecayPerHour: totem.attributes?.hungerDecayPerHour,
                         experience: totem.attributes?.experience || 0,
                         stage: totem.attributes?.stage || 0,
                         strength: totem.attributes?.strength || 10,
@@ -227,6 +229,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             ...totem.attributes,
                             happiness: totemData.attributes?.happiness || totem.attributes.happiness,
                             hunger: totemData.attributes?.hunger ?? totem.attributes.hunger,
+                            hungerAsOf: totemData.attributes?.hungerAsOf ?? totem.attributes.hungerAsOf,
+                            hungerDecayPerHour: totemData.attributes?.hungerDecayPerHour ?? totem.attributes.hungerDecayPerHour,
                             experience: totemData.attributes?.experience || totem.attributes.experience,
                             stage: newStage,
                             nickname: totemData.attributes?.nickname || totem.attributes.nickname,
@@ -269,6 +273,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                 ...totem.attributes,
                                 happiness: totemData.attributes?.happiness || totem.attributes.happiness,
                                 hunger: totemData.attributes?.hunger ?? totem.attributes.hunger,
+                                hungerAsOf: totemData.attributes?.hungerAsOf ?? totem.attributes.hungerAsOf,
+                                hungerDecayPerHour: totemData.attributes?.hungerDecayPerHour ?? totem.attributes.hungerDecayPerHour,
                                 experience: totemData.attributes?.experience || totem.attributes.experience,
                                 stage: totemData.attributes?.stage || totem.attributes.stage,
                                 nickname: totemData.attributes?.nickname || totem.attributes.nickname,
@@ -285,6 +291,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                 ...totem.attributes,
                                 happiness: totemData.attributes?.happiness || totem.attributes.happiness,
                                 hunger: totemData.attributes?.hunger ?? totem.attributes.hunger,
+                                hungerAsOf: totemData.attributes?.hungerAsOf ?? totem.attributes.hungerAsOf,
+                                hungerDecayPerHour: totemData.attributes?.hungerDecayPerHour ?? totem.attributes.hungerDecayPerHour,
                                 experience: totemData.attributes?.experience || totem.attributes.experience,
                                 stage: totemData.attributes?.stage || totem.attributes.stage,
                                 nickname: totemData.attributes?.nickname || totem.attributes.nickname,
@@ -341,6 +349,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         rarity: totemData.attributes?.rarity || 0,
                         happiness: totemData.attributes?.happiness || 50,
                         hunger: totemData.attributes?.hunger ?? 100,
+                        hungerAsOf: totemData.attributes?.hungerAsOf,
+                        hungerDecayPerHour: totemData.attributes?.hungerDecayPerHour,
                         experience: totemData.attributes?.experience || 0,
                         stage,
                         strength: totemData.attributes?.strength || 10,
@@ -419,6 +429,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updates: {
             experience?: number;
             happiness?: number;
+            hunger?: number;
+            hungerAsOf?: string;
             stage?: number;
             nickname?: string | null;
             displayName?: string;
@@ -445,6 +457,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     ...totem.attributes,
                     ...(updates.experience !== undefined && { experience: updates.experience }),
                     ...(updates.happiness !== undefined && { happiness: updates.happiness }),
+                    ...(updates.hunger !== undefined && { hunger: updates.hunger }),
+                    ...(updates.hungerAsOf !== undefined && { hungerAsOf: updates.hungerAsOf }),
                     ...(updates.stage !== undefined && { stage: updates.stage }),
                     ...(updates.nickname !== undefined && { nickname: updates.nickname }),
                     ...(updates.strength !== undefined && { strength: updates.strength }),

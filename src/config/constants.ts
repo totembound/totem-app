@@ -11,6 +11,12 @@ export const STAGE_THRESHOLDS = [0, 500, 1500, 3500, 7500];
 export const IPFS_GATEWAY_URL = import.meta.env.VITE_IPFS_GATEWAY_URL || 'https://ipfs.totembound.com/ipfs/';
 export const ESSENCE_COST = 500;
 
+// Hunger thresholds (mirror totem-api totem-config.json `hunger`). Below
+// HUNGER_TRAIN_MIN training is blocked; below HUNGER_HAPPINESS_PENALTY_BELOW
+// training still works but costs 2× happiness ("cranky" band).
+export const HUNGER_TRAIN_MIN = 20;
+export const HUNGER_HAPPINESS_PENALTY_BELOW = 40;
+
 // Currency display names - change these to rebrand currencies
 export const CURRENCY_NAMES = {
   SOFT: 'Essence',        // Soft currency (earned in-game)

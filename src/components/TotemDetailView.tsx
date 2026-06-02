@@ -35,6 +35,8 @@ interface TotemDetailViewProps {
         updates: {
             experience?: number;
             happiness?: number;
+            hunger?: number;
+            hungerAsOf?: string;
             stage?: number;
             nickname?: string | null;
             displayName?: string;
@@ -288,6 +290,8 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                 const updates: {
                     experience?: number;
                     happiness?: number;
+                    hunger?: number;
+                    hungerAsOf?: string;
                     stage?: number;
                     displayName?: string;
                     strength?: number;
@@ -305,6 +309,15 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                 // statChanges.happinessChange is the delta (e.g., -10 for train)
                 if (result.statChanges?.happiness !== undefined) {
                     updates.happiness = result.statChanges.happiness;
+                }
+
+                // Apply hunger changes from statChanges (Feed restores it). The
+                // server computed this value just now, so re-anchor hungerAsOf to
+                // now — otherwise deriveHunger would extrapolate decay off a stale
+                // timestamp and the restore wouldn't show until a refetch.
+                if (result.statChanges?.hunger !== undefined) {
+                    updates.hunger = result.statChanges.hunger;
+                    updates.hungerAsOf = new Date().toISOString();
                 }
 
                 // Handle evolution stage change

@@ -2,9 +2,10 @@ import React from 'react';
 import { Dumbbell, Wind, Brain, Heart, Drumstick, Info, Lock } from 'lucide-react';
 import { TotemAttributes } from '../types/types';
 import Tooltip from './Tooltip';
-import { BASE_ELDER_XP, PRESTIGE_XP_REQUIREMENT, STAGE_THRESHOLDS } from '../config/constants';
+import { BASE_ELDER_XP, PRESTIGE_XP_REQUIREMENT, STAGE_THRESHOLDS, HUNGER_TRAIN_MIN } from '../config/constants';
 import { getTraitById, LEARNED_STAGE_GATE, AWAKENED_STAGE_GATE, type TraitSlot } from '../config/traits';
 import { TraitIcon, SLOT_COLOR_CLASSES, getTraitTooltipContent } from '../utils/traitIcons';
+import { deriveHunger, useFocusNow } from '../utils/hunger';
 
 interface XPProgress {
     type: string;
@@ -79,6 +80,12 @@ const TotemStatsPanel: React.FC<TotemStatsPanelProps> = ({ attributes, traits, o
 
     const xpProgress = calculateXPProgress(attributes);
 
+    // Hunger decays ~1/hour; re-derive from the server snapshot so the value is
+    // current on every render/navigation/focus without an API refetch.
+    const now = useFocusNow();
+    const hunger = deriveHunger(attributes, now);
+    const isHungry = hunger < HUNGER_TRAIN_MIN;
+
     return (
         <div className="space-y-6">
 
@@ -130,14 +137,19 @@ const TotemStatsPanel: React.FC<TotemStatsPanelProps> = ({ attributes, traits, o
                             </div>
                         </div>
                     </Tooltip>
-                    <Tooltip content="Hunger — mechanics coming soon. Your totem will get hungry over time and need feeding to stay healthy." position="top">
+                    <Tooltip content="Hunger drops ~1 per hour and is restored by feeding (+30). Below 40 training gets your totem twice as unhappy; below 20 it's too hungry to train at all." position="top">
                         <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center gap-3 cursor-help">
-                            <div className="p-1.5 rounded-md bg-orange-100 dark:bg-orange-900/30">
-                                <Drumstick size={16} className="text-orange-600 dark:text-orange-400" />
+                            <div className={`p-1.5 rounded-md ${isHungry ? 'bg-red-100 dark:bg-red-900/30' : 'bg-orange-100 dark:bg-orange-900/30'}`}>
+                                <Drumstick size={16} className={isHungry ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'} />
                             </div>
                             <div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400">Hunger</div>
-                                <div className="font-medium">{attributes.hunger}/100</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                                    Hunger
+                                    {isHungry && (
+                                        <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">Hungry</span>
+                                    )}
+                                </div>
+                                <div className="font-medium">{hunger}/100</div>
                             </div>
                         </div>
                     </Tooltip>

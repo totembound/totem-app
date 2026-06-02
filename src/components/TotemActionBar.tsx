@@ -1,9 +1,10 @@
 import React from 'react';
-import { Coffee, Heart, Dumbbell, Sparkles, Clock, Loader2 } from 'lucide-react';
+import { Coffee, Heart, Dumbbell, Sparkles, Clock, Loader2, Drumstick } from 'lucide-react';
 import { TotemAttributes, ActionType, ActionTracking, ActionConfig } from '../types/types';
-import { CURRENCY_NAMES } from '../config/constants';
+import { CURRENCY_NAMES, HUNGER_TRAIN_MIN, HUNGER_HAPPINESS_PENALTY_BELOW } from '../config/constants';
 import { TotemTraits } from '../config/traits';
 import { resolveTraitBonusesForTotem } from '../utils/traitBonuses';
+import { deriveHunger, useFocusNow } from '../utils/hunger';
 
 interface TotemActionBarProps {
     attributes: TotemAttributes;
@@ -52,6 +53,11 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
     onEvolve,
     canEvolve,
 }) => {
+    // Hunger decays ~1/hour; derive the live value so the Train gate reacts
+    // without a refetch. Below HUNGER_TRAIN_MIN the totem is too hungry to train.
+    const now = useFocusNow();
+    const currentHunger = deriveHunger(attributes, now);
+
     // Map ActionType → resolver scope. Returns base + effective cost so we can
     // strike through the original when a trait (e.g. Thrifty) discounts it.
     const ACTION_SCOPE: Record<number, 'feed' | 'train' | 'treat' | null> = {
@@ -86,6 +92,10 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
         const actionCost = effectiveCost;
         const hasEnoughBalance = essenceBalance >= actionCost;
         const hasMinHappiness = attributes.happiness >= (actionConfigs[type]?.minHappiness || 0);
+        // Train is blocked while the totem is too hungry (feed restores it).
+        const tooHungry = type === ActionType.Train && currentHunger < HUNGER_TRAIN_MIN;
+        // "Cranky" band: training is allowed but costs 2× happiness (server-side).
+        const cranky = type === ActionType.Train && !tooHungry && currentHunger < HUNGER_HAPPINESS_PENALTY_BELOW;
     
         // Safe access to tracking data with nullish default
         const tracking = actionTracking[type];
@@ -101,7 +111,7 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
         );
 
         // Use canUse from cooldowns API - this properly checks API-based cooldowns
-        const isDisabled = isTotemOnExpedition || !canUse || isLoading !== null || !hasEnoughBalance || !hasMinHappiness;
+        const isDisabled = isTotemOnExpedition || !canUse || isLoading !== null || !hasEnoughBalance || !hasMinHappiness || tooHungry;
     
         const getButtonVariant = () => {
             if (isLoading === type) return 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500';
@@ -123,11 +133,18 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
             if (!hasEnoughBalance) {
                 return `Requires ${actionCost} ${CURRENCY_NAMES.SOFT}`;
             }
+            if (tooHungry) {
+                return 'Too hungry — feed first';
+            }
             if (!hasMinHappiness) {
                 return `Needs ${actionConfigs[type]?.minHappiness} happiness`;
             }
             if (!canUse && actionStatus !== 'Available') {
                 return actionStatus;
+            }
+            // Informational (button stays enabled): hungry totems lose 2× happiness from training.
+            if (cranky) {
+                return '2× happiness loss while hungry';
             }
             return null;
         };
@@ -174,6 +191,16 @@ const TotemActionBar: React.FC<TotemActionBarProps> = ({
                                 {!hasEnoughBalance ? (
                                     <>
                                         <Sparkles size={14} className="text-yellow-500 sm:w-4 sm:h-4" />
+                                        {statusMessage}
+                                    </>
+                                ) : tooHungry ? (
+                                    <>
+                                        <Drumstick size={14} className="flex-shrink-0 text-red-500 sm:w-4 sm:h-4" />
+                                        {statusMessage}
+                                    </>
+                                ) : cranky ? (
+                                    <>
+                                        <Drumstick size={14} className="flex-shrink-0 text-amber-500 sm:w-4 sm:h-4" />
                                         {statusMessage}
                                     </>
                                 ) : (

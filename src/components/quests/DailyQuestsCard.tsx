@@ -3,20 +3,11 @@ import { useGame } from '../../contexts/GameContext';
 import CountdownTimer from '../CountdownTimer';
 import QuestDetailsModal from './QuestDetailsModal';
 import { CURRENCY_NAMES } from '../../config/constants';
-import { Target, Gift, CheckCircle2, Sword, Wind, Mountain, Droplet, Apple, Dumbbell, Heart, Zap, Sparkles, Maximize2, Info, Diamond} from 'lucide-react';
-import type { Affinity, Domain, DailyAction, DailyQuest } from '../../types/quests';
-
-const AFFINITY_ICONS: Record<Affinity, React.ComponentType<{ className?: string }>> = {
-  strength: Sword,
-  agility: Wind,
-  wisdom: Sparkles,
-};
-
-const DOMAIN_ICONS: Record<Domain, React.ComponentType<{ className?: string }>> = {
-  air: Wind,
-  earth: Mountain,
-  water: Droplet,
-};
+import { Target, Gift, CheckCircle2, Apple, Dumbbell, Heart, Zap, Maximize2, Info, Diamond} from 'lucide-react';
+import type { DailyAction, DailyQuest } from '../../types/quests';
+// Affinity/domain glyphs come from the shared totem-details maps so every surface
+// (gallery card, detail view, quests) uses the same icon set.
+import { AFFINITY_ICONS, DOMAIN_ICONS } from '../../utils/totems';
 
 const ACTION_ICONS: Record<DailyAction, React.ComponentType<{ className?: string }>> = {
   feed: Apple,
@@ -48,8 +39,8 @@ const DailyQuestsCard: React.FC = () => {
   if (!dailyQuests) return null;
 
   const { theme, quests, bonus } = dailyQuests;
-  const AffinityIcon = AFFINITY_ICONS[theme.affinity];
-  const DomainIcon = DOMAIN_ICONS[theme.domain];
+  const AffinityIcon = AFFINITY_ICONS[cap(theme.affinity) as keyof typeof AFFINITY_ICONS];
+  const DomainIcon = DOMAIN_ICONS[cap(theme.domain) as keyof typeof DOMAIN_ICONS];
   const ActionIcon = ACTION_ICONS[theme.action];
 
   const todayUTC = new Date().toISOString().slice(0, 10);
@@ -103,27 +94,32 @@ const DailyQuestsCard: React.FC = () => {
         </span>
       </div>
 
-      {/* Quest rows — single-line layout */}
-      <ul className="space-y-2 mb-4">
+      {/* Quest rows — single-line layout. Tighter row gap (the rest of the old
+          gap becomes row padding) so the whole-row tap target is taller without
+          changing the list's overall height. */}
+      <ul className="space-y-1 mb-4">
         {quests.map(q => {
           const pct = Math.min(100, Math.round((q.progress / q.goal) * 100));
           const done = q.progress >= q.goal;
           return (
-            <li key={q.slot} className="flex items-center gap-2 text-base">
+            <li
+              key={q.slot}
+              onClick={() => setDetailsQuest(q)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailsQuest(q); } }}
+              role="button"
+              tabIndex={0}
+              aria-label={`View details for ${q.name}`}
+              title={q.description}
+              className="flex items-center gap-2 py-1 text-base cursor-pointer rounded-lg -mx-2 px-2 hover:bg-gray-50 dark:hover:bg-gray-700/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 transition-colors"
+            >
               {q.claimed
                 ? <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
                 : <span className={`w-5 h-5 rounded-full shrink-0 ${done ? 'bg-emerald-400' : 'border border-gray-300 dark:border-gray-600'}`} />}
               <span className={`flex-1 min-w-0 truncate ${q.claimed ? 'text-gray-400 line-through' : 'text-gray-900 dark:text-white'}`}>
                 {q.name}
               </span>
-              <button
-                onClick={() => setDetailsQuest(q)}
-                className="text-gray-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors p-0.5 shrink-0"
-                aria-label={`Details for ${q.name}`}
-                title={q.description}
-              >
-                <Info size={14} />
-              </button>
+              {/* Static cue that the row opens details (the whole row is the button). */}
+              <Info size={14} className="text-gray-400 shrink-0" aria-hidden />
               <div className="w-12 bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 shrink-0">
                 <div
                   className={`h-1.5 rounded-full transition-all duration-500 ${q.claimed ? 'bg-gray-300 dark:bg-gray-600' : 'bg-gradient-to-r from-emerald-500 to-emerald-400'}`}

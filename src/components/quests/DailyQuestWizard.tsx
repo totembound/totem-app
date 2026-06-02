@@ -1,23 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Flame, Minus, Maximize2, X, CheckCircle2, Gift, Zap, Sword, Wind, Mountain, Droplet, Apple, Dumbbell, Heart, Sparkles, Info, Diamond } from 'lucide-react';
+import { Flame, Minus, Maximize2, X, CheckCircle2, Gift, Zap, Apple, Dumbbell, Heart, Info, Diamond } from 'lucide-react';
 import { useGame } from '../../contexts/GameContext';
 import { useUser } from '../../contexts/UserContext';
 import CountdownTimer from '../CountdownTimer';
 import QuestDetailsModal from './QuestDetailsModal';
 import { CURRENCY_NAMES } from '../../config/constants';
-import type { Affinity, Domain, DailyAction, DailyQuest } from '../../types/quests';
-
-const AFFINITY_ICONS: Record<Affinity, React.ComponentType<{ className?: string }>> = {
-  strength: Sword,
-  agility: Wind,
-  wisdom: Sparkles,
-};
-
-const DOMAIN_ICONS: Record<Domain, React.ComponentType<{ className?: string }>> = {
-  air: Wind,
-  earth: Mountain,
-  water: Droplet,
-};
+import type { DailyAction, DailyQuest } from '../../types/quests';
+// Shared totem-details icon maps so quests match the gallery card + detail view.
+import { AFFINITY_ICONS, DOMAIN_ICONS } from '../../utils/totems';
 
 const ACTION_ICONS: Record<DailyAction, React.ComponentType<{ className?: string }>> = {
   feed: Apple,
@@ -50,8 +40,8 @@ const DailyQuestWizard: React.FC = () => {
   if (!dailyQuestWizardVisible) return null;
 
   const { theme, quests, bonus } = dailyQuests;
-  const AffinityIcon = AFFINITY_ICONS[theme.affinity];
-  const DomainIcon = DOMAIN_ICONS[theme.domain];
+  const AffinityIcon = AFFINITY_ICONS[cap(theme.affinity) as keyof typeof AFFINITY_ICONS];
+  const DomainIcon = DOMAIN_ICONS[cap(theme.domain) as keyof typeof DOMAIN_ICONS];
   const ActionIcon = ACTION_ICONS[theme.action];
 
   const isStale = dailyQuests.date !== todayUTC;

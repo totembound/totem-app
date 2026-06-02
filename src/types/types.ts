@@ -25,7 +25,7 @@ export interface UserContextType extends UserContextState {
     hasClickedLink: (linkId: string) => boolean;
     fetchTotems: () => Promise<void>;
     updateTotemNickname: (totemId: string, nickname: string | null) => void;
-    updateTotemAttributes: (totemId: string, updates: { experience?: number; happiness?: number; stage?: number; nickname?: string | null; }) => void;
+    updateTotemAttributes: (totemId: string, updates: { experience?: number; happiness?: number; hunger?: number; hungerAsOf?: string; stage?: number; nickname?: string | null; }) => void;
     updateTotemTraits: (totemId: string, slot: 'innate' | 'learned' | 'awakened', traitId: string) => void;
 }
 
@@ -181,6 +181,10 @@ export interface TotemAttributes {
     rarity: Rarity;
     happiness: number;
     hunger?: number;
+    /** Server timestamp when `hunger` was computed — anchor for client-side re-derivation. */
+    hungerAsOf?: string;
+    /** Effective per-hour decay rate for this totem (incl. traits; 1 by default). */
+    hungerDecayPerHour?: number;
     experience: number;
     stage: number;
     strength: number;

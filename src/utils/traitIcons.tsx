@@ -63,7 +63,10 @@ export function getTraitTooltipContent(args: {
 }): string {
     const def = getTraitById(args.traitId);
     if (def) {
-        return `${def.name} (${SLOT_LABEL[args.slot]}) — ${def.description}`;
+        // Second line surfaces the gameplay bonus (curated `effect` copy), so the
+        // tooltip reads: name + flavor, then the actual modifier.
+        const bonus = def.effect ? `\n${def.effect}` : '';
+        return `${def.name} (${SLOT_LABEL[args.slot]}) — ${def.description}${bonus}`;
     }
     if (args.unlocked && args.slot !== 'innate') {
         return `${SLOT_LABEL[args.slot]} trait unchosen — choose one.`;

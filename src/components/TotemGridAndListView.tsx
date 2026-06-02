@@ -1,11 +1,12 @@
 import React from 'react';
 import { TotemData, Rarity } from '../types/types';
-import { Heart, MapPin, Swords, Landmark, Drumstick, Star } from 'lucide-react';
+import { Heart, MapPin, Swords, Landmark, Drumstick, Star, Sparkles } from 'lucide-react';
 import { AFFINITY_ICONS, DOMAIN_ICONS, getRarityBorderColor, getRarityFontColor, getRarityGlow, getRarityHaloShadow } from '../utils/totems';
 import { IPFS_GATEWAY_URL, STAGE_THRESHOLDS, PRESTIGE_XP_REQUIREMENT } from '../config/constants';
 import { formatTimeRemaining } from '../utils/formats';
 import TraitIconRow from './traits/TraitIconRow';
 import Tooltip from './Tooltip';
+import { deriveHunger, useFocusNow } from '../utils/hunger';
 
 // Title-case a stat/domain string for tooltips (e.g. "wisdom" → "Wisdom").
 const titleCase = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
@@ -139,12 +140,16 @@ const StageChip: React.FC<{ s: StageDisplay; stage: number }> = ({ s, stage }) =
     return (
         <Chip>
             <div className="flex flex-col flex-grow min-w-0 gap-1">
-                <div className="flex items-center h-4">
+                <div className="flex items-center h-4 gap-1">
                     {s.isPrestige
                         ? <PrestigeBadge level={s.label.replace(/\D/g, '') || '0'} />
                         : <span className="[&_svg]:w-2.5 [&_svg]:h-2.5 sm:[&_svg]:w-3.5 sm:[&_svg]:h-3.5">
                             <StagePips stage={stage} isPrestige={false} />
                           </span>}
+                    {/* Ready-to-evolve cue — pairs with the pulsing purple bar below. */}
+                    {s.canEvolve && (
+                        <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0 text-purple-500 dark:text-purple-400 animate-pulse" fill="currentColor" strokeWidth={1.5} />
+                    )}
                 </div>
                 <div className="h-1.5 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
                     <div className={`h-full rounded-full ${barColor}`} style={{ width: `${s.canEvolve ? 100 : s.percent}%` }} />
@@ -180,8 +185,9 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
     const rarityHalo = getRarityHaloShadow(nft.attributes.rarity);
     const stageInfo = getStageDisplay(nft);
 
-    // Hunger ships next quarter; until totems carry it, treat as fully fed (100).
-    const hunger = nft.attributes.hunger ?? 100;
+    // Hunger decays ~1/hour; re-derive from the server snapshot (no refetch).
+    const now = useFocusNow();
+    const hunger = deriveHunger(nft.attributes, now);
     const status = resolveStatus(nft, isOnExpedition, expeditionEndTime);
 
     return (
@@ -231,21 +237,24 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
                         : (nft.displayName || nft.name)}
                 </h3>
 
-                {/* Stage + Affinity + needs grid */}
+                {/* Stage + Traits + needs grid. Traits sit beside the Stage chip
+                    because both are stage/level-based and change as the totem grows;
+                    the fixed affinity/domain drops to the footer below. */}
                 <div className="grid grid-cols-2 gap-1.5">
                     {/* Stage pips + XP bar — or prestige once Ascended (stage 5). */}
                     <StageChip s={stageInfo} stage={nft.attributes.stage} />
 
-                    {/* Affinity + Domain — icon-only (names live in the detail view). */}
-                    <Chip className="justify-center gap-3">
-                        {React.createElement(AFFINITY_ICONS[nft.affinity as keyof typeof AFFINITY_ICONS], {
-                            size: 18,
-                            className: 'flex-shrink-0 text-yellow-600 dark:text-yellow-400',
-                        })}
-                        {React.createElement(DOMAIN_ICONS[nft.domain as keyof typeof DOMAIN_ICONS], {
-                            size: 18,
-                            className: 'flex-shrink-0 text-cyan-600 dark:text-cyan-400',
-                        })}
+                    {/* Traits — stage/level-based, so they share the top row with Stage.
+                        stopPropagation so tapping a trait tooltip doesn't open the totem. */}
+                    <Chip className="justify-center items-center h-full gap-2">
+                        {/* leading-none + [&_svg]:block kill the inline line-height gap under
+                            the icons so the row's true height is the glyph height and it
+                            centers cleanly (same fix the list view uses). */}
+                        <div onClick={(e) => e.stopPropagation()} className="flex items-center justify-center min-w-0 leading-none [&_svg]:block">
+                            {nft.traits
+                                ? <TraitIconRow stage={nft.attributes.stage} traits={nft.traits} size={18} showLocked />
+                                : <span className="text-[11px] text-gray-400 dark:text-gray-600">No traits</span>}
+                        </div>
                     </Chip>
 
                     {/* Happiness */}
@@ -255,15 +264,25 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
                     <NeedChip label="Hunger" icon={<Drumstick size={16} className="text-amber-600 dark:text-amber-400" />} value={hunger} />
                 </div>
 
-                {/* Bottom row: traits (left) ↔ rarity (right). px-0.5 matches the name's
-                    inset so traits align under it and rarity right-aligns with the grid edge. */}
+                {/* Footer: affinity/domain (left, fixed traits of the species) ↔ rarity
+                    (right). px-0.5 matches the name's inset and rarity right-aligns with
+                    the grid edge. */}
                 <div className="flex items-center justify-between gap-2 px-0.5">
-                    <div onClick={(e) => e.stopPropagation()} className="flex items-center min-w-0">
-                        {nft.traits
-                            ? <TraitIconRow stage={nft.attributes.stage} traits={nft.traits} size={18} showLocked />
-                            : <span className="text-[11px] text-gray-400 dark:text-gray-600">No traits</span>}
+                    <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-3 flex-shrink-0">
+                        <Tooltip content={`${titleCase(nft.affinity)} affinity`} position="bottom">
+                            {React.createElement(AFFINITY_ICONS[nft.affinity as keyof typeof AFFINITY_ICONS], {
+                                size: 18,
+                                className: 'flex-shrink-0 text-yellow-600 dark:text-yellow-400',
+                            })}
+                        </Tooltip>
+                        <Tooltip content={`${titleCase(nft.domain)} domain`} position="bottom">
+                            {React.createElement(DOMAIN_ICONS[nft.domain as keyof typeof DOMAIN_ICONS], {
+                                size: 18,
+                                className: 'flex-shrink-0 text-cyan-600 dark:text-cyan-400',
+                            })}
+                        </Tooltip>
                     </div>
-                    <span className={`flex-shrink-0 text-[11px] sm:text-sm font-bold uppercase tracking-wide ${getRarityFontColor(nft.attributes.rarity)}`}>
+                    <span className={`flex-shrink-0 text-[11px] sm:text-sm font-medium uppercase tracking-wide ${getRarityFontColor(nft.attributes.rarity)}`}>
                         {Rarity[nft.attributes.rarity]}
                     </span>
                 </div>
@@ -289,7 +308,8 @@ export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelecte
     const rarityBorderColors = getRarityBorderColor(nft.attributes.rarity);
     const rarityHalo = getRarityHaloShadow(nft.attributes.rarity);
     const stageInfo = getStageDisplay(nft);
-    const hunger = nft.attributes.hunger ?? 100;
+    const now = useFocusNow();
+    const hunger = deriveHunger(nft.attributes, now);
     const status = resolveStatus(nft, isOnExpedition, expeditionEndTime);
 
     return (
@@ -333,7 +353,7 @@ export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelecte
                                 ? (<>{nft.attributes.nickname}<span className="font-normal text-gray-500 dark:text-gray-400"> · {nft.displayName || nft.name}</span></>)
                                 : (nft.displayName || nft.name)}
                         </h3>
-                        <span className={`flex-shrink-0 text-[11px] sm:text-sm font-bold uppercase tracking-wide ${getRarityFontColor(nft.attributes.rarity)}`}>
+                        <span className={`flex-shrink-0 text-[11px] sm:text-sm font-medium uppercase tracking-wide ${getRarityFontColor(nft.attributes.rarity)}`}>
                             {Rarity[nft.attributes.rarity]}
                         </span>
                     </div>

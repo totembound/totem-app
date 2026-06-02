@@ -41,6 +41,8 @@ interface ApiTotemAttributes {
   rarity: number;
   happiness: number;
   hunger: number;
+  hungerAsOf?: string;
+  hungerDecayPerHour?: number;
   experience: number;
   stage: number;
   strength: number;
@@ -241,6 +243,8 @@ function transformTotem(apiTotem: ApiTotem): TotemData {
       // Dynamic data from API (stored in DynamoDB)
       happiness: apiTotem.attributes.happiness,
       hunger: apiTotem.attributes.hunger ?? 100,
+      hungerAsOf: apiTotem.attributes.hungerAsOf,
+      hungerDecayPerHour: apiTotem.attributes.hungerDecayPerHour,
       experience: apiTotem.attributes.experience,
       stage: apiTotem.attributes.stage,
       strength: apiTotem.attributes.strength,

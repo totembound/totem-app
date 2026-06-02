@@ -138,12 +138,12 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
         const cardShell = (icon: React.ReactNode, body: React.ReactNode) => (
             <div
                 key={slot}
-                className={`relative overflow-hidden flex flex-row sm:flex-col items-start sm:items-stretch gap-3 sm:gap-3 p-3 sm:p-4 rounded-xl border ${theme.cardBg} ${theme.cardBorder} shadow-sm hover:shadow-md transition-shadow min-w-0`}
+                className={`relative overflow-hidden flex flex-row items-start gap-3 p-3 sm:p-4 rounded-xl border ${theme.cardBg} ${theme.cardBorder} shadow-sm hover:shadow-md transition-shadow min-w-0`}
             >
-                {/* Icon — left column on mobile, top-center on desktop */}
-                <div className="shrink-0 sm:flex sm:justify-center">{icon}</div>
-                {/* Body */}
-                <div className="flex-1 min-w-0 flex flex-col gap-1.5 sm:items-center sm:text-center">
+                {/* Icon — fixed left column so all three rows align */}
+                <div className="shrink-0">{icon}</div>
+                {/* Body — left-aligned row content */}
+                <div className="flex-1 min-w-0 flex flex-col gap-1.5">
                     {slotPill}
                     {body}
                 </div>
@@ -160,15 +160,17 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
                     </>,
                 ),
                 <>
-                    {/* Name on its own line so it never wraps with the category tag. */}
-                    <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-50 leading-tight break-words">
-                        {def.name}
-                    </div>
-                    <div className="text-[10px] uppercase tracking-[0.15em] text-gray-500 dark:text-gray-400 font-medium">
-                        {isPassive ? 'Passive' : 'Active'}
+                    {/* Name + Passive/Active share one row (wraps gracefully if tight). */}
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                        <span className="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-50 leading-tight break-words">
+                            {def.name}
+                        </span>
+                        <span className="text-[10px] uppercase tracking-[0.15em] text-gray-500 dark:text-gray-400 font-medium">
+                            {isPassive ? 'Passive' : 'Active'}
+                        </span>
                     </div>
                     {/* Effect chip — tier-tinted callout instead of bare green text. */}
-                    <div className={`mt-1 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${theme.chipBg} ${theme.chipText} w-fit sm:mx-auto break-words text-left sm:text-center`}>
+                    <div className={`mt-1 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${theme.chipBg} ${theme.chipText} w-fit break-words text-left`}>
                         {def.effect}
                     </div>
                     {/* Flavor as a quoted inscription. Smart quotes added if not already. */}
@@ -313,13 +315,13 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
                 </div>
             </div>
 
-            {/* Traits — stacked rows on mobile, 3-column cards on desktop.
-                Container matches the Properties panel above (same bg + padding)
-                so the section reads as one panel-width. */}
+            {/* Traits — full-width stacked rows at every breakpoint (icon left,
+                details right). Container matches the Properties panel above (same
+                bg + padding) so the section reads as one panel-width. */}
             {traits && (
                 <div>
                     <h3 className="text-md font-semibold mb-2">Traits</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                    <div className="flex flex-col gap-2 sm:gap-3 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
                         {(['innate', 'learned', 'awakened'] as TraitSlot[]).map(renderTraitCard)}
                     </div>
                 </div>

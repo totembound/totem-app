@@ -33,3 +33,11 @@ export function getTierChipColorClass(tier?: string | null): string | null {
   if (tier === 'premium') return 'text-purple-600 dark:text-purple-400';
   return null;
 }
+
+/** Reverse of getTierMultiplier — maps a reward multiplier back to its tier. */
+export function tierFromMultiplier(multiplier?: number | null): Tier {
+  const m = multiplier ?? 1;
+  if (m >= 3) return 'vip';
+  if (m >= 2) return 'premium';
+  return 'free';
+}

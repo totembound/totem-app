@@ -39,6 +39,9 @@ export interface DailyQuestSet {
   nextResetAt: string;
   quests: DailyQuest[];
   bonus: QuestBonus;
+  /** Subscription tier reward multiplier (1 free / 2 premium / 3 vip). Quest
+   *  essence values are already scaled by this server-side. */
+  tierMultiplier?: number;
 }
 
 export interface QuestClaimedEntry {

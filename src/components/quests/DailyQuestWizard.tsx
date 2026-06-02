@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Flame, Minus, Maximize2, X, CheckCircle2, Gift, Zap, Apple, Dumbbell, Heart, Info, Diamond } from 'lucide-react';
+import TierBonusBadge from '../TierBonusBadge';
+import { tierFromMultiplier } from '../../config/tier-bonuses';
 import { useGame } from '../../contexts/GameContext';
 import { useUser } from '../../contexts/UserContext';
 import CountdownTimer from '../CountdownTimer';
@@ -104,6 +106,11 @@ const DailyQuestWizard: React.FC = () => {
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/30 text-xs font-medium text-amber-700 dark:text-amber-300">
                   <ActionIcon className="w-3 h-3" /> {cap(theme.action)}
                 </span>
+                {!!dailyQuests.tierMultiplier && dailyQuests.tierMultiplier > 1 && (
+                  <div className="ml-auto" title={`Subscriber bonus — quest essence boosted (runes unaffected)`}>
+                    <TierBonusBadge tier={tierFromMultiplier(dailyQuests.tierMultiplier)} label="" />
+                  </div>
+                )}
               </div>
 
               {/* Quest rows */}

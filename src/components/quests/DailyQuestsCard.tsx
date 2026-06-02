@@ -4,6 +4,8 @@ import CountdownTimer from '../CountdownTimer';
 import QuestDetailsModal from './QuestDetailsModal';
 import { CURRENCY_NAMES } from '../../config/constants';
 import { Target, Gift, CheckCircle2, Apple, Dumbbell, Heart, Zap, Maximize2, Info, Diamond} from 'lucide-react';
+import TierBonusBadge from '../TierBonusBadge';
+import { tierFromMultiplier } from '../../config/tier-bonuses';
 import type { DailyAction, DailyQuest } from '../../types/quests';
 // Affinity/domain glyphs come from the shared totem-details maps so every surface
 // (gallery card, detail view, quests) uses the same icon set.
@@ -92,6 +94,11 @@ const DailyQuestsCard: React.FC = () => {
         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-50 dark:bg-amber-900/30 text-xs font-medium text-amber-700 dark:text-amber-300">
           <ActionIcon className="w-3 h-3" /> {cap(theme.action)}
         </span>
+        {!!dailyQuests.tierMultiplier && dailyQuests.tierMultiplier > 1 && (
+          <div className="ml-auto" title={`Subscriber bonus — quest essence boosted (runes unaffected)`}>
+            <TierBonusBadge tier={tierFromMultiplier(dailyQuests.tierMultiplier)} label="" />
+          </div>
+        )}
       </div>
 
       {/* Quest rows — single-line layout. Tighter row gap (the rest of the old

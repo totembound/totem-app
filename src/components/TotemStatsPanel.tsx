@@ -3,6 +3,7 @@ import { Dumbbell, Wind, Brain, Heart, Drumstick, Info, Lock } from 'lucide-reac
 import { TotemAttributes } from '../types/types';
 import Tooltip from './Tooltip';
 import { BASE_ELDER_XP, PRESTIGE_XP_REQUIREMENT, STAGE_THRESHOLDS, HUNGER_TRAIN_MIN } from '../config/constants';
+import { computePrestigeLevel } from '../utils/prestige';
 import { getTraitById, LEARNED_STAGE_GATE, AWAKENED_STAGE_GATE, type TraitSlot } from '../config/traits';
 import { TraitIcon, SLOT_COLOR_CLASSES, getTraitTooltipContent } from '../utils/traitIcons';
 import { deriveHunger, useFocusNow } from '../utils/hunger';
@@ -58,12 +59,12 @@ const TotemStatsPanel: React.FC<TotemStatsPanelProps> = ({ attributes, traits, o
         }
         
         // For Elder stage (Prestige calculations)
-        const prestigeLevel = calculatePrestigeLevel(experience);
+        const prestigeLevel = computePrestigeLevel(experience, stage);
         const nextPrestigeThreshold = BASE_ELDER_XP + ((prestigeLevel + 1) * PRESTIGE_XP_REQUIREMENT);
         const currentPrestigeThreshold = BASE_ELDER_XP + (prestigeLevel * PRESTIGE_XP_REQUIREMENT);
         const progress = ((experience - currentPrestigeThreshold) / PRESTIGE_XP_REQUIREMENT) * 100;
         const remaining = nextPrestigeThreshold - experience;
-        
+
         return {
             progress: Math.min(100, progress),
             remaining,
@@ -71,11 +72,6 @@ const TotemStatsPanel: React.FC<TotemStatsPanelProps> = ({ attributes, traits, o
             type: 'prestige',
             prestigeLevel
         };
-    };
-
-    const calculatePrestigeLevel = (experience: number): number => {
-        if (experience <= BASE_ELDER_XP) return 0;
-        return Math.floor((experience - BASE_ELDER_XP) / PRESTIGE_XP_REQUIREMENT);
     };
 
     const xpProgress = calculateXPProgress(attributes);

@@ -14,6 +14,7 @@ import TotemActionBar from './TotemActionBar';
 import ExperienceEffect from './effects/ExperienceEffect';
 import { STAGE_THRESHOLDS, BASE_ELDER_XP, PRESTIGE_XP_REQUIREMENT } from '../config/constants';
 import { getTotemImageUrl, getStageName, getStageDescription } from '../utils/species';
+import { computePrestigeLevel } from '../utils/prestige';
 import { getRarityHaloShadow } from '../utils/totems';
 import { Heart, TrendingUp } from 'lucide-react';
 import { type TraitSlot } from '../config/traits';
@@ -511,10 +512,10 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
 
     // Compute XP progress for the HUD bar (switches to prestige at max stage)
     const isPrestige = currentAttributes.stage >= 4;
-    const prestigeLevel = useMemo(() => {
-        if (!isPrestige || currentAttributes.experience <= BASE_ELDER_XP) return 0;
-        return Math.floor((currentAttributes.experience - BASE_ELDER_XP) / PRESTIGE_XP_REQUIREMENT);
-    }, [isPrestige, currentAttributes.experience]);
+    const prestigeLevel = useMemo(
+        () => computePrestigeLevel(currentAttributes.experience, currentAttributes.stage),
+        [currentAttributes.experience, currentAttributes.stage],
+    );
 
     const xpProgressPercent = useMemo(() => {
         if (isPrestige) {

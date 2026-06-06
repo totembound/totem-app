@@ -100,12 +100,8 @@ describe('getTotemImageUrl', () => {
     expect(url).toContain('ipfs.totembound.com');
   });
 
-  it('should return placeholder for species without color images', () => {
-    const url = getTotemImageUrl(10, 0, 0); // Snake - unavailable, no colors
-    expect(url).toBe('/totems/snakeplacecard.png');
-  });
-
   it('should return placeholder for unknown species', () => {
+    // All 12 real species ship bundled color data, so only an unmapped id hits the fallback.
     const url = getTotemImageUrl(99, 0, 0);
     expect(url).toBe('/totems/unknownplacecard.png');
   });
@@ -122,7 +118,7 @@ describe('getStageName', () => {
   });
 
   it('should return generic stage names for species without color data', () => {
-    expect(getStageName(10, 0, 0)).toBe('Hatchling'); // Snake - unavailable, falls back to base stages
+    expect(getStageName(99, 0, 0)).toBe('Hatchling'); // unmapped species - falls back to base stages
   });
 
   it('should return "Unknown" for out of range stage', () => {
@@ -142,7 +138,7 @@ describe('getStageDescription', () => {
   });
 
   it('should return empty string for species without color descriptions', () => {
-    expect(getStageDescription(10, 0, 0)).toBe(''); // Snake - unavailable, no descriptions
+    expect(getStageDescription(99, 0, 0)).toBe(''); // unmapped species - no descriptions
   });
 });
 
@@ -158,7 +154,7 @@ describe('getSpeciesColors', () => {
   });
 
   it('should return empty array for species without colors', () => {
-    expect(getSpeciesColors(10)).toEqual([]); // Snake - unavailable, no colors
+    expect(getSpeciesColors(99)).toEqual([]); // unmapped species - no colors
   });
 });
 

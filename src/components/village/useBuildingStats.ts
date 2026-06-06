@@ -118,9 +118,25 @@ export function useBuildingStats(buildingId: string): BuildingStats {
         // Locked until at least one Ascended (stage 4) totem exists.
         const ascended = totems.some((t) => (t.attributes?.stage ?? 0) >= 4);
         if (ascended) {
-          // Seat data lives on totem.attributes.sanctum.seated when present.
-          const seated = totems.filter((t) => t.attributes?.sanctum?.seated).length;
-          return { summary: `${seated}/3 elder seats filled` };
+          // Seat + council-mission data lives on totem.attributes.sanctum, written
+          // by the backend on seat/start/claim — so we can derive mission status
+          // here without a /sanctum call, mirroring the Trailhead expedition strip.
+          const seatedTotems = totems.filter((t) => t.attributes?.sanctum?.seated);
+          const seated = seatedTotems.length;
+          // A seated totem with a mission is either still running (endsAt in the
+          // future) or finished and waiting to be claimed (endsAt passed).
+          const now = Date.now();
+          const onMission = seatedTotems.filter((t) => t.attributes?.sanctum?.onMission);
+          const claimable = onMission.filter((t) => {
+            const endsAt = t.attributes?.sanctum?.missionEndsAt;
+            return endsAt ? new Date(endsAt).getTime() <= now : false;
+          }).length;
+          const active = onMission.length - claimable;
+
+          const parts: string[] = [`${seated}/3 elder seats filled`];
+          if (active > 0) parts.push(`${active} on mission`);
+          if (claimable > 0) parts.push(`${claimable} ready to claim`);
+          return { summary: parts.join(' · ') };
         }
         const highest = totems.reduce(
           (top, t) => ((t.attributes?.stage ?? 0) > (top.attributes?.stage ?? 0) ? t : top),

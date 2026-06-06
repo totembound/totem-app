@@ -3,6 +3,7 @@ import { TotemData, Rarity } from '../types/types';
 import { Heart, MapPin, Swords, Landmark, Drumstick, Star, Sparkles } from 'lucide-react';
 import { AFFINITY_ICONS, DOMAIN_ICONS, getRarityBorderColor, getRarityFontColor, getRarityGlow, getRarityHaloShadow } from '../utils/totems';
 import { IPFS_GATEWAY_URL, STAGE_THRESHOLDS, PRESTIGE_XP_REQUIREMENT } from '../config/constants';
+import { computePrestigeLevel } from '../utils/prestige';
 import { formatTimeRemaining } from '../utils/formats';
 import TraitIconRow from './traits/TraitIconRow';
 import Tooltip from './Tooltip';
@@ -99,8 +100,11 @@ interface StageDisplay {
     canEvolve: boolean;
 }
 const getStageDisplay = (nft: TotemData): StageDisplay => {
-    const { stage, experience, prestigeLevel } = nft.attributes;
+    const { stage, experience } = nft.attributes;
     if (stage === 4) {
+        // Prestige is XP-derived (shared with the detail HUD + server), not the
+        // stored prestigeLevel field — which is always 0 and made this render "P0".
+        const prestigeLevel = computePrestigeLevel(experience, stage);
         const xpSinceElder = experience - STAGE_THRESHOLDS[4];
         const inLevel = ((xpSinceElder % PRESTIGE_XP_REQUIREMENT) / PRESTIGE_XP_REQUIREMENT) * 100;
         return {

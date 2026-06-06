@@ -41,6 +41,9 @@ export const TraitCard: React.FC<TraitCardProps> = ({ trait, selectable = false,
                 </div>
             </div>
             <p className="text-sm text-stone-600 dark:text-stone-300 italic">"{trait.description}"</p>
+            {trait.effect && (
+                <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">{trait.effect}</p>
+            )}
             {selectable && (
                 <button
                     type="button"

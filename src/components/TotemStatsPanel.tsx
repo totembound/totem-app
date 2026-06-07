@@ -249,20 +249,16 @@ const TotemStatsPanel: React.FC<TotemStatsPanelProps> = ({ attributes, traits, o
                                         </div>
                                     </>
                                 );
-                                // Choosable: a real button inside <Tooltip interactiveChild> so it
-                                // gets the same styled DOM tooltip as the other chips without nesting
-                                // interactive elements. Read-only state uses the standard Tooltip.
                                 if (onChooseTrait) {
                                     return (
-                                        <Tooltip key={slot} content={tooltipContent} position="top" interactiveChild>
-                                            <button
-                                                type="button"
-                                                onClick={(e) => { e.stopPropagation(); onChooseTrait(slot); }}
-                                                className="w-full p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg flex items-center gap-3 border border-dashed border-amber-300 dark:border-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/40 hover:border-amber-400 dark:hover:border-amber-600 transition-colors"
-                                            >
-                                                {chipInner}
-                                            </button>
-                                        </Tooltip>
+                                        <button
+                                            key={slot}
+                                            type="button"
+                                            onClick={(e) => { e.stopPropagation(); onChooseTrait(slot); }}
+                                            className="w-full p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg flex items-center gap-3 border border-dashed border-amber-300 dark:border-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/40 hover:border-amber-400 dark:hover:border-amber-600 transition-colors"
+                                        >
+                                            {chipInner}
+                                        </button>
                                     );
                                 }
                                 return (

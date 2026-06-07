@@ -190,15 +190,13 @@ const TotemDetailsPanel: React.FC<TotemDetailsPanelProps> = ({
                     <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         Unlocked &mdash; awaiting your choice
                     </div>
-                    <Tooltip content={tooltipContent} position="top" interactiveChild>
-                        <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); onChooseTrait?.(slot); }}
-                            className={`mt-1 inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${theme.chipBg} ${theme.chipText} hover:brightness-110 transition`}
-                        >
-                            Choose a {SLOT_LABEL[slot].toLowerCase()} trait →
-                        </button>
-                    </Tooltip>
+                    <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); onChooseTrait?.(slot); }}
+                        className={`mt-1 inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${theme.chipBg} ${theme.chipText} hover:brightness-110 transition`}
+                    >
+                        Choose a {SLOT_LABEL[slot].toLowerCase()} trait →
+                    </button>
                 </>,
             );
         }

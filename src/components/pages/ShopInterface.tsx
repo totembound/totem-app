@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Lock, Loader2, Sparkles, Gem, CreditCard } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 import { useAchievements } from '../../contexts/AchievementsContext';
@@ -498,6 +499,13 @@ const ShopInterface = () => {
                 </div>
                 <p className="text-gray-600 dark:text-gray-400">
                   Purchase {CURRENCY_NAMES.PREMIUM} with your credit card. {CURRENCY_NAMES.PREMIUM} can be exchanged for {CURRENCY_NAMES.SOFT} or used to buy special bundles. Payments are processed securely via Stripe.
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  By completing this purchase you agree this is a digital item delivered immediately, and that it is{' '}
+                  <Link to="/terms" className="text-purple-600 dark:text-purple-400 hover:underline">
+                    non-refundable
+                  </Link>{' '}
+                  once delivery begins, except where required by law.
                 </p>
               </div>
 

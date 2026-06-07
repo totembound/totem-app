@@ -78,6 +78,13 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
     // bonuses (Quick Learner, Mentor aura, …) show the real number, not the
     // static base value from action config.
     const [lastXpGained, setLastXpGained] = useState<number | null>(null);
+    // Timer that resets activeEffect ~1s after an action completes. Tracked in a ref so we
+    // can cancel it on unmount — otherwise it can fire after the component is gone and call
+    // setState on an unmounted tree (which crashes tests once jsdom tears down `window`).
+    const effectResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    useEffect(() => () => {
+        if (effectResetTimerRef.current) clearTimeout(effectResetTimerRef.current);
+    }, []);
     const [cooldowns, setCooldowns] = useState<Record<string, { onCooldown: boolean; readyAt: Date | null; remainingMs: number }>>({});
     const [, setTick] = useState(0); // Force re-render for countdown timer
     // Optimistic override after a trait is chosen — avoids round-tripping to the parent
@@ -417,7 +424,8 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
             }
         } finally {
             setIsLoading(null);
-            setTimeout(() => {
+            if (effectResetTimerRef.current) clearTimeout(effectResetTimerRef.current);
+            effectResetTimerRef.current = setTimeout(() => {
                 setActiveEffect(null);
             }, 1000);
         }

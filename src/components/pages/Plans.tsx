@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Key, Award, Crown, Check, Shield, ArrowRight, Sparkles, Gem, Star, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { CURRENCY_NAMES } from '../../config/constants';
 import { useAuth } from '../../contexts/AuthContext';
@@ -498,6 +498,15 @@ const Plans = () => {
             </div>
           </div>
         </div>
+
+        {/* Purchase consent notice */}
+        <p className="text-center text-xs text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mb-16 px-4">
+          By completing this purchase you agree this is a digital item delivered immediately, and that it is{' '}
+          <Link to="/terms" className="text-purple-600 dark:text-purple-400 hover:underline">
+            non-refundable
+          </Link>{' '}
+          once delivery begins, except where required by law.
+        </p>
 
         {/* Comparison Table */}
         <div className="mb-16 overflow-x-auto">

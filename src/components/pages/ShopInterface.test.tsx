@@ -1,7 +1,13 @@
-import { render, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
+import type { ReactElement } from 'react';
 import ShopInterface from './ShopInterface';
+
+// ShopInterface renders a react-router <Link> (the Terms consent), so it needs a router
+// context. Wrap every render in a MemoryRouter.
+const render = (ui: ReactElement) => rtlRender(<MemoryRouter>{ui}</MemoryRouter>);
 
 // Mock all dependencies
 vi.mock('../../contexts/UserContext', () => ({

@@ -1,6 +1,42 @@
 {
     "items": [
       {
+        "id": "11",
+        "title": "Final Testing Before v1.0",
+        "emoji": "🚀",
+        "content": "TotemBound is now in final testing ahead of our v1.0 launch. We're polishing the last details and squashing bugs — see what's landed and what's still ahead on the roadmap.",
+        "date": "2026-06-07 00:00:00",
+        "cta": {
+          "text": "View Roadmap",
+          "link": "/roadmap",
+          "external": false
+        }
+      },
+      {
+        "id": "9",
+        "title": "All 12 Mystical Species Now Available",
+        "emoji": "🦅",
+        "content": "Raven and Snake have arrived — the full menagerie of 12 mystical species is now ready to raise. Hatch the complete roster across all five stages and rarities.",
+        "date": "2026-06-06 00:00:00",
+        "cta": {
+          "text": "Browse Species",
+          "link": "/shop",
+          "external": false
+        }
+      },
+      {
+        "id": "10",
+        "title": "Traits Shape Every Totem",
+        "emoji": "✨",
+        "content": "Every totem now carries up to three traits — one at birth, one chosen as it matures, one unlocked at ascension. Each has a real effect that changes how it performs in challenges, expeditions, and daily care.",
+        "date": "2026-05-28 00:00:00",
+        "cta": {
+          "text": "View Your Totems",
+          "link": "/gallery",
+          "external": false
+        }
+      },
+      {
         "id": "8",
         "title": "Daily Quests Are Here",
         "emoji": "📜",
@@ -21,18 +57,6 @@
         "cta": {
           "text": "Visit the Village",
           "link": "/keepers-village",
-          "external": false
-        }
-      },
-      {
-        "id": "6",
-        "title": "New Species Coming Soon",
-        "emoji": "🪶",
-        "content": "Two more spirit companions are on their way — Raven and Snake — to round out the next wave of species. Check the roadmap to see what's next for TotemBound.",
-        "date": "2026-04-15 00:00:00",
-        "cta": {
-          "text": "View Roadmap",
-          "link": "/roadmap",
           "external": false
         }
       },

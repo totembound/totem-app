@@ -56,7 +56,7 @@ const UnboundTotemCard: React.FC<{
                         <img
                             src={imageUrl.replace('ipfs://', IPFS_GATEWAY_URL)}
                             alt={displayName}
-                            className="w-full h-full object-contain"
+                            className={`w-full h-full object-contain transition-transform duration-500 ${totem.stage === 0 ? 'scale-[0.8]' : ''}`}
                         />
                     ) : (
                         <div className="text-6xl text-gray-400 dark:text-gray-500">

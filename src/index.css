@@ -93,12 +93,14 @@
 .portal-flicker { animation: portal-flicker 2.2s ease-in-out infinite; }
 
 @keyframes idle-breathe {
+  /* --breathe-base lets stage-0 (Hatchling) art breathe around its 80% rest
+     scale instead of snapping to full size mid-cycle. Defaults to 1. */
   0%, 100% {
-    transform: scale(1) translateY(0);
+    transform: scale(var(--breathe-base, 1)) translateY(0);
     filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));
   }
   50% {
-    transform: scale(1.015) translateY(-3px);
+    transform: scale(calc(var(--breathe-base, 1) * 1.015)) translateY(-3px);
     filter: drop-shadow(0 8px 12px rgba(0,0,0,0.1));
   }
 }

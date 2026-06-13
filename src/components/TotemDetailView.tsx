@@ -594,6 +594,7 @@ const TotemDetailView: React.FC<TotemDetailViewProps> = ({
                         {/* Image - swipe handlers ONLY here, not on scroll container */}
                         <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
                             <TotemImageSection
+                                key={`stage-${evolvedTotemData?.stage ?? currentAttributes.stage}`}
                                 species={currentAttributes.species}
                                 rarity={currentAttributes.rarity}
                                 stage={evolvedTotemData?.stage ?? currentAttributes.stage}

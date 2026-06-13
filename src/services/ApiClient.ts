@@ -597,6 +597,17 @@ class ApiClient {
           attemptsRemaining: number;
           canAttempt: boolean;
         };
+        mastery?: {
+          tier: number;
+          tierName: string;
+          completions: number;
+          nextTierAt: number | null;
+          completionsToNext: number | null;
+          xpMultiplier: number;
+          difficultyUnlocked: boolean;
+          maxDifficulty: number;
+          preferredDifficulty: number | null;
+        };
       }>;
       byType: Record<string, unknown>;
       summary: {
@@ -608,7 +619,9 @@ class ApiClient {
     }>('GET', '/challenges');
   }
 
-  async completeChallenge(challengeId: string, totemId: string, score: number) {
+  async completeChallenge(challengeId: string, totemId: string, score: number, difficulty?: number) {
+    const body: { totemId: string; score: number; difficulty?: number } = { totemId, score };
+    if (difficulty != null) body.difficulty = difficulty;
     return this.request<{
       challengeId: string;
       challengeName: string;
@@ -633,10 +646,28 @@ class ApiClient {
         attemptsToday: number;
         attemptsRemaining: number;
       };
+      mastery?: {
+        tier: number;
+        tierName: string;
+        completions: number;
+        nextTierAt: number | null;
+        completionsToNext: number | null;
+        xpMultiplier: number;
+        difficultyUnlocked: boolean;
+        maxDifficulty: number;
+        preferredDifficulty: number | null;
+      };
+      tierUp?: {
+        from: number;
+        to: number;
+        name: string;
+        xp: number;
+        lootBox: { id: string; boxId: string; source: string } | null;
+      } | null;
       achievements?: Array<{ achievementId: string; milestone?: number; rewards?: { essence?: number; xp?: number } }>;
       quests?: QuestProgressUpdate[];
       message: string;
-    }>('POST', `/challenges/${challengeId}/complete`, { totemId, score });
+    }>('POST', `/challenges/${challengeId}/complete`, body);
   }
 
   // ============================================

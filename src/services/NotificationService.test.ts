@@ -10,6 +10,7 @@ vi.mock('../config/achievements', () => ({
 }));
 
 import { getAchievementById } from '../config/achievements';
+import { getMasteryConfig, getMasteryTierByIndex } from '../config/config-loader';
 
 // Import after mocks
 import { notificationService } from './NotificationService';
@@ -245,6 +246,71 @@ describe('NotificationService', () => {
       const message = mockCallback.mock.calls[0][1];
       expect(message).toContain('Memory Match');
       expect(message).toContain('95');
+    });
+  });
+
+  describe('showChallengeTierUp', () => {
+    beforeEach(() => {
+      vi.spyOn(console, 'log').mockImplementation(() => {});
+      notificationService.initialize(mockCallback, 'user-1');
+    });
+
+    it('should format the tier-up message with name and XP lump', async () => {
+      await notificationService.showChallengeTierUp({
+        challengeName: 'Totem Wrestling',
+        tierName: 'Bronze',
+        tier: 1,
+        xp: 100,
+      });
+
+      const message = mockCallback.mock.calls[0][1];
+      expect(message).toContain('Totem Wrestling');
+      expect(message).toContain('Bronze Mastery');
+      expect(message).toContain('+100 XP');
+      expect(message).not.toContain('Difficulty raising unlocked');
+    });
+
+    it('should mention the loot box when one was granted', async () => {
+      await notificationService.showChallengeTierUp({
+        challengeName: 'Totem Wrestling',
+        tierName: 'Silver',
+        tier: 2,
+        xp: 250,
+        boxName: 'essence_box_small',
+      });
+
+      const message = mockCallback.mock.calls[0][1];
+      expect(message).toContain('Essence loot box unlocked');
+    });
+
+    it('should announce difficulty raising when crossing INTO the configured raiseTier (not a hardcoded name)', async () => {
+      const { raiseTier } = getMasteryConfig();
+      const tierName = getMasteryTierByIndex(raiseTier)!.name;
+
+      await notificationService.showChallengeTierUp({
+        challengeName: 'Totem Wrestling',
+        tierName,
+        tier: raiseTier,
+        xp: 500,
+        boxName: 'essence_box_large',
+      });
+
+      const message = mockCallback.mock.calls[0][1];
+      expect(message).toContain('Difficulty raising unlocked');
+    });
+
+    it('should NOT announce difficulty raising on crossings past the raiseTier', async () => {
+      const { raiseTier } = getMasteryConfig();
+
+      await notificationService.showChallengeTierUp({
+        challengeName: 'Totem Wrestling',
+        tierName: getMasteryTierByIndex(raiseTier + 1)!.name,
+        tier: raiseTier + 1,
+        xp: 1000,
+      });
+
+      const message = mockCallback.mock.calls[0][1];
+      expect(message).not.toContain('Difficulty raising unlocked');
     });
   });
 

@@ -355,3 +355,47 @@ body.wallpaper-mode .game-background-root::-webkit-scrollbar-thumb:hover {
 /* pause-pointer: block the scroller's drag-pan from claiming touch events
    that should belong to the modal. */
 [data-village-pause-pointer="true"]        { pointer-events: none; }
+
+/* --------------------------------------------------------------------------
+   Challenge Mastery — Diamond-tier sheen. A slow, low-opacity highlight that
+   sweeps across the card face. Diamond only; gated by reduced-motion.
+   -------------------------------------------------------------------------- */
+@keyframes mastery-sheen {
+    0%   { background-position: 120% 0; }
+    100% { background-position: -20% 0; }
+}
+.mastery-sheen {
+    /* Light mode: a white highlight is invisible on a white card — use a soft
+       sky tint (matches the Diamond ring) at a legible alpha instead. */
+    background: linear-gradient(105deg, transparent 46%, rgba(56, 189, 248, 0.18) 50%, transparent 54%);
+    background-size: 220% 100%;
+    background-repeat: no-repeat;
+    animation: mastery-sheen 8s ease-in-out infinite;
+}
+/* Dark mode keeps the original subtle white sweep (Tailwind class-based dark). */
+.dark .mastery-sheen {
+    background: linear-gradient(105deg, transparent 46%, rgba(255, 255, 255, 0.07) 50%, transparent 54%);
+    background-size: 220% 100%;
+    background-repeat: no-repeat;
+}
+@media (prefers-reduced-motion: reduce) {
+    .mastery-sheen, .dark .mastery-sheen { animation: none; background: none; }
+}
+
+/* --------------------------------------------------------------------------
+   Challenge Mastery — one-shot tier-up glow. Applied transiently to the
+   MasteryFrame of the challenge that just crossed a tier (GameContext's
+   recentTierUpChallengeId, cleared by a setTimeout one-shot). Two gentle
+   pulses, then settles into the tier's normal frame. Reduced-motion: the
+   new (brighter) frame itself is the static signal — no animation.
+   -------------------------------------------------------------------------- */
+@keyframes mastery-tier-up {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); }
+    50%      { box-shadow: 0 0 22px 4px rgba(250, 204, 21, 0.55); }
+}
+.mastery-tier-up-glow {
+    animation: mastery-tier-up 1.4s ease-in-out 2;
+}
+@media (prefers-reduced-motion: reduce) {
+    .mastery-tier-up-glow { animation: none; }
+}

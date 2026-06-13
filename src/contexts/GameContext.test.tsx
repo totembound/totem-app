@@ -30,6 +30,7 @@ const { mockUseUser, mockUseAuth, mockApiClient, mockNotificationService } = vi.
   mockNotificationService: {
     showRewardClaimed: vi.fn(),
     showExpeditionRewards: vi.fn(),
+    showChallengeTierUp: vi.fn(),
     processAchievementsFromResponse: vi.fn(),
   },
 }));
@@ -607,8 +608,114 @@ describe('GameContext', () => {
         await result.current.completeChallenge('ch-1', 'totem-1', 85);
       });
 
-      expect(mockApiClient.completeChallenge).toHaveBeenCalledWith('ch-1', 'totem-1', 85);
+      // 4th arg is the optional difficulty (undefined when the caller omits it)
+      expect(mockApiClient.completeChallenge).toHaveBeenCalledWith('ch-1', 'totem-1', 85, undefined);
       expect(mockNotificationService.processAchievementsFromResponse).toHaveBeenCalledWith(achievements);
+    });
+
+    it('completeChallenge tier-up sets the transient glow signal and queues the loot reveal', async () => {
+      mockApiClient.getChallenges.mockResolvedValue({
+        success: true,
+        data: {
+          challenges: [{
+            id: 'ch-1',
+            name: 'Test',
+            challengeType: 'speed',
+            requirements: { stage: 0, strength: 0, agility: 0, wisdom: 0 },
+            maxDailyAttempts: 3,
+            enabled: true,
+            daily: { attemptsRemaining: 3 },
+          }],
+        },
+      });
+
+      mockApiClient.completeChallenge.mockResolvedValue({
+        success: true,
+        data: {
+          xpEarned: 560,
+          happinessEarned: 10,
+          tierUp: {
+            from: 2,
+            to: 3,
+            name: 'Gold',
+            xp: 500,
+            lootBox: { id: 'loot_abc', boxId: 'essence_box_large', source: 'mastery' },
+          },
+        },
+      });
+
+      const { result } = renderHook(() => useGame(), { wrapper });
+      await loadChallenges(result);
+      await waitFor(() => {
+        expect(result.current.challengeState.challenges['ch-1']).toBeDefined();
+      });
+
+      expect(result.current.recentTierUpChallengeId).toBeNull();
+      expect(result.current.pendingMasteryLootId).toBeNull();
+
+      await act(async () => {
+        await result.current.completeChallenge('ch-1', 'totem-1', 1800, 2);
+      });
+
+      // Tier index (not the name) is passed so the notification compares against config raiseTier
+      expect(mockNotificationService.showChallengeTierUp).toHaveBeenCalledWith(
+        expect.objectContaining({ tier: 3, tierName: 'Gold', xp: 500 })
+      );
+      // Transient glow signal + queued in-place loot reveal
+      expect(result.current.recentTierUpChallengeId).toBe('ch-1');
+      expect(result.current.pendingMasteryLootId).toBe('loot_abc');
+      // Loot cache was refreshed (action-triggered, no polling)
+      expect(mockApiClient.getLootItems).toHaveBeenCalled();
+
+      // Reveal queue is consumer-cleared
+      act(() => {
+        result.current.clearPendingMasteryLoot();
+      });
+      expect(result.current.pendingMasteryLootId).toBeNull();
+    });
+
+    it('completeChallenge tier-up glow signal clears itself after the one-shot timeout', async () => {
+      mockApiClient.getChallenges.mockResolvedValue({
+        success: true,
+        data: {
+          challenges: [{
+            id: 'ch-1',
+            name: 'Test',
+            challengeType: 'speed',
+            requirements: { stage: 0, strength: 0, agility: 0, wisdom: 0 },
+            maxDailyAttempts: 3,
+            enabled: true,
+            daily: { attemptsRemaining: 3 },
+          }],
+        },
+      });
+      mockApiClient.completeChallenge.mockResolvedValue({
+        success: true,
+        data: { xpEarned: 60, happinessEarned: 10, tierUp: { from: 0, to: 1, name: 'Bronze', xp: 100, lootBox: null } },
+      });
+
+      const { result } = renderHook(() => useGame(), { wrapper });
+      await loadChallenges(result);
+      await waitFor(() => {
+        expect(result.current.challengeState.challenges['ch-1']).toBeDefined();
+      });
+
+      vi.useFakeTimers();
+      try {
+        await act(async () => {
+          await result.current.completeChallenge('ch-1', 'totem-1', 200);
+        });
+        expect(result.current.recentTierUpChallengeId).toBe('ch-1');
+        // No loot box on this crossing — nothing queued for reveal
+        expect(result.current.pendingMasteryLootId).toBeNull();
+
+        act(() => {
+          vi.advanceTimersByTime(4000);
+        });
+        expect(result.current.recentTierUpChallengeId).toBeNull();
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it('completeChallenge should throw for unknown challenge', async () => {

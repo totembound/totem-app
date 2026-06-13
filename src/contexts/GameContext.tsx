@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useCallback, useEffect, useState, useRef } from 'react';
 import { useUser } from './UserContext';
 import { useAuth } from './AuthContext';
-import { ActionType, ActionConfig, TimeWindows, GameParameters, TotemAttributes, ActionTracking, ChallengeState, ChallengeInfo, ChallengeStatus, TotemData, StreakStatus, WeeklyStatus, RewardsState, RuneBalances, ExpeditionState, ExpeditionRewardsData } from '../types/types';
+import { ActionType, ActionConfig, TimeWindows, GameParameters, TotemAttributes, ActionTracking, ChallengeState, ChallengeInfo, ChallengeMasteryInfo, ChallengeStatus, TotemData, StreakStatus, WeeklyStatus, RewardsState, RuneBalances, ExpeditionState, ExpeditionRewardsData } from '../types/types';
 import type { DailyQuestSet, QuestProgressUpdate, QuestRunesAwarded } from '../types/quests';
 import { CooldownStatus } from '../hooks/useTotemGameApi';
 import { getTotemStage } from '../utils/totems';
@@ -10,6 +10,44 @@ import apiClient from '../services/ApiClient';
 import notificationService from '../services/NotificationService';
 import { ACTION_CONFIGS, TIME_WINDOWS, GAME_PARAMS } from '../config/game-config';
 import { isAvailableForAction } from '../utils/totem-availability';
+import { getMasteryConfig, getMasteryTier, getMasteryTierByIndex } from '../config/config-loader';
+
+// Build the per-challenge mastery block. Prefers the backend `mastery` block;
+// falls back to a client-derived tier from completionCount so the frame renders
+// correctly before the backend ships the block (and for veteran/backfilled data).
+function buildMasteryInfo(challenge: any): ChallengeMasteryInfo {
+    if (challenge?.mastery) {
+        const m = challenge.mastery;
+        return {
+            tier: m.tier,
+            tierName: m.tierName,
+            completions: m.completions,
+            nextTierAt: m.nextTierAt ?? null,
+            completionsToNext: m.completionsToNext ?? null,
+            xpMultiplier: m.xpMultiplier,
+            difficultyUnlocked: !!m.difficultyUnlocked,
+            maxDifficulty: m.maxDifficulty ?? 3,
+            preferredDifficulty: m.preferredDifficulty ?? null,
+        };
+    }
+
+    // Fallback: derive from completionCount using the static mastery config.
+    const masteryConfig = getMasteryConfig();
+    const completions = challenge?.progress?.completionCount ?? 0;
+    const tier = getMasteryTier(completions);
+    const nextTier = getMasteryTierByIndex(tier.tier + 1);
+    return {
+        tier: tier.tier,
+        tierName: tier.name,
+        completions,
+        nextTierAt: nextTier?.minCompletions ?? null,
+        completionsToNext: nextTier ? Math.max(0, nextTier.minCompletions - completions) : null,
+        xpMultiplier: tier.xpMult,
+        difficultyUnlocked: tier.tier >= masteryConfig.raiseTier,
+        maxDifficulty: masteryConfig.maxDifficulty,
+        preferredDifficulty: null,
+    };
+}
 
 // Pure reducer: apply quest progress deltas to a quest set.
 // Lives at module scope so action callbacks can use it without ordering hazards
@@ -71,7 +109,14 @@ export interface GameContextType {
     getEligibleTotems: (challengeId: string) => TotemData[];
     canAttemptChallenge: (challengeId: string, totemId: string) => boolean;
     getChallengeStatus: (challengeId: string) => string;
-    completeChallenge: (challengeId: string, tokenId: string, score: number) => Promise<{ xpEarned: number; happinessEarned: number; essenceEarned: number } | void>;
+    completeChallenge: (challengeId: string, tokenId: string, score: number, difficulty?: number) => Promise<{ xpEarned: number; happinessEarned: number; essenceEarned: number; tierUp: { name: string; xp: number; lootBoxId: string | null } | null } | void>;
+    // Transient "just tiered up" signal — set on a mastery tier-up, auto-cleared
+    // shortly after (setTimeout one-shot) so the list card can play its glow.
+    recentTierUpChallengeId: string | null;
+    // Loot item id granted by the most recent mastery tier-up, pending an
+    // in-place reveal on the Challenges page (cleared once surfaced).
+    pendingMasteryLootId: string | null;
+    clearPendingMasteryLoot: () => void;
 
     // rewards
     rewardsState: RewardsState;
@@ -189,9 +234,12 @@ const GameContext = createContext<GameContextType>({
     canAttemptChallenge: defaultCanAttemptChallenge,
     getEligibleTotems: defaultGetEligibleTotems,
     getChallengeStatus: defaultGetChallengeStatus,
-    completeChallenge: async () => { 
+    completeChallenge: async () => {
         throw new Error('Challenge system not initialized');
     },
+    recentTierUpChallengeId: null,
+    pendingMasteryLootId: null,
+    clearPendingMasteryLoot: () => {},
     // Rewards state and methods
     rewardsState: {
         streakStatus: null,
@@ -297,6 +345,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
     const [lootItems, setLootItems] = useState<LootItem[]>([]);
 
+    // Mastery tier-up surfacing: a transient glow signal for the list card and a
+    // pending loot id for the in-place reveal on the Challenges page.
+    const [recentTierUpChallengeId, setRecentTierUpChallengeId] = useState<string | null>(null);
+    const [pendingMasteryLootId, setPendingMasteryLootId] = useState<string | null>(null);
+    const tierUpGlowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const clearPendingMasteryLoot = useCallback(() => setPendingMasteryLootId(null), []);
+    // One-shot clear for the glow signal (NOT polling) — cancelled on unmount.
+    useEffect(() => () => {
+        if (tierUpGlowTimerRef.current) clearTimeout(tierUpGlowTimerRef.current);
+    }, []);
+
     // Per-totem cooldown cache - persists across navigation, single source of truth
     const cooldownCacheRef = useRef<Record<string, CooldownStatus>>({});
     const cooldownFetchRef = useRef<Record<string, Promise<CooldownStatus | null>>>({});
@@ -395,7 +454,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     requirements: challenge.requirements || { stage: 0, strength: 0, agility: 0, wisdom: 0 },
                     maxDailyAttempts: challenge.maxDailyAttempts || 3,
                     maxScore: challenge.maxScore || 100,
-                    enabled: challenge.enabled !== false
+                    enabled: challenge.enabled !== false,
+                    // Prefer the backend mastery block; fall back to a client-derived
+                    // tier from completionCount so the frame renders before the backend ships.
+                    mastery: buildMasteryInfo(challenge),
                 };
 
                 userStatus[id] = {
@@ -485,7 +547,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const completeChallenge = useCallback(async (
         challengeId: string,
         tokenId: string,
-        score: number
+        score: number,
+        difficulty?: number
     ) => {
         // Web2: Use REST API instead of smart contracts
         const challenge = challengeState.challenges[challengeId];
@@ -493,7 +556,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!challenge) throw new Error('Challenge not found');
         if (!challenge.enabled) throw new Error('Challenge disabled');
 
-        const response = await apiClient.completeChallenge(challengeId, tokenId, score);
+        const response = await apiClient.completeChallenge(challengeId, tokenId, score, difficulty);
 
         if (!response.success) {
             throw new Error(response.error?.message || 'Failed to complete challenge');
@@ -506,22 +569,47 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Update client-side challenge state from response (no re-fetch needed)
         const p = response.data?.progress;
+        const masteryData = response.data?.mastery;
         if (p) {
-            setChallengeState(prev => ({
-                ...prev,
-                userStatus: {
-                    ...prev.userStatus,
-                    [challengeId]: {
-                        ...prev.userStatus[challengeId],
-                        lastAttemptTime: Date.now() / 1000,
-                        dailyAttempts: p.attemptsToday,
-                        attemptsRemaining: p.attemptsRemaining,
-                        highScore: p.highScore,
-                        totalAttempts: p.totalAttempts,
-                        totalScore: p.totalXpEarned,
+            setChallengeState(prev => {
+                const prevChallenge = prev.challenges[challengeId];
+                return {
+                    ...prev,
+                    // Merge the updated mastery block onto the challenge so the frame/badge re-render.
+                    challenges: masteryData && prevChallenge
+                        ? {
+                            ...prev.challenges,
+                            [challengeId]: {
+                                ...prevChallenge,
+                                mastery: {
+                                    ...(prevChallenge.mastery as ChallengeMasteryInfo | undefined),
+                                    tier: masteryData.tier,
+                                    tierName: masteryData.tierName,
+                                    completions: masteryData.completions,
+                                    nextTierAt: masteryData.nextTierAt ?? null,
+                                    completionsToNext: masteryData.completionsToNext ?? null,
+                                    xpMultiplier: masteryData.xpMultiplier,
+                                    difficultyUnlocked: !!masteryData.difficultyUnlocked,
+                                    maxDifficulty: masteryData.maxDifficulty ?? 3,
+                                    preferredDifficulty: masteryData.preferredDifficulty ?? null,
+                                },
+                            },
+                        }
+                        : prev.challenges,
+                    userStatus: {
+                        ...prev.userStatus,
+                        [challengeId]: {
+                            ...prev.userStatus[challengeId],
+                            lastAttemptTime: Date.now() / 1000,
+                            dailyAttempts: p.attemptsToday,
+                            attemptsRemaining: p.attemptsRemaining,
+                            highScore: p.highScore,
+                            totalAttempts: p.totalAttempts,
+                            totalScore: p.totalXpEarned,
+                        },
                     },
-                },
-            }));
+                };
+            });
         }
 
         // Push any unlocked achievements to the notifications bell
@@ -530,13 +618,56 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Apply daily-quest progress deltas from the response (e.g. Iron Trial / Swift Trial / Wise Trial)
         setDailyQuests(prev => applyQuestProgressUpdates(prev, response.data?.quests));
 
+        // Mastery tier-up: fire the celebratory notification; the granted Essence loot
+        // box persists server-side as unclaimed and is revealed via the existing
+        // LootBoxesCard / LootClaimModal flow — refresh the cache so it surfaces.
+        const tierUp = response.data?.tierUp;
+        if (tierUp) {
+            notificationService.showChallengeTierUp({
+                challengeName: response.data?.challengeName || challenge.name,
+                tierName: tierUp.name,
+                tier: tierUp.to,
+                xp: tierUp.xp,
+                boxName: tierUp.lootBox?.boxId,
+            });
+
+            // Transient "just tiered up" signal so the list card's frame plays its
+            // one-shot glow. Cleared by a setTimeout one-shot (no polling).
+            setRecentTierUpChallengeId(challengeId);
+            if (tierUpGlowTimerRef.current) clearTimeout(tierUpGlowTimerRef.current);
+            tierUpGlowTimerRef.current = setTimeout(() => {
+                setRecentTierUpChallengeId(prev => (prev === challengeId ? null : prev));
+                tierUpGlowTimerRef.current = null;
+            }, 4000);
+
+            if (tierUp.lootBox) {
+                // Refresh the unclaimed-loot cache so the box surfaces in LootBoxesCard.
+                // Inlined (not via fetchLootItems) to avoid a use-before-declaration hazard.
+                try {
+                    const lootResponse = await apiClient.getLootItems();
+                    if (lootResponse.success && lootResponse.data) {
+                        setLootItems(lootResponse.data.items || []);
+                    }
+                } catch (err) {
+                    console.error('Error refreshing loot after tier-up:', err);
+                }
+                // Queue the in-place reveal — the Challenges page opens LootClaimModal
+                // for this box once the challenge dialog closes.
+                setPendingMasteryLootId(tierUp.lootBox.id);
+            }
+        }
+
         // Return the actual rewards so the UI animation reflects trait bonuses
         // (Clever / Mentor aura / Persistent / Merchant's Eye) rather than the
-        // client-side score-only estimate.
+        // client-side score-only estimate. tierUp lets the completion view show
+        // the mastery bonus + loot box alongside the run rewards.
         return {
             xpEarned: response.data?.xpEarned ?? 0,
             happinessEarned: response.data?.happinessEarned ?? 0,
             essenceEarned: response.data?.essenceEarned ?? 0,
+            tierUp: tierUp
+                ? { name: tierUp.name, xp: tierUp.xp, lootBoxId: tierUp.lootBox?.boxId ?? null }
+                : null,
         };
     }, [challengeState]);
 
@@ -1357,6 +1488,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }));
             dailyQuestsLoadedDateRef.current = null;
             setDailyQuests(null);
+            setRecentTierUpChallengeId(null);
+            setPendingMasteryLootId(null);
         }
     }, [address]);
     
@@ -1377,6 +1510,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             getEligibleTotems,
             getChallengeStatus,
             completeChallenge,
+            recentTierUpChallengeId,
+            pendingMasteryLootId,
+            clearPendingMasteryLoot,
             rewardsState,
             getUserStreak,
             claimDailyReward,

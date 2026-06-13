@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Award, Crown } from 'lucide-react';
+import { ArrowLeft, Award, Crown, Gem } from 'lucide-react';
 import apiClient from '../../services/ApiClient';
 import { PublicPlayerProfile as PublicPlayerProfileData } from '../../types/types';
 import { Avatar } from '../profile/Avatar';
 import { resolveBannerImage } from '../../utils/avatar';
+import { CHALLENGES } from '../../config/challenges';
+import { getMasteryConfig } from '../../config/config-loader';
+import { MASTERY_TIER_COLOR } from '../challenges/mastery-tier-colors';
 
 // Removed unused stage-badge helper after switching to inline tier badge only.
 // Tier badge config — only Premium and VIP get a badge. Free shows nothing.
@@ -132,6 +135,13 @@ const PublicPlayerProfile: React.FC = () => {
                                     </span>
                                 );
                             })()}
+                            {/* All 12 challenges at Diamond — the rarest badge in the game */}
+                            {profile.mastery?.grandmaster && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border text-cyan-700 bg-cyan-100 dark:text-cyan-300 dark:bg-cyan-900/20 border-cyan-300 dark:border-cyan-700">
+                                    <Gem className="w-3 h-3" />
+                                    Grandmaster
+                                </span>
+                            )}
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             Member since {memberSince}
@@ -152,10 +162,42 @@ const PublicPlayerProfile: React.FC = () => {
                 {/* Stats footer — Totems / Challenges / Best streak / Top Stage */}
                 <div className="border-t border-gray-200 dark:border-gray-700 grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-gray-200 dark:divide-gray-700">
                     <Stat label="Totems" value={profile.stats.totalTotems} />
-                    <Stat label="Challenges" value={profile.stats.totalChallengesCompleted} />
-                    <Stat label="Best streak" value={profile.stats.bestDailyStreak} />
                     <Stat label="Top stage" value={formatTopStage(profile.stats.highestStageReached, profile.stats.highestPrestigeReached)} />
+                    <Stat label="Best streak" value={profile.stats.bestDailyStreak} />
+                    <Stat label="Challenges" value={profile.stats.totalChallengesCompleted} />
                 </div>
+
+                {/* Trial Mastery medal strip — one medal per challenge, tinted by the
+                    viewer-visible tier. Styled to match the stat tiles (same label
+                    treatment, same border language); hidden when the API doesn't
+                    send mastery (older backend) or the player has no tiers yet. */}
+                {profile.mastery && profile.mastery.tiersEarned > 0 && (() => {
+                    const tierByChallenge = new Map(profile.mastery!.challenges.map(c => [c.id, c.tier]));
+                    const tierName = (tier: number) => getMasteryConfig().tiers[tier]?.name ?? 'Novice';
+                    return (
+                        <div className="border-t border-gray-200 dark:border-gray-700 py-4 sm:py-5 px-4 text-center">
+                            <div className="flex flex-wrap items-center justify-center gap-1.5">
+                                {CHALLENGES.map((c) => {
+                                    const tier = tierByChallenge.get(c.id) ?? 0;
+                                    return (
+                                        <span
+                                            key={c.id}
+                                            title={`${c.name} — ${tierName(tier)}`}
+                                            role="img"
+                                            aria-label={`${c.name} — ${tierName(tier)} mastery`}
+                                        >
+                                            <Award
+                                                aria-hidden="true"
+                                                className={`w-5 h-5 ${MASTERY_TIER_COLOR[tier] ?? MASTERY_TIER_COLOR[0]} ${tier === 0 ? 'opacity-40' : ''}`}
+                                            />
+                                        </span>
+                                    );
+                                })}
+                            </div>
+                            <p className="mt-1.5 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Trial Mastery</p>
+                        </div>
+                    );
+                })()}
             </div>
         </div>
     );

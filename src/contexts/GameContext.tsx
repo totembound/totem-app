@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useCallback, useEffect, useState, useRef } from 'react';
 import { useUser } from './UserContext';
 import { useAuth } from './AuthContext';
-import { ActionType, ActionConfig, TimeWindows, GameParameters, TotemAttributes, ActionTracking, ChallengeState, ChallengeInfo, ChallengeMasteryInfo, ChallengeStatus, TotemData, StreakStatus, WeeklyStatus, RewardsState, RuneBalances, ExpeditionState, ExpeditionRewardsData } from '../types/types';
+import { ActionType, ActionConfig, TotemAttributes, ActionTracking, ChallengeState, ChallengeInfo, ChallengeMasteryInfo, ChallengeStatus, TotemData, StreakStatus, WeeklyStatus, RewardsState, RuneBalances, ExpeditionState, ExpeditionRewardsData } from '../types/types';
 import type { DailyQuestSet, QuestProgressUpdate, QuestRunesAwarded } from '../types/quests';
 import { CooldownStatus } from '../hooks/useTotemGameApi';
 import { getTotemStage } from '../utils/totems';

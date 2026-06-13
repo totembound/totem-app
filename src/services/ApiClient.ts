@@ -1371,12 +1371,17 @@ class ApiClient {
 
   async startCouncilMission(totemId: string, missionType: string) {
     return this.request<{
-      missionType: string;
-      totemId: string;
-      startedAt: string;
-      endsAt: string;
-      cost: { essence: number; happiness: number };
-      newEssenceBalance: number;
+      mission: {
+        missionType: string;
+        name: string;
+        tier: string;
+        totemId: string;
+        seatIndex: number;
+        startedAt: string;
+        endsAt: string;
+        duration: number;
+        rewards: { xp: number; runes?: Record<string, number> };
+      };
     }>('POST', '/sanctum/missions/start', { totemId, missionType });
   }
 

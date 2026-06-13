@@ -10,7 +10,6 @@ import type { CouncilMissionDef } from '../../config/sanctum';
 
 interface CouncilMissionCardProps {
   mission: CouncilMissionDef;
-  canAfford: boolean;
   hasEnoughHappiness: boolean;
   totemStage: number;
   onStart: (missionId: string) => void;
@@ -59,7 +58,6 @@ function getStageName(internalStage: number): string {
 
 const CouncilMissionCard: React.FC<CouncilMissionCardProps> = ({
   mission,
-  canAfford,
   hasEnoughHappiness,
   totemStage,
   onStart,
@@ -67,11 +65,10 @@ const CouncilMissionCard: React.FC<CouncilMissionCardProps> = ({
 }) => {
   const tier = TIER_STYLES[mission.tier] ?? TIER_STYLES.governance;
   const meetsStageRequirement = totemStage >= mission.requiredStage;
-  const isDisabled = !meetsStageRequirement || !canAfford || !hasEnoughHappiness || isLoading;
+  const isDisabled = !meetsStageRequirement || !hasEnoughHappiness || isLoading;
 
   let disabledReason = '';
   if (!meetsStageRequirement) disabledReason = `Requires ${getStageName(mission.requiredStage)}`;
-  else if (!canAfford) disabledReason = 'Not enough Essence';
   else if (!hasEnoughHappiness) disabledReason = 'Not enough Happiness';
 
   return (
@@ -108,10 +105,6 @@ const CouncilMissionCard: React.FC<CouncilMissionCardProps> = ({
 
       {/* Cost */}
       <div className="flex items-center gap-3 mb-2 text-sm">
-        <span className="flex items-center gap-1 text-gray-600 dark:text-gray-300">
-          <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-          {mission.cost.essence} Essence
-        </span>
         <span className="flex items-center gap-1 text-gray-600 dark:text-gray-300">
           <Heart className="w-3.5 h-3.5 text-pink-500 shrink-0" />
           {mission.cost.happiness} Happiness

@@ -36,24 +36,24 @@ export interface CouncilMissionDef {
   tier: 'governance' | 'diplomacy' | 'legacy';
   requiredStage: number; // internal stage (3 = UI Stage 4, 4 = UI Stage 5)
   duration: number; // seconds
-  cost: { essence: number; happiness: number };
+  cost: { happiness: number };
   rewards: { xp: number; runes?: Record<string, number> }; // runes: { lesser/greater/ancient: % chance }
   description: string;
 }
 
 export const COUNCIL_MISSIONS: CouncilMissionDef[] = [
-  // Governance Tier (2-4 hours) — Stage 4+ (Adult). Rewards: XP + Lesser Rune (50%)
-  { id: 'cm_decree-of-wisdom', name: 'Decree of Wisdom', tier: 'governance', requiredStage: 3, duration: 7200, cost: { essence: 10, happiness: 5 }, rewards: { xp: 20, runes: { lesser: 50 } }, description: 'Meditate on an ancient law and issue guidance to the realm' },
-  { id: 'cm_territorial-survey', name: 'Territorial Survey', tier: 'governance', requiredStage: 3, duration: 10800, cost: { essence: 12, happiness: 5 }, rewards: { xp: 30, runes: { lesser: 50 } }, description: 'Personally inspect the boundaries of your domain' },
-  { id: 'cm_spirit-audience', name: 'Spirit Audience', tier: 'governance', requiredStage: 3, duration: 14400, cost: { essence: 15, happiness: 8 }, rewards: { xp: 40, runes: { lesser: 50 } }, description: 'Hold court and hear petitions from lesser spirits' },
-  // Diplomacy Tier (6-8 hours) — Stage 5 (Ascended) only. Rewards: XP + Greater Rune (50%)
-  { id: 'cm_peace-summit', name: 'Peace Summit', tier: 'diplomacy', requiredStage: 4, duration: 21600, cost: { essence: 20, happiness: 10 }, rewards: { xp: 30, runes: { greater: 50 } }, description: 'Negotiate a truce between rival spirit clans' },
-  { id: 'cm_alliance-forging', name: 'Alliance Forging', tier: 'diplomacy', requiredStage: 4, duration: 28800, cost: { essence: 25, happiness: 12 }, rewards: { xp: 45, runes: { greater: 50 } }, description: 'Establish a lasting pact with a distant council' },
-  { id: 'cm_elder-exchange', name: 'Elder Exchange', tier: 'diplomacy', requiredStage: 4, duration: 28800, cost: { essence: 25, happiness: 12 }, rewards: { xp: 45, runes: { greater: 50 } }, description: 'Visit a foreign sanctum to share knowledge' },
+  // Governance Tier (2-4 hours) — Stage 4+ (Adult). Rewards: XP + Lesser Rune (40-60%)
+  { id: 'cm_decree-of-wisdom', name: 'Decree of Wisdom', tier: 'governance', requiredStage: 3, duration: 7200, cost: { happiness: 5 }, rewards: { xp: 20, runes: { lesser: 40 } }, description: 'Meditate on an ancient law and issue guidance to the realm' },
+  { id: 'cm_territorial-survey', name: 'Territorial Survey', tier: 'governance', requiredStage: 3, duration: 10800, cost: { happiness: 6 }, rewards: { xp: 30, runes: { lesser: 50 } }, description: 'Personally inspect the boundaries of your domain' },
+  { id: 'cm_spirit-audience', name: 'Spirit Audience', tier: 'governance', requiredStage: 3, duration: 14400, cost: { happiness: 8 }, rewards: { xp: 40, runes: { lesser: 60 } }, description: 'Hold court and hear petitions from lesser spirits' },
+  // Diplomacy Tier (6-10 hours) — Stage 5 (Ascended) only. Rewards: XP + Greater Rune (50-70%)
+  { id: 'cm_peace-summit', name: 'Peace Summit', tier: 'diplomacy', requiredStage: 4, duration: 21600, cost: { happiness: 10 }, rewards: { xp: 40, runes: { greater: 50 } }, description: 'Negotiate a truce between rival spirit clans' },
+  { id: 'cm_alliance-forging', name: 'Alliance Forging', tier: 'diplomacy', requiredStage: 4, duration: 28800, cost: { happiness: 12 }, rewards: { xp: 45, runes: { greater: 60 } }, description: 'Establish a lasting pact with a distant council' },
+  { id: 'cm_elder-exchange', name: 'Elder Exchange', tier: 'diplomacy', requiredStage: 4, duration: 36000, cost: { happiness: 14 }, rewards: { xp: 50, runes: { greater: 70 } }, description: 'Visit a foreign sanctum to share knowledge' },
   // Legacy Tier (12-24 hours) — Stage 5 (Ascended) only. Rewards: XP + Greater Rune (75%) + Ancient Rune chance
-  { id: 'cm_rite-of-passage', name: 'Rite of Passage', tier: 'legacy', requiredStage: 4, duration: 43200, cost: { essence: 30, happiness: 15 }, rewards: { xp: 60, runes: { greater: 75, ancient: 10 } }, description: 'Guide a young spirit through their first trial' },
-  { id: 'cm_ancient-convocation', name: 'Ancient Convocation', tier: 'legacy', requiredStage: 4, duration: 64800, cost: { essence: 40, happiness: 18 }, rewards: { xp: 90, runes: { greater: 75, ancient: 15 } }, description: 'Attend a once-rare gathering of all elder spirits' },
-  { id: 'cm_founding-ritual', name: 'Founding Ritual', tier: 'legacy', requiredStage: 4, duration: 86400, cost: { essence: 50, happiness: 20 }, rewards: { xp: 120, runes: { greater: 75, ancient: 20 } }, description: 'Consecrate a new sanctum at the world\'s edge' },
+  { id: 'cm_rite-of-passage', name: 'Rite of Passage', tier: 'legacy', requiredStage: 4, duration: 43200, cost: { happiness: 15 }, rewards: { xp: 60, runes: { greater: 75, ancient: 10 } }, description: 'Guide a young spirit through their first trial' },
+  { id: 'cm_ancient-convocation', name: 'Ancient Convocation', tier: 'legacy', requiredStage: 4, duration: 64800, cost: { happiness: 18 }, rewards: { xp: 90, runes: { greater: 75, ancient: 15 } }, description: 'Attend a once-rare gathering of all elder spirits' },
+  { id: 'cm_founding-ritual', name: 'Founding Ritual', tier: 'legacy', requiredStage: 4, duration: 86400, cost: { happiness: 20 }, rewards: { xp: 120, runes: { greater: 75, ancient: 20 } }, description: 'Consecrate a new sanctum at the world\'s edge' },
 ];
 
 /** Get tenure multiplier for given hours */

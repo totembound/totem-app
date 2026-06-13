@@ -2,7 +2,7 @@ import React from 'react';
 import { TotemData, Rarity } from '../types/types';
 import { Heart, MapPin, Swords, Landmark, Drumstick, Star, Sparkles } from 'lucide-react';
 import { AFFINITY_ICONS, DOMAIN_ICONS, getRarityBorderColor, getRarityFontColor, getRarityGlow, getRarityHaloShadow } from '../utils/totems';
-import { IPFS_GATEWAY_URL, STAGE_THRESHOLDS, PRESTIGE_XP_REQUIREMENT } from '../config/constants';
+import { IPFS_GATEWAY_URL, STAGE_THRESHOLDS, PRESTIGE_XP_REQUIREMENT, HUNGER_HAPPINESS_PENALTY_BELOW } from '../config/constants';
 import { computePrestigeLevel } from '../utils/prestige';
 import { formatTimeRemaining } from '../utils/formats';
 import TraitIconRow from './traits/TraitIconRow';
@@ -24,6 +24,14 @@ interface TotemViewProps {
 // Need bar color signals "needs attention" at a glance: green healthy → amber → red.
 const needBarColor = (v: number): string =>
     v >= 60 ? 'bg-green-500' : v >= 30 ? 'bg-amber-500' : 'bg-red-500';
+
+// Hunger bar is tied to the gameplay penalty threshold so it can't drift from the
+// rules: red once hunger is in the 2× happiness-penalty band (< HUNGER_HAPPINESS_PENALTY_BELOW),
+// amber up to one full penalty-width of headroom above it, green when comfortable.
+const hungerBarColor = (v: number): string =>
+    v >= HUNGER_HAPPINESS_PENALTY_BELOW * 2 ? 'bg-green-500'
+        : v >= HUNGER_HAPPINESS_PENALTY_BELOW ? 'bg-amber-500'
+            : 'bg-red-500';
 
 const clampPct = (v: number): number => Math.max(0, Math.min(100, Math.round(v)));
 
@@ -165,7 +173,7 @@ const StageChip: React.FC<{ s: StageDisplay; stage: number }> = ({ s, stage }) =
 
 // Need chip with value + meter (Happiness, Hunger). Bar color reflects urgency.
 // Larger icon/number on desktop for readability on the showcase page.
-const NeedChip: React.FC<{ icon: React.ReactNode; label: string; value: number }> = ({ icon, label, value }) => {
+const NeedChip: React.FC<{ icon: React.ReactNode; label: string; value: number; colorFn?: (v: number) => string }> = ({ icon, label, value, colorFn = needBarColor }) => {
     const v = clampPct(value);
     return (
         <Chip>
@@ -176,7 +184,7 @@ const NeedChip: React.FC<{ icon: React.ReactNode; label: string; value: number }
                     <span className="text-[11px] sm:text-sm leading-none font-semibold text-gray-700 dark:text-gray-200 ml-auto">{v}</span>
                 </div>
                 <div className="h-1.5 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                    <div className={`h-full rounded-full transition-all ${needBarColor(v)}`} style={{ width: `${v}%` }} />
+                    <div className={`h-full rounded-full transition-all ${colorFn(v)}`} style={{ width: `${v}%` }} />
                 </div>
             </div>
         </Chip>
@@ -265,7 +273,7 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
                     <NeedChip label="Happy" icon={<Heart size={16} className="text-pink-500 dark:text-pink-400" />} value={nft.attributes.happiness} />
 
                     {/* Hunger */}
-                    <NeedChip label="Hunger" icon={<Drumstick size={16} className="text-amber-600 dark:text-amber-400" />} value={hunger} />
+                    <NeedChip label="Hunger" icon={<Drumstick size={16} className="text-amber-600 dark:text-amber-400" />} value={hunger} colorFn={hungerBarColor} />
                 </div>
 
                 {/* Footer: affinity/domain (left, fixed traits of the species) ↔ rarity
@@ -424,7 +432,7 @@ export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelecte
                         />
                         <StatBarRow
                             left={<><Drumstick size={16} className="flex-shrink-0 text-amber-600 dark:text-amber-400" /><span className="text-[11px] leading-none text-gray-500 dark:text-gray-400">Hunger</span></>}
-                            barColor={needBarColor(clampPct(hunger))}
+                            barColor={hungerBarColor(clampPct(hunger))}
                             percent={clampPct(hunger)}
                             value={`${clampPct(hunger)}`}
                         />

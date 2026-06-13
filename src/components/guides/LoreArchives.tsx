@@ -366,7 +366,7 @@ const DomainsPanel: React.FC = () => (
 );
 
 const ChroniclesSection: React.FC = () => (
-  <section className="mt-12 space-y-8">
+  <section className="mt-8 space-y-8">
     <div>
       <h2 className="font-serif text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
         Chronicles of the Realm
@@ -449,17 +449,18 @@ const LoreArchives: React.FC = () => {
     <div className="p-2 sm:p-4 md:p-6 bg-white dark:bg-gray-900 rounded-lg">
       <div className="max-w-7xl mx-auto">
         <GuidesHeader title="Lore Archives" />
-        <p className="italic text-center text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mt-2 mb-6">
+        <p className="italic text-center text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mt-2 mb-4">
           &ldquo;The world does not forget. It only waits to be remembered.&rdquo;
         </p>
-        <p className="text-gray-600 dark:text-gray-400 max-w-3xl">
-          Dive into the history of TotemBound and the ancient spirit tales — the heroes each species
-          still whispers about, the battles that reshaped the map, and the traditions kept by those
-          who refused to forget.
+        <p className="text-gray-600 dark:text-gray-400">
+          Trace the history of TotemBound across the Five Eras and Six Domains — the battles that
+          reshaped the map, the factions that rose and fell, and the traditions kept by those who
+          refused to forget. Then turn to the spirit tales themselves: the heroes each species still
+          whispers about.
         </p>
 
-        <TalesSection />
         <ChroniclesSection />
+        <TalesSection />
         <AtlasSection />
       </div>
     </div>

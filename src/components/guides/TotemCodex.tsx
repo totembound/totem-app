@@ -95,6 +95,14 @@ const TotemCodex: React.FC = () => {
             As the world expands, new expedition types and regions will reveal even deeper mysteries.
           </p>
 
+          <SectionHeading title="Sanctum" to="/guides/codex/sanctum" />
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            The Elder Sanctum is where your most experienced Totems take their seat, passively gathering Essence the longer they remain.
+            Earnings grow with tenure, and additional seats open as your roster of Elders deepens.
+            Seated Elders may also take up Council Missions - governance, diplomacy, and legacy rites - spending happiness and time for experience and Runes, all without leaving their seat.
+            It is the quiet heart of the endgame, where patience and a strong lineage are rewarded.
+          </p>
+
           <SectionHeading title="Runes" to="/guides/codex/runes" />
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Runes are fragments of spiritual energy left behind by trials, rituals, and deep journeys.

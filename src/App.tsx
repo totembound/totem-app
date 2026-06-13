@@ -62,6 +62,7 @@ import ShadowDomain from './components/guides/codex/ShadowDomain';
 import WorldMap from './components/guides/codex/WorldMap';
 import CodexChallenges from './components/guides/codex/Challenges';
 import CodexExpeditions from './components/guides/codex/Expeditions';
+import CodexSanctum from './components/guides/codex/Sanctum';
 import TutorialWizard from './components/guides/TutorialWizard';
 import DailyQuestWizard from './components/quests/DailyQuestWizard';
 import DailyQuestsCelebration from './components/quests/DailyQuestsCelebration';
@@ -160,6 +161,7 @@ const AppRoutes: React.FC = () => {
               <Route path="gear" element={<TotemGear />} />
               <Route path="challenges" element={<CodexChallenges />} />
               <Route path="expeditions" element={<CodexExpeditions />} />
+              <Route path="sanctum" element={<CodexSanctum />} />
               <Route path="runes" element={<Runes />} />
               <Route path="traits" element={<Traits />} />
               <Route path="map" element={<WorldMap />} />
@@ -387,6 +389,9 @@ const AppRoutes: React.FC = () => {
               } />
               <Route path="expeditions" element={
                 <CodexExpeditions />
+              } />
+              <Route path="sanctum" element={
+                <CodexSanctum />
               } />
               <Route path="runes" element={
                 <Runes />

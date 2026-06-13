@@ -19,7 +19,7 @@ import type { SanctumState, SanctumSeatInfo, TotemData } from '../../types/types
 const SANCTUM_MIN_XP = 3500; // Stage 4 (Adult) — internal stage 3
 
 const ElderSanctum: React.FC = () => {
-  const { totems, essenceBalance, updateBalances, fetchTotems } = useUser();
+  const { totems, updateBalances, fetchTotems } = useUser();
   const { expeditionState } = useGame();
 
   const [sanctumState, setSanctumState] = useState<SanctumState | null>(null);
@@ -258,7 +258,6 @@ const ElderSanctum: React.FC = () => {
           totemName={missionSeat.totemName}
           totemStage={missionTotem?.attributes.stage ?? 0}
           currentHappiness={missionTotem?.attributes.happiness ?? 0}
-          currentEssence={Number(essenceBalance) || 0}
           activeMission={missionSeat.activeMission}
           onClose={() => setMissionTotemId(null)}
           onMissionStarted={handleMissionStartedOrCancelled}

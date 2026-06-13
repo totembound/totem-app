@@ -14,7 +14,6 @@ interface CouncilMissionPanelProps {
   totemName: string;
   totemStage: number;
   currentHappiness: number;
-  currentEssence: number;
   activeMission: ActiveCouncilMission | null;
   onClose: () => void;
   onMissionStarted: () => void;
@@ -35,7 +34,6 @@ const CouncilMissionPanel: React.FC<CouncilMissionPanelProps> = ({
   totemName,
   totemStage,
   currentHappiness,
-  currentEssence,
   activeMission,
   onClose,
   onMissionStarted,
@@ -175,7 +173,6 @@ const CouncilMissionPanel: React.FC<CouncilMissionPanelProps> = ({
                         <CouncilMissionCard
                           key={mission.id}
                           mission={mission}
-                          canAfford={currentEssence >= mission.cost.essence}
                           hasEnoughHappiness={currentHappiness >= mission.cost.happiness}
                           totemStage={totemStage}
                           onStart={handleStartMission}

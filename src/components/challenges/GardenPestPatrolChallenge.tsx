@@ -12,9 +12,20 @@ type Hole = {
 };
 
 type DifficultySettings = {
-  moleCount: number;
   timeLimit: number;
+  /** How long a mole stays up before hiding (ms) — lower = harder to hit. */
   moleSpeed: number;
+  /** Delay between spawns (ms) — lower = more moles = higher score ceiling. */
+  spawnInterval: number;
+};
+
+// Higher difficulty spawns faster (more whack opportunities = higher achievable
+// score against the fixed maxScore 1000) but each mole hides sooner. Ceilings at
+// 10 pts/whack over 30s: d1 ~300, d2 ~500, d3 ~850.
+const DIFFICULTY_SETTINGS: Record<number, DifficultySettings> = {
+  1: { timeLimit: 30, moleSpeed: 1800, spawnInterval: 1000 },
+  2: { timeLimit: 30, moleSpeed: 1300, spawnInterval: 600 },
+  3: { timeLimit: 30, moleSpeed: 900, spawnInterval: 350 },
 };
 
 interface GardenPestControlChallengeProps {
@@ -26,7 +37,7 @@ interface GardenPestControlChallengeProps {
 
 const GardenPestControlChallenge: React.FC<GardenPestControlChallengeProps> = ({
   strength: _strength = 0,
-  difficulty: _difficulty = 2,
+  difficulty = 2,
   onComplete = (score: number) => console.log('Challenge complete:', score),
   onFail: _onFail = () => console.log('Challenge failed')
 }) => {
@@ -42,11 +53,8 @@ const GardenPestControlChallenge: React.FC<GardenPestControlChallengeProps> = ({
   const gameRef = useRef<HTMLDivElement>(null);
   const moleTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const difficultySettings: DifficultySettings = {
-    moleCount: 2,
-    timeLimit: 30,
-    moleSpeed: 1500,
-  };
+  const difficultySettings: DifficultySettings =
+    DIFFICULTY_SETTINGS[difficulty] ?? DIFFICULTY_SETTINGS[2];
 
   const initializeHoles = useCallback(() => {
     const newHoles: Hole[] = Array.from({ length: 9 }, (_, index) => ({
@@ -184,8 +192,7 @@ const GardenPestControlChallenge: React.FC<GardenPestControlChallengeProps> = ({
     if (gameState === 'playing') {
       const spawnInterval = () => {
         spawnMole();
-        const nextSpawn = 800; // Fixed interval
-        moleTimerRef.current = setTimeout(spawnInterval, nextSpawn);
+        moleTimerRef.current = setTimeout(spawnInterval, difficultySettings.spawnInterval);
       };
       
       spawnInterval();
@@ -196,7 +203,7 @@ const GardenPestControlChallenge: React.FC<GardenPestControlChallengeProps> = ({
         clearTimeout(moleTimerRef.current);
       }
     };
-  }, [gameState, spawnMole]);
+  }, [gameState, spawnMole, difficultySettings.spawnInterval]);
 
   useEffect(() => {
     if (gameState === 'success') {

@@ -16,10 +16,15 @@ interface FogMazeChallengeProps {
   onFail?: () => void;
 }
 
+// Score = completionPoints + (time remaining ratio × speedBonus).
+// Intended ceilings (perfect run): d1 1500, d2 2250, d3 3000 (= server maxScore).
+// Higher difficulty grants more time overall but less time per cell
+// (90s/81 ≈ 1.1s, 120s/169 ≈ 0.7s, 150s/289 ≈ 0.5s), so it's harder per move
+// while offering a strictly higher score ceiling.
 const SETTINGS = {
-  1: { cols: 9,  rows: 9,  timeLimit: 90, viewRadius: 2 },
-  2: { cols: 13, rows: 13, timeLimit: 90, viewRadius: 2 },
-  3: { cols: 17, rows: 17, timeLimit: 75, viewRadius: 2 },
+  1: { cols: 9,  rows: 9,  timeLimit: 90,  viewRadius: 2, completionPoints: 1200, speedBonus: 300 },
+  2: { cols: 13, rows: 13, timeLimit: 120, viewRadius: 2, completionPoints: 1800, speedBonus: 450 },
+  3: { cols: 17, rows: 17, timeLimit: 150, viewRadius: 2, completionPoints: 2400, speedBonus: 600 },
 } as const;
 
 const OPPOSITE = { top: 'bottom', right: 'left', bottom: 'top', left: 'right' } as const;
@@ -117,7 +122,7 @@ const FogMazeChallenge: React.FC<FogMazeChallengeProps> = ({
   onFail = () => console.log('Challenge failed'),
 }) => {
   const settings = SETTINGS[difficulty as 1 | 2 | 3] ?? SETTINGS[1];
-  const { cols, rows, timeLimit, viewRadius } = settings;
+  const { cols, rows, timeLimit, viewRadius, completionPoints, speedBonus } = settings;
   const lightRadius = 2;
   const viewSize = viewRadius * 2 + 1;
 
@@ -190,12 +195,12 @@ const FogMazeChallenge: React.FC<FogMazeChallengeProps> = ({
     const remaining = endTimeRef.current
       ? Math.max(0, (endTimeRef.current - Date.now()) / 1000)
       : 0;
-    const finalScore = Math.max(1, Math.floor((remaining / timeLimit) * 3000));
+    const finalScore = completionPoints + Math.floor((remaining / timeLimit) * speedBonus);
     setScore(finalScore);
     gameStateRef.current = 'success';
     setGameState('success');
     onComplete(finalScore);
-  }, [clearTimer, timeLimit, onComplete]);
+  }, [clearTimer, timeLimit, completionPoints, speedBonus, onComplete]);
 
   const initializeGame = useCallback(() => {
     clearTimer();

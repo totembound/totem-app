@@ -34,7 +34,12 @@ const TW_SHRINK_STEP = 40;
 const MIN_TW = 700;
 const GRACE_PERIOD_DURATION = 900;
 const JUMP_MAX_DURATION = 1500;
-const POINTS_PER_DODGE = 50;
+// Per-dodge points by difficulty — higher difficulty narrows the dodge window
+// (startingTW drops 200ms/level) but pays more per dodge, so the achievable
+// ceiling RISES with difficulty. Intended ceilings (agility 10, miss-free):
+//   d1 ≈ 18 dodges × 40 = 720 · d2 ≈ 21 × 45 = 945 · d3 ≈ 23 × 60 → capped at MAX_SCORE
+// (d3 reaches 1000 with ~17 clean dodges of ~23 available — skilled, not perfect).
+const POINTS_PER_DODGE: Record<number, number> = { 1: 40, 2: 45, 3: 60 };
 const MAX_SCORE = 1000;
 const TRANSITION_DURATION = 40; // ms — purely visual, hitbox logic uses ref
 const ARRIVAL_FRACTION = 0.82; // fraction of telegraphWindow when piranha visually reaches player (matches 82% keyframe)
@@ -127,6 +132,7 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
   // Difficulty shifts the starting TW down — higher difficulty = faster piranhas from the start.
   // A miss resets to startingTW (not the agility max) so difficulty stays relevant throughout.
   const startingTW = Math.max(MIN_TW, telegraphWindow - (difficulty - 1) * 200);
+  const pointsPerDodge = POINTS_PER_DODGE[difficulty] ?? POINTS_PER_DODGE[1];
   const currentTWRef = useRef(startingTW);
 
   useEffect(() => { gameStateRef.current = gameState; }, [gameState]);
@@ -176,7 +182,7 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
       const partialDodge = height === 'HIGH' && otterPositionRef.current === 'flat';
 
       if (correctDodge || partialDodge) {
-        const points = partialDodge ? Math.floor(POINTS_PER_DODGE / 2) : POINTS_PER_DODGE;
+        const points = partialDodge ? Math.floor(pointsPerDodge / 2) : pointsPerDodge;
         const newScore = Math.min(scoreRef.current + points, MAX_SCORE);
         scoreRef.current = newScore;
         setScore(newScore);
@@ -206,7 +212,7 @@ const RiversideDodgeChallenge: React.FC<RiversideDodgeChallengeProps> = ({
       setActiveAttack(null);
       attackSchedulerRef.current = window.setTimeout(launchAttack, currentIntervalRef.current);
     }, tw);
-  }, [telegraphWindow, handleGameEnd]);
+  }, [startingTW, pointsPerDodge, handleGameEnd]);
 
   const initializeGame = useCallback(() => {
     clearAllTimers();

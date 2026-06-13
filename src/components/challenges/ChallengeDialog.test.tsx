@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
@@ -9,6 +9,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 const mockGameContext = vi.hoisted(() => ({
   getEligibleTotems: vi.fn().mockReturnValue([]),
   isTotemAvailable: vi.fn().mockReturnValue(true),
+  challengeState: { challenges: {}, userStatus: {}, loading: false, error: null },
 }));
 
 const mockUserContext = vi.hoisted(() => ({
@@ -45,15 +46,35 @@ vi.mock('lucide-react', () => ({
   X: () => <span data-testid="icon-x" />,
 }));
 
-vi.mock('./ChallengeGame', () => ({
-  default: ({ challengeId, tokenId, onCompleted }: any) => (
-    <div data-testid="challenge-game" data-challenge={challengeId} data-token={tokenId}>
-      <button data-testid="mock-complete" onClick={() => onCompleted?.()}>
-        complete
-      </button>
-    </div>
-  ),
-}));
+vi.mock('./ChallengeGame', async () => {
+  const { useContext } = await import('react');
+  const { ChallengeRunStateContext } = await import('./challenge-run-state');
+  // Mirror the real wiring: ChallengeActionBar (inside the mini-games)
+  // reports run-state changes through ChallengeRunStateContext.
+  const MockChallengeGame = ({ challengeId, tokenId, onCompleted }: any) => {
+    const report = useContext(ChallengeRunStateContext);
+    return (
+      <div data-testid="challenge-game" data-challenge={challengeId} data-token={tokenId}>
+        <button data-testid="mock-run-start" onClick={() => report?.('playing')}>
+          start run
+        </button>
+        <button data-testid="mock-run-success" onClick={() => report?.('success')}>
+          run succeeded
+        </button>
+        <button data-testid="mock-run-failed" onClick={() => report?.('failed')}>
+          run failed
+        </button>
+        <button data-testid="mock-run-reset" onClick={() => report?.('ready')}>
+          back to ready
+        </button>
+        <button data-testid="mock-complete" onClick={() => onCompleted?.()}>
+          complete
+        </button>
+      </div>
+    );
+  };
+  return { default: MockChallengeGame };
+});
 
 // ============================================================================
 // TEST DATA
@@ -279,6 +300,62 @@ describe('ChallengeDialog', () => {
     await userEvent.click(screen.getByRole('button', { name: /complete/i }));
 
     expect(screen.queryByTestId('icon-chevron')).not.toBeInTheDocument();
+  });
+
+  // =========================================================================
+  // DIFFICULTY SELECTOR LOCK DURING A RUN
+  // =========================================================================
+
+  it('locks the difficulty selector while a run is in progress and re-enables when idle', async () => {
+    render(<ChallengeDialog {...defaultProps} />);
+    // Gray Pup: stage 2, req stage 1 → mocked getGameDifficulty = 2 (auto)
+    await userEvent.click(screen.getByRole('heading', { name: /gray pup/i }));
+
+    // Before the run starts: levels 1..auto selectable
+    const level1 = screen.getByRole('radio', { name: /Difficulty 1/ });
+    expect(level1).toBeEnabled();
+
+    // Run starts → selector locks with the "locked during a run" hint
+    await userEvent.click(screen.getByRole('button', { name: /start run/i }));
+    expect(screen.getByRole('radio', { name: /Difficulty 1.*locked during a run/ })).toBeDisabled();
+    expect(screen.getByRole('radiogroup', { name: /locked during a run/i })).toBeInTheDocument();
+
+    // Run finished with a pending (unsubmitted) score → stays locked
+    await userEvent.click(screen.getByRole('button', { name: /run succeeded/i }));
+    expect(screen.getByRole('radio', { name: /Difficulty 1.*locked during a run/ })).toBeDisabled();
+
+    // Game returns to its pre-start state (Try Again) → selector re-enables
+    await userEvent.click(screen.getByRole('button', { name: /back to ready/i }));
+    expect(screen.getByRole('radio', { name: 'Difficulty 1' })).toBeEnabled();
+  });
+
+  it('re-enables the selector after a failed run (accessibility: fail → lower difficulty)', async () => {
+    render(<ChallengeDialog {...defaultProps} />);
+    await userEvent.click(screen.getByRole('heading', { name: /gray pup/i }));
+
+    await userEvent.click(screen.getByRole('button', { name: /start run/i }));
+    expect(screen.getByRole('radio', { name: /Difficulty 1.*locked during a run/ })).toBeDisabled();
+
+    await userEvent.click(screen.getByRole('button', { name: /run failed/i }));
+    expect(screen.getByRole('radio', { name: 'Difficulty 1' })).toBeEnabled();
+  });
+
+  it('does not remount the game when the selector is locked mid-run', async () => {
+    render(<ChallengeDialog {...defaultProps} />);
+    await userEvent.click(screen.getByRole('heading', { name: /gray pup/i }));
+
+    // Wait for the selector to settle on the stage-derived auto difficulty (2)
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: /Difficulty 2/ })).toHaveAttribute('aria-checked', 'true');
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: /start run/i }));
+    // Clicking a locked (disabled) difficulty level must not change the
+    // selection — the game's key stays stable, so the run isn't discarded.
+    const level1 = screen.getByRole('radio', { name: /Difficulty 1/ });
+    await userEvent.click(level1);
+    expect(level1).toHaveAttribute('aria-checked', 'false');
+    expect(screen.getByRole('radio', { name: /Difficulty 2/ })).toHaveAttribute('aria-checked', 'true');
   });
 
   // =========================================================================

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Award, Gift } from 'lucide-react';
 import { useGame } from '../../contexts/GameContext';
 import { useUser } from '../../contexts/UserContext';
 import { useAchievements } from '../../contexts/AchievementsContext';
@@ -60,6 +61,9 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
     // Falls back to the client estimate until the response lands.
     const [actualXp, setActualXp] = useState<number | null>(null);
     const [actualHappiness, setActualHappiness] = useState<number | null>(null);
+    const [actualEssence, setActualEssence] = useState<number | null>(null);
+    // Mastery tier-up on this run — shown in the completion view (bonus XP + loot box).
+    const [tierUpResult, setTierUpResult] = useState<{ name: string; xp: number; lootBoxId: string | null } | null>(null);
 
     // Get current challenge status
     const userStatus: ChallengeStatus = challengeState.userStatus[challengeId] || {
@@ -110,10 +114,12 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
             setIsSubmitting(true);
             setError('');
             
-            const rewards = await completeChallenge(challengeId, tokenId, bestScore);
+            const rewards = await completeChallenge(challengeId, tokenId, bestScore, difficulty);
             if (rewards) {
                 setActualXp(rewards.xpEarned);
                 setActualHappiness(rewards.happinessEarned);
+                setActualEssence(rewards.essenceEarned);
+                setTierUpResult(rewards.tierUp ?? null);
             }
             await refreshAchievements();
             setShowScoreEffect(true);
@@ -267,16 +273,37 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
 
             {/* Success Alert */}
             {showSuccess && (
-                <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 
-                  rounded-lg p-4 flex items-start">
-                    <svg className="w-5 h-5 text-green-500 dark:text-green-400 mt-0.5" 
-                      fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p className="ml-3 text-sm text-green-700 dark:text-green-200">
-                        Challenge completed! Score: {bestScore}. You get EXP: {actualXp ?? exp}, Happiness: {actualHappiness ?? 10}
-                    </p>
+                <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800
+                  rounded-lg p-4 space-y-3">
+                    <div className="flex items-start">
+                        <svg className="w-5 h-5 text-green-500 dark:text-green-400 mt-0.5"
+                          fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="ml-3 text-sm text-green-700 dark:text-green-200">
+                            Challenge completed! Score: {bestScore}. You get EXP: {actualXp ?? exp}, Essence: +{actualEssence ?? 0}, Happiness: +{actualHappiness ?? 10}
+                        </p>
+                    </div>
+                    {/* Mastery tier-up — bonus XP lump + the loot box, surfaced right here */}
+                    {tierUpResult && (
+                        <div className="rounded-lg border border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20 p-3 space-y-1.5">
+                            <div className="flex items-center gap-2">
+                                <Award className="w-5 h-5 text-amber-500 dark:text-amber-400" />
+                                <span className="font-semibold text-amber-800 dark:text-amber-200">
+                                    {tierUpResult.name} Mastery reached! +{tierUpResult.xp} bonus XP
+                                </span>
+                            </div>
+                            {tierUpResult.lootBoxId && (
+                                <div className="flex items-center gap-2 pl-7">
+                                    <Gift className="w-4 h-4 text-amber-600 dark:text-amber-300" />
+                                    <span className="text-sm text-amber-700 dark:text-amber-300">
+                                        You received an Essence Loot Box — it opens when you press Done.
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             )}
 

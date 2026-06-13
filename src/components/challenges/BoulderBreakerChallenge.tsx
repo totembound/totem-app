@@ -14,6 +14,7 @@ type DifficultySettings = {
   pointCount: number;
   timeLimit: number;
   hitRadius: number;
+  pointValue: number;
 };
 
 interface BoulderBreakerChallengeProps {
@@ -41,10 +42,15 @@ const BoulderBreakerChallenge: React.FC<BoulderBreakerChallengeProps> = ({
 
   const strengthThreshold = difficulty * 20;
 
+  // Score = sum of per-hit (accuracy × pointValue) + strength bonus, capped at 1000.
+  // Intended ceilings (instant hits, no strength bonus): d1 5×90=450, d2 7×100=700,
+  // d3 9×110=990 (≈ server maxScore 1000). Higher difficulty still bites harder
+  // per hit (less time, smaller targets) but each hit is worth more.
   const difficultySettings: DifficultySettings = {
     pointCount: 3 + difficulty * 2,
     timeLimit: 6 - difficulty,
     hitRadius: 25 - difficulty * 2,
+    pointValue: 80 + difficulty * 10,
   };
 
   const generatePoints = useCallback(() => {
@@ -107,11 +113,11 @@ const BoulderBreakerChallenge: React.FC<BoulderBreakerChallengeProps> = ({
     newPoints[index].hit = true;
     setHitPoints(newPoints);
 
-    const accuracyScore = Math.floor((timeLeft! / difficultySettings.timeLimit) * 100);
+    const accuracyScore = Math.floor((timeLeft! / difficultySettings.timeLimit) * difficultySettings.pointValue);
     const strengthBonus = Math.max(0, strength - strengthThreshold) / 2;
     const pointScore = accuracyScore + strengthBonus;
 
-    const newScore = score + pointScore;
+    const newScore = Math.min(1000, score + pointScore);
     setScore(newScore);
 
     if (currentPoint + 1 >= hitPoints.length) {

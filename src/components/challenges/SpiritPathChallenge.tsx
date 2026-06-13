@@ -67,10 +67,16 @@ const SpiritPath: React.FC<SpiritPathProps> = ({
   }, [grid]);
 
   // Calculate game settings based on difficulty and agility
+  // Score = completionBonus + timeBonus + moveBonus. Intended ceilings (perfect run):
+  // d1 1200, d2 1600, d3 2000 (= server maxScore). Time scales WITH grid size so
+  // bigger grids stay completable; the rising disappearChance is the skill test.
   const gameSettings = {
     gridSize: 3 + difficulty, // Use agility to determine grid size
-    timeLimit: 30 - (difficulty * 5),
+    timeLimit: 20 + (difficulty * 5), // more tiles to cross = more time
     disappearChance: 0.35 + (difficulty * 0.1),
+    completionBonus: 320 + (difficulty * 160), // 480 / 640 / 800
+    maxTimeBonus: 280 + (difficulty * 140),    // 420 / 560 / 700
+    maxMoveBonus: 200 + (difficulty * 100),    // 300 / 400 / 500
     disappearWarningTime: 0.8 + (agility * 0.1),
     reappearChance: 0.45,
     initialVisibleTiles: 0.75 - (difficulty * 0.05), // percentage of tiles visible at start
@@ -225,21 +231,19 @@ const SpiritPath: React.FC<SpiritPathProps> = ({
   // Calculate final game score based on win condition and time elapsed
   const calculateGameScore = useCallback((isWin: boolean, timeElapsed: number, movesCount: number): number => {
     if (!isWin) return 0; // No score for losing
-    
-    // Time bonus (proportional to time left)
-    const maxTimeBonus = 1200; // 60% of max score
-    const timeRatio = Math.max(0, gameSettings.timeLimit - timeElapsed) / gameSettings.timeLimit;
-    const timeBonus = Math.round(timeRatio * maxTimeBonus);
 
-    // Move efficiency bonus (40% of max score)
-    const maxMoveBonus = 800;
-    const minPossibleMoves = gameSettings.gridSize - 1; // Minimum moves required (from start to end)
+    // Time bonus (proportional to time left)
+    const timeRatio = Math.max(0, gameSettings.timeLimit - timeElapsed) / gameSettings.timeLimit;
+    const timeBonus = Math.round(timeRatio * gameSettings.maxTimeBonus);
+
+    // Move efficiency bonus
+    const minPossibleMoves = (gameSettings.gridSize - 1) * 2; // Manhattan distance from start (bottom-left) to end (top-right)
     const moveEfficiency = Math.max(0, 1 - ((movesCount - minPossibleMoves) / (gameSettings.gridSize * 2)));
-    const moveBonus = Math.round(moveEfficiency * maxMoveBonus);
+    const moveBonus = Math.round(moveEfficiency * gameSettings.maxMoveBonus);
 
     // Cap total score at 2000
-    return Math.min(2000, timeBonus + moveBonus);
-  }, [gameSettings.timeLimit, gameSettings.gridSize]);
+    return Math.min(2000, gameSettings.completionBonus + timeBonus + moveBonus);
+  }, [gameSettings.timeLimit, gameSettings.gridSize, gameSettings.completionBonus, gameSettings.maxTimeBonus, gameSettings.maxMoveBonus]);
 
   // Initialize the grid
   const initializeGrid = useCallback(() => {

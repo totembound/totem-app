@@ -1,10 +1,42 @@
 import React from 'react';
 import { useGame } from '../../contexts/GameContext';
-import { ArrowRight, Clock, GaugeCircle, Heart, Trophy, Sparkles } from 'lucide-react';
+import { ArrowRight, Clock, GaugeCircle, Heart, Trophy, Sparkles, Award, Dumbbell, Wind, Brain, Scale } from 'lucide-react';
 import { DEFAULT_MAX_DAILY_ATTEMPTS } from '../../config/constants';
 import { CURRENCY_NAMES } from '../../config/constants';
+import { getMasteryTierByIndex } from '../../config/config-loader';
+import MasteryFrame from './MasteryFrame';
+import { MASTERY_TIER_COLOR } from './mastery-tier-colors';
 
 type AffinityType = 'strength' | 'agility' | 'wisdom' | 'balance';
+
+/** Progress-bar fill tint for the tier being worked TOWARD — matches the MasteryFrame ring colors. */
+const MASTERY_TIER_BAR: Record<number, string> = {
+    1: 'bg-amber-600 dark:bg-amber-500',        // toward Bronze
+    2: 'bg-gray-400 dark:bg-gray-300',          // toward Silver
+    3: 'bg-yellow-500 dark:bg-yellow-400',      // toward Gold
+    4: 'bg-slate-400 dark:bg-slate-300',        // toward Platinum
+    5: 'bg-cyan-500 dark:bg-cyan-400',          // toward Diamond
+};
+
+/** Affinity icon + label + tint (matches the codex wording; colors follow the card's own convention). */
+const AFFINITY_META: Record<AffinityType, { label: string; Icon: React.ElementType; color: string }> = {
+    strength: { label: 'Strength', Icon: Dumbbell, color: 'text-red-500' },
+    agility:  { label: 'Agility',  Icon: Wind,     color: 'text-emerald-500' },
+    wisdom:   { label: 'Wisdom',   Icon: Brain,    color: 'text-blue-500' },
+    balance:  { label: 'Balance',  Icon: Scale,    color: 'text-purple-500' },
+};
+
+export interface ChallengeMastery {
+    tier: number;
+    tierName: string;
+    completions: number;
+    nextTierAt: number | null;
+    completionsToNext: number | null;
+    xpMultiplier: number;
+    difficultyUnlocked: boolean;
+    maxDifficulty: number;
+    preferredDifficulty: number | null;
+}
 
 interface ChallengePanelProps {
     id: string;
@@ -16,6 +48,10 @@ interface ChallengePanelProps {
     attemptsLeft: number;
     maxAttempts?: number;
     maxScore?: number;
+    /** Account/challenge-level mastery — renders the frame regardless of selected totem. */
+    mastery?: ChallengeMastery;
+    /** Transient — true right after this challenge tiered up; MasteryFrame plays a one-shot glow. */
+    justTieredUp?: boolean;
     requirements: {
         stage: number;
         strength: number;
@@ -35,6 +71,8 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
     attemptsLeft,
     maxAttempts = DEFAULT_MAX_DAILY_ATTEMPTS,
     maxScore,
+    mastery,
+    justTieredUp = false,
     requirements,
     onStart
 }) => {
@@ -42,9 +80,22 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
     const stage = requirements.stage;
     const eligibleTotems = getEligibleTotems(id);
     const meetsRequirements = eligibleTotems.length > 0;
+    // Stage curve mirrors the backend per-challenge essenceReward values
+    // (challenges-service.js) — all 12 follow 10/15/20 by required stage.
     const ESSENCE_BY_STAGE = [10, 15, 20] as const;
     const essenceReward = ESSENCE_BY_STAGE[stage] ?? 20;
-    const maxExpReward = maxScore === 1000 ? 10 : maxScore === 3000 ? 30 : 20;
+    // Base XP ceiling = maxScore / 100 (10/20/30 by minStage). The mastery tier multiplier
+    // scales it; difficulty does NOT (maxScore is fixed — difficulty only affects how much
+    // of the ceiling you can reach). So a Diamond (×3) Garden Pest Patrol tops out at 30 XP.
+    const baseMaxXp = maxScore === 1000 ? 10 : maxScore === 3000 ? 30 : 20;
+    const maxExpReward = Math.round(baseMaxXp * (mastery?.xpMultiplier ?? 1));
+    const affinity = AFFINITY_META[affinityType];
+    const AffinityIcon = affinity.Icon;
+    const affinityRequirement =
+        affinityType === 'strength' ? `${requirements.strength}+`
+        : affinityType === 'agility' ? `${requirements.agility}+`
+        : affinityType === 'wisdom' ? `${requirements.wisdom}+`
+        : 'Any totem';
 
     const _getAffinityColor = () => {
         switch(affinityType) {
@@ -73,8 +124,8 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
     };
     
     const RewardsSection = () => (
-        <div className="flex flex-col gap-2">
-            <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+        <div className="flex flex-col gap-2 pt-1">
+            <div className="text-sm text-gray-500 dark:text-gray-300 font-medium">
                 Rewards
             </div>
             <div className="flex items-center justify-between">
@@ -113,7 +164,10 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
         </div>
     );
 
+    const masteryTier = mastery?.tier ?? 0;
+
     return (
+        <MasteryFrame tier={masteryTier} justTieredUp={justTieredUp}>
         <div className="flex flex-col bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg h-full">
             {/* Header with background image */}
             <div className="relative h-40">
@@ -140,7 +194,26 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
             </div>
 
             {/* Stats Section */}
-            <div className="p-4 space-y-4">
+            <div className="p-4 space-y-2">
+                
+                {/* Daily Attempts */}
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <Clock className="w-5 h-5 text-blue-500" />
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                            Daily Attempts:
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500">
+                            (Resets 00:00 UTC)
+                        </span>
+                        <span className="font-semibold text-gray-900 dark:text-gray-100">
+                            {attemptsLeft}/{maxAttempts}
+                        </span>
+                    </div>
+                </div>
+                
                 {/* Current Progress */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -152,61 +225,93 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
                     </span>
                 </div>
 
-                {/* Daily Attempts */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-blue-500" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                            Daily Attempts:
+                {/* Mastery — account/challenge-level inline stat, shown regardless of selected totem */}
+                {mastery && (
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Award className={`w-5 h-5 ${MASTERY_TIER_COLOR[mastery.tier] ?? MASTERY_TIER_COLOR[0]}`} />
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Mastery:</span>
+                        </div>
+                        <span className={`font-semibold ${mastery.tier > 0
+                            ? 'text-gray-900 dark:text-gray-100'
+                            : 'text-gray-500 dark:text-gray-400'}`}>
+                            {mastery.tier > 0
+                                ? `${mastery.tierName} · ×${parseFloat(mastery.xpMultiplier.toFixed(2))} XP`
+                                : 'Novice'}
                         </span>
                     </div>
-                    <div className="flex items-center gap-1">
-                        <span className="font-semibold text-gray-900 dark:text-gray-100">
-                            {attemptsLeft}/{maxAttempts}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                            (Resets 00:00 UTC)
-                        </span>
-                    </div>
-                </div>
+                )}
+
+                {/* Mastery progress — a COMPLETIONS tally toward the next tier (not an XP bar).
+                    Thin tier-tinted bar + "N to <Tier>" label; nudges gently when ≤5 away.
+                    At Diamond there is no next tier, so a maxed state replaces the bar. */}
+                {mastery && (() => {
+                    const nextTierName = getMasteryTierByIndex(mastery.tier + 1)?.name;
+                    if (mastery.nextTierAt != null && mastery.completionsToNext != null && nextTierName) {
+                        // Bar shows progress WITHIN the current tier band (diff from the tier's
+                        // own threshold), so it starts empty right after a tier-up rather than
+                        // carrying over the lifetime completion count.
+                        const curTierMin = getMasteryTierByIndex(mastery.tier)?.minCompletions ?? 0;
+                        const span = Math.max(1, mastery.nextTierAt - curTierMin);
+                        const inTier = Math.max(0, mastery.completions - curTierMin);
+                        const pct = Math.min(100, Math.max(0, (inTier / span) * 100));
+                        const isNudge = mastery.completionsToNext > 0 && mastery.completionsToNext <= 5;
+                        return (
+                            <div className="flex items-center gap-2">
+                                <div
+                                    role="progressbar"
+                                    aria-valuemin={0}
+                                    aria-valuemax={span}
+                                    aria-valuenow={inTier}
+                                    aria-label={`${inTier} of ${span} completions in this tier toward ${nextTierName} mastery`}
+                                    title={`${inTier}/${span} completions this tier (not XP)`}
+                                    className="flex-1 min-w-0 h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden"
+                                >
+                                    <div
+                                        className={`h-full rounded-full ${MASTERY_TIER_BAR[mastery.tier + 1] ?? MASTERY_TIER_BAR[5]}
+                                            ${isNudge ? 'animate-pulse motion-reduce:animate-none' : ''}`}
+                                        style={{ width: `${pct}%` }}
+                                    />
+                                </div>
+                                <span className={`shrink-0 text-xs ${isNudge
+                                    ? 'font-semibold text-amber-600 dark:text-amber-400 animate-pulse motion-reduce:animate-none'
+                                    : 'text-gray-500 dark:text-gray-400'}`}>
+                                    {mastery.completionsToNext} to {nextTierName}{isNudge ? '!' : ''}
+                                </span>
+                            </div>
+                        );
+                    }
+                    if (mastery.tier > 0 && !nextTierName) {
+                        // Diamond — top tier reached, no bar to fill.
+                        return (
+                            <div className="flex items-center justify-end gap-1.5">
+                                <Sparkles className="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" aria-hidden="true" />
+                                <span className="text-xs font-semibold text-cyan-600 dark:text-cyan-400">
+                                    Max mastery — {mastery.completions} completions
+                                </span>
+                            </div>
+                        );
+                    }
+                    return null;
+                })()}
 
                 {/* Reward Info */}
                 <RewardsSection />
 
-                {/* Requirements Divider */}
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-                    <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                {/* Requirements — affinity row doubles as the challenge's type indicator.
+                    Stage is intentionally omitted here (already shown as the badge on the image). */}
+                <div className="pt-1">
+                    <h4 className="text-sm font-medium text-gray-500 dark:text-gray-300 mb-2">
                         Requirements
                     </h4>
-                    <div className="grid grid-cols-2 gap-2">
-                        {affinityType === 'strength' && (
-                            <div className="text-sm px-3 py-1.5 rounded-md bg-red-50 dark:bg-red-900/20 
-                                text-red-700 dark:text-red-400">
-                                Strength: {requirements.strength}
-                            </div>
-                        )}
-                        {affinityType === 'agility' && (
-                            <div className="text-sm px-3 py-1.5 rounded-md bg-emerald-50 dark:bg-emerald-900/20 
-                                text-emerald-700 dark:text-emerald-400">
-                                Agility: {requirements.agility}
-                            </div>
-                        )}
-                        {affinityType === 'wisdom' && (
-                            <div className="text-sm px-3 py-1.5 rounded-md bg-blue-50 dark:bg-blue-900/20 
-                                text-blue-700 dark:text-blue-400">
-                                Wisdom: {requirements.wisdom}
-                            </div>
-                        )}
-                        {affinityType === 'balance' && (
-                            <div className="text-sm px-3 py-1.5 rounded-md bg-purple-50 dark:bg-purple-900/20 
-                            text-purple-700 dark:text-purple-400">
-                                None
-                            </div>
-                        )}
-                        <div className="text-sm px-3 py-1.5 rounded-md bg-purple-50 dark:bg-purple-900/20 
-                            text-purple-700 dark:text-purple-400">
-                            Stage: {requirements.stage + 1}+
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <AffinityIcon className={`w-5 h-5 ${affinity.color}`} />
+                            <span className="text-sm text-gray-600 dark:text-gray-400">{affinity.label}:</span>
                         </div>
+                        <span className="font-semibold text-gray-900 dark:text-gray-100">
+                            {affinityRequirement}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -234,6 +339,7 @@ export const ChallengePanel: React.FC<ChallengePanelProps> = ({
                 </button>
             </div>
         </div>
+        </MasteryFrame>
     );
 };
 

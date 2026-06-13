@@ -20,6 +20,7 @@ export enum NotificationType {
     // Challenge notifications
     CHALLENGE_COMPLETED = 'challenge_completed',
     HIGH_SCORE_SET = 'high_score_set',
+    CHALLENGE_TIER_UP = 'challenge_tier_up',
     
     // Expedition notifications
     EXPEDITION_STARTED = 'expedition_started',
@@ -165,6 +166,13 @@ export enum NotificationType {
       type: NotificationType.HIGH_SCORE_SET,
       scope: NotificationScope.GLOBAL,
       priority: NotificationPriority.MEDIUM
+    },
+    [NotificationType.CHALLENGE_TIER_UP]: {
+      type: NotificationType.CHALLENGE_TIER_UP,
+      scope: NotificationScope.PERSONAL,
+      priority: NotificationPriority.HIGH,
+      sound: true,
+      autoOpen: false
     },
     
     // Expedition notifications

@@ -90,7 +90,7 @@ const quarters: Quarter[] = [
       { label: 'Core gameplay — Feed, Train, Treat & 5-stage Evolution', status: 'done', detail: 'Daily care actions with cooldowns, XP, happiness, and stage thresholds' },
       // Content systems
       { label: 'Totem Shop — buy, sell & marketplace listings', status: 'done' },
-      { label: '12 challenge mini-games across Strength, Agility & Wisdom', status: 'done', detail: 'Skill-based mini-games with daily attempts that earn XP and happiness' },
+      { label: '12 affinity-based challenge mini-games with Bronze → Diamond mastery tiers', status: 'done', detail: 'Strength, Agility, Wisdom & Balance trials; mastery scales XP across your roster; selectable difficulty' },
       { label: '15 expeditions across 3 domains', status: 'done', detail: 'Send 3-totem teams on timed missions for Essence, XP, and rune drops' },
       { label: 'Daily & weekly rewards with streak bonuses', status: 'done', detail: 'Escalating streak multipliers with purchasable streak protection' },
       { label: '25+ achievements with progression milestones', status: 'done' },

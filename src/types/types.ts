@@ -173,6 +173,17 @@ export interface PublicPlayerProfile {
         /** Highest prestige across any stage-4 totem (0 if none, no upper bound). */
         highestPrestigeReached: number;
     };
+    /** Challenge Mastery summary — optional for backward compat with older API responses. */
+    mastery?: {
+        tiersEarned: number;
+        gold: number;
+        platinum: number;
+        diamond: number;
+        /** All 12 challenges at Diamond. */
+        grandmaster: boolean;
+        /** Only challenges above Novice; missing ids render as Novice. */
+        challenges: { id: string; tier: number }[];
+    };
 }
 
 export interface TotemAttributes {
@@ -425,6 +436,18 @@ export enum ChallengeAttribute {
     Wisdom
 }
 
+export interface ChallengeMasteryInfo {
+    tier: number;
+    tierName: string;
+    completions: number;
+    nextTierAt: number | null;
+    completionsToNext: number | null;
+    xpMultiplier: number;
+    difficultyUnlocked: boolean;
+    maxDifficulty: number;
+    preferredDifficulty: number | null;
+}
+
 export interface ChallengeInfo {
     id: string;
     name: string;
@@ -435,6 +458,7 @@ export interface ChallengeInfo {
     maxDailyAttempts: number;
     maxScore: number;
     enabled: boolean;
+    mastery?: ChallengeMasteryInfo;
 }
 
 export interface ChallengeStatus {

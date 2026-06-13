@@ -1,8 +1,10 @@
 import React from "react";
-import { Dumbbell, Wind, Brain, Scale, Repeat, Trophy, Star, Swords } from "lucide-react";
+import { Dumbbell, Wind, Brain, Scale, Repeat, Trophy, Star, Swords, Award, Gauge } from "lucide-react";
 import CodexSidebar from "./CodexSidebar";
 import { CHALLENGES, AffinityType } from "../../../config/challenges";
 import { STAGES } from "../../../config/game-config";
+import { getMasteryConfig } from "../../../config/config-loader";
+import { MASTERY_TIER_COLOR } from "../../challenges/mastery-tier-colors";
 
 const AFFINITY_META: Record<AffinityType, { label: string; icon: React.ReactNode; badge: string; bar: string }> = {
   strength: {
@@ -101,7 +103,10 @@ const ChallengeCard: React.FC<{ data: typeof CHALLENGES[number] }> = ({ data }) 
           <span className="inline-flex items-center gap-1" title="Max score">
             <Trophy size={13} /> {data.maxScore.toLocaleString()}
           </span>
-          <span className="inline-flex items-center gap-1" title="Base XP reward">
+          <span
+            className="inline-flex items-center gap-1"
+            title={`Base XP reward — Trial Mastery multiplies this up to ×${getMasteryConfig().tiers.at(-1)?.xpMult ?? 3}`}
+          >
             <Star size={13} /> {data.xpReward.base} XP
           </span>
         </div>
@@ -126,7 +131,9 @@ const Challenges: React.FC = () => {
             Challenges are sacred trials that test a Totem&rsquo;s core strengths — raw force, quick
             reflexes, or spiritual wisdom. Each challenge draws upon an Affinity and presents a unique
             interactive trial, from cracking enchanted boulders to weaving memory runes. Totems grow
-            stronger through these trials, earning experience and happiness based on performance.
+            stronger through these trials, earning experience and happiness based on performance —
+            and every completion builds the keeper&rsquo;s lasting <span className="font-semibold text-gray-700 dark:text-gray-300">Mastery</span> of
+            that trial.
           </p>
 
           {/* Affinities */}
@@ -163,6 +170,57 @@ const Challenges: React.FC = () => {
                 <span className="font-semibold text-gray-800 dark:text-gray-200">Balance</span> trials
                 aren&rsquo;t tied to any one stat — any Totem can attempt them, and they reward pure
                 skill and timing over raw numbers.
+              </p>
+            </div>
+          </section>
+
+          {/* Trial Mastery */}
+          <section className="mt-8">
+            <h2 className="font-serif text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+              Trial Mastery
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              A trial remembered is a trial mastered. Every completion — by <span className="font-semibold text-gray-700 dark:text-gray-300">any</span> of
+              your Totems — deepens your bond with that trial, climbing six ranks from Novice to
+              Diamond. Mastery belongs to the keeper, not the spirit: switch Totems freely, and the
+              count carries on. It is measured in completions alone — show up, finish the trial, and
+              the rank will come.
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mt-4">
+              {getMasteryConfig().tiers.map((t) => (
+                <div
+                  key={t.tier}
+                  className="rounded-xl border border-amber-200/70 dark:border-gray-700 bg-amber-50/50 dark:bg-gray-800 px-3 py-2.5 text-center"
+                >
+                  <Award className={`w-5 h-5 mx-auto ${MASTERY_TIER_COLOR[t.tier] ?? MASTERY_TIER_COLOR[0]}`} aria-hidden="true" />
+                  <div className="text-sm font-semibold text-gray-800 dark:text-gray-200 mt-1">{t.name}</div>
+                  <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                    {t.minCompletions > 0 ? `${t.minCompletions} completions` : "the first step"}
+                  </div>
+                  <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                    ×{t.xpMult} XP
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
+              Each rank multiplies the experience <span className="font-semibold text-gray-600 dark:text-gray-300">every</span> Totem
+              earns from that trial, forever after. Reaching a new rank also grants a one-time burst
+              of bonus experience — and from Silver onward, a chest of Essence. Keepers prize
+              mastered trials as the swiftest road for raising a fresh Totem toward Ascension: the
+              multipliers you earned serve every spirit that follows.
+            </p>
+
+            <div className="mt-3 flex items-start gap-3 rounded-xl border border-amber-300/60 dark:border-amber-700/50 bg-amber-50/60 dark:bg-amber-900/15 px-3 py-2.5">
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-amber-600 bg-amber-500/80 text-amber-50 shrink-0">
+                <Gauge size={14} />
+              </span>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-semibold text-gray-800 dark:text-gray-200">Difficulty</span> matches
+                your Totem&rsquo;s stage. Lower it anytime to keep a trial completable — less experience,
+                but the path stays open. At{" "}
+                <span className="font-semibold text-yellow-600 dark:text-yellow-400">Gold</span> mastery
+                the seal breaks: any difficulty, any Totem, a higher score ceiling.
               </p>
             </div>
           </section>

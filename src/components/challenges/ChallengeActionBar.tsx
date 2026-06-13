@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
 import { GameState } from '../../types/types';
+import { ChallengeRunStateContext } from './challenge-run-state';
 
 interface ChallengeActionBarProps {
   gameState: GameState;
@@ -22,6 +23,13 @@ const ChallengeActionBar: React.FC<ChallengeActionBarProps> = ({
   restartLabel = 'Try Again',
   extraStats,
 }) => {
+  // Report run-state changes up to ChallengeDialog (locks the difficulty
+  // selector mid-run). No-op when no listener is mounted.
+  const reportRunState = useContext(ChallengeRunStateContext);
+  useEffect(() => {
+    reportRunState?.(gameState);
+  }, [gameState, reportRunState]);
+
   const ticker = (
     <div className="text-gray-300 font-bold">
       Time: {timeLeft !== null ? timeLeft.toFixed(1) : '-'}s{extraStats} | Score: {Math.floor(score)}

@@ -14,6 +14,7 @@ import { CURRENCY_NAMES } from "../config/constants";
 import { formatTokenAmount, splitWords } from "../utils/formats";
 import { getAchievementById } from "../config/achievements";
 import { LOOT_BOXES } from "../config/loot-boxes";
+import { getMasteryConfig } from "../config/config-loader";
 
 /**
  * Data interfaces for different notification types
@@ -281,6 +282,32 @@ class NotificationService {
 
     await this.showNotification(NotificationType.HIGH_SCORE_SET, message, data, {
       priority: NotificationPriority.MEDIUM,
+    });
+  }
+
+  /**
+   * Show notification for a challenge mastery tier-up (HIGH priority, sound).
+   * The granted Essence loot box is revealed via the existing LootClaimModal flow.
+   */
+  async showChallengeTierUp(data: {
+    challengeName: string;
+    tierName: string;
+    tier: number;
+    xp: number;
+    boxName?: string;
+  }): Promise<void> {
+    let message = `${data.challengeName} reached ${data.tierName} Mastery! +${data.xp} XP`;
+    if (data.boxName) {
+      message += ' — Essence loot box unlocked!';
+    }
+    // The "raising unlocked" line fires on the crossing INTO the configured raise
+    // tier (Gold by default) — driven by config, not a hardcoded tier name.
+    if (data.tier === getMasteryConfig().raiseTier) {
+      message += ' Difficulty raising unlocked.';
+    }
+
+    await this.showNotification(NotificationType.CHALLENGE_TIER_UP, message, data, {
+      priority: NotificationPriority.HIGH,
     });
   }
 

@@ -122,6 +122,10 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
 
     // -----------------------------------------------------------------------
     // Game settings — strength scales charge speed, peak width, push power
+    // Difficulty raises opponent tempo/power (harder per-action) while the
+    // player's peak-release multiplier also scales so a ring-out stays
+    // achievable at d3. Intended score ceilings (instant max-push ring-out):
+    // d1=1400, d2=1700, d3=2000 (maxScore) — see calculateScore.
     // -----------------------------------------------------------------------
 
     const gameSettings: GameSettings = {
@@ -130,7 +134,7 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
         peakZoneMax:           95,
         declineRate:           2.2,
         basePushPower:         0.015 + (strength * 0.001),       // str=13→0.028, str=20→0.035 — weak outside peak
-        peakPushMultiplier:    2.5,                               // peak release is ~3.5x a non-peak at same charge
+        peakPushMultiplier:    2.25 + (difficulty * 0.25),        // d1=2.5 (unchanged), d3=3.0 — counters stronger opponent
         opponentBaseInterval:  Math.max(1000, 1800 - (difficulty * 200)),
         opponentChargeRate:    1.4 + (difficulty * 0.4),
         opponentPushPower:     2.1 + (difficulty * 0.225),
@@ -245,8 +249,11 @@ const TotemWrestlingChallenge: React.FC<TotemWrestlingChallengeProps> = ({
         const timeFraction  = Math.max(0, 1 - (timeUsed / gameSettings.timeLimit));
         // How far did player push the opponent? (contactPosition close to 1 = further)
         const pushFraction  = Math.max(0, (contactPositionRef.current - 0.5) * 2);
-        return Math.round(1000 + (timeFraction * 600) + (pushFraction * 400));
-    }, [gameSettings.timeLimit]);
+        // Victory base scales with difficulty — beating a stronger opponent pays
+        // more, so the ceiling rises with difficulty: d1=1400, d2=1700, d3=2000.
+        const winBase = 700 + (difficulty * 300);
+        return Math.min(2000, Math.round(winBase + (timeFraction * 300) + (pushFraction * 100)));
+    }, [gameSettings.timeLimit, difficulty]);
 
     // -----------------------------------------------------------------------
     // Game end

@@ -156,7 +156,8 @@ const TotemImageSection: React.FC<TotemImageSectionProps> = ({
                     ref={imgRef}
                     src={cleanImageUrl}
                     alt={`${Species[species]} - ${STAGE_NAMES[stage]}`}
-                    className="w-4/5 h-4/5 object-contain transition-transform duration-500"
+                    className={`w-4/5 h-4/5 object-contain transition-transform duration-500 ${stage === 0 ? 'scale-[0.8]' : ''}`}
+                    style={stage === 0 ? ({ '--breathe-base': '0.8' } as React.CSSProperties) : undefined}
                     loading="lazy"
                 />
             </div>

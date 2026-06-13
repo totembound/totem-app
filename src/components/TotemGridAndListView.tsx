@@ -227,7 +227,7 @@ export const TotemGridCard: React.FC<TotemViewProps> = ({ nft, onClick, isSelect
                 <img
                     src={nft.image.replace('ipfs://', IPFS_GATEWAY_URL)}
                     alt={nft.name}
-                    className="relative z-10 w-full h-full object-cover"
+                    className={`relative z-10 w-full h-full object-cover transition-transform duration-500 ${nft.attributes.stage === 0 ? 'scale-[0.8]' : ''}`}
                     loading="lazy"
                 />
                 {status && (
@@ -350,7 +350,8 @@ export const TotemListRow: React.FC<TotemViewProps> = ({ nft, onClick, isSelecte
                     <img
                         src={nft.image.replace('ipfs://', IPFS_GATEWAY_URL)}
                         alt={nft.name}
-                        className="absolute inset-0 z-10 w-full h-full object-contain object-center"
+                        // Hatchlings (stage 0) render at 80% so the baby totem reads small.
+                        className={`absolute inset-0 z-10 w-full h-full object-contain object-center transition-transform duration-500 ${nft.attributes.stage === 0 ? 'scale-[0.8]' : ''}`}
                         loading="lazy"
                     />
                 </div>

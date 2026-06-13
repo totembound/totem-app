@@ -65,7 +65,7 @@ const SellTotemCard: React.FC<SellTotemCardProps> = ({
                         <img
                             src={totem.image.replace('ipfs://', IPFS_GATEWAY_URL)}
                             alt={totem.name}
-                            className="w-full h-full object-contain"
+                            className={`w-full h-full object-contain transition-transform duration-500 ${totem.attributes.stage === 0 ? 'scale-[0.8]' : ''}`}
                         />
                     ) : (
                         <div className="text-6xl text-gray-400 dark:text-gray-500">

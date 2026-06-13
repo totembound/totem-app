@@ -2,7 +2,7 @@ import React from 'react';
 import { Dumbbell, Wind, Brain, Heart, Drumstick, Info, Lock } from 'lucide-react';
 import { TotemAttributes } from '../types/types';
 import Tooltip from './Tooltip';
-import { BASE_ELDER_XP, PRESTIGE_XP_REQUIREMENT, STAGE_THRESHOLDS, HUNGER_TRAIN_MIN } from '../config/constants';
+import { BASE_ELDER_XP, PRESTIGE_XP_REQUIREMENT, STAGE_THRESHOLDS, HUNGER_TRAIN_MIN, HUNGER_HAPPINESS_PENALTY_BELOW } from '../config/constants';
 import { computePrestigeLevel } from '../utils/prestige';
 import { getTraitById, LEARNED_STAGE_GATE, AWAKENED_STAGE_GATE, type TraitSlot } from '../config/traits';
 import { TraitIcon, SLOT_COLOR_CLASSES, getTraitTooltipContent } from '../utils/traitIcons';
@@ -133,7 +133,7 @@ const TotemStatsPanel: React.FC<TotemStatsPanelProps> = ({ attributes, traits, o
                             </div>
                         </div>
                     </Tooltip>
-                    <Tooltip content="Hunger drops ~1 per hour and is restored by feeding (+30). Below 40 training gets your totem twice as unhappy; below 20 it's too hungry to train at all." position="top">
+                    <Tooltip content={`Hunger drops ~1 per hour and is restored by feeding (+30). Below ${HUNGER_HAPPINESS_PENALTY_BELOW} training gets your totem twice as unhappy; below ${HUNGER_TRAIN_MIN} it's too hungry to train at all.`} position="top">
                         <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center gap-3 cursor-help">
                             <div className={`p-1.5 rounded-md ${isHungry ? 'bg-red-100 dark:bg-red-900/30' : 'bg-orange-100 dark:bg-orange-900/30'}`}>
                                 <Drumstick size={16} className={isHungry ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'} />

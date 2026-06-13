@@ -7,6 +7,7 @@ import {
   Compass,
   Star,
   Swords,
+  Crown,
   Map as MapIcon
 } from "lucide-react";
 
@@ -135,6 +136,11 @@ export const codexNavItems: NavItemType[] = [
     title: "Expeditions",
     icon: <MapIcon size={18} />,
     path: "/guides/codex/expeditions",
+  },
+  {
+    title: "Sanctum",
+    icon: <Crown size={18} />,
+    path: "/guides/codex/sanctum",
   },
   {
     title: "Runes",

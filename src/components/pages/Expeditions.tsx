@@ -33,7 +33,7 @@ const durations = [
 
 const Expeditions: React.FC = () => {
     // Web2: No provider needed - use REST API
-    const { isSignedUp, totems, essenceBalance } = useUser();
+    const { isSignedUp, totems } = useUser();
     const { expeditionState, refreshExpeditions, startExpedition, claimExpeditionRewards } = useGame();
     const { refreshAchievements } = useAchievements();
     
@@ -60,13 +60,7 @@ const Expeditions: React.FC = () => {
 
         if (!expedition) return false;
 
-        // Check Essence balance
-        const requiredTokens = Number(expedition.essenceCost);
-        const userBalance = Number(essenceBalance);
-
-        if (userBalance < requiredTokens) return false;
-
-        // Check if user has 3 eligible totems
+        // No Essence cost — expeditions need 3 eligible totems (happiness is checked on start)
         return totems.length >= 3;
     };
 
@@ -213,9 +207,9 @@ const Expeditions: React.FC = () => {
                             domainName={expedition.domainName}
                             duration={expedition.duration}
                             durationHours={expedition.durationHours}
-                            essenceCost={expedition.essenceCost}
                             happinessCost={expedition.happinessCost}
                             baseExperience={expedition.baseExperience}
+                            baseEssence={expedition.baseEssence}
                             primaryAffinity={Affinity[expedition.primaryAffinity as keyof typeof Affinity]}
                             runeDropChances={expedition.runeDropChances as [number, number, number]}
                             enabled={expedition.enabled}

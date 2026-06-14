@@ -4,11 +4,11 @@ import { useUser } from "../../contexts/UserContext";
 import { useGame } from "../../contexts/GameContext";
 import { X, MapPin, Heart, AlertCircle, Zap, Sparkles } from "lucide-react";
 import { Domain } from "../../types/types";
-import { formatTokenAmount, formatHoursDuration } from "../../utils/formats";
+import { formatHoursDuration } from "../../utils/formats";
 import { getRarityBorderColor, getTotemStage } from "../../utils/totems";
 import { isAvailableForExpedition, isAvailableForAction, getBusyReason } from "../../utils/totem-availability";
 import expeditions from "../data/expeditions.json";
-import { IPFS_GATEWAY_URL, CURRENCY_NAMES } from "../../config/constants";
+import { IPFS_GATEWAY_URL } from "../../config/constants";
 
 interface ExpeditionSelectionDialogProps {
   isOpen: boolean;
@@ -23,7 +23,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
   expeditionId,
   onStart,
 }) => {
-  const { totems, essenceBalance } = useUser();
+  const { totems } = useUser();
   const { expeditionState } = useGame();
   const [selectedTotems, setSelectedTotems] = useState<string[]>([]);
   const [captain, setCaptain] = useState<string | null>(null);
@@ -207,14 +207,6 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
     return totemDomain === requiredDomain;
   };
 
-  // Check if user can afford the expedition
-  const canAffordExpedition = () => {
-    const cost = Number(expedition.essenceCost);
-    const balance = Number(essenceBalance);
-
-    return balance >= cost;
-  };
-
   // Handle totem selection
   const toggleTotemSelection = (totemId: string) => {
     if (selectedTotems.includes(totemId)) {
@@ -253,7 +245,6 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
 
   // Check if expedition can be started
   const canStartExpedition = () => {
-    if (!canAffordExpedition()) return false;
     if (selectedTotems.length !== 3) return false;
     if (!captain || !hasMatchingDomain(captain)) return false;
 
@@ -456,7 +447,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
 
               {/* Totem Selection List */}
               <div className="mb-3">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 min-h-[14rem] max-h-[44vh] overflow-y-auto overscroll-contain p-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+                <div className="grid grid-cols-2 md:grid-cols-3 content-start items-start gap-2 sm:gap-3 min-h-[14rem] max-h-[44vh] overflow-y-auto overscroll-contain p-1" style={{ WebkitOverflowScrolling: 'touch' }}>
                 {filteredTotems.length > 0 ? (
                     filteredTotems.map((totem) => {
                     const isSelected = selectedTotems.includes(totem.id);
@@ -636,7 +627,7 @@ const ExpeditionSelectionDialog: React.FC<ExpeditionSelectionDialogProps> = ({
                   >
                     {isSubmitting
                       ? "Starting..."
-                      : `Start Expedition (${formatTokenAmount(expedition.essenceCost)} ${CURRENCY_NAMES.SOFT})`}
+                      : "Start Expedition"}
                   </button>
                 </div>
               </div>

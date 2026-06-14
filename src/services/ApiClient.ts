@@ -681,9 +681,9 @@ class ApiClient {
         name: string;
         domain: string;
         duration: number;
-        essenceCost: number;
         happinessCost: number;
         baseExperience: number;
+        baseEssence: number;
         affinityWeights: [number, number, number];
         runeDropChances: [number, number, number];
         enabled: boolean;
@@ -724,7 +724,6 @@ class ApiClient {
         name: string;
         endTime: string;
         endsAt: string;
-        essenceCost: number;
         happinessCost: number;
         totemId: string;
       };

@@ -19,6 +19,7 @@ const ExpeditionEffectManager: React.FC = () => {
     <ExpeditionRewardsEffect
       expeditionName={expeditionName}
       experienceGained={activeExpeditionEffect.experienceGained}
+      essenceGained={activeExpeditionEffect.essenceGained}
       runesGained={activeExpeditionEffect.runesGained}
       score={activeExpeditionEffect.score}
       onComplete={hideExpeditionEffect}

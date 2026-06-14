@@ -1,9 +1,8 @@
 import React from 'react';
-import { Clock, Heart, ArrowRight, Sparkles } from 'lucide-react';
+import { Clock, Heart, ArrowRight, Sparkles, GaugeCircle } from 'lucide-react';
 import { formatTokenAmount, formatHoursDuration } from '../../utils/formats';
-import { getDomainColor, getTotemAffinityIcon } from '../../utils/totems';
+import { getDomainColor, getTotemAffinityIcon, getTotemDomainIcon } from '../../utils/totems';
 import { Affinity } from '../../types/types';
-import { CURRENCY_NAMES } from '../../config/constants';
 
 interface ExpeditionPanelCompactProps {
     id: string;
@@ -14,7 +13,6 @@ interface ExpeditionPanelCompactProps {
     domainName: string;
     duration: number;
     durationHours: number;
-    essenceCost: number;
     happinessCost: number;
     baseExperience: number;
     baseEssence?: number;
@@ -35,10 +33,9 @@ const ExpeditionPanelCompact: React.FC<ExpeditionPanelCompactProps> = ({
     domainName,
     duration: _duration,
     durationHours,
-    essenceCost,
     happinessCost,
     baseExperience,
-    baseEssence: _baseEssence,
+    baseEssence,
     primaryAffinity,
     runeDropChances,
     enabled,
@@ -67,9 +64,11 @@ const ExpeditionPanelCompact: React.FC<ExpeditionPanelCompactProps> = ({
                     <div className="flex justify-between items-start gap-2">
                         <h3 className="text-base sm:text-lg font-bold text-white leading-tight">{name}</h3>
                         <div className={`
+                            flex items-center gap-1
                             px-2 py-0.5 rounded text-xs font-semibold shadow-md shrink-0
                             ${getDomainColor(domain)}
                         `}>
+                            {getTotemDomainIcon(domainName)}
                             {domainName}
                         </div>
                     </div>
@@ -95,9 +94,17 @@ const ExpeditionPanelCompact: React.FC<ExpeditionPanelCompactProps> = ({
             <div className="px-3 py-2 flex-1 flex flex-col">
                 {/* XP + Rune Drops row */}
                 <div className="flex items-center justify-between text-sm mb-2">
-                    <div className="flex items-center gap-1">
-                        <Sparkles className="w-4 h-4 text-emerald-500" />
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">{baseExperience} XP</span>
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                            <GaugeCircle className="w-4 h-4 text-emerald-500" />
+                            <span className="font-semibold text-emerald-600 dark:text-emerald-400">{baseExperience} XP</span>
+                        </div>
+                        {baseEssence != null && baseEssence > 0 && (
+                            <div className="flex items-center gap-1">
+                                <Sparkles className="w-4 h-4 text-yellow-500" />
+                                <span className="font-semibold text-yellow-600 dark:text-yellow-400">+{formatTokenAmount(baseEssence)}</span>
+                            </div>
+                        )}
                     </div>
                     <div className="flex flex-nowrap items-center gap-1">
                         {runeDropChances[0] > 0 && (
@@ -125,11 +132,7 @@ const ExpeditionPanelCompact: React.FC<ExpeditionPanelCompactProps> = ({
 
                 {/* Costs row */}
                 <div className="flex items-center gap-3 text-sm border-t border-gray-200 dark:border-gray-700 pt-2 mb-3">
-                    <div className="flex items-center gap-1">
-                        <Sparkles className="w-4 h-4 text-yellow-500" />
-                        <span className="text-gray-600 dark:text-gray-400 text-xs">{CURRENCY_NAMES.SOFT}:</span>
-                        <span className="font-semibold text-yellow-600 dark:text-yellow-400">-{formatTokenAmount(essenceCost)}</span>
-                    </div>
+                    <span className="text-gray-600 dark:text-gray-400 text-xs">Cost:</span>
                     <div className="flex items-center gap-1">
                         <Heart className="w-4 h-4 text-pink-500 fill-pink-500" />
                         <span className="font-semibold text-pink-600 dark:text-pink-400">-{happinessCost}</span>

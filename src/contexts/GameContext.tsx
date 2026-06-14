@@ -1197,6 +1197,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setActiveExpeditionEffect({
               expeditionId,
               experienceGained: rewards.experience,
+              essenceGained: rewards.essence,
               runesGained: rewards.runes || { lesser: 0, greater: 0, ancient: 0 },
               score: scoreValue,
             });

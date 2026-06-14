@@ -301,11 +301,11 @@ describe('ExpeditionSelectionDialog', () => {
     expect(startBtn).toBeDisabled();
   });
 
-  it('start button shows cost', () => {
+  it('start button has no Essence cost (happiness-gated only)', () => {
     render(<ExpeditionSelectionDialog {...defaultProps} />);
     const startBtn = screen.getByRole('button', { name: /Start Expedition/i });
-    expect(startBtn.textContent).toContain('2');
-    expect(startBtn.textContent).toContain('Essence');
+    expect(startBtn.textContent).toBe('Start Expedition');
+    expect(startBtn.textContent).not.toContain('Essence');
   });
 
   it('calls onStart with captain first when expedition starts', async () => {

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Clock, CheckCircle, Droplets, Sparkles, Users, Loader2, Gift } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
-import { getDomainColor, getRarityBorderColor } from "../../utils/totems";
+import { getDomainColor, getRarityBorderColor, getTotemDomainIcon } from "../../utils/totems";
 import CountdownTimer from '../CountdownTimer';
 import { IPFS_GATEWAY_URL } from '../../config/constants';
 
@@ -115,9 +115,11 @@ const ActiveExpeditionPanel: React.FC<ActiveExpeditionPanelProps> = ({
                             {isComplete ? 'Complete' : 'In Progress'}
                         </div>
                         <div className={`
+                            flex items-center gap-1
                             px-2 py-1 rounded-lg text-sm font-semibold shadow-md
                             ${getDomainColor(expeditionConfig.domain)}
                         `}>
+                            {getTotemDomainIcon(expeditionConfig.domainName)}
                             {expeditionConfig.domainName}
                         </div>
                     </div>

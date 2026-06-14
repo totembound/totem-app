@@ -1,5 +1,5 @@
 import React from "react";
-import { Clock, Sparkles, Gem, Heart, Star } from "lucide-react";
+import { Clock, Sparkles, Heart, Star } from "lucide-react";
 import CodexSidebar from "./CodexSidebar";
 import { getDomainColor, getTotemDomainIcon } from "../../../utils/totems";
 import { Domain } from "../../../types/types";
@@ -66,8 +66,8 @@ const ExpeditionCard: React.FC<{ data: Expedition }> = ({ data }) => {
         </div>
 
         <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200/70 dark:border-gray-700 pt-2.5">
-          <span className="inline-flex items-center gap-1" title="Essence cost">
-            <Gem size={13} /> {data.essenceCost}
+          <span className="inline-flex items-center gap-1 text-yellow-600 dark:text-yellow-400" title="Essence reward">
+            <Sparkles size={13} /> +{data.baseEssence}
           </span>
           <span className="inline-flex items-center gap-1" title="Happiness cost">
             <Heart size={13} /> -{data.happinessCost}

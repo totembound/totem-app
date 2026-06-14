@@ -90,11 +90,11 @@ export const ERAS: Era[] = [
 
 export const DOMAIN_LORE: DomainLore[] = [
   {
-    domain: Domain.Water,
-    name: 'Water',
+    domain: Domain.Air,
+    name: 'Air',
     state: 'Bound',
-    flavor: 'Memory, change, and the currents of fate. Water remembers what stone forgets.',
-    species: ['Goose', 'Otter', 'Beaver', 'Turtle'],
+    flavor: 'Sight, voice, and the distances between. Air is how the world speaks to itself.',
+    species: ['Falcon', 'Woodpecker', 'Raven', 'Owl'],
   },
   {
     domain: Domain.Earth,
@@ -104,11 +104,11 @@ export const DOMAIN_LORE: DomainLore[] = [
     species: ['Wolf', 'Deer', 'Bear', 'Snake'],
   },
   {
-    domain: Domain.Air,
-    name: 'Air',
+    domain: Domain.Water,
+    name: 'Water',
     state: 'Bound',
-    flavor: 'Sight, voice, and the distances between. Air is how the world speaks to itself.',
-    species: ['Falcon', 'Woodpecker', 'Raven', 'Owl'],
+    flavor: 'Memory, change, and the currents of fate. Water remembers what stone forgets.',
+    species: ['Goose', 'Otter', 'Beaver', 'Turtle'],
   },
   {
     domain: Domain.Fire,

@@ -110,7 +110,7 @@ const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
                     <div className="flex justify-between items-center">
                         <div className="flex items-center">
                             <GaugeCircle className="w-5 h-5 text-emerald-500 mr-2" />
-                            <span className="text-sm text-gray-600 dark:text-gray-400">Experience / Totem:</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Experience:</span>
                         </div>
                         <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                             {baseExperience} XP
@@ -120,7 +120,7 @@ const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
                         <div className="flex justify-between items-center">
                             <div className="flex items-center">
                                 <Sparkles className="w-5 h-5 text-yellow-500 mr-2" />
-                                <span className="text-sm text-gray-600 dark:text-gray-400">{CURRENCY_NAMES.SOFT} / Team:</span>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">{CURRENCY_NAMES.SOFT}:</span>
                             </div>
                             <span className="font-semibold text-yellow-600 dark:text-yellow-400">
                                 +{formatTokenAmount(baseEssence)}
@@ -130,7 +130,7 @@ const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
                     <div className="flex justify-between items-center">
                         <div className="flex items-center">
                             <Droplets className="w-5 h-5 text-blue-500 mr-2" />
-                            <span className="text-sm text-gray-600 dark:text-gray-400">Runes / Team:</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Runes:</span>
                         </div>
                         <div className="flex flex-nowrap items-center gap-1">
                             {runeDropChances[0] > 0 && (
@@ -160,7 +160,7 @@ const ExpeditionPanel: React.FC<ExpeditionPanelProps> = ({
                 {/* Costs */}
                 <div className="space-y-2 mb-4">
                     <div className="text-sm text-gray-500 dark:text-gray-300 font-medium">
-                        Cost / Totem
+                        Cost
                     </div>
                     <div className="flex justify-between items-center">
                         <div className="flex items-center">

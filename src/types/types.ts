@@ -535,9 +535,9 @@ export interface ExpeditionConfig {
     name: string;
     domain: Domain;
     duration: number;
-    essenceCost: number;
     happinessCost: number;
     baseExperience: number;
+    baseEssence: number;
     affinityWeights: [number, number, number];
     runeDropChances: [number, number, number];
     minStage: number;
@@ -563,6 +563,7 @@ export interface ExpeditionState {
 export interface ExpeditionRewardsData {
     expeditionId: string;
     experienceGained: number;
+    essenceGained: number;
     runesGained: {
       lesser: number;
       greater: number;

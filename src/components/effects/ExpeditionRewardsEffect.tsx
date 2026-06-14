@@ -5,6 +5,7 @@ import { RuneIcon } from '../RunesDisplay';
 interface ExpeditionRewardsEffectProps {
   expeditionName: string;
   experienceGained: number;
+  essenceGained: number;
   runesGained: {
     lesser: number;
     greater: number;
@@ -17,6 +18,7 @@ interface ExpeditionRewardsEffectProps {
 const ExpeditionRewardsEffect: React.FC<ExpeditionRewardsEffectProps> = ({
   expeditionName,
   experienceGained,
+  essenceGained,
   runesGained,
   score,
   onComplete
@@ -93,13 +95,23 @@ const ExpeditionRewardsEffect: React.FC<ExpeditionRewardsEffectProps> = ({
               <div className="flex justify-center mb-2">
                 <Award className="w-8 h-8 text-green-500" />
               </div>
-              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Experience</h3>
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Experience / Totem</h3>
               <p className="text-xl font-bold text-green-600 dark:text-green-400">
                 +{experienceGained} XP
               </p>
             </div>
 
-            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 text-center">
+              <div className="flex justify-center mb-2">
+                <Sparkles className="w-8 h-8 text-yellow-500" />
+              </div>
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">Essence / Team</h3>
+              <p className="text-xl font-bold text-yellow-600 dark:text-yellow-400">
+                +{essenceGained}
+              </p>
+            </div>
+
+            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 col-span-2">
               <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 text-center mb-2">Runes Gained</h3>
               
               {totalRunes > 0 ? (

@@ -43,7 +43,7 @@ export const owlData: SpeciesConfig = {
         "An elder brown owl at its final stage, representing immense wisdom and power."
       ],
       "images": [
-        "bafybeigfgc4vx5eyscrea3dnuaueaudgt62nm5tiuoyfpwtq6gcyfh7ygq",
+        "bafybeigipgkw7rsczqa4gf2ql2l52dgkaozmeltijoh2zf7ho4v6j5zv7u",
         "bafybeigd5bvk6gf4whlfdmqwmn2gcp52xnpzuloencua6cdonkhlcqxumu",
         "bafybeiddyh52wkcqikswa7ngv4mbg5jtztpwgzvdv3eg5zpgbtjtstluh4",
         "bafybeialepkzppvqe7tea73mp4rqqm7zp2jtdb6yqhequyq3gdjtme455u",
@@ -69,7 +69,7 @@ export const owlData: SpeciesConfig = {
         "An elder gray owl at its final stage, representing immense wisdom and power."
       ],
       "images": [
-        "bafybeidv6ljexvta5c3lfe4bnoejzfrs5eagjagozcvv7qabqbqf36piaa",
+        "bafybeiagzp2vhnizfsryzknaabd7tn6pofu5nibtilg7ua5bsa55y3uvwa",
         "bafybeie3eocycuarllo3d6k4uxl5sw4ijufgv6afqufov4rtlhtpkofxmm",
         "bafybeiavtzemgmydf6mqfkqxzrgtljr2u6fmux7pl6bob5rxfoxmzxw2mu",
         "bafybeig43ykhdybplmfatsfqfcci7uqkzoxe3fiuh7w3oldjm7w4grzroi",
@@ -95,7 +95,7 @@ export const owlData: SpeciesConfig = {
         "An elder white owl at its final stage, representing immense wisdom and power."
       ],
       "images": [
-        "bafybeifeh24awti6wmaqvbfdywk2h23ujqikz2sfokdpaf5pcj7ikb7x4u",
+        "bafybeiafwz5ygpk4byjpldzoefhto663jzlel4eukpclfaczwnnnwvnmzy",
         "bafybeibbllkqg7td2px7ouywgynham7y5rzg6t6agd3bt6weclofww6x4y",
         "bafybeiao5wzxetmyrmdqthmnlxm25qza7glzieug7f4lgvkbvq6qwn2n2a",
         "bafybeigrq74qw3egjnn57scsid5bffpmb2j2byjvzpbwep4yqo6qrqjvcq",
@@ -121,7 +121,7 @@ export const owlData: SpeciesConfig = {
         "An elder tawny owl at its final stage, representing immense wisdom and power."
       ],
       "images": [
-        "bafybeiateagilpyw5yyg3yevxmdq72v26f7h3mupxekvzh6hotszdsq64m",
+        "bafybeiedpt3ozjgrignsnnwfofer5hpkuaixml26vpyea3r2m6rhs5bizi",
         "bafybeie57kuqvorer4lkh5ip45jzavqdnklxl36miwe7b27f7kqcpf4fh4",
         "bafybeibvdgxs4sg2ozhf3ugy2lbkzhpcp6lgy5l52ftasab3qsau5ye4la",
         "bafybeidqr6nbdxsutxnmtsuabxkmy6upcbsredikmd4ud3rrggcinvnuvi",
@@ -147,7 +147,7 @@ export const owlData: SpeciesConfig = {
         "A wise and enigmatic slate owl, its feathers now shimmer with the wisdom of forgotten paths."
       ],
       "images": [
-        "bafybeid2ktyewbyvm7nbcxfrfqc5p3ihs5tevu4odlcsiej2yzbx5rrnze",
+        "bafybeif7hiasn2rllzms576mksv5aarrxkshrwr2rmi5qr4zybiz6ywcye",
         "bafybeihimhdul7pvei6zr465cmsauzzhnwwsbc33d6tnz6k2jxu2obdpfe",
         "bafybeievao5767d2g4jsmcg2nl56owes5gu3v2pvfc7glne5abl2j7sc4e",
         "bafybeigg3x63ji3xivqf7ac3zjptaeptncmllpe3fw76xp7fcrc4jo2p7y",
@@ -173,7 +173,7 @@ export const owlData: SpeciesConfig = {
         "A wise and enigmatic copper owl, its feathers now shimmer with the wisdom of forgotten paths."
       ],
       "images": [
-        "bafybeihgb5odb2bdl5tmgopznxyv73smdkvsc36ds5u3kxamh7x22hxd5q",
+        "bafybeibl2mbrg4j2vi62cqjkcrqonkgo3p37vo2emv3vxnwa4ingvjpgd4",
         "bafybeibfhu54nwsmdj4soagtzquywf26c32b3zb3i6otazupdsn2a6nf2a",
         "bafybeiesvov2phpshrlyk4opb7jewujy73qadezri5lgxlyvf2wk3o56qm",
         "bafybeice4fhcfvhsomgrjkocsaky4sx73b4dgmebuulr6tglwank3k6inm",
@@ -199,7 +199,7 @@ export const owlData: SpeciesConfig = {
         "A wise and enigmatic cream owl, its feathers now shimmer with the wisdom of forgotten paths."
       ],
       "images": [
-        "bafybeidezkybbl5njj36aidtrznttjhaojvfvncgxbi3cngur7nxxy2634",
+        "bafybeiherhcntdqsvdjjb6wjlbnlgnwxo3r6zzjpzxcspfykbh4mxc6slq",
         "bafybeic5dgyp447rf4726ti3sfhpy5piwnaswx54medpzwp4lygv3zcwj4",
         "bafybeia2mzhuhwnenx3zel6kgkfzcltiwdhfxeqq5crsddmmshpuhvaaii",
         "bafybeigl33l7yp4nfh5iuck2vxr3dclqgldrg2se545iunqwurae4atqua",
@@ -225,7 +225,7 @@ export const owlData: SpeciesConfig = {
         "A wise and enigmatic dappled owl, its feathers now shimmer with the wisdom of forgotten paths."
       ],
       "images": [
-        "bafybeifdd6pwprezc5qlnikusermhkapuhouch3y4higurzgwstmxdczqu",
+        "bafybeiat5z7uyhhfyt2rzccn7lwbpbke55tf2qmsjqjgqwnu6dtasdcyam",
         "bafybeigz2kn6nygb52u4iqcqkhqsydcuw36gr36ythacustrylkn53gqpy",
         "bafybeih2knly52h6zrc5oyy22d2j6k5xzybbz5ab4mxdrzdds2xfhj3wcy",
         "bafybeidpk47f4vo3rw5jhush73w542doj25ckfzwxkqzljm52n4zdov2ri",
@@ -329,7 +329,7 @@ export const owlData: SpeciesConfig = {
         "A luminous being of nature’s purest essence, a spirit that weaves the threads of life itself."
       ],
       "images": [
-        "bafybeibqbvpvboudjl5eo45ydrougkuh2astuimzqukao5pouchcurk2na",
+        "bafybeiholh4lqqvallbsjxecxb6lzbsnsybuyljfwurhf5sauepe2j62ca",
         "bafybeiaxp5cafja27nchwhynzits2ukplh5po5eqoypp5cowry2gdjpmz4",
         "bafybeiabco42o7pinmrcchsn37tqotlhfjkpwfkymngotw4ykn53lmccli",
         "bafybeih4xn4kucrx2uctk7kudidkfzqobl34wm4ixya7v252bdczx3obeu",
@@ -355,7 +355,7 @@ export const owlData: SpeciesConfig = {
         "A legend incarnate, wreathed in ethereal flame, untouchable and eternal, a being of raw power."
       ],
       "images": [
-        "bafybeid35zmyk3lv3tlj6n57nsthqqftqdtuxlxbtrfnn2fhyuiyyyj3hu",
+        "bafybeihsysju7fsvmh7hhwq6fe7pgsnihqjxsvctsgmi6euu6q7maxoxcm",
         "bafybeidyrqfgnprwqfizkrndnhkair2shzehvgm5g6pomj5oaunkxmes5u",
         "bafybeibuiqk6mbnk73evllkcia5wikilsur2sl7gj5f3qv6t3ttqy67tqa",
         "bafybeidy2sa4wju5sksra2xxlxde5vr7zbaude5g5qpjnfyz7xaco4orx4",
@@ -381,7 +381,7 @@ export const owlData: SpeciesConfig = {
         "An ethereal figure, one with the tides of time, its presence shifting between the realms of sky and sea."
       ],
       "images": [
-        "bafybeif3xqsjwq6ucm44tvjsaapc7urpx6afyrmvyyqjz5skoh6qpbw54m",
+        "bafybeifnsmw4la5mxwbm2fgy2try5twmbochtyud3rlfh2r2do6oqhqmaa",
         "bafybeifn2i4du7k5v2jn2s6pebwzzjvcb56c3oavjhqor2pjfbj6srxvju",
         "bafybeihngixknjetypnhoul5cjito63bfkydg7ctamu2jfsjrqrtw6b6qy",
         "bafybeiftm4rpx6xzrz7soysuaocfu4mzebgrg74wwodfmjorn4u6vuny7u",

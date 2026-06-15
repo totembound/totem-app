@@ -1,6 +1,18 @@
 {
     "items": [
       {
+        "id": "12",
+        "title": "TotemBound v1.0 Is Live!",
+        "emoji": "🎉",
+        "content": "It's official — TotemBound has launched. Raise, train, and evolve 12 mystical species across five stages, master 12 challenges and daily quests, run expeditions, seat elders in the Sanctum, and shape every totem with 30 unique traits. The full game is here — no download, play free in your browser. Tip: add it to your home screen and it plays just like an app — full-screen, one tap, no app store needed.",
+        "date": "2026-06-14 00:00:00",
+        "cta": {
+          "text": "Start Playing",
+          "link": "/signup",
+          "external": false
+        }
+      },
+      {
         "id": "11",
         "title": "Final Testing Before v1.0",
         "emoji": "🚀",
@@ -32,7 +44,7 @@
         "date": "2026-05-28 00:00:00",
         "cta": {
           "text": "View Your Totems",
-          "link": "/gallery",
+          "link": "/totems",
           "external": false
         }
       },

@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "tiers": [
+    { "tier": 0, "name": "Novice",   "minCompletions": 0,   "xpMult": 1.0 },
+    { "tier": 1, "name": "Bronze",   "minCompletions": 10,  "xpMult": 1.25 },
+    { "tier": 2, "name": "Silver",   "minCompletions": 30,  "xpMult": 1.5 },
+    { "tier": 3, "name": "Gold",     "minCompletions": 75,  "xpMult": 2.0 },
+    { "tier": 4, "name": "Platinum", "minCompletions": 150, "xpMult": 2.5 },
+    { "tier": 5, "name": "Diamond",  "minCompletions": 300, "xpMult": 3.0 }
+  ],
+  "tierUpBonus": {
+    "1": { "lootBoxId": null, "xp": 100 },
+    "2": { "lootBoxId": "essence_box_small", "xp": 250 },
+    "3": { "lootBoxId": "essence_box_small", "xp": 500 },
+    "4": { "lootBoxId": "essence_box_large", "xp": 1000 },
+    "5": { "lootBoxId": "essence_box_large", "xp": 2000 }
+  },
+  "raiseTier": 3,
+  "maxDifficulty": 3,
+  "essenceXpScalingEnabled": false,
+  "minMasteryScorePct": 0
+}

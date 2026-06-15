@@ -1,0 +1,136 @@
+{
+    "items": [
+      {
+        "id": "12",
+        "title": "TotemBound v1.0 Is Live!",
+        "emoji": "🎉",
+        "content": "It's official — TotemBound has launched. Raise, train, and evolve 12 mystical species across five stages, master 12 challenges and daily quests, run expeditions, seat elders in the Sanctum, and shape every totem with 30 unique traits. The full game is here — no download, play free in your browser. Tip: add it to your home screen and it plays just like an app — full-screen, one tap, no app store needed.",
+        "date": "2026-06-14 00:00:00",
+        "cta": {
+          "text": "Start Playing",
+          "link": "/signup",
+          "external": false
+        }
+      },
+      {
+        "id": "11",
+        "title": "Final Testing Before v1.0",
+        "emoji": "🚀",
+        "content": "TotemBound is now in final testing ahead of our v1.0 launch. We're polishing the last details and squashing bugs — see what's landed and what's still ahead on the roadmap.",
+        "date": "2026-06-07 00:00:00",
+        "cta": {
+          "text": "View Roadmap",
+          "link": "/roadmap",
+          "external": false
+        }
+      },
+      {
+        "id": "9",
+        "title": "All 12 Mystical Species Now Available",
+        "emoji": "🦅",
+        "content": "Raven and Snake have arrived — the full menagerie of 12 mystical species is now ready to raise. Hatch the complete roster across all five stages and rarities.",
+        "date": "2026-06-06 00:00:00",
+        "cta": {
+          "text": "Browse Species",
+          "link": "/shop",
+          "external": false
+        }
+      },
+      {
+        "id": "10",
+        "title": "Traits Shape Every Totem",
+        "emoji": "✨",
+        "content": "Every totem now carries up to three traits — one at birth, one chosen as it matures, one unlocked at ascension. Each has a real effect that changes how it performs in challenges, expeditions, and daily care.",
+        "date": "2026-05-28 00:00:00",
+        "cta": {
+          "text": "View Your Totems",
+          "link": "/totems",
+          "external": false
+        }
+      },
+      {
+        "id": "8",
+        "title": "Daily Quests Are Here",
+        "emoji": "📜",
+        "content": "Five themed quest slots refresh every day — feed, train, challenge, or expedition. Finish them all to unlock a bonus pile of Essence plus a random Rune.",
+        "date": "2026-05-16 00:00:00",
+        "cta": {
+          "text": "View Daily Quests",
+          "link": "/rewards",
+          "external": false
+        }
+      },
+      {
+        "id": "7",
+        "title": "Keeper's Village Hub Opens",
+        "emoji": "🏛️",
+        "content": "A panoramic spirit village is now your home base. Tap any building to enter — Sanctuary, Bazaar, Shrine, Forge, Elder Tower, Library, Hall of Legends, Arena, Trailhead, Hearthstone — all reachable from one immersive view.",
+        "date": "2026-05-13 00:00:00",
+        "cta": {
+          "text": "Visit the Village",
+          "link": "/keepers-village",
+          "external": false
+        }
+      },
+      {
+        "id": "5",
+        "title": "Elder Sanctum & Totem Forge Are Live",
+        "emoji": "🏛️",
+        "content": "Seat your Stage 4+ totems in the Elder Sanctum for passive Essence and solo advisory missions. Fuse three same-rarity totems in the Forge to ascend to the next tier — Pure or Wild Fusion modes available.",
+        "date": "2026-03-26 00:00:00",
+        "cta": {
+          "text": "Visit the Sanctum",
+          "link": "/sanctum",
+          "external": false
+        }
+      },
+      {
+        "id": "4",
+        "title": "Expeditions & Challenges Are Live!",
+        "emoji": "⚔️",
+        "content": "Send 3-totem teams on 15 expeditions across Earth, Water & Air domains. Tackle 10 skill-based challenge mini-games to earn XP, happiness, and Essence rewards.",
+        "date": "2026-02-10 00:00:00",
+        "cta": {
+          "text": "Start an Expedition",
+          "link": "/expeditions",
+          "external": false
+        }
+      },
+      {
+        "id": "3",
+        "title": "Guided Tutorial & Achievement System",
+        "emoji": "🎓",
+        "content": "New players can follow a 6-step guided tutorial with reward claims at each milestone. Plus, track your progress across 25+ achievements as you grow your collection.",
+        "date": "2026-01-20 00:00:00",
+        "cta": {
+          "text": "Check Achievements",
+          "link": "/achievements",
+          "external": false
+        }
+      },
+      {
+        "id": "2",
+        "title": "Join Our Discord Community",
+        "emoji": "💬",
+        "content": "Connect with other Totem Keepers, get tips, and participate in exclusive events!",
+        "date": "2026-01-06 00:00:00",
+        "cta": {
+          "text": "Join Discord",
+          "link": "https://discord.gg/MhKQC5E6xe",
+          "external": true
+        }
+      },
+      {
+        "id": "1",
+        "title": "Welcome to TotemBound Beta!",
+        "emoji": "🎉",
+        "content": "Explore the world of spiritual companions and start your journey as a Totem Keeper. Raise, train, and evolve 12 mystical species across 5 stages.",
+        "date": "2026-01-06 00:00:00",
+        "cta": {
+          "text": "Learn More",
+          "link": "/about",
+          "external": false
+        }
+      }
+    ]
+  }

@@ -1,0 +1,166 @@
+{
+    "bundles": {
+        "common": {
+          "bundleId": 0,
+          "name": "New Player Bundle",
+          "cta": "Starter",
+          "description": "500 {{SOFT_CURRENCY}} and a mysterious uncommon totem!",
+          "price": 500,
+          "priceUsd": "$5",
+          "tokenAmount": 500,
+          "dailyLimit": 1
+        },
+        "rare": {
+          "bundleId": 1,
+          "name": "Daily Rare Special",
+          "cta": "Popular",
+          "description": "750 {{SOFT_CURRENCY}} and guaranteed rare totem!",
+          "price": 1000,
+          "priceUsd": "$10",
+          "tokenAmount": 750,
+          "dailyLimit": 1
+        },
+        "epic": {
+          "bundleId": 2,
+          "name": "Daily Epic Special",
+          "cta": "Exclusive",
+          "description": "1,000 {{SOFT_CURRENCY}} and guaranteed epic totem!",
+          "price": 2500,
+          "priceUsd": "$25",
+          "tokenAmount": 1000,
+          "dailyLimit": 1
+        }
+    },
+    "monthlySpecials": [
+      {
+        "id": "january-2025",
+        "bundleId": 3,
+        "name": "Frostbound Goose (Frostbite Blue)",
+        "description": "A spirit of eternal frost, guiding all through the longest nights.",
+        "baseSpecies": "Goose",
+        "price": 5000,
+        "priceUsd": "$50",
+        "tokenAmount": 2000,
+        "dailyLimit": 1,
+        "image": "https://ipfs.totembound.com/ipfs/bafybeidyswpx4qd6q4vu6eqtyqzuc75uh33cczspbvxtq4p2qajjxm6ora",
+        "month": 1
+      },
+      {
+        "id": "february-2025",
+        "bundleId": 3,
+        "name": "Lovewave Otter (Rosy Pink)",
+        "description": "A gentle-hearted otter, spreading warmth and joy.",
+        "baseSpecies": "Otter",
+        "price": 5000,
+        "priceUsd": "$50",
+        "tokenAmount": 2000,
+        "dailyLimit": 1,
+        "image": "https://ipfs.totembound.com/ipfs/bafybeibyigve45wxxu3r22rx2xmnt5fxjusxxbrqxds2d334hkoyge626i",
+        "month": 2
+      },
+      {
+        "id": "march-2025",
+        "bundleId": 3,
+        "name": "Cloverfang Wolf (Verdant Gold)",
+        "description": "A wolf of fortune, blessed by the winds of luck.",
+        "baseSpecies": "Wolf",
+        "price": 5000,
+        "priceUsd": "$50",
+        "tokenAmount": 2000,
+        "dailyLimit": 1,
+        "image": "https://ipfs.totembound.com/ipfs/bafybeieezvdacnrn36zbubevnb67b3pezoumpyepwzoyvlmjqsnosluu7i",
+        "month": 3
+      },
+      {
+        "id": "april-2025",
+        "bundleId": 3,
+        "name": "Thunderstrike Falcon (Raindrop Teal)",
+        "description": "A stormbringer of the spring skies, calling the rain and lightning to its wings.",
+        "baseSpecies": "Falcon",
+        "price": 5000,
+        "priceUsd": "$50",
+        "tokenAmount": 2000,
+        "dailyLimit": 1,
+        "image": "https://ipfs.totembound.com/ipfs/bafybeibskxpmkb4pg4iszesux4t7rpjmx423dfhyilqxtmbecbiy6hydk4",
+        "month": 4
+      },
+      {
+        "id": "may-2025",
+        "bundleId": 3,
+        "name": "Blossomroot Beaver (Floral Violet)",
+        "description": "A divine architect of spring, shaping nature's rebirth.",
+        "baseSpecies": "Beaver",
+        "price": 5000,
+        "priceUsd": "$50",
+        "tokenAmount": 2000,
+        "dailyLimit": 1,
+        "image": "https://ipfs.totembound.com/ipfs/bafybeicz3qwrvy5a5p7d3rmn54ojgwvpmkmdqfcjbtkv5o2riklo4fpxva",
+        "month": 5
+      },
+      {
+        "id": "june-2025",
+        "bundleId": 3,
+        "name": "Solstride Deer (Sunset Orange)",
+        "description": "A solar spirit, forever dancing between dusk and dawn.",
+        "baseSpecies": "Deer",
+        "price": 5000,
+        "priceUsd": "$50",
+        "tokenAmount": 2000,
+        "dailyLimit": 1,
+        "image": "https://ipfs.totembound.com/ipfs/bafybeifocx5phnjridwieygwzjhsnxcw4k67i3y7y3uct3veuwtyybu3ni",
+        "month": 6
+      },
+      {
+        "id": "july-2025",
+        "bundleId": 3,
+        "name": "Blazebeak Woodpecker (Ember Red)",
+        "description": "A legendary fire-spirit, its drumming reignites the heart of the forest.",
+        "baseSpecies": "Woodpecker",
+        "price": 5000,
+        "priceUsd": "$50",
+        "tokenAmount": 2000,
+        "dailyLimit": 1,
+        "image": "https://ipfs.totembound.com/ipfs/bafybeic7w6gew3uvawpqyqhocq64btwulvvyx4y7j6d6jb6zgc4jcbdkoi",
+        "month": 7
+      },
+      {
+        "id": "august-2025",
+        "bundleId": 3,
+        "name": "Tidebound Turtle (Oceanic Azure)",
+        "description": "A legendary force of balance, forever flowing with the oceans' heart.",
+        "baseSpecies": "Turtle",
+        "price": 5000,
+        "priceUsd": "$50",
+        "tokenAmount": 2000,
+        "dailyLimit": 1,
+        "image": "https://ipfs.totembound.com/ipfs/bafybeib4i4vhhabe2toyw6vansdu4v6xgoz6rk6zok7q2nlxr3mdnq4hvu",
+        "month": 8
+      },
+      {
+        "id": "september-2025",
+        "bundleId": 3,
+        "name": "Autumnfang Bear (Harvest Gold)",
+        "description": "A revered spirit of the turning seasons, ensuring the cycle continues.",
+        "baseSpecies": "Bear",
+        "price": 5000,
+        "priceUsd": "$50",
+        "tokenAmount": 2000,
+        "dailyLimit": 1,
+        "image": "https://ipfs.totembound.com/ipfs/bafybeihj6czqap7thwef4sy24k7qbiyu3rwfcib67cydnwmxghzlazezwi",
+        "month": 9
+      },
+      {
+        "id": "december-2025",
+        "bundleId": 3,
+        "name": "Everfrost Owl (Starlit Silver)",
+        "description": "A celestial winter spirit, embodying the magic of the season.",
+        "baseSpecies": "Owl",
+        "price": 5000,
+        "priceUsd": "$50",
+        "tokenAmount": 2000,
+        "dailyLimit": 1,
+        "image": "https://ipfs.totembound.com/ipfs/bafybeia5h3n33pvf47yqinlbphgvbqnb2tckbrcwdv67ewexxfzfpzctai",
+        "month": 12
+      }
+    ]
+}

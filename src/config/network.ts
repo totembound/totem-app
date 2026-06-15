@@ -1,5 +1,5 @@
+// Web2 API configuration
 export const NETWORK_CONFIG = {
-    chainId: process.env.REACT_APP_NETWORK_ID || '31337',
-    name: 'Polygon Amoy',
-    rpcUrl: process.env.REACT_APP_RPC_URL || 'http://localhost:8545',
+    apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:3001',
+    name: 'TotemBound',
 };

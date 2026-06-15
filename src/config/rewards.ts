@@ -1,0 +1,134 @@
+/** Reward definitions (bundled at build time). Source of truth for frontend. */
+
+export interface ProtectionTier {
+    tier: number;
+    cost: number;
+    durationSeconds: number;
+    requiredStreak: number;
+}
+
+export interface RecurringReward {
+    id: string;
+    name: string;
+    description: string;
+    baseAmount: number;
+    intervalSeconds: number;
+    streakBonusPercent: number;
+    maxStreakBonusPercent: number;
+    minStreak: number;
+    allowProtection: boolean;
+    protectionTiers: ProtectionTier[];
+}
+
+export interface TutorialReward {
+    id: string;
+    step: number;
+    name: string;
+    description: string;
+    essenceReward: number;
+    experienceReward: number;
+    requiresTotem: boolean;
+}
+
+export const DAILY_REWARD: RecurringReward = {
+    id: "rwd_daily-login",
+    name: "Daily Login",
+    description: "Claim essence every day and build your streak!",
+    baseAmount: 30,
+    intervalSeconds: 86400,
+    streakBonusPercent: 5,
+    maxStreakBonusPercent: 100,
+    minStreak: 0,
+    allowProtection: true,
+    protectionTiers: [
+        {
+            tier: 0,
+            cost: 50,
+            durationSeconds: 86400,
+            requiredStreak: 7,
+        },
+        {
+            tier: 1,
+            cost: 250,
+            durationSeconds: 604800,
+            requiredStreak: 14,
+        },
+    ],
+};
+
+export const WEEKLY_REWARD: RecurringReward = {
+    id: "rwd_weekly-bonus",
+    name: "Weekly Bonus",
+    description: "Earn bonus essence for consistent weekly participation!",
+    baseAmount: 100,
+    intervalSeconds: 604800,
+    streakBonusPercent: 10,
+    maxStreakBonusPercent: 100,
+    minStreak: 1,
+    allowProtection: true,
+    protectionTiers: [
+        {
+            tier: 0,
+            cost: 500,
+            durationSeconds: 1209600,
+            requiredStreak: 4,
+        },
+    ],
+};
+
+export const TUTORIAL_REWARDS: TutorialReward[] = [
+    {
+        id: "rwd_tutorial-1-signup",
+        step: 1,
+        name: "Claim Your Spiritkeeper Reward",
+        description: "As your journey begins, a small gift awaits. The Ancients honor the brave.",
+        essenceReward: 25,
+        experienceReward: 0,
+        requiresTotem: false,
+    },
+    {
+        id: "rwd_tutorial-2-mint",
+        step: 2,
+        name: "Step into the Spirit World",
+        description: "The veil thins. The Ancients call. But first... a Totem must be chosen.",
+        essenceReward: 50,
+        experienceReward: 100,
+        requiresTotem: true,
+    },
+    {
+        id: "rwd_tutorial-3-care",
+        step: 3,
+        name: "Care for Your Totem",
+        description: "Every Totem hungers, grows, and remembers. Begin the ritual of care.",
+        essenceReward: 20,
+        experienceReward: 150,
+        requiresTotem: true,
+    },
+    {
+        id: "rwd_tutorial-4-challenge",
+        step: 4,
+        name: "Prove Yourself in a Challenge",
+        description: "Test your bond. Step into the Trials and be seen.",
+        essenceReward: 30,
+        experienceReward: 200,
+        requiresTotem: true,
+    },
+    {
+        id: "rwd_tutorial-5-evolve",
+        step: 5,
+        name: "Evolve Your Totem",
+        description: "Only those who journey may grow. Let evolution mark your spirit.",
+        essenceReward: 25,
+        experienceReward: 250,
+        requiresTotem: true,
+    },
+    {
+        id: "rwd_tutorial-6-explore",
+        step: 6,
+        name: "Explore the World",
+        description: "Beyond the veil lies discovery, Codex, Expeditions, and fellow Spiritkeepers await.",
+        essenceReward: 200,
+        experienceReward: 0,
+        requiresTotem: false,
+    },
+];

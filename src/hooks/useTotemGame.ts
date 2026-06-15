@@ -1,240 +1,133 @@
-import { ethers } from 'ethers';
-import { CONTRACT_ADDRESSES, TotemGameContract, TotemNFTContract, TotemTokenContract, createGameContract, createTokenContract, createTotemNFTContract } from '../config/contracts';
-import { useForwarder } from './useForwarder';
+/**
+ * useTotemGame - REST API totem game actions
+ *
+ * After every action, if the response includes an `achievements` array:
+ *   - Toast/notify each unlock via the singleton NotificationService.
+ *   - Patch the AchievementsContext so the Achievements UI updates live
+ *     without an extra GET /api/achievements round-trip.
+ */
+
+import apiClient from '../services/ApiClient';
+import notificationService from '../services/NotificationService';
+import { useAchievements, ActionAchievementUnlock } from '../contexts/AchievementsContext';
 import { useUser } from '../contexts/UserContext';
 
+interface ActionResultWithAchievements {
+    achievements?: ActionAchievementUnlock[];
+    totemId?: string;
+    [key: string]: any;
+}
+
 export const useTotemGame = () => {
-    const { provider, signer, address, isSignedUp } = useUser();
-    const forwarder = useForwarder(provider, signer);
+    const { applyUnlockedAchievements } = useAchievements();
+    const { totems } = useUser();
 
-    const checkTokenApproval = async () => {
-        if (!provider || !address) return false;
+    // Resolve a friendly label like "Dawnfang Phantom" (nickname overrides).
+    const resolveTotemLabel = (totemId?: string): string | undefined => {
+        if (!totemId) return undefined;
+        const t = totems.find(t => t.id === totemId);
+        if (!t) return undefined;
+        return t.attributes?.nickname || t.displayName || t.name;
+    };
 
-        try {
-            const tokenContract = createTokenContract(provider);
-            const allowance = await tokenContract.allowance(address, CONTRACT_ADDRESSES.game);
-            console.log('Token Allowance: ', allowance);
-    
-            return allowance > 0;
+    const handleResult = <T extends ActionResultWithAchievements | undefined>(data: T): T => {
+        if (data?.achievements && data.achievements.length > 0) {
+            const totemLabel = resolveTotemLabel(data.totemId);
+            // Fire-and-forget; notifications are non-critical.
+            notificationService.processAchievementsFromResponse(data.achievements, totemLabel).catch(err => {
+                console.error('Failed to process achievement notifications:', err);
+            });
+            applyUnlockedAchievements(data.achievements);
         }
-        catch (error: any) {
-            console.error('Token Approval failed:', error);
+        return data;
+    };
 
-            if (error.message.includes('user rejected')) {
-                throw new Error('User rejected signature request');
+    /**
+     * Feed a totem - Increases happiness and XP
+     * Uses time windows (3 per day, one per 8-hour window)
+     */
+    const feed = async (totemId: string) => {
+        try {
+            const response = await apiClient.feedTotem(totemId);
+            if (!response.success) {
+                throw new Error(response.error?.message || 'Failed to feed totem');
             }
-            throw new Error('Token Approval failed. Please try again.');
-        }
-     };
-
-    const signup = async () => {
-        if (!provider || !address) throw new Error('Not connected');
-        if (isSignedUp) throw new Error("Already signed up");
-
-        console.log('Starting signup process');
-        console.log('Connected address:', address);
-        console.log('Game contract:', await CONTRACT_ADDRESSES.game);
-
-        console.log('Attempting signup for:', address);
-
-        try {
-            const gameContract = createGameContract(provider);
-            const connectedGame = gameContract.connect(signer) as TotemGameContract;
-            const tx = await connectedGame.signup();
-            console.log('Waiting for transaction:', tx.hash);
-            const receipt = await tx.wait();
-            console.log('Transaction confirmed:', receipt);
-
-            return receipt;
-        }
-        catch (error: any) {
-            console.error('Signup failed:', error);
-
-            if (error.message.includes('user rejected')) {
-                throw new Error('User rejected signature request');
-            }
-            throw new Error('Signup failed. Please try again.');
-        }
-    };
-
-    const approveTokenSpend = async () => {
-        if (!provider || !signer) throw new Error('Not connected');
-
-        const tokenContract = createTokenContract(provider);
-        const connectedToken = tokenContract.connect(signer) as TotemTokenContract;
-
-        const tx = await connectedToken.approve(CONTRACT_ADDRESSES.game, ethers.MaxUint256);
-        console.log('Waiting for transaction:', tx.hash);
-        const receipt = await tx.wait();
-        console.log('Transaction confirmed:', receipt);
-
-        return receipt;
-    };
-
-    // FUTURES: gasless transactions not supported yet
-    const signupGasless = async () => {
-        if (!provider || !address) throw new Error('Not connected');
-        if (isSignedUp) throw new Error("Already signed up");
-
-        console.log('Starting gasless signup process');
-        console.log('Connected address:', address);
-        console.log('Game contract:', await CONTRACT_ADDRESSES.game);
-
-        console.log('Attempting gasless signup for:', address);
-
-        try {
-            // Encode the signup function call
-            const gameContract = createGameContract(provider);
-            const signupData = gameContract.interface.encodeFunctionData('signup', []);
-            console.log('Encoded signup data:', signupData);
-
-            // Create the forward request
-            const request = await forwarder.createRequest(
-                address,
-                CONTRACT_ADDRESSES.game,
-                signupData
-            );
-            
-            // Sign the request
-            const signature = await forwarder.signRequest(request);
-            
-            // Execute through the forwarder
-            console.log('Relaying transaction through forwarder');
-            // Send transaction
-            const tx = await forwarder.relay(request, signature);
-            console.log('Waiting for transaction:', tx.hash);
-            
-            const receipt = await tx.wait();
-            console.log('Transaction confirmed:', receipt);
-
-            return receipt;
-        }
-        catch (error: any) {
-            console.error('Gasless signup failed:', error);
-
-            if (error.message.includes('user rejected')) {
-                throw new Error('User rejected signature request');
-            }
-            throw new Error('Gasless signup failed. Please try again.');
-        }
-    };
-
-    const buyTokens = async (amount: bigint) => {
-        if (!provider || !signer) throw new Error('Not connected');
-        
-        const gameContract = createGameContract(provider);
-        const connectedGame = gameContract.connect(signer) as TotemGameContract;
-        const tx = await connectedGame.buyTokens({ value: amount }) ;
-        console.log('Buy tokens transaction:', tx.hash);
-        return await tx.wait();
-    };
-
-    const purchaseTotem = async (speciesId: number) => {
-        if (!provider || !signer) throw new Error('Not connected');
-        
-        // Check TOTEM balance first
-        const tokenContract = createTokenContract(provider);
-        const balance = await tokenContract.balanceOf(address);
-
-        if (balance < ethers.parseEther('500')) {
-            throw new Error('Insufficient TOTEM balance');
-        }
-
-        // Approve TOTEM spending first
-        //const connectedToken = tokenContract.connect(signer) as TotemTokenContract;
-        //const approveTx = await connectedToken.approve(
-            //CONTRACT_ADDRESSES.game,
-            //ethers.parseEther('500')
-        //);
-        //await approveTx.wait();
-        //console.log('Token approval confirmed');
-
-        // Purchase totem
-        const gameContract = createGameContract(provider);
-        const connectedGame = gameContract.connect(signer) as TotemGameContract;
-        const tx = await connectedGame.purchaseTotem(speciesId);
-        console.log('Purchase totem transaction:', tx.hash);
-        return await tx.wait();
-    };
-
-    const feed = async (tokenId: bigint) => {
-        if (!provider || !signer) throw new Error('Not connected');
-        
-        try {
-            const contract = createGameContract(provider);
-            const connectedContract = contract.connect(signer) as TotemGameContract;
-            const tx = await connectedContract.feed(tokenId);
-            await tx.wait();
-        }
-        catch (error: any) {
+            return handleResult(response.data);
+        } catch (error: any) {
             console.error('Feed failed:', error);
-            throw new Error(error.message.includes('user rejected') 
-                ? 'User rejected transaction' 
-                : 'Failed to feed totem');
+            throw new Error(error.message || 'Failed to feed totem');
         }
     };
 
-    const train = async (tokenId: bigint) => {
-        if (!provider || !signer) throw new Error('Not connected');
-        
+    /**
+     * Train a totem - Increases stats and XP, costs Essence
+     */
+    const train = async (totemId: string) => {
         try {
-            const contract = createGameContract(provider);
-            const connectedContract = contract.connect(signer) as TotemGameContract;
-            const tx = await connectedContract.train(tokenId);
-            await tx.wait();
-        }
-        catch (error: any) {
+            const response = await apiClient.trainTotem(totemId);
+            if (!response.success) {
+                throw new Error(response.error?.message || 'Failed to train totem');
+            }
+            return handleResult(response.data);
+        } catch (error: any) {
             console.error('Train failed:', error);
-            throw new Error(error.message.includes('user rejected') 
-                ? 'User rejected transaction' 
-                : 'Failed to train totem');
+            throw new Error(error.message || 'Failed to train totem');
         }
     };
 
-    const evolve = async (tokenId: bigint) => {
-        if (!provider || !signer) throw new Error('Not connected');
-        
+    /**
+     * Treat a totem - Large happiness boost, costs Essence
+     */
+    const treat = async (totemId: string) => {
         try {
-            const contract = createTotemNFTContract(provider);
-            const connectedContract = contract.connect(signer) as TotemNFTContract;
-            const tx = await connectedContract.evolve(tokenId);
-            await tx.wait();
+            const response = await apiClient.treatTotem(totemId);
+            if (!response.success) {
+                throw new Error(response.error?.message || 'Failed to treat totem');
+            }
+            return handleResult(response.data);
+        } catch (error: any) {
+            console.error('Treat failed:', error);
+            throw new Error(error.message || 'Failed to treat totem');
         }
-        catch (error: any) {
+    };
+
+    /**
+     * Evolve a totem - Advance to next stage when requirements are met
+     */
+    const evolve = async (totemId: string) => {
+        try {
+            const response = await apiClient.evolveTotem(totemId);
+            if (!response.success) {
+                throw new Error(response.error?.message || 'Failed to evolve totem');
+            }
+            return handleResult(response.data);
+        } catch (error: any) {
             console.error('Evolve totem failed:', error);
-            throw new Error(error.message.includes('user rejected') 
-                ? 'User rejected transaction' 
-                : 'Failed to evolve totem');
+            throw new Error(error.message || 'Failed to evolve totem');
         }
     };
 
-    const setDisplayName = async (tokenId: bigint, newName: string) => {
-        if (!provider || !signer) throw new Error('Not connected');
-        
+    /**
+     * Set totem nickname
+     */
+    const setNickname = async (totemId: string, newName: string) => {
         try {
-            const contract = createTotemNFTContract(provider);
-            const connectedContract = contract.connect(signer) as TotemNFTContract;
-            const tx = await connectedContract.setDisplayName(tokenId, newName);
-            await tx.wait();
-        }
-        catch (error: any) {
-            console.error('Name update failed:', error);
-            throw new Error(error.message.includes('user rejected') 
-                ? 'User rejected transaction' 
-                : 'Failed to update name');
+            const response = await apiClient.setNickname(totemId, newName.trim() || null);
+            if (!response.success) {
+                throw new Error(response.error?.message || 'Failed to set nickname');
+            }
+            return response.data;
+        } catch (error: any) {
+            console.error('Set nickname failed:', error);
+            throw new Error(error.message || 'Failed to set nickname');
         }
     };
 
     return {
-        signup,
-        signupGasless,
-        buyTokens,
-        purchaseTotem,
-        checkTokenApproval,
-        approveTokenSpend,
         feed,
         train,
+        treat,
         evolve,
-        setDisplayName
+        setNickname,
     };
 };

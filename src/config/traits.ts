@@ -1,0 +1,147 @@
+/** Trait definitions (bundled at build time). Source of truth for frontend. */
+
+export type TraitSlot = 'innate' | 'learned' | 'awakened';
+export type TraitCategory = 'passive' | 'active';
+
+/**
+ * Machine-readable effect declaration. Mirrors the server resolver shape.
+ * Frontend never *computes* bonuses from this — it's here so display code can
+ * stay in sync and a curious dev can grep one place. Server is authoritative.
+ */
+export interface TraitEffect {
+    type: string;
+    value: number | Record<string, number> | string;
+    scope: string | string[];
+    condition?: string;
+}
+
+export interface TraitDefinition {
+    id: string;
+    name: string;
+    description: string;
+    /** Player-facing effect summary (curated copy). "Aura:" prefix = team-scoped on expeditions/arena. */
+    effect: string;
+    slot: TraitSlot;
+    category: TraitCategory;
+    tags: string[];
+    /** Lucide-react icon name. Phase 2.5 swaps these for image paths like "/assets/traits/curious.png". */
+    icon: string;
+    /** Phase 2 — machine-readable effect declarations. Empty/missing = no gameplay effect yet. */
+    effects?: TraitEffect[];
+}
+
+export interface TotemTraits {
+    innate: string | null;
+    learned: string | null;
+    awakened: string | null;
+}
+
+export const TRAITS: TraitDefinition[] = [
+    // ============ Innate (12) ============
+    { id: 'trt_curious',  name: 'Curious',  description: 'Always wandering off — and it comes back with more.', effect: '+5% Essence from expeditions',          slot: 'innate', category: 'passive', tags: ['expeditions'],         icon: 'Compass',
+      effects: [{ type: 'essenceRewardMultiplier', value: 1.05, scope: 'system:expedition' }] },
+    { id: 'trt_brave',    name: 'Brave',    description: 'First into the fray, every time.',                    effect: '+5% success in challenges',             slot: 'innate', category: 'passive', tags: ['challenges', 'arena'], icon: 'Sword',
+      effects: [{ type: 'successChanceBonus', value: 0.05, scope: 'challenge:any' }] },
+    { id: 'trt_gentle',   name: 'Gentle',   description: 'Softens hardship; keeps its spirits up.',             effect: '−2 happiness cost from training',    slot: 'innate', category: 'passive', tags: ['care', 'social'],      icon: 'Heart',
+      effects: [{ type: 'happinessFlat', value: 2, scope: 'action:train' }] },
+    { id: 'trt_stubborn', name: 'Stubborn', description: 'Refuses to back down from a fight.',                  effect: '+1 Strength in challenges',             slot: 'innate', category: 'passive', tags: ['challenges', 'arena'], icon: 'Anchor',
+      effects: [{ type: 'statBonus', value: { strength: 1 }, scope: 'challenge:strength' }] },
+    { id: 'trt_playful',  name: 'Playful',  description: 'Finds joy in everything — treats most of all.',       effect: '+2 happiness from treats',              slot: 'innate', category: 'passive', tags: ['care'],                icon: 'Sparkles',
+      effects: [{ type: 'happinessFlat', value: 2, scope: 'action:treat' }] },
+    { id: 'trt_shy',      name: 'Shy',      description: 'Happiest tucked away in a quiet corner.',             effect: '+5% Sanctum seat earnings',             slot: 'innate', category: 'passive', tags: ['sanctum', 'social'],   icon: 'Cloud',
+      effects: [{ type: 'seatEarnRateMultiplier', value: 1.05, scope: 'system:sanctum' }] },
+    { id: 'trt_clever',   name: 'Clever',   description: 'Figures things out fast.',                            effect: '+5% XP from challenges',                slot: 'innate', category: 'passive', tags: ['challenges', 'expeditions'], icon: 'Lightbulb',
+      effects: [{ type: 'xpMultiplier', value: 1.05, scope: 'challenge:any' }] },
+    { id: 'trt_loyal',    name: 'Loyal',    description: 'Bonds deeper the longer it stays.',                   effect: '+5% Sanctum tenure bonus',              slot: 'innate', category: 'passive', tags: ['sanctum', 'social'],   icon: 'Users',
+      effects: [{ type: 'tenureBonusMultiplier', value: 1.05, scope: 'system:sanctum' }] },
+    { id: 'trt_restless', name: 'Restless', description: "Can't sit still — quick and light on its feet.",       effect: '+1 Agility in challenges',              slot: 'innate', category: 'passive', tags: ['challenges', 'arena'], icon: 'Wind',
+      effects: [{ type: 'statBonus', value: { agility: 1 }, scope: 'challenge:agility' }] },
+    { id: 'trt_lucky',    name: 'Lucky',    description: 'Things just work out.',                               effect: '+5% rare drop chance from loot',        slot: 'innate', category: 'passive', tags: ['loot', 'rewards'],     icon: 'Clover',
+      effects: [{ type: 'lootChanceBonus', value: 0.05, scope: 'loot:any' }] },
+    { id: 'trt_hardy',    name: 'Hardy',    description: 'Weathers anything — and never wastes a meal.',        effect: '+2 happiness from feeding',             slot: 'innate', category: 'passive', tags: ['care', 'arena'],       icon: 'Shield',
+      effects: [{ type: 'happinessFlat', value: 2, scope: 'action:feed' }] },
+    { id: 'trt_dreamer',  name: 'Dreamer',  description: 'Eyes on the horizon, mind on the old lore.',          effect: '+1 Wisdom in challenges',               slot: 'innate', category: 'passive', tags: ['challenges', 'lore'], icon: 'Moon',
+      effects: [{ type: 'statBonus', value: { wisdom: 1 }, scope: 'challenge:wisdom' }] },
+
+    // ============ Learned (10) ============
+    { id: 'trt_quick_learner',     name: 'Quick Learner',     description: 'Trains faster than most.',          effect: '+10% XP from training',                 slot: 'learned', category: 'active', tags: ['care:train', 'xp'],          icon: 'Zap',
+      effects: [{ type: 'xpMultiplier', value: 1.10, scope: 'action:train' }] },
+    { id: 'trt_diligent_forager',  name: 'Diligent Forager',  description: 'Always knows where the food is.',    effect: '+20% hunger restored from feeding',     slot: 'learned', category: 'active', tags: ['care:feed'],                  icon: 'Wheat',
+      effects: [{ type: 'hungerRestoreBonusPct', value: 0.20, scope: 'action:feed' }] },
+    { id: 'trt_skilled_fighter',   name: 'Skilled Fighter',   description: 'Mastered the basics of combat.',    effect: '+10% success in Strength challenges',   slot: 'learned', category: 'active', tags: ['challenges:strength', 'arena'], icon: 'Swords',
+      effects: [{ type: 'successChanceBonus', value: 0.10, scope: 'challenge:strength' }] },
+    { id: 'trt_nimble',            name: 'Nimble',            description: 'Hard to catch off guard.',          effect: '+10% success in Agility challenges',    slot: 'learned', category: 'active', tags: ['challenges:agility', 'arena'],  icon: 'Feather',
+      effects: [{ type: 'successChanceBonus', value: 0.10, scope: 'challenge:agility' }] },
+    { id: 'trt_studious',          name: 'Studious',          description: 'Pores over the old runes.',         effect: '+10% success in Wisdom challenges',     slot: 'learned', category: 'active', tags: ['challenges:wisdom', 'sanctum'], icon: 'BookOpen',
+      effects: [{ type: 'successChanceBonus', value: 0.10, scope: 'challenge:wisdom' }] },
+    { id: 'trt_pathfinder',        name: 'Pathfinder',        description: 'Always knows the shortcuts.',       effect: '−10% expedition duration',              slot: 'learned', category: 'active', tags: ['expeditions', 'timer'],         icon: 'Map',
+      effects: [{ type: 'durationMultiplier', value: 0.90, scope: 'system:expedition' }] },
+    { id: 'trt_treasure_seeker',   name: 'Treasure Seeker',   description: 'Has a nose for shiny things.',      effect: '+10% rune chance on expeditions',       slot: 'learned', category: 'active', tags: ['expeditions', 'runes'],         icon: 'Gem',
+      effects: [{ type: 'runeChanceBonus', value: 0.10, scope: 'system:expedition' }] },
+    { id: 'trt_merchant_eye',      name: "Merchant's Eye",    description: 'Knows exactly what things are worth.', effect: '+10% Essence from everything it earns', slot: 'learned', category: 'active', tags: ['economy'],                    icon: 'Coins',
+      effects: [{ type: 'essenceRewardMultiplier', value: 1.10, scope: 'earn:any' }] },
+    { id: 'trt_thrifty',           name: 'Thrifty',           description: 'Makes every resource last.',        effect: '−10% Essence cost to Feed, Train & Treat', slot: 'learned', category: 'active', tags: ['care', 'economy'],            icon: 'PiggyBank',
+      effects: [{ type: 'essenceCostMultiplier', value: 0.90, scope: ['action:feed', 'action:train', 'action:treat'] }] },
+    { id: 'trt_persistent',        name: 'Persistent',        description: 'Sticks with it until the effort pays off.',     effect: '+20% happiness from challenges',      slot: 'learned', category: 'active', tags: ['challenges', 'care'],         icon: 'RotateCw',
+      effects: [{ type: 'happinessRewardMultiplier', value: 1.20, scope: 'challenge:any' }] },
+
+    // ============ Awakened (8) ============
+    { id: 'trt_mentor',         name: 'Mentor',         description: 'Teaches the whole pack by example.',       effect: 'Aura: +10% XP',  slot: 'awakened', category: 'passive', tags: ['aura', 'xp'],                  icon: 'GraduationCap',
+      effects: [{ type: 'xpMultiplier', value: 1.10, scope: 'aura' }] },
+    { id: 'trt_sage',           name: 'Sage',           description: 'The forest whispers its secrets to it.',   effect: '+15% rune chance on Sanctum missions',          slot: 'awakened', category: 'passive', tags: ['sanctum', 'mission'],          icon: 'Sparkle',
+      effects: [{ type: 'runeChanceBonus', value: 0.15, scope: 'sanctum:mission' }] },
+    { id: 'trt_warden',         name: 'Warden',         description: 'Stands watch over the whole team.',        effect: 'Aura: +5% defense', slot: 'awakened', category: 'passive', tags: ['aura', 'arena', 'defense'],    icon: 'ShieldCheck',
+      effects: [{ type: 'defenseBonus', value: 0.05, scope: 'aura:combat' }] },
+    { id: 'trt_emissary',       name: 'Emissary',       description: 'Speaks for the spirits, and they answer.', effect: '−20% Sanctum mission duration',                 slot: 'awakened', category: 'passive', tags: ['sanctum', 'diplomacy'],        icon: 'MessageCircle',
+      effects: [{ type: 'durationMultiplier', value: 0.80, scope: 'sanctum:mission' }] },
+    { id: 'trt_kindred_soul',   name: 'Kindred Soul',   description: 'Its heart links to others of its kind.',   effect: 'Aura: +25% XP with a same-species teammate',    slot: 'awakened', category: 'passive', tags: ['aura', 'same_species'],      icon: 'HeartHandshake',
+      effects: [{ type: 'xpMultiplier', value: 1.25, scope: 'aura', condition: 'same_species_teammate' }] },
+    { id: 'trt_relic_bearer',   name: 'Relic Bearer',   description: 'Touched by ancient things.',               effect: 'Aura: +20% rune chance',                        slot: 'awakened', category: 'passive', tags: ['aura', 'runes'],               icon: 'Crown',
+      effects: [{ type: 'runeChanceBonus', value: 0.20, scope: 'aura' }] },
+    { id: 'trt_wanderer_lord',  name: 'Wanderer Lord',  description: 'Calls the long roads home, laden with spoils.', effect: 'Aura: +5% loot box chance', slot: 'awakened', category: 'passive', tags: ['aura', 'loot'],                icon: 'Mountain',
+      effects: [{ type: 'lootBoxChanceBonus', value: 0.05, scope: 'aura' }] },
+    { id: 'trt_ascendant',      name: 'Ascendant',      description: 'Light follows wherever it walks.',         effect: 'Aura: +5% offense', slot: 'awakened', category: 'passive', tags: ['aura', 'arena', 'offense'],   icon: 'Sun',
+      effects: [{ type: 'offenseBonus', value: 0.05, scope: 'aura:combat' }] },
+];
+
+export const TRAIT_BY_ID: Record<string, TraitDefinition> = Object.fromEntries(
+    TRAITS.map((t) => [t.id, t])
+);
+
+export const INNATE_POOL: string[]   = TRAITS.filter((t) => t.slot === 'innate').map((t) => t.id);
+export const LEARNED_POOL: string[]  = TRAITS.filter((t) => t.slot === 'learned').map((t) => t.id);
+export const AWAKENED_POOL: string[] = TRAITS.filter((t) => t.slot === 'awakened').map((t) => t.id);
+
+/** Stage at which the Learned slot unlocks (Adult). */
+export const LEARNED_STAGE_GATE = 2;
+/** Stage at which the Awakened slot unlocks (Ascended). */
+export const AWAKENED_STAGE_GATE = 4;
+
+export function getTraitById(traitId: string | null | undefined): TraitDefinition | null {
+    if (!traitId) return null;
+    return TRAIT_BY_ID[traitId] || null;
+}
+
+export function getTraitsBySlot(slot: TraitSlot): TraitDefinition[] {
+    return TRAITS.filter((t) => t.slot === slot);
+}
+
+export function getPoolForSlot(slot: TraitSlot): string[] {
+    if (slot === 'innate') return INNATE_POOL;
+    if (slot === 'learned') return LEARNED_POOL;
+    return AWAKENED_POOL;
+}
+
+/** True when this totem has an unlocked-but-unchosen trait slot the player can fill. */
+export function hasUnspentTraitChoice(stage: number, traits: TotemTraits | null | undefined): TraitSlot | null {
+    if (!traits) return null;
+    if (stage >= LEARNED_STAGE_GATE && !traits.learned) return 'learned';
+    if (stage >= AWAKENED_STAGE_GATE && !traits.awakened) return 'awakened';
+    return null;
+}
+
+/** Returns the list of trait IDs currently filled on a totem (1-3 items). */
+export function getFilledTraits(traits: TotemTraits | null | undefined): string[] {
+    if (!traits) return [];
+    return [traits.innate, traits.learned, traits.awakened].filter((t): t is string => !!t);
+}

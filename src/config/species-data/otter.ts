@@ -1,0 +1,470 @@
+import type { SpeciesConfig } from '../../utils/species';
+
+export const otterData: SpeciesConfig = {
+  "id": 1,
+  "name": "Otter",
+  "fullName": "Spirit Otter",
+  "title": "The Joyful Trickster",
+  "description": "The Otter represents adaptability, curiosity, and playfulness. It approaches challenges with an open mind, embracing creativity and joy even in difficult situations.",
+  "affinity": "Agility",
+  "domain": "Water",
+  "locationId": 10,
+  "available": true,
+  "placeholderImage": "/totems/otterplacecard.png",
+  "baseStats": {
+    "strength": 8,
+    "agility": 10,
+    "wisdom": 6
+  },
+  "stages": [
+    "Pup",
+    "Splash",
+    "Glide",
+    "Guardian",
+    "Wise Elder"
+  ],
+  "colors": {
+    "brown": {
+      "id": 0,
+      "displayName": "Brown",
+      "rarity": "common",
+      "stageNames": [
+        "Brown Pup",
+        "Brown Splash",
+        "Brown Glide",
+        "Brown Guardian",
+        "Brown Wise Elder"
+      ],
+      "stageDescriptions": [
+        "A lively brown-furred pup, rolling and splashing with endless energy.",
+        "A playful young otter, leaping into the water with joy.",
+        "A swift swimmer, weaving effortlessly through the currents.",
+        "A strong leader, guiding its kin with skill and wisdom.",
+        "A respected elder, its coat marked by time, watching over the river’s secrets."
+      ],
+      "images": [
+        "bafybeihvnz7oa5n4kxtn5r52f2tteld5q6q3j7twjfh43tpdpoxx3hn6di",
+        "bafybeihxxg6r33h2ulkktmkrhdvgv6zqal7sattrcewa3ok3b2pqfilnru",
+        "bafybeieg3d7sbp7r37g7frbzlule5tfjjilfcda4l4io2lmpdld2x6d2dy",
+        "bafybeih2efkpk5z6qnwmswgo52w43twk4gytxvl7qgozabvxyacsf2zwp4",
+        "bafybeih3fya2m3tzj2s6qy3vnkxhwu7r4ues6ipvttaddxfpi4cyayo5wu"
+      ]
+    },
+    "gray": {
+      "id": 1,
+      "displayName": "Gray",
+      "rarity": "common",
+      "stageNames": [
+        "Gray Pup",
+        "Gray Splash",
+        "Gray Glide",
+        "Gray Guardian",
+        "Gray Wise Elder"
+      ],
+      "stageDescriptions": [
+        "A curious pup, always exploring new nooks of the riverbank.",
+        "A nimble young otter, testing the waters with expert flips.",
+        "A sleek swimmer, vanishing below the surface with ease.",
+        "A sharp-witted protector, leading with cunning and experience.",
+        "A seasoned river master, its wisdom flowing like the waters it calls home."
+      ],
+      "images": [
+        "bafybeidng77cqxojtxfvuwhtko5iznmdj6gx7bfjuz4fjcufvyvetgfpwu",
+        "bafybeidtnyfp6u4jcg3yklggfqdkxbwmpdbpw7xjvudfzazbaewbr45qbq",
+        "bafybeihr4m4lyu6hscqhxp3lb45ar2oc6tw2bijbzgqdnmvimy3cn5lr24",
+        "bafybeictagwre4bvoqxtpyduper34oxpdho34olktzuxzmelmziokpt5ju",
+        "bafybeigzoq4j5c74ctro4ok3aing5rvsd3y2zgxegslvsgyfng2y7s2iou"
+      ]
+    },
+    "white": {
+      "id": 2,
+      "displayName": "White",
+      "rarity": "common",
+      "stageNames": [
+        "White Pup",
+        "White Splash",
+        "White Glide",
+        "White Guardian",
+        "White Wise Elder"
+      ],
+      "stageDescriptions": [
+        "A bright-furred pup, rolling in the water with carefree delight.",
+        "A light-footed young otter, diving gracefully beneath the waves.",
+        "A fast and fluid swimmer, leaving gentle ripples in its wake.",
+        "A vigilant guide, standing watch over the tranquil waters.",
+        "A legendary figure, a symbol of peace and purity in the river’s flow."
+      ],
+      "images": [
+        "bafybeif5gsdbufcbm77wbkjdu2vw6lv3ekkp326qdh662sk7t3pgr4bply",
+        "bafybeieosnwpczcvjv26earvr66ufvazdbjps25o54o7xge2m542ofnwxu",
+        "bafybeihvdctiy26vopx4cgyaint4kj3ppl6w23uw5j64ypspm5ycwk66r4",
+        "bafybeidv3asdavabn5r3p5tekliwinpgfmdczxpzu72xovcae4jioenhrm",
+        "bafybeifpbicmbcnaj3trtwbiielt7ysea7dvmm7zc7onpfdevrftxwu34i"
+      ]
+    },
+    "tawny": {
+      "id": 3,
+      "displayName": "Tawny",
+      "rarity": "common",
+      "stageNames": [
+        "Tawny Pup",
+        "Tawny Splash",
+        "Tawny Glide",
+        "Tawny Guardian",
+        "Tawny Wise Elder"
+      ],
+      "stageDescriptions": [
+        "A golden-brown pup, always seeking new adventures in the sunlit streams.",
+        "A bold young otter, darting through the water like a streak of sunlight.",
+        "A skillful hunter, moving effortlessly through the reeds.",
+        "A protector of the waterways, its presence commanding respect.",
+        "A revered storyteller, its fur glistening with the memories of a thousand rivers."
+      ],
+      "images": [
+        "bafybeihn5ywlblyo3o2hamvfdppgksagyxwqfkj3c5sdmeedcg7os5uveq",
+        "bafybeidfcn6f5f4plz7ozbv4b5wglcwrl4hevfgp5mwwtro37j6whklhia",
+        "bafybeiggnl573abrttdxsfeqyte3gfsuvutcmkejwgt6e2vhayw7k42zy4",
+        "bafybeifbse7htptlgitf376fseivnuh5c45hv2s5sze7efvhg3m6e6ywly",
+        "bafybeiarkmsm76z6jqigajsg33asn3vgkas4wj5ni6xd6cm3rlsumhild4"
+      ]
+    },
+    "slate": {
+      "id": 4,
+      "displayName": "Slate",
+      "rarity": "uncommon",
+      "stageNames": [
+        "Slate Pup",
+        "Slate Splash",
+        "Slate Glide",
+        "Slate Guardian",
+        "Slate Mystic Elder"
+      ],
+      "stageDescriptions": [
+        "A dark-furred pup, blending effortlessly with the riverbed stones.",
+        "A sleek and swift young otter, gliding like a shadow beneath the water.",
+        "A master of stealth, disappearing into the currents with ease.",
+        "A silent protector, patrolling the waters with quiet confidence.",
+        "A keeper of forgotten waterways, its wisdom as deep as the river itself."
+      ],
+      "images": [
+        "bafybeieo5oloocy4dolsntwi33j47ydfcgmcqzqorprof4rt4r27xfpo44",
+        "bafybeighwaxbuiyfbdteyv66f26hizcvtv5r22v2ejrywr4qds7dyqv6y4",
+        "bafybeibirmiotfjh64yqcicjwursdc4nj3o4ljtvo7zs2v32nxaoymuxum",
+        "bafybeib43qwbyptakpg6cx24fbtpprs63cg2zcsmlarwypfp2rbyur7cta",
+        "bafybeigo6aoreflf2vod7g6qu5rohg7lnsj2ddcem6dcmvnhss66b27yba"
+      ]
+    },
+    "copper": {
+      "id": 5,
+      "displayName": "Copper",
+      "rarity": "uncommon",
+      "stageNames": [
+        "Copper Pup",
+        "Copper Splash",
+        "Copper Glide",
+        "Copper Guardian",
+        "Copper Mystic Elder"
+      ],
+      "stageDescriptions": [
+        "A fiery-furred pup, always playing with sparks of energy.",
+        "A fast-moving young otter, chasing after the sunlight reflecting on the water’s surface.",
+        "A powerful swimmer, leaving shimmering trails in its wake.",
+        "A fierce leader, commanding the river with unwavering strength.",
+        "A legendary force of nature, its copper coat glowing with ancient power."
+      ],
+      "images": [
+        "bafybeihfic6cbmmbsn3qecwpxkbm3fq7whthd2iqlqrlvwubvfnkxbu3cm",
+        "bafybeihdt7v6qm5ewmrip7dbe677bkmhpny7jr4fvh7oe527yz7ckhr7tu",
+        "bafybeigwpve7iraabikrvo3oaixthdqv2sbl2p4gyglklsul7sy5reeewi",
+        "bafybeih3qy4gmd4qohxmogs7saz4wzdfmrgjjctk65jvdngu2borzc7ota",
+        "bafybeiesxbwcq2pqv6wrn6ql2v5mtdjcb6bjtrepryi3jly6lklomoasxy"
+      ]
+    },
+    "cream": {
+      "id": 6,
+      "displayName": "Cream",
+      "rarity": "uncommon",
+      "stageNames": [
+        "Cream Pup",
+        "Cream Splash",
+        "Cream Glide",
+        "Cream Guardian",
+        "Cream Mystic Elder"
+      ],
+      "stageDescriptions": [
+        "A soft-furred pup, curious and full of wonder.",
+        "A graceful otter, moving like silk through the water.",
+        "A swift and elegant hunter, blending into the light-dappled rivers.",
+        "A watchful presence, ensuring harmony in the waterways.",
+        "A guardian of sacred waters, its presence as calming as a still lake."
+      ],
+      "images": [
+        "bafybeif3dssv5tl7zwn4jpmrv6yykjmohhy3a7zuxgxdlom7icllwmcswu",
+        "bafybeihtes4b4p6f5diamz72bf6kpobaexid5oj7wecilh2xcsdssqydwq",
+        "bafybeidhuxc3qph43wu2wuwexatad46hq62pvkwrza2b5fa4eom7ekvrli",
+        "bafybeig3fzs63h6qtybus33ovbflv7t2vjbf2cqofjdvobnlhhohmnbwmm",
+        "bafybeiexcwvv75ku3hxvmbr65desd4zw7jdpecr5xx7igbwbw3tnvkgydu"
+      ]
+    },
+    "dappled": {
+      "id": 7,
+      "displayName": "Dappled",
+      "rarity": "uncommon",
+      "stageNames": [
+        "Dappled Pup",
+        "Dappled Splash",
+        "Dappled Glide",
+        "Dappled Guardian",
+        "Dappled Mystic Elder"
+      ],
+      "stageDescriptions": [
+        "A uniquely patterned pup, shifting colors as it moves.",
+        "A tricky young otter, vanishing and reappearing in an instant.",
+        "A fluid and unpredictable swimmer, impossible to catch.",
+        "A master of misdirection, leading with clever tactics.",
+        "A being of mystery, forever dancing between water and shadow."
+      ],
+      "images": [
+        "bafybeiceqfsdaizzqkt2mqmrzumeaqpzfpxx324cd4jlpoc7yea4fycg4e",
+        "bafybeidgdijd5mfrnk7zi4o3uhyczp2qsyw5yau2n6ykwr4idkwv4l6rg4",
+        "bafybeiafjlqrviijfdvvycqauh4llgoptxzkeh7o7dcdlexu6c7ddlnqey",
+        "bafybeibqbm6wpaw6hgptgez2bfqph3my4ubrvpl2icbkqhwxcirfioqj6u",
+        "bafybeiezi2etzovw5mlc5xasxvwtapbns3ql6zkzbjvopdzx4kgb6aeqwm"
+      ]
+    },
+    "golden": {
+      "id": 8,
+      "displayName": "Golden",
+      "rarity": "rare",
+      "stageNames": [
+        "Sunflare Pup",
+        "Sunflare Splash",
+        "Sunflare Glide",
+        "Sunflare Phantom",
+        "Sunflare Veiled Elder"
+      ],
+      "stageDescriptions": [
+        "A golden-furred pup, glowing softly like ripples in the morning sun.",
+        "A lively young otter, trailing golden streaks as it leaps.",
+        "A swift and dazzling swimmer, turning water into liquid light.",
+        "A nearly untouchable force, appearing as a golden blur across the river.",
+        "A being of pure radiance, guiding the rivers with celestial warmth."
+      ],
+      "images": [
+        "bafybeih2ytrhcwghhfzkzagh5tk7ihdv2xeuoh35uzikkpg3sw5n3lakzu",
+        "bafybeig3zifadbohjlgmpckqbg5quzito6stzkmb5d5szfk5cqkjnnlxce",
+        "bafybeiekmwhxwhila4x3inex3frwp6p2ovld2q5cg76rii7cgaptjbock4",
+        "bafybeib5alklaehud5imtpieqp2jpjgzegyqmnqws2tnk6po2frpva54pa",
+        "bafybeiaaqzpibzacmxczb35nv56ytzpvlh4opwmw3j7ucvca4izywvfwu4"
+      ]
+    },
+    "purple": {
+      "id": 9,
+      "displayName": "DarkPurple",
+      "rarity": "rare",
+      "stageNames": [
+        "Umbratide Pup",
+        "Umbratide Splash",
+        "Umbratide Glide",
+        "Umbratide Phantom",
+        "Umbratide Veiled Elder"
+      ],
+      "stageDescriptions": [
+        "A violet-furred pup, its eyes gleaming with unseen knowledge.",
+        "A quick, elusive swimmer, leaving no ripples behind.",
+        "A phantom in the water, moving seamlessly between shadows.",
+        "A spectral figure, only visible when the moonlight touches the water.",
+        "A myth of the river depths, its form shifting between reality and the unknown."
+      ],
+      "images": [
+        "bafybeib4icwpsyzjwunbado6gin3eybjo63n7wa6rgltmswe3ump7y5ioi",
+        "bafybeidtp7q6kmcnap4molmqs7hqv7wqbunlcxqgzagpfvugfea245wf34",
+        "bafybeicavi6abfvthrapzzbpqwa4n7v3zlisjkn3cb7sbaf45mftv66byi",
+        "bafybeihc3y4y6xz23jhnu3lac5mz5w72fgnipapxeodskundfruvejbkmy",
+        "bafybeiby73bwz4qpgonbbg2pn6i2vsll6z33k2xpllbnfysa55flu6adl4"
+      ]
+    },
+    "charcoal": {
+      "id": 10,
+      "displayName": "Charcoal",
+      "rarity": "rare",
+      "stageNames": [
+        "Emberflow Pup",
+        "Emberflow Splash",
+        "Emberflow Glide",
+        "Emberflow Phantom",
+        "Emberflow Veiled Elder"
+      ],
+      "stageDescriptions": [
+        "A soot-colored pup, its fur warm to the touch, flickering like embers.",
+        "A bold young otter, leaving faint glows in the water as it moves.",
+        "A creature of both heat and flow, carrying an unseen fire within.",
+        "A nearly untouchable force, appearing as a golden blur across the river.",
+        "A river spirit of fire and energy, forever guarding the meeting of the elements."
+      ],
+      "images": [
+        "bafybeictvfbbvhd6i3znhknynz6qh2kc53dphfzzjehxqhsv7mktyfwlaa",
+        "bafybeigl42nudjeutb3ijyqvbfz4nlbga7jjkgkbqzi7iq32boa7q6isky",
+        "bafybeied4d5qrqrflceznsejvnh6rlqf3d6fhafos5nh6onaf4jes4fsty",
+        "bafybeigdhnuuunddnviqxl3jvk3v2z543kzft3sparnw5l7cx7hpvmoib4",
+        "bafybeieffue65oqukler5blvlvmdwb3cffblaf4pgz5z2u72fmiumfwmzq"
+      ]
+    },
+    "emerald": {
+      "id": 11,
+      "displayName": "EmeraldGreen",
+      "rarity": "epic",
+      "stageNames": [
+        "Verdant Pup",
+        "Verdant Splash",
+        "Verdant Glide",
+        "Verdant Sage",
+        "Verdant Eternal Sage"
+      ],
+      "stageDescriptions": [
+        "A moss-colored pup, its tiny paws leaving soft green trails in the water.",
+        "A playful figure, guiding the flow of nature’s rivers.",
+        "A graceful being, its movements stirring the currents with unseen energy.",
+        "A guardian of the wild, carrying the ancient knowledge of nature’s waters.",
+        "A timeless protector, said to shape the very rivers themselves."
+      ],
+      "images": [
+        "bafybeieu27bdrwecjzv7qiqhty4kjhebpvbhjwieko4fi64fl3qd6k2qou",
+        "bafybeieqb5czfhiz3aq7mht5b553x5qbvzgx2a66lolrnod4jvxu3nb3rm",
+        "bafybeiginizdlilie3hd7rjvybmbiunyyjx4nphdbpz66qrzbyr2cjyriy",
+        "bafybeie24jicgoveb4dyof2zsuys5kf5bdrim4m7igya7ad2skuj7oyyn4",
+        "bafybeihznpsvit354lszp43lav3a2wob7tfsszrnatt43eyn2sjqwvdmc4"
+      ]
+    },
+    "crimson": {
+      "id": 12,
+      "displayName": "CrimsonRed",
+      "rarity": "epic",
+      "stageNames": [
+        "Bloodcurrent Pup",
+        "Bloodcurrent Splash",
+        "Bloodcurrent Glide",
+        "Bloodcurrent Sage",
+        "Bloodcurrent Eternal Sage"
+      ],
+      "stageDescriptions": [
+        "A crimson-furred pup, rippling with restless energy.",
+        "A striking young otter, moving like a torrent through the waves.",
+        "A powerful swimmer, its presence altering the currents around it.",
+        "A force of raw power, carving new paths through even the strongest tides.",
+        "A legend of the river, a being of water and fury, shaping the world in its wake."
+      ],
+      "images": [
+        "bafybeicmqch5rfy3uprc6zzetknbgnzre3wwudcclqvhhbili552sjdi4a",
+        "bafybeierxilvdgor6gwxks24uzxj3lusve76sszap2jbd7rn7lbr6owhwu",
+        "bafybeif7s6z6bnf6nntmktb2duvbzuknmcudlcujzy3jnqmfmrxeiyegdi",
+        "bafybeigsdnqfh7es2643pn4e3odbx4rmtkwlop2vfsj2l6ustmt4k2dr7e",
+        "bafybeidgoa7epqbaq3qliizhrwwqnh6vu2rpoaf5lsrtn5dmaxkktj6huq"
+      ]
+    },
+    "sapphire": {
+      "id": 13,
+      "displayName": "DeepSapphire",
+      "rarity": "epic",
+      "stageNames": [
+        "Abyssal Pup",
+        "Abyssal Splash",
+        "Abyssal Glide",
+        "Abyssal Sage",
+        "Abyssal Eternal Sage"
+      ],
+      "stageDescriptions": [
+        "A dark blue pup, its eyes reflecting unseen depths.",
+        "A quiet swimmer, leaving behind no trace except a shimmer of blue.",
+        "A being of mystery, vanishing into the deep with every dive.",
+        "A ruler of the unseen rivers, moving between worlds as effortlessly as water flows.",
+        "A legendary figure, whispered about in myths, said to swim through the very fabric of reality."
+      ],
+      "images": [
+        "bafybeif3m3btajot4dqyuljqcnvs4oa2jtlirxpbzu26rmbwiuhc6dbbw4",
+        "bafybeicrliq4ymbsoskpcvryl6zgiekksuixomc6x2hjcksmgqp75e2fy4",
+        "bafybeihtyjk277cd7lswulrqjdvhvgxq3jcepm4wo7b5io7v2ykpmarvee",
+        "bafybeieqcnllv3pwocjpdk4k6oswe2exqzcbaptis434pjb6mxi4hsc33e",
+        "bafybeiffbjoftmhxofqdfu5qwp2ogix7yqh7i4gyjkklyus3vighr7hoku"
+      ]
+    },
+    "silver": {
+      "id": 14,
+      "displayName": "EtherealSilver",
+      "rarity": "legendary",
+      "stageNames": [
+        "Moonwhisper Pup",
+        "Moonwhisper Splash",
+        "Moonwhisper Glide",
+        "Moonwhisper Oracle",
+        "Moonwhisper Ascendant Oracle"
+      ],
+      "stageDescriptions": [
+        "A silver-furred pup, flickering in and out of sight under the moonlight.",
+        "A ghostly swimmer, barely disturbing the water as it moves.",
+        "A spectral guide, appearing in the reflections of the river.",
+        "A being beyond time, whispering the wisdom of the lunar tides.",
+        "A celestial presence, no longer bound by the physical world, watching over the rivers from the stars."
+      ],
+      "images": [
+        "bafybeiaczezftzhrnynfegjeazhuioosfrhjahzeabzf3xhhqoxufxlq6i",
+        "bafybeieonswpvofouc5fszgqmv54swul4rbe24wyvdfhfnwrcrzcxwtx3q",
+        "bafybeigljot2eqsghkt7rcwrnmmhefdfaqbyvsmr5qx5ve3a73cli75suy",
+        "bafybeicsndnix7ayo3skb7mnniu5piaqi5qxvmcvthcpaeffhcy6cjpumu",
+        "bafybeibduauevtya7y7pknv5enmteyeat46p3uqilwp4t42pv3fk7spg44"
+      ]
+    },
+    "gold": {
+      "id": 15,
+      "displayName": "RadiantGold",
+      "rarity": "legendary",
+      "stageNames": [
+        "Celestial Pup",
+        "Celestial Splash",
+        "Celestial Glide",
+        "Celestial Oracle",
+        "Celestial Ascendant Oracle"
+      ],
+      "stageDescriptions": [
+        "A golden-furred pup, glowing softly like starlight.",
+        "A playful yet powerful swimmer, carrying the light of the cosmos.",
+        "A beacon in the river, its movements leaving golden streaks.",
+        "A celestial force, guiding the waters and those who follow them.",
+        "A being of pure cosmic energy, forever shaping the flow of existence itself."
+      ],
+      "images": [
+        "bafybeiauhrywv5ims27sulksfzabwyhfjjuhpcna7dyvhg4fh7rgqrp4qq",
+        "bafybeigchdxl4zztd3sj7hqmediweyd2jltvpl3i6ffkfgh5zafcowzupe",
+        "bafybeibzatc7djpewfghke2ytgtdarig67fuug45ntte7bvqr7uhivqmqq",
+        "bafybeiciucjam6k7deqrw2dnj526eqk5e3x4plhlnjqi5iplf63rz2moae",
+        "bafybeiahctgxrfhyyixdhdufo4ciahqobiddleinbyzav3oxpfur7wg7si"
+      ]
+    },
+    "rosy": {
+      "id": 17,
+      "displayName": "RosyPink",
+      "rarity": "limited",
+      "stageNames": [
+        "Lovewave Pup",
+        "Lovewave Splash",
+        "Lovewave Glide",
+        "Lovewave Sage",
+        "Lovewave Oracle"
+      ],
+      "stageDescriptions": [
+        "A rosy-furred pup, curling up affectionately with its companions.",
+        "A playful swimmer, spinning and twirling with joyful energy.",
+        "A graceful otter, forming heart-shaped ripples as it moves.",
+        "A symbol of devotion, bringing harmony to those around it.",
+        "A celestial presence, binding the waters with the magic of unity and love."
+      ],
+      "images": [
+        "bafybeibyigve45wxxu3r22rx2xmnt5fxjusxxbrqxds2d334hkoyge626i",
+        "bafybeibssqhk4wxlvhyakbz7sj5mltcssy5rsopb2umj3gyw23srjuffeq",
+        "bafybeibxxwsl54y7luu5hnbero2mw5ymmcc44t6ab2xoyriis2fuyg7iw4",
+        "bafybeictpc5hrkraacfbb6mvgqcdqu6voflyfqaeaorh3gzbt2esebqbrq",
+        "bafybeidsydwaidnhrygqk3iqrp6eiwt4jr6ipfpjsl7pgesoq7poks6yqy"
+      ]
+    }
+  }
+};

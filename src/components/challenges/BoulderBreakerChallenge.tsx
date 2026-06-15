@@ -1,0 +1,297 @@
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { AlertCircle } from 'lucide-react';
+import { GameState } from '../../types/types';
+import ChallengeActionBar from './ChallengeActionBar';
+
+type Point = {
+  x: number;
+  y: number;
+  hit: boolean;
+  active: boolean;
+};
+
+type DifficultySettings = {
+  pointCount: number;
+  timeLimit: number;
+  hitRadius: number;
+  pointValue: number;
+};
+
+interface BoulderBreakerChallengeProps {
+  strength?: number;
+  difficulty?: number;
+  onComplete?: (score: number) => void;
+  onFail?: () => void;
+}
+
+const BoulderBreakerChallenge: React.FC<BoulderBreakerChallengeProps> = ({
+  strength = 0,
+  difficulty = 2,
+  onComplete = (score: number) => console.log('Challenge complete:', score),
+  onFail = () => console.log('Challenge failed')
+}) => {
+  const [gameState, setGameState] = useState<GameState>('ready');
+  const [hitPoints, setHitPoints] = useState<Point[]>([]);
+  const [currentPoint, setCurrentPoint] = useState<number>(0);
+  const [score, setScore] = useState<number>(0);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [showAlert, _setShowAlert] = useState<boolean>(false);
+  const [showPulse, setShowPulse] = useState(false);
+
+  const boulderRef = useRef<HTMLDivElement>(null);
+
+  const strengthThreshold = difficulty * 20;
+
+  // Score = sum of per-hit (accuracy × pointValue) + strength bonus, capped at 1000.
+  // Intended ceilings (instant hits, no strength bonus): d1 5×90=450, d2 7×100=700,
+  // d3 9×110=990 (≈ server maxScore 1000). Higher difficulty still bites harder
+  // per hit (less time, smaller targets) but each hit is worth more.
+  const difficultySettings: DifficultySettings = {
+    pointCount: 3 + difficulty * 2,
+    timeLimit: 6 - difficulty,
+    hitRadius: 25 - difficulty * 2,
+    pointValue: 80 + difficulty * 10,
+  };
+
+  const generatePoints = useCallback(() => {
+  if (!boulderRef.current) return [];
+
+  const boulderRect = boulderRef.current.getBoundingClientRect();
+  const padding = difficultySettings.hitRadius * 2;
+  const minDistance = difficultySettings.hitRadius * 2; // Minimum distance between points
+
+  const targetWidth = boulderRect.width * 0.6;
+  const targetHeight = boulderRect.height * 0.6;
+  const targetLeft = (boulderRect.width - targetWidth) / 8.2;
+  const targetTop = (boulderRect.height - targetHeight) / 2.2;
+
+  const points: Point[] = [];
+  let attempts = 0;
+  const maxAttempts = 100; // Prevent infinite loops
+
+  while (points.length < difficultySettings.pointCount && attempts < maxAttempts) {
+    const newPoint = {
+      x: targetLeft + padding + Math.random() * (targetWidth - padding * 2),
+      y: targetTop + padding + Math.random() * (targetHeight - padding * 2),
+      hit: false,
+      active: false
+    };
+
+    // Check if this point is too close to any existing points
+    const tooClose = points.some(existingPoint => {
+      const distance = Math.sqrt(
+        Math.pow(newPoint.x - existingPoint.x, 2) + 
+        Math.pow(newPoint.y - existingPoint.y, 2)
+      );
+      return distance < minDistance;
+    });
+
+    if (!tooClose) {
+      points.push(newPoint);
+    }
+    
+    attempts++;
+  }
+
+  return points;
+}, [difficultySettings.pointCount, difficultySettings.hitRadius]);
+
+  const initializeGame = useCallback(() => {
+    const points = generatePoints();
+    setHitPoints(points);
+    setCurrentPoint(0);
+    setScore(0);
+    setTimeLeft(difficultySettings.timeLimit);
+    setGameState('playing');
+  }, [generatePoints, difficultySettings.timeLimit]);
+
+
+  const handleClick = (index: number) => {
+    if (gameState !== 'playing' || index !== currentPoint) return;
+
+    const newPoints = [...hitPoints];
+    newPoints[index].hit = true;
+    setHitPoints(newPoints);
+
+    const accuracyScore = Math.floor((timeLeft! / difficultySettings.timeLimit) * difficultySettings.pointValue);
+    const strengthBonus = Math.max(0, strength - strengthThreshold) / 2;
+    const pointScore = accuracyScore + strengthBonus;
+
+    const newScore = Math.min(1000, score + pointScore);
+    setScore(newScore);
+
+    if (currentPoint + 1 >= hitPoints.length) {
+      setGameState('success');
+      onComplete(Math.floor(newScore));
+    } else {
+      setCurrentPoint(prev => prev + 1);
+      setTimeLeft(difficultySettings.timeLimit);
+    }
+  };
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+
+    if (gameState === 'playing' && timeLeft !== null) {
+      timer = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev === null) return null;
+          const newTime = prev - 0.1;
+          if (newTime <= 0) {
+            setGameState('failed');
+            onFail();
+            return 0;
+          }
+          return newTime;
+        });
+      }, 100);
+    }
+
+    return () => {
+      if (timer) {
+        clearInterval(timer);
+      }
+    };
+  }, [gameState, onFail]);
+
+  // Recalculate points when window is resized
+  useEffect(() => {
+    const handleResize = () => {
+      if (gameState === 'playing') {
+        const newPoints = generatePoints();
+        setHitPoints(newPoints);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [gameState, generatePoints]);
+
+  useEffect(() => {
+    if (gameState === 'success') {
+      setShowPulse(true);
+      const timer = setTimeout(() => {
+        setShowPulse(false);
+      }, 1000); // Stop pulsing after 1 second
+  
+      return () => clearTimeout(timer);
+    }
+  }, [gameState]);
+
+
+  return (
+    <div className="w-full max-w-2xl mx-auto">
+      {showAlert && (
+        <div className="flex p-4 mb-4 bg-red-100 border border-red-400 rounded-lg">
+          <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+          <div>
+            <h3 className="text-red-800 font-medium">Strength Check Failed</h3>
+            <p className="text-red-700">
+              Your totem needs {strengthThreshold} strength for this difficulty level.
+              Current strength: {strength}
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-slate-800 rounded-lg">
+        <div className="relative w-full h-96 bg-slate-700 rounded-lg overflow-hidden">
+          {/* Background terrain */}
+          <div className="absolute inset-0">
+            <img
+              src="/challenges/breaking-background.png"
+              alt="Rocky terrain background"
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          {/* Boulder container */}
+          <div
+            ref={boulderRef}
+            className="absolute inset-0 flex items-center justify-center"
+          >
+            {/* Large centered boulder */}
+            <div className="relative w-2/3 h-4/5 mt-16">
+              <img 
+                src={gameState === 'success' 
+                  ? "/challenges/breaking-boulder.png" 
+                  : "/challenges/breaking-boulder.png"
+                }
+                alt="Boulder"
+                className={`w-full h-full object-contain transition-opacity duration-300
+                  ${showPulse ? 'animate-pulse' : ''}`}
+              />
+
+              {/* Hit points container */}
+              <div className="absolute inset-0">
+                {hitPoints.map((point, index) => (
+                  <div
+                    key={index}
+                    className="absolute"
+                    style={{
+                      left: `${point.x}px`,
+                      top: `${point.y}px`,
+                    }}
+                  >
+                    {/* Glow effect */}
+                    {currentPoint === index && (
+                      <img
+                        src="/challenges/breaking-glow.png"
+                        alt=""
+                        className="absolute transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 animate-pulse"
+                        style={{
+                          opacity: 0.8,
+                        }}
+                      />
+                    )}
+
+                    {/* Hit point target */}
+                    <button
+                      className={`absolute transform -translate-x-1/2 -translate-y-1/2
+                        rounded-full transition-all duration-200
+                        ${point.hit ? 'opacity-50' : 'opacity-80'}
+                        hover:scale-105 focus:outline-none`}
+                      style={{
+                        width: `${difficultySettings.hitRadius * 2}px`,
+                        height: `${difficultySettings.hitRadius * 2}px`,
+                        backgroundColor: point.hit ? '#22c55e' :
+                          currentPoint === index ? '#ef4444' : '#eab308',
+                      }}
+                      onClick={() => handleClick(index)}
+                      type="button"
+                    >
+                      {/* Number indicator */}
+                      <span className="absolute inset-0 flex items-center justify-center text-white font-bold">
+                        {index + 1}
+                      </span>
+
+                      {/* Crack effect when hit */}
+                      {point.hit && (
+                        <img
+                          src="/challenges/breaking-crack.png"
+                          alt=""
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                      )}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <ChallengeActionBar
+        gameState={gameState}
+        score={score}
+        timeLeft={timeLeft}
+        onStart={initializeGame}
+        onRestart={initializeGame}
+      />
+
+    </div>
+  );
+};
+
+export default BoulderBreakerChallenge;

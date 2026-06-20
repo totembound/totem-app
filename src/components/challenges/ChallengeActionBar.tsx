@@ -31,7 +31,7 @@ const ChallengeActionBar: React.FC<ChallengeActionBarProps> = ({
   }, [gameState, reportRunState]);
 
   const ticker = (
-    <div className="text-gray-300 font-bold min-w-0 truncate">
+    <div className="text-gray-300 font-bold min-w-0">
       Time: {timeLeft !== null ? timeLeft.toFixed(1) : '-'}s{extraStats} | Score: {Math.floor(score)}
     </div>
   );

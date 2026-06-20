@@ -411,16 +411,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return promise;
     }, []);
 
-    const challengesLoadedRef = useRef(false);
+    const challengesLoadedDateRef = useRef<string | null>(null);
 
     const loadChallenges = useCallback(async () => {
         // Web2: Use REST API instead of smart contracts
         if (!apiClient.isAuthenticated()) return;
 
-        // SPA cache: only fetch once per session, updates happen client-side.
-        // Set ref BEFORE await to prevent StrictMode / concurrent double-fires.
-        if (challengesLoadedRef.current) return;
-        challengesLoadedRef.current = true;
+        // SPA cache keyed on the UTC date: fetch once per day, updates happen
+        // client-side. A new UTC day busts the cache so attempts rehydrate after
+        // the midnight reset. Set ref BEFORE await to prevent StrictMode /
+        // concurrent double-fires.
+        const todayUTC = new Date().toISOString().slice(0, 10);
+        if (challengesLoadedDateRef.current === todayUTC) return;
+        challengesLoadedDateRef.current = todayUTC;
 
         console.log('loading challenges');
 
@@ -480,7 +483,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
         } catch (err) {
             console.error('Error loading challenges:', err);
-            challengesLoadedRef.current = false; // allow retry on error
+            challengesLoadedDateRef.current = null; // allow retry on error
             setChallengeState(prev => ({
                 ...prev,
                 loading: false,
@@ -1465,11 +1468,34 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
     }, [refreshDailyQuests]);
 
+    // Challenges UTC-rollover guardrails — challenge attempts reset at midnight
+    // UTC server-side, but the SPA caches per-day. Without this, a tab left open
+    // across midnight keeps showing "no attempts left" until restart. Mirrors the
+    // Daily Quests guardrail: cheap string compare on a 60s interval + on refocus.
+    useEffect(() => {
+        const flushIfRolled = () => {
+            const todayUTC = new Date().toISOString().slice(0, 10);
+            if (challengesLoadedDateRef.current && challengesLoadedDateRef.current !== todayUTC) {
+                challengesLoadedDateRef.current = null;
+                if (apiClient.isAuthenticated()) loadChallenges();
+            }
+        };
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') flushIfRolled();
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        const interval = setInterval(flushIfRolled, 60_000);
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            clearInterval(interval);
+        };
+    }, [loadChallenges]);
+
     // Clear user-specific state when user logs out or changes
     useEffect(() => {
         if (!address || !apiClient.isAuthenticated()) {
             // Reset user-specific game state + cache flags
-            challengesLoadedRef.current = false;
+            challengesLoadedDateRef.current = null;
             rewardsLoadedDateRef.current = null;
             setChallengeState(prev => ({
                 ...prev,

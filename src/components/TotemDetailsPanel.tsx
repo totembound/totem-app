@@ -58,7 +58,7 @@ const TIER_THEME: Record<TraitSlot, {
     chipText: string;
 }> = {
     innate: {
-        cardBg: 'bg-gradient-to-br from-stone-900/70 to-stone-800/40 dark:from-stone-900/80 dark:to-stone-800/40',
+        cardBg: 'bg-gradient-to-br from-stone-100/80 to-stone-200/50 dark:from-stone-900/80 dark:to-stone-800/40',
         cardBorder: 'border-stone-300/40 dark:border-stone-700/70',
         halo: 'bg-stone-400/20 dark:bg-stone-300/15',
         pillBg: 'bg-stone-200/90 text-stone-700 ring-1 ring-stone-400/40 dark:bg-stone-800/90 dark:text-stone-200 dark:ring-stone-600/40',
@@ -66,7 +66,7 @@ const TIER_THEME: Record<TraitSlot, {
         chipText: 'text-stone-800 dark:text-stone-100',
     },
     learned: {
-        cardBg: 'bg-gradient-to-br from-blue-950/40 to-blue-900/20 dark:from-blue-950/60 dark:to-blue-900/30',
+        cardBg: 'bg-gradient-to-br from-blue-50/80 to-blue-100/50 dark:from-blue-950/60 dark:to-blue-900/30',
         cardBorder: 'border-blue-300/40 dark:border-blue-800/70',
         halo: 'bg-blue-400/25 dark:bg-blue-500/25',
         pillBg: 'bg-blue-200/90 text-blue-800 ring-1 ring-blue-400/40 dark:bg-blue-900/80 dark:text-blue-100 dark:ring-blue-700/40',
@@ -74,7 +74,7 @@ const TIER_THEME: Record<TraitSlot, {
         chipText: 'text-blue-900 dark:text-blue-100',
     },
     awakened: {
-        cardBg: 'bg-gradient-to-br from-amber-950/40 to-amber-900/20 dark:from-amber-950/60 dark:to-amber-900/30',
+        cardBg: 'bg-gradient-to-br from-amber-50/80 to-amber-100/50 dark:from-amber-950/60 dark:to-amber-900/30',
         cardBorder: 'border-amber-300/50 dark:border-amber-700/70',
         halo: 'bg-amber-400/30 dark:bg-amber-500/30',
         pillBg: 'bg-amber-200/90 text-amber-900 ring-1 ring-amber-400/50 dark:bg-amber-800/80 dark:text-amber-100 dark:ring-amber-600/50',

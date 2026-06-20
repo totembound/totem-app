@@ -31,7 +31,7 @@ const ChallengeActionBar: React.FC<ChallengeActionBarProps> = ({
   }, [gameState, reportRunState]);
 
   const ticker = (
-    <div className="text-gray-300 font-bold">
+    <div className="text-gray-300 font-bold min-w-0">
       Time: {timeLeft !== null ? timeLeft.toFixed(1) : '-'}s{extraStats} | Score: {Math.floor(score)}
     </div>
   );
@@ -60,10 +60,10 @@ const ChallengeActionBar: React.FC<ChallengeActionBarProps> = ({
       )}
 
       {(gameState === 'success' || gameState === 'failed') && (
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center gap-2">
           {ticker}
           <button
-            className={`py-2 px-4 ${gameState === 'success' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} text-white rounded-lg transition-colors duration-200`}
+            className={`py-2 px-4 whitespace-nowrap shrink-0 ${gameState === 'success' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} text-white rounded-lg transition-colors duration-200`}
             onClick={onRestart}
             type="button"
           >

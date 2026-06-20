@@ -298,7 +298,7 @@ const ChallengeGame: React.FC<ChallengeGameProps> = ({
                                 <div className="flex items-center gap-2 pl-7">
                                     <Gift className="w-4 h-4 text-amber-600 dark:text-amber-300" />
                                     <span className="text-sm text-amber-700 dark:text-amber-300">
-                                        Essence Loot Box earned — open now or find it later in your Rewards.
+                                        You received an Essence Loot Box — open now or find it later in your Rewards.
                                     </span>
                                 </div>
                             )}

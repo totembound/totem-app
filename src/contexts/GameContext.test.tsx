@@ -1250,6 +1250,65 @@ describe('GameContext', () => {
     });
   });
 
+  describe('challenge daily reset (UTC rollover)', () => {
+    it('is a cache hit within the same UTC day (no duplicate fetch)', async () => {
+      mockApiClient.getChallenges.mockResolvedValue({ success: true, data: { challenges: [] } });
+
+      const { result } = renderHook(() => useGame(), { wrapper });
+
+      await act(async () => { await result.current.refreshChallenges(); });
+      const callsAfterFirst = mockApiClient.getChallenges.mock.calls.length;
+      expect(callsAfterFirst).toBeGreaterThan(0);
+
+      // Second call on the same UTC day must not re-hit the API
+      await act(async () => { await result.current.refreshChallenges(); });
+      expect(mockApiClient.getChallenges.mock.calls.length).toBe(callsAfterFirst);
+    });
+
+    it('refetches once the UTC day rolls over (cache keyed on the day, not the session)', async () => {
+      // The cache key is new Date().toISOString().slice(0,10); drive it directly.
+      const iso = vi.spyOn(Date.prototype, 'toISOString');
+      iso.mockReturnValue('2026-06-19T23:59:00.000Z');
+      mockApiClient.getChallenges.mockResolvedValue({ success: true, data: { challenges: [] } });
+
+      const { result } = renderHook(() => useGame(), { wrapper });
+
+      await act(async () => { await result.current.refreshChallenges(); });
+      const before = mockApiClient.getChallenges.mock.calls.length;
+
+      // Same day → cache hit
+      await act(async () => { await result.current.refreshChallenges(); });
+      expect(mockApiClient.getChallenges.mock.calls.length).toBe(before);
+
+      // New UTC day → cache busts, attempts rehydrate without a restart
+      iso.mockReturnValue('2026-06-20T00:00:30.000Z');
+      await act(async () => { await result.current.refreshChallenges(); });
+      expect(mockApiClient.getChallenges.mock.calls.length).toBe(before + 1);
+
+      iso.mockRestore();
+    });
+
+    it('the 60s guardrail refetches when the day rolls over with the tab left open', async () => {
+      vi.useFakeTimers();
+      try {
+        vi.setSystemTime(new Date('2026-06-19T23:59:30.000Z'));
+        mockApiClient.getChallenges.mockResolvedValue({ success: true, data: { challenges: [] } });
+
+        const { result } = renderHook(() => useGame(), { wrapper });
+
+        await act(async () => { await result.current.refreshChallenges(); });
+        const before = mockApiClient.getChallenges.mock.calls.length;
+
+        // Cross midnight UTC: the interval fires, detects the new day, and refetches —
+        // this is the exact case the bug missed (no visibilitychange, no restart).
+        await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+        expect(mockApiClient.getChallenges.mock.calls.length).toBe(before + 1);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
+
   describe('getEligibleTotems', () => {
     it('should return totems that meet challenge requirements', async () => {
       mockApiClient.getChallenges.mockResolvedValue({

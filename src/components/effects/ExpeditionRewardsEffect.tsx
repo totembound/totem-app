@@ -44,8 +44,8 @@ const ExpeditionRewardsEffect: React.FC<ExpeditionRewardsEffectProps> = ({
   const totalRunes = runesGained.lesser + runesGained.greater + runesGained.ancient;
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[70] flex items-center justify-center">
-      <div className="relative w-full max-w-lg transform transition-all bg-gradient-to-br from-blue-300/40 to-purple-300/40 dark:from-blue-700/40 dark:to-purple-700/40 rounded-xl border-2 border-blue-400 dark:border-blue-600 p-1 animate-fade-in scale-100 mx-4">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[70] flex items-start sm:items-center justify-center pt-4 sm:pt-0 overflow-y-auto">
+      <div className="relative w-full max-w-lg transform transition-all bg-gradient-to-br from-blue-300/40 to-purple-300/40 dark:from-blue-700/40 dark:to-purple-700/40 rounded-xl border-2 border-blue-400 dark:border-blue-600 p-1 animate-fade-in scale-100 mx-4 mb-24 sm:mb-0">
         <div className="absolute -inset-1">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur opacity-30 animate-pulse"></div>
         </div>

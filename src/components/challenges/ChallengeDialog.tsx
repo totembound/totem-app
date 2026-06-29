@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronLeft, X } from 'lucide-react';
+import { ChevronLeft, Heart, X } from 'lucide-react';
 import { GameState, TotemData } from '../../types/types';
 import { useGame } from '../../contexts/GameContext';
 import { getGameDifficulty, getTotemStage, getRarityBorderColor } from '../../utils/totems';
@@ -32,6 +32,13 @@ const TotemSelectionCard: React.FC<{
     onClick: () => void;
 }> = ({ totem, challengeType, isSelected, onClick, isAvailable, busyReason }) => {
     const rarityBorderColors = getRarityBorderColor(totem.attributes.rarity);
+    const happiness = totem.attributes.happiness;
+    // Color-code so a low-happiness totem (the one you'd start a challenge to cheer up) stands out.
+    const happinessColor = happiness >= 60
+        ? 'text-green-400'
+        : happiness >= 30
+            ? 'text-amber-400'
+            : 'text-red-400';
     return (
     <div
         onClick={isAvailable ? onClick : undefined}
@@ -50,6 +57,12 @@ const TotemSelectionCard: React.FC<{
                     className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+            </div>
+
+            {/* Current happiness — challenges raise it, so surface which totem needs the boost */}
+            <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/50 rounded-full px-1.5 py-0.5">
+                <Heart size={12} className="text-pink-400" fill="currentColor" />
+                <span className={`text-xs font-semibold ${happinessColor}`}>{happiness}</span>
             </div>
 
             {/* Unavailable overlay */}

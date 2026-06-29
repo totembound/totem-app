@@ -44,6 +44,7 @@ vi.mock('../../config/constants', () => ({
 vi.mock('lucide-react', () => ({
   ChevronLeft: () => <span data-testid="icon-chevron" />,
   X: () => <span data-testid="icon-x" />,
+  Heart: () => <span data-testid="icon-heart" />,
 }));
 
 vi.mock('./ChallengeGame', async () => {

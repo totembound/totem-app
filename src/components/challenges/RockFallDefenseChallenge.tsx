@@ -2,6 +2,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameState } from '../../types/types';
 import ChallengeActionBar from './ChallengeActionBar';
 
+// Right-edge spawn margin (% of field) reserving room for a fixed-px rock so it never
+// overflows on the narrowest (mobile) field. 52px ≈ 15% of a ~350px-wide field.
+const ROCK_SPAWN_MARGIN_PCT = 15;
+
 type Rock = {
   id: number;
   x: number;  // horizontal position (percentage)
@@ -59,13 +63,20 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
   
   // Calculate game settings based on difficulty and strength
   const gameSettings: GameSettings = {
-    rockSize: 10,
+    // rockSize is the tap target width in PIXELS (was a % of field width, which made
+    // rocks huge on desktop's wide max-w-2xl field yet too small on a narrow iPhone —
+    // same % renders different absolute sizes). A fixed 52px is a consistent, ≥44px
+    // touch target on every viewport. Horizontal spawn bounds use ROCK_SPAWN_MARGIN_PCT.
+    rockSize: 52,
     initialRockCount: 5 + difficulty,
     maxRocks: 10 + (difficulty * 3),
     rockSpawnRate: 800 - (difficulty * 100),
     rockSpeedMin: 15 + (difficulty * 5),
     rockSpeedMax: 25 + (difficulty * 5),
-    pointsPerRock: 10 * strength,
+    // Softened from 10*strength: strong totems were capping at 3000 in far too few
+    // hits. At 6*strength a near-perfect run lands ~80% of the 3000 max, with the
+    // cap reserved for sustained diehard play. Strength still matters (and gates entry).
+    pointsPerRock: 6 * strength,
     rockClickDisplayTime: 500,
     timeLimit: 30 - (difficulty * 3),
     maxScore: 3000,
@@ -84,7 +95,9 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
   // Create a single rock with the given ID
   const createRock = useCallback((): Rock => {
     const id = nextRockIdRef.current++;
-    const x = Math.random() * (100 - gameSettings.rockSize);
+    // Keep rocks fully in-bounds. rockSize is now px, so reserve a fixed % margin
+    // sized for the narrowest field (52px ≈ 15% of a ~350px mobile field).
+    const x = Math.random() * (100 - ROCK_SPAWN_MARGIN_PCT);
     const speed = gameSettings.rockSpeedMin + Math.random() * (gameSettings.rockSpeedMax - gameSettings.rockSpeedMin);
     
     return {
@@ -248,7 +261,7 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
   }, []);
 
   // Optimized rock click handler
-  const handleRockClick = useCallback((e: React.MouseEvent<HTMLDivElement>, rockId: number) => {
+  const handleRockClick = useCallback((e: React.PointerEvent<HTMLDivElement>, rockId: number) => {
     e.stopPropagation();
     
     if (gameStateRef.current !== 'playing') return;
@@ -319,13 +332,18 @@ const RockFallDefenseChallenge: React.FC<RockFallDefenseChallengeProps> = ({
                 style={{
                   left: `${rock.x}%`,
                   top: `${rock.y}%`,
-                  width: `${gameSettings.rockSize}%`,
+                  width: `${gameSettings.rockSize}px`,
                   height: 'auto',
                   pointerEvents: 'auto',
                   cursor: rock.clicked ? 'default' : 'pointer',
+                  // Fire on finger-down instead of onClick: iOS click fires on
+                  // finger-lift after tap disambiguation, by which time the rock has
+                  // fallen further and the hitbox has moved below where you aimed.
+                  // manipulation disables the double-tap-zoom delay that eats taps.
+                  touchAction: 'manipulation',
                   zIndex: 10
                 }}
-                onClick={(e) => handleRockClick(e, rock.id)}
+                onPointerDown={(e) => handleRockClick(e, rock.id)}
               >
                 <img
                   src={rock.clicked ? "/challenges/FallingRocksBroken.png" : "/challenges/FallingRocks.png"}

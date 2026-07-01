@@ -57,13 +57,19 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
   // Game configuration based on difficulty and agility
   const gameConfig = useRef({
     bongoSize: 120,
-    ringAnimationDuration: 4000 - (agility * 150),
+    // Ring travel speed is driven by DIFFICULTY (not the totem's stat), with a floor so it can
+    // never collapse to an unplayable speed. Higher difficulty = faster rings. (Previously this
+    // was `4000 - agility*150`, which sent high-agility totems to ~250ms — or negative — rings.)
+    // diff 1 → 2900ms, diff 2 → 2400ms, diff 3 → 1900ms (floored at 1800ms).
+    ringAnimationDuration: Math.max(1800, 3400 - (difficulty * 500)),
     maxRingSize: 300,
     minRingSize: 110,
-    // Score ranges proportional to animation duration
-    get perfectScoreRange() { return Math.round(this.ringAnimationDuration * 0.015) },
-    get goodScoreRange() { return Math.round(this.ringAnimationDuration * 0.03) },
-    get okScoreRange() { return Math.round(this.ringAnimationDuration * 0.6) },
+    // Hit windows: max timing error (ms) tolerated for each tier. AGILITY widens them — a more
+    // agile totem has better "timing accuracy", so its windows are more forgiving. Deliberately
+    // tighter than the old (~500ms perfect) windows so scores spread out instead of maxing out.
+    get perfectWindow() { return 70 + agility * 3 },
+    get goodWindow() { return 160 + agility * 5 },
+    get okWindow() { return 320 + agility * 7 },
     perfectScore: 250,
     goodScore: 150,
     okScore: 75,
@@ -163,8 +169,8 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
     
     const timeToTarget = adjustedTargetTime - currentTime;
     
-    // Use perfectScoreRange for consistent timing
-    return timeToTarget > 0 && timeToTarget < config.perfectScoreRange;
+    // Use perfectWindow for consistent timing
+    return timeToTarget > 0 && timeToTarget < config.perfectWindow;
   }, []);
 
   // Evaluate hit accuracy - adjusted to use visibleSince for timing
@@ -181,15 +187,14 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
       adjustedTargetTime = ring.targetTime + spawnDelay;
     }
     
+    // Timing error in ms, compared directly against the ms hit windows (agility-widened).
     const timeDifference = Math.abs(currentTime - adjustedTargetTime);
-    const timeRatio = config.ringAnimationDuration;
-    const distanceFromPerfect = (timeDifference / timeRatio) * (config.maxRingSize - config.minRingSize);
-    
-    if (distanceFromPerfect <= config.perfectScoreRange) {
+
+    if (timeDifference <= config.perfectWindow) {
       return { score: config.perfectScore, type: 'perfect', color: config.scoreColors.perfect };
-    } else if (distanceFromPerfect <= config.goodScoreRange) {
+    } else if (timeDifference <= config.goodWindow) {
       return { score: config.goodScore, type: 'good', color: config.scoreColors.good };
-    } else if (distanceFromPerfect <= config.okScoreRange) {
+    } else if (timeDifference <= config.okWindow) {
       return { score: config.okScore, type: 'ok', color: config.scoreColors.ok };
     } else {
       return { score: config.missScore, type: 'miss', color: config.scoreColors.miss };
@@ -371,7 +376,7 @@ const DrumDanceChallenge: React.FC<DrumDanceChallengeProps> = ({
         }
         
         // Check for rings that need to be marked as missed using adjusted target time
-        if (ring.active && !ring.scored && timestamp > adjustedTargetTime + gameConfig.current.okScoreRange) {
+        if (ring.active && !ring.scored && timestamp > adjustedTargetTime + gameConfig.current.okWindow) {
           ring.active = false;
           ring.scored = true;
           ring.hitType = 'miss';

@@ -19,9 +19,14 @@ type DifficultySettings = {
   spawnInterval: number;
 };
 
-// Higher difficulty spawns faster (more whack opportunities = higher achievable
-// score against the fixed maxScore 1000) but each mole hides sooner. Ceilings at
-// 10 pts/whack over 30s: d1 ~300, d2 ~500, d3 ~850.
+// Flat points awarded per mole whacked. d1 spawns ~1 mole/sec (≈30 spawns over 30s),
+// so a near-perfect d1 run tops out around 750 against the locked maxScore 1000 (the
+// "relatively easy" target). Faster d2/d3 spawns give diehards enough whacks to
+// saturate the 1000 cap.
+const POINTS_PER_WHACK = 25;
+
+// Higher difficulty spawns faster (more whack opportunities against the fixed
+// maxScore 1000) but each mole hides sooner.
 const DIFFICULTY_SETTINGS: Record<number, DifficultySettings> = {
   1: { timeLimit: 30, moleSpeed: 1800, spawnInterval: 1000 },
   2: { timeLimit: 30, moleSpeed: 1300, spawnInterval: 600 },
@@ -114,38 +119,38 @@ const GardenPestControlChallenge: React.FC<GardenPestControlChallengeProps> = ({
   const handleWhack = (holeId: number) => {
     if (gameState !== 'playing') return;
 
-    setHoles(prevHoles => {
-      const hole = prevHoles.find(h => h.id === holeId);
-      if (!hole || !hole.hasMole || hole.isHit) return prevHoles;
+    // Guard against re-hitting the same mole using committed state, then flip the hole
+    // with a pure updater. Side effects (score, active set) stay OUT of the setHoles
+    // updater — React StrictMode double-invokes updaters in dev, and a setScore nested
+    // inside would fire twice, doubling points in dev vs prod.
+    const hole = holes.find(h => h.id === holeId);
+    if (!hole || !hole.hasMole || hole.isHit) return;
 
-      const newHoles = prevHoles.map(h => 
-        h.id === holeId 
+    setHoles(prevHoles =>
+      prevHoles.map(h =>
+        h.id === holeId
           ? { ...h, hasMole: false, isHit: true, showEffect: true }
           : h
-      );
+      )
+    );
 
-      const totalScore = 10;
-
-      setScore(prev => prev + totalScore);
-      setActiveMoles(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(holeId);
-        return newSet;
-      });
-
-      // Hide hit effect after animation
-      setTimeout(() => {
-        setHoles(currentHoles => 
-          currentHoles.map(h => 
-            h.id === holeId 
-              ? { ...h, showEffect: false, isHit: false }
-              : h
-          )
-        );
-      }, 500);
-
-      return newHoles;
+    setScore(prev => prev + POINTS_PER_WHACK);
+    setActiveMoles(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(holeId);
+      return newSet;
     });
+
+    // Hide hit effect after animation
+    setTimeout(() => {
+      setHoles(currentHoles =>
+        currentHoles.map(h =>
+          h.id === holeId
+            ? { ...h, showEffect: false, isHit: false }
+            : h
+        )
+      );
+    }, 500);
   };
 
   // Game timer

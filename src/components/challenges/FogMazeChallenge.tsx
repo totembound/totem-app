@@ -17,14 +17,14 @@ interface FogMazeChallengeProps {
 }
 
 // Score = completionPoints + (time remaining ratio × speedBonus).
-// Intended ceilings (perfect run): d1 1500, d2 2250, d3 3000 (= server maxScore).
-// Higher difficulty grants more time overall but less time per cell
-// (90s/81 ≈ 1.1s, 120s/169 ≈ 0.7s, 150s/289 ≈ 0.5s), so it's harder per move
-// while offering a strictly higher score ceiling.
+// Intended ceilings (perfect run): d1 2400 (≈80% of max, the "relatively easy"
+// target), d2 2700, d3 3000 (= server maxScore, diehard-only). Higher difficulty
+// grants more time overall but less time per cell (90s/81 ≈ 1.1s, 120s/169 ≈ 0.7s,
+// 150s/289 ≈ 0.5s), so it's harder per move while offering a higher score ceiling.
 const SETTINGS = {
-  1: { cols: 9,  rows: 9,  timeLimit: 90,  viewRadius: 2, completionPoints: 1200, speedBonus: 300 },
-  2: { cols: 13, rows: 13, timeLimit: 120, viewRadius: 2, completionPoints: 1800, speedBonus: 450 },
-  3: { cols: 17, rows: 17, timeLimit: 150, viewRadius: 2, completionPoints: 2400, speedBonus: 600 },
+  1: { cols: 9,  rows: 9,  timeLimit: 90,  viewRadius: 2, completionPoints: 2000, speedBonus: 400 },
+  2: { cols: 13, rows: 13, timeLimit: 120, viewRadius: 2, completionPoints: 2250, speedBonus: 450 },
+  3: { cols: 17, rows: 17, timeLimit: 150, viewRadius: 2, completionPoints: 2500, speedBonus: 500 },
 } as const;
 
 const OPPOSITE = { top: 'bottom', right: 'left', bottom: 'top', left: 'right' } as const;

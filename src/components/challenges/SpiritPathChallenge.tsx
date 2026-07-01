@@ -68,15 +68,16 @@ const SpiritPath: React.FC<SpiritPathProps> = ({
 
   // Calculate game settings based on difficulty and agility
   // Score = completionBonus + timeBonus + moveBonus. Intended ceilings (perfect run):
-  // d1 1200, d2 1600, d3 2000 (= server maxScore). Time scales WITH grid size so
-  // bigger grids stay completable; the rising disappearChance is the skill test.
+  // d1 1600 (≈80% of max, the "relatively easy" target), d2 1800, d3 2000 (= server
+  // maxScore, diehard-only). Time scales WITH grid size so bigger grids stay
+  // completable; the rising disappearChance is the skill test.
   const gameSettings = {
     gridSize: 3 + difficulty, // Use agility to determine grid size
     timeLimit: 20 + (difficulty * 5), // more tiles to cross = more time
     disappearChance: 0.35 + (difficulty * 0.1),
-    completionBonus: 320 + (difficulty * 160), // 480 / 640 / 800
-    maxTimeBonus: 280 + (difficulty * 140),    // 420 / 560 / 700
-    maxMoveBonus: 200 + (difficulty * 100),    // 300 / 400 / 500
+    completionBonus: 650 + (difficulty * 50),  // 700 / 750 / 800
+    maxTimeBonus: 450 + (difficulty * 100),    // 550 / 650 / 750
+    maxMoveBonus: 300 + (difficulty * 50),     // 350 / 400 / 450
     disappearWarningTime: 0.8 + (agility * 0.1),
     reappearChance: 0.45,
     initialVisibleTiles: 0.75 - (difficulty * 0.05), // percentage of tiles visible at start

@@ -56,7 +56,7 @@ interface AuthContextType {
 
   // Actions
   login: (email: string, password: string) => Promise<{ success: boolean; needsVerification?: boolean }>;
-  signup: (email: string, password: string, displayName?: string) => Promise<{ success: boolean; needsVerification?: boolean }>;
+  signup: (email: string, password: string, displayName?: string, captchaToken?: string) => Promise<{ success: boolean; needsVerification?: boolean }>;
   loginWithOAuth: (provider: string, code: string, redirectUri: string) => Promise<{ success: boolean; isNewUser?: boolean; error?: string }>;
   verifyEmail: (email: string, code: string, password: string) => Promise<boolean>;
   resendVerification: (email: string) => Promise<boolean>;
@@ -147,13 +147,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signup = useCallback(async (
     email: string,
     password: string,
-    displayName?: string
+    displayName?: string,
+    captchaToken?: string
   ): Promise<{ success: boolean; needsVerification?: boolean }> => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const result = await AuthService.signup(email, password, displayName);
+      const result = await AuthService.signup(email, password, displayName, captchaToken);
 
       if (result.success && result.needsVerification) {
         if (result.lootItem) {

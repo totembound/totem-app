@@ -155,12 +155,13 @@ export function getAuthHeader(): Record<string, string> {
 export async function signup(
   email: string,
   password: string,
-  displayName?: string
+  displayName?: string,
+  captchaToken?: string
 ): Promise<SignupResponse> {
   const response = await fetch(`${API_URL}/auth/signup`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, displayName }),
+    body: JSON.stringify({ email, password, displayName, captchaToken }),
   });
 
   const data = await response.json();
@@ -221,12 +222,13 @@ export async function resendVerificationCode(
  * Request a password reset code
  */
 export async function forgotPassword(
-  email: string
+  email: string,
+  captchaToken?: string
 ): Promise<{ success: boolean; message?: string; error?: string }> {
   const response = await fetch(`${API_URL}/auth/forgot-password`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email, captchaToken }),
   });
 
   return response.json();

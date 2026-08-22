@@ -154,6 +154,33 @@ describe('AuthService', () => {
       // No tokens to store
       expect(localStorageMock.setItem).not.toHaveBeenCalledWith('totembound_tokens', expect.any(String));
     });
+
+    it('should include the captchaToken in the request body when provided', async () => {
+      mockFetch.mockResolvedValueOnce({
+        json: () => Promise.resolve({ success: true, needsVerification: true }),
+      });
+
+      await signup('new@test.com', 'pass123', 'New', 'cf-token-123');
+
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body).toEqual({
+        email: 'new@test.com',
+        password: 'pass123',
+        displayName: 'New',
+        captchaToken: 'cf-token-123',
+      });
+    });
+
+    it('should omit captchaToken from the body when not provided', async () => {
+      mockFetch.mockResolvedValueOnce({
+        json: () => Promise.resolve({ success: true, needsVerification: true }),
+      });
+
+      await signup('new@test.com', 'pass123', 'New');
+
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body).not.toHaveProperty('captchaToken');
+    });
   });
 
   describe('verifyEmail', () => {
@@ -209,6 +236,17 @@ describe('AuthService', () => {
 
       const url = mockFetch.mock.calls[0][0];
       expect(url).toContain('/auth/forgot-password');
+    });
+
+    it('should include the captchaToken in the request body when provided', async () => {
+      mockFetch.mockResolvedValueOnce({
+        json: () => Promise.resolve({ success: true, message: 'Reset code sent' }),
+      });
+
+      await forgotPassword('test@test.com', 'cf-token-456');
+
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body).toEqual({ email: 'test@test.com', captchaToken: 'cf-token-456' });
     });
   });
 

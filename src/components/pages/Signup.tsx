@@ -5,7 +5,7 @@
  * Creates account and starter totem.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -23,6 +23,10 @@ import { CURRENCY_NAMES } from '../../config/constants';
 import { COMING_SOON } from '../../config/flags';
 import { ComingSoon } from '../ComingSoon';
 import SocialLoginButtons from '../auth/SocialLoginButtons';
+import CaptchaWidget, {
+  isCaptchaEnabled,
+  type CaptchaWidgetHandle,
+} from '../auth/CaptchaWidget';
 
 type SignupStep = 'form' | 'processing' | 'success';
 
@@ -39,6 +43,8 @@ const Signup: React.FC = () => {
   const [localError, setLocalError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<CaptchaWidgetHandle>(null);
 
   // Redirect if already authenticated (but not after signup success)
   useEffect(() => {
@@ -92,6 +98,10 @@ const Signup: React.FC = () => {
       setLocalError('You must agree to the Terms of Use and Privacy Policy');
       return false;
     }
+    if (isCaptchaEnabled && !captchaToken) {
+      setLocalError('Please complete the captcha to continue');
+      return false;
+    }
     return true;
   };
 
@@ -104,7 +114,12 @@ const Signup: React.FC = () => {
     setLocalError(null);
     setStep('processing');
 
-    const result = await signup(email, password, displayName || undefined);
+    const result = await signup(
+      email,
+      password,
+      displayName || undefined,
+      captchaToken || undefined
+    );
 
     if (result.needsVerification) {
       navigate('/verify-email', { state: { email, password } });
@@ -114,6 +129,9 @@ const Signup: React.FC = () => {
     if (result.success) {
       setStep('success');
     } else {
+      // Turnstile tokens are single-use — refresh it so a retry has a valid one.
+      captchaRef.current?.reset();
+      setCaptchaToken(null);
       setStep('form');
     }
 
@@ -380,10 +398,18 @@ const Signup: React.FC = () => {
               </label>
             </div>
 
+            {/* Captcha */}
+            <CaptchaWidget
+              ref={captchaRef}
+              onVerify={setCaptchaToken}
+              onInvalidate={() => setCaptchaToken(null)}
+              className="flex justify-center"
+            />
+
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isSubmitting || isLoading}
+              disabled={isSubmitting || isLoading || (isCaptchaEnabled && !captchaToken)}
               className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
             >
               {isSubmitting || isLoading ? (

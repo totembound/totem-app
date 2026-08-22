@@ -131,7 +131,11 @@ export default defineConfig(({ mode }) => ({
       }
     },
     env: {
-      VITE_API_URL: 'http://localhost:3001'
+      VITE_API_URL: 'http://localhost:3001',
+      // Deterministic captcha state for tests, independent of any local .env.local.
+      // Keeps isCaptchaEnabled true so the widget path is exercised; individual
+      // tests can override with vi.stubEnv('VITE_TURNSTILE_SITE_KEY', '').
+      VITE_TURNSTILE_SITE_KEY: 'test-site-key'
     },
     setupFiles: ['./src/setupTests.ts']
   }

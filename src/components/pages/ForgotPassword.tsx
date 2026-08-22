@@ -6,12 +6,16 @@
  * 2. Enter code + new password → reset password
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, KeyRound, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 import * as AuthService from '../../services/AuthService';
 import { COMING_SOON } from '../../config/flags';
 import { ComingSoon } from '../ComingSoon';
+import CaptchaWidget, {
+  isCaptchaEnabled,
+  type CaptchaWidgetHandle,
+} from '../auth/CaptchaWidget';
 
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
@@ -25,6 +29,8 @@ const ForgotPassword: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<CaptchaWidgetHandle>(null);
 
   // Clear errors when inputs change
   useEffect(() => {
@@ -44,19 +50,28 @@ const ForgotPassword: React.FC = () => {
       setError('Please enter a valid email');
       return;
     }
+    if (isCaptchaEnabled && !captchaToken) {
+      setError('Please complete the captcha to continue');
+      return;
+    }
 
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const result = await AuthService.forgotPassword(email);
+      const result = await AuthService.forgotPassword(email, captchaToken || undefined);
 
       if (result.success) {
         setStep('reset');
       } else {
+        // Turnstile tokens are single-use — refresh it so a retry has a valid one.
+        captchaRef.current?.reset();
+        setCaptchaToken(null);
         setError(result.error || 'Failed to send reset code');
       }
     } catch (err) {
+      captchaRef.current?.reset();
+      setCaptchaToken(null);
       setError('Failed to send reset code. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -196,9 +211,17 @@ const ForgotPassword: React.FC = () => {
                 </div>
               </div>
 
+              {/* Captcha */}
+              <CaptchaWidget
+                ref={captchaRef}
+                onVerify={setCaptchaToken}
+                onInvalidate={() => setCaptchaToken(null)}
+                className="flex justify-center"
+              />
+
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || (isCaptchaEnabled && !captchaToken)}
                 className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (

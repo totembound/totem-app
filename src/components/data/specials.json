@@ -150,6 +150,32 @@
         "month": 9
       },
       {
+        "id": "october-2025",
+        "bundleId": 3,
+        "name": "Nightshade Raven (Phantom Black)",
+        "description": "A legendary harbinger of transition, guiding between worlds.",
+        "baseSpecies": "Raven",
+        "price": 5000,
+        "priceUsd": "$50",
+        "tokenAmount": 2000,
+        "dailyLimit": 1,
+        "image": "https://ipfs.totembound.com/ipfs/bafybeibebfulv45waudtg322l2s2uy6hwycrfy2kr7nt634ejuhdsk3ytu",
+        "month": 10
+      },
+      {
+        "id": "november-2025",
+        "bundleId": 3,
+        "name": "Hearthcoil Snake (Emberwood Brown)",
+        "description": "A legendary guardian of family, tradition, and enduring spirit.",
+        "baseSpecies": "Snake",
+        "price": 5000,
+        "priceUsd": "$50",
+        "tokenAmount": 2000,
+        "dailyLimit": 1,
+        "image": "https://ipfs.totembound.com/ipfs/bafybeiaymvqgge3pkwt6o55qrnzg5pcp7ppk5ofgdwb3g65q7wj7k7dir4",
+        "month": 11
+      },
+      {
         "id": "december-2025",
         "bundleId": 3,
         "name": "Everfrost Owl (Starlit Silver)",
